@@ -5,7 +5,7 @@ export const axiosPrivate = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
   withCredentials: true, // ✅ Esto ya está bien
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -15,11 +15,13 @@ export const setupAxiosInterceptors = (signOut) => {
     (config) => {
       // Asegurar que withCredentials esté siempre en true
       config.withCredentials = true;
-      
+
       // Token de fallback si las cookies no funcionan
-      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
-      if (token && !config.headers['Authorization']) {
-        config.headers['Authorization'] = `Bearer ${token}`;
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (token) {
+        config.headers["Authorization"] = `Bearer ${token}`;
+        config.withCredentials = false; // ⚠️ Safari no necesita cookie
       }
       return config;
     },
