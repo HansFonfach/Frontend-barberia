@@ -1,9 +1,8 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { verifyRequest, loginRequest, registerRequest } from "api/auth";
+import { verifyRequest, loginRequest, registerRequest, forgotPasswordRequest, updateUserPasswordRequest } from "api/auth";
 import { useNavigate } from "react-router-dom";
 import { setupAxiosInterceptors } from "api/axiosPrivate";
-import { forgotPasswordRequest } from "api/auth";
-import { updateUserPasswordRequest } from "api/auth";
+import Swal from "sweetalert2";
 
 export const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
@@ -18,12 +17,30 @@ export const AuthProvider = ({ children }) => {
   const [errors, setErrors] = useState(null);
   const navigate = useNavigate();
 
-  // ✅ Función para guardar token (maneja ambos métodos)
+  // Guardar token en localStorage y sessionStorage como fallback
   const saveToken = (token) => {
     if (token) {
       localStorage.setItem("token", token);
-      // También podrías guardarlo en sessionStorage como fallback
       sessionStorage.setItem("token", token);
+    }
+  };
+
+  // Cerrar sesión: limpia cookie y almacenamiento local
+  const signOut = async () => {
+    try {
+      await fetch(`${process.env.REACT_APP_API_URL}/auth/logout`, {
+        method: "POST",
+        credentials: "include", // limpia cookie en backend
+      });
+    } catch (err) {
+      console.log("Error logout:", err);
+    } finally {
+      localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
+      setUser(null);
+      setIsAuthenticated(false);
+      navigate("/login");
     }
   };
 
@@ -37,14 +54,14 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("user", JSON.stringify(res.data.usuario));
       } catch (error) {
         console.warn("Sesión inválida o expirada:", error.response?.data);
-        
-        // ✅ Intentar con token de localStorage como fallback
+
+        // Intentar con token de fallback
         const localToken = localStorage.getItem("token") || sessionStorage.getItem("token");
         if (localToken) {
           console.log("Intentando con token de fallback...");
-          // Podrías hacer una verificación especial aquí
+          // Podrías hacer una verificación adicional aquí si quieres
         }
-        
+
         signOut();
       } finally {
         setLoading(false);
@@ -60,17 +77,13 @@ export const AuthProvider = ({ children }) => {
       const res = await loginRequest(credentials);
       const usuario = res.data.user;
 
-      // ✅ Guardar token de fallback si viene en la respuesta
-      if (res.data.token) {
-        saveToken(res.data.token);
-      }
+      if (res.data.token) saveToken(res.data.token);
 
       localStorage.setItem("user", JSON.stringify(usuario));
-
       setUser(usuario);
       setIsAuthenticated(true);
       setErrors(null);
-      
+
       return res.data;
     } catch (error) {
       setErrors(error.response?.data || "Error desconocido");
@@ -84,17 +97,13 @@ export const AuthProvider = ({ children }) => {
       const res = await registerRequest(data);
       const usuario = res.data.user;
 
-      // ✅ Guardar token de fallback si viene en la respuesta
-      if (res.data.token) {
-        saveToken(res.data.token);
-      }
+      if (res.data.token) saveToken(res.data.token);
 
       localStorage.setItem("user", JSON.stringify(usuario));
-
       setUser(usuario);
       setIsAuthenticated(true);
       setErrors(null);
-      
+
       return res.data;
     } catch (error) {
       setErrors(error.response?.data || "Error desconocido");
@@ -102,6 +111,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // OLVIDÉ MI CONTRASEÑA
   const forgotPassword = async (email) => {
     try {
       const res = await forgotPasswordRequest(email);
@@ -112,6 +122,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // CAMBIO DE CONTRASEÑA
   const updatePassword = async (id, currentPassword, newPassword) => {
     try {
       const res = await updateUserPasswordRequest(id, currentPassword, newPassword);
@@ -122,28 +133,7 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // LOGOUT
-  const signOut = async () => {
-    try {
-      // Limpiar backend
-      await fetch(`${process.env.REACT_APP_API_URL}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-    } catch (error) {
-      console.log("Error en logout:", error);
-    } finally {
-      // Limpiar frontend completamente
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
-      sessionStorage.removeItem("token");
-      setUser(null);
-      setIsAuthenticated(false);
-      navigate("/login");
-    }
-  };
-
-  // Configurar interceptores
+  // Configurar interceptores de Axios
   useEffect(() => {
     setupAxiosInterceptors(signOut);
   }, []);
