@@ -4,18 +4,34 @@ import Swal from "sweetalert2";
 export const axiosPrivate = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
   withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-
 /**
- * Configura los interceptores de respuesta de Axios.
- * @param {Function} signOut - Función que limpia sesión y redirige al login.
+ * Configura los interceptores de Axios.
  */
 export const setupAxiosInterceptors = (signOut) => {
+  // Interceptor de request para asegurar credenciales
+  axiosPrivate.interceptors.request.use(
+    (config) => {
+      config.withCredentials = true;
+      return config;
+    },
+    (error) => {
+      return Promise.reject(error);
+    }
+  );
+
+  // Interceptor de response
   axiosPrivate.interceptors.response.use(
     (response) => response,
     async (error) => {
       const status = error.response?.status;
+      const originalRequest = error.config;
+
+      console.log("Error de axios:", status, error.response?.data);
 
       if (status === 401) {
         try {
@@ -28,7 +44,7 @@ export const setupAxiosInterceptors = (signOut) => {
             allowEscapeKey: false,
           });
         } finally {
-          signOut(); // 👈 se ejecuta cuando cierra el alert
+          signOut();
         }
       }
 

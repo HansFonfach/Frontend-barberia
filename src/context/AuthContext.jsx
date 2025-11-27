@@ -17,6 +17,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState(null);
   const navigate = useNavigate();
+
   // Verificar sesión al iniciar
   useEffect(() => {
     const verifySession = async () => {
@@ -26,17 +27,14 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         localStorage.setItem("user", JSON.stringify(res.data.usuario));
       } catch (error) {
-        console.warn("Sesión inválida o expirada");
+        console.warn("Sesión inválida o expirada:", error.response?.data);
         signOut();
       } finally {
         setLoading(false);
       }
     };
 
-    // Solo verifica si hay token almacenado
-    const token = localStorage.getItem("token");
-    if (token && token !== "undefined") verifySession();
-    else setLoading(false);
+    verifySession(); // ✅ Siempre verificar, el token está en cookies
   }, []);
 
   // LOGIN
@@ -44,14 +42,15 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await loginRequest(credentials);
       const usuario = res.data.user;
-      const token = res.data.token;
 
+      // ✅ SOLO guardar usuario, NO token (está en cookies)
       localStorage.setItem("user", JSON.stringify(usuario));
-      localStorage.setItem("token", token);
 
       setUser(usuario);
       setIsAuthenticated(true);
       setErrors(null);
+      
+      return res.data;
     } catch (error) {
       setErrors(error.response?.data || "Error desconocido");
       throw error;
@@ -63,14 +62,15 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await registerRequest(data);
       const usuario = res.data.user;
-      const token = res.data.token;
 
+      // ✅ SOLO guardar usuario, NO token
       localStorage.setItem("user", JSON.stringify(usuario));
-      localStorage.setItem("token", token);
 
       setUser(usuario);
       setIsAuthenticated(true);
       setErrors(null);
+      
+      return res.data;
     } catch (error) {
       setErrors(error.response?.data || "Error desconocido");
       throw error;
@@ -89,11 +89,7 @@ export const AuthProvider = ({ children }) => {
 
   const updatePassword = async (id, currentPassword, newPassword) => {
     try {
-      const res = await updateUserPasswordRequest(
-        id,
-        currentPassword,
-        newPassword
-      );
+      const res = await updateUserPasswordRequest(id, currentPassword, newPassword);
       return res.data;
     } catch (error) {
       setErrors(error.response?.data || "Error desconocido");
@@ -101,16 +97,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // LOGOUT
-  const signOut = () => {
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
-    setUser(null);
-    setIsAuthenticated(false);
-    navigate("/login");
+  // LOGOUT - también limpiar cookie en backend
+  const signOut = async () => {
+    try {
+      // Llamar al backend para limpiar la cookie
+      await fetch(`${process.env.REACT_APP_API_URL}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+    } catch (error) {
+      console.log("Error en logout:", error);
+    } finally {
+      // Limpiar frontend
+      localStorage.removeItem("user");
+      setUser(null);
+      setIsAuthenticated(false);
+      navigate("/login");
+    }
   };
 
-  // Configurar interceptores globales después de definir signOut
+  // Configurar interceptores
   useEffect(() => {
     setupAxiosInterceptors(signOut);
   }, []);
