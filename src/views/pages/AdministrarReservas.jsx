@@ -90,7 +90,7 @@ const MisReservas = () => {
   const fetchReservas = async () => {
     try {
       setCargando(true);
-      const res = await axios.get(`http://localhost:4000/reservas/${userId}`, {
+      const res = await axios.get(`https://backend-barberia-yq3k.onrender.com/reservas/${userId}`, {
         withCredentials: true,
       });
       const data = Array.isArray(res.data.reservas) ? res.data.reservas : [];
