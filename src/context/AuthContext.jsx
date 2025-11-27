@@ -29,7 +29,6 @@ export const AuthProvider = ({ children }) => {
 
   // Verificar sesión al iniciar
   useEffect(() => {
-    // En el verifySession del AuthContext
     const verifySession = async () => {
       try {
         const res = await verifyRequest();
@@ -37,8 +36,15 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         localStorage.setItem("user", JSON.stringify(res.data.usuario));
       } catch (error) {
-        console.warn("Sesión inválida o expirada");
-        // ✅ SOLO cerrar sesión silenciosamente, sin alertas
+        console.warn("Sesión inválida o expirada:", error.response?.data);
+        
+        // ✅ Intentar con token de localStorage como fallback
+        const localToken = localStorage.getItem("token") || sessionStorage.getItem("token");
+        if (localToken) {
+          console.log("Intentando con token de fallback...");
+          // Podrías hacer una verificación especial aquí
+        }
+        
         signOut();
       } finally {
         setLoading(false);
@@ -64,7 +70,7 @@ export const AuthProvider = ({ children }) => {
       setUser(usuario);
       setIsAuthenticated(true);
       setErrors(null);
-
+      
       return res.data;
     } catch (error) {
       setErrors(error.response?.data || "Error desconocido");
@@ -88,7 +94,7 @@ export const AuthProvider = ({ children }) => {
       setUser(usuario);
       setIsAuthenticated(true);
       setErrors(null);
-
+      
       return res.data;
     } catch (error) {
       setErrors(error.response?.data || "Error desconocido");
@@ -108,11 +114,7 @@ export const AuthProvider = ({ children }) => {
 
   const updatePassword = async (id, currentPassword, newPassword) => {
     try {
-      const res = await updateUserPasswordRequest(
-        id,
-        currentPassword,
-        newPassword
-      );
+      const res = await updateUserPasswordRequest(id, currentPassword, newPassword);
       return res.data;
     } catch (error) {
       setErrors(error.response?.data || "Error desconocido");
@@ -125,8 +127,8 @@ export const AuthProvider = ({ children }) => {
     try {
       // Limpiar backend
       await fetch(`${process.env.REACT_APP_API_URL}/auth/logout`, {
-        method: "POST",
-        credentials: "include",
+        method: 'POST',
+        credentials: 'include'
       });
     } catch (error) {
       console.log("Error en logout:", error);
@@ -157,7 +159,7 @@ export const AuthProvider = ({ children }) => {
         signOut,
         register,
         forgotPassword,
-        updatePassword,
+        updatePassword
       }}
     >
       {children}
