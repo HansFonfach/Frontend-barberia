@@ -3,20 +3,24 @@ import Swal from "sweetalert2";
 
 export const axiosPrivate = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
-  withCredentials: true,
+  withCredentials: true, // ✅ Esto ya está bien
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-/**
- * Configura los interceptores de Axios.
- */
 export const setupAxiosInterceptors = (signOut) => {
-  // Interceptor de request para asegurar credenciales
+  // Interceptor de request
   axiosPrivate.interceptors.request.use(
     (config) => {
+      // Asegurar que withCredentials esté siempre en true
       config.withCredentials = true;
+      
+      // Token de fallback si las cookies no funcionan
+      const token = localStorage.getItem("token") || sessionStorage.getItem("token");
+      if (token && !config.headers['Authorization']) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
       return config;
     },
     (error) => {
@@ -29,9 +33,6 @@ export const setupAxiosInterceptors = (signOut) => {
     (response) => response,
     async (error) => {
       const status = error.response?.status;
-      const originalRequest = error.config;
-
-      console.log("Error de axios:", status, error.response?.data);
 
       if (status === 401) {
         try {

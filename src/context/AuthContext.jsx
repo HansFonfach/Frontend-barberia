@@ -18,6 +18,15 @@ export const AuthProvider = ({ children }) => {
   const [errors, setErrors] = useState(null);
   const navigate = useNavigate();
 
+  // ✅ Función para guardar token (maneja ambos métodos)
+  const saveToken = (token) => {
+    if (token) {
+      localStorage.setItem("token", token);
+      // También podrías guardarlo en sessionStorage como fallback
+      sessionStorage.setItem("token", token);
+    }
+  };
+
   // Verificar sesión al iniciar
   useEffect(() => {
     const verifySession = async () => {
@@ -28,13 +37,21 @@ export const AuthProvider = ({ children }) => {
         localStorage.setItem("user", JSON.stringify(res.data.usuario));
       } catch (error) {
         console.warn("Sesión inválida o expirada:", error.response?.data);
+        
+        // ✅ Intentar con token de localStorage como fallback
+        const localToken = localStorage.getItem("token") || sessionStorage.getItem("token");
+        if (localToken) {
+          console.log("Intentando con token de fallback...");
+          // Podrías hacer una verificación especial aquí
+        }
+        
         signOut();
       } finally {
         setLoading(false);
       }
     };
 
-    verifySession(); // ✅ Siempre verificar, el token está en cookies
+    verifySession();
   }, []);
 
   // LOGIN
@@ -43,7 +60,11 @@ export const AuthProvider = ({ children }) => {
       const res = await loginRequest(credentials);
       const usuario = res.data.user;
 
-      // ✅ SOLO guardar usuario, NO token (está en cookies)
+      // ✅ Guardar token de fallback si viene en la respuesta
+      if (res.data.token) {
+        saveToken(res.data.token);
+      }
+
       localStorage.setItem("user", JSON.stringify(usuario));
 
       setUser(usuario);
@@ -63,7 +84,11 @@ export const AuthProvider = ({ children }) => {
       const res = await registerRequest(data);
       const usuario = res.data.user;
 
-      // ✅ SOLO guardar usuario, NO token
+      // ✅ Guardar token de fallback si viene en la respuesta
+      if (res.data.token) {
+        saveToken(res.data.token);
+      }
+
       localStorage.setItem("user", JSON.stringify(usuario));
 
       setUser(usuario);
@@ -97,10 +122,10 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // LOGOUT - también limpiar cookie en backend
+  // LOGOUT
   const signOut = async () => {
     try {
-      // Llamar al backend para limpiar la cookie
+      // Limpiar backend
       await fetch(`${process.env.REACT_APP_API_URL}/auth/logout`, {
         method: 'POST',
         credentials: 'include'
@@ -108,8 +133,10 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       console.log("Error en logout:", error);
     } finally {
-      // Limpiar frontend
+      // Limpiar frontend completamente
       localStorage.removeItem("user");
+      localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
       setUser(null);
       setIsAuthenticated(false);
       navigate("/login");
