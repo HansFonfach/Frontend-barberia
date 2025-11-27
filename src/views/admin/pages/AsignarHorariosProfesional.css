@@ -1,0 +1,75 @@
+.agenda-contenedor {
+  background: #f8fafc;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.agenda-card {
+  border: none;
+  border-radius: 12px;
+  background: white;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.agenda-header h4 {
+  margin: 0;
+  color: #1e293b;
+}
+
+.agenda-grid-pro {
+  display: grid;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  overflow: hidden;
+  background: white;
+}
+
+.grid-header,
+.grid-row {
+  display: grid;
+  grid-template-columns: 80px repeat(7, 1fr);
+}
+
+.grid-cell {
+  border: 1px solid #e2e8f0;
+  text-align: center;
+  min-height: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-cell {
+  background: #f1f5f9;
+  font-weight: 600;
+  color: #334155;
+  padding: 10px 0;
+}
+
+.hour-cell {
+  background: #e2e8f0;
+  font-weight: 600;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.horario-cell {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  margin: 2px;
+}
+
+.horario-cell.activo {
+  background: #3b82f6;
+  color: white;
+}
+
+.horario-cell.inactivo {
+  background: #f8fafc;
+  color: #94a3b8;
+}
