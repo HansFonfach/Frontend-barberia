@@ -11,14 +11,13 @@ export const setupAxiosInterceptors = (signOut) => {
   // Interceptor request
   axiosPrivate.interceptors.request.use(
     (config) => {
-      config.withCredentials = true; // cookies para navegadores compatibles
+      config.withCredentials = true; // siempre enviar cookies
 
-      // Fallback para Safari: usar token en header
+      // fallback con token si hay
       const token =
         localStorage.getItem("token") || sessionStorage.getItem("token");
-      if (token) {
+      if (token && !config.headers["Authorization"]) {
         config.headers["Authorization"] = `Bearer ${token}`;
-        config.withCredentials = false; // Safari solo necesita header
       }
 
       return config;
