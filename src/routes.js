@@ -189,6 +189,13 @@ export const barberoRoutes = [
     component: <GestionHorariosBarbero />,
     section: "gestion",
   },
+  {
+    path: "/asignar-horas",
+    name: "Asignar horarios Barberos",
+    icon: "fas fa-user-clock text-primary", // 👤⏰ Horarios por barbero
+    layout: "/admin",
+    component: <WizardBarberoSemana />,
+  },
   // Estadísticas
   {
     path: "/estadisticas",

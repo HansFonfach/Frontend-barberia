@@ -279,7 +279,6 @@ export const useReservaBarbero = () => {
     const svc = servicios.find((s) => s._id === servicio);
     return svc ? svc.duracion || 60 : 60;
   })();
-
   const handleReservar = async (e) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!user)
@@ -287,28 +286,34 @@ export const useReservaBarbero = () => {
 
     setReservando(true);
 
+    // Determinar usuario para la reserva
+    const usuarioId = usuarioEncontrado?._id || user._id || user.id;
+
+    if (!usuarioId) {
+      setReservando(false);
+      return Swal.fire(
+        "Error",
+        "No se pudo determinar el usuario para la reserva",
+        "error"
+      );
+    }
+
     try {
       const horasAReservar =
         duracionSeleccionado === 120 ? [hora, nextHour(hora)] : [hora];
 
       for (const h of horasAReservar) {
         try {
-          await postReservarHora(fecha, barbero, h, servicio, usuarioEncontrado._id);
-          console.log("hook",usuarioEncontrado);
-      
+          await postReservarHora(fecha, barbero, h, servicio, usuarioId);
         } catch (error) {
           const backendMessage =
             error.response?.data?.message || "No se pudo realizar la reserva";
 
-          // Mostrar el error del backend
           Swal.fire("Error", backendMessage, "error");
-
-          // IMPORTANTE: interrumpir el proceso para que NO muestre “reserva exitosa”
           return;
         }
       }
 
-      // Si pasó por todo el for sin errores → éxito real
       Swal.fire(
         "Reserva exitosa",
         "Tu hora se ha reservado correctamente. Te enviaremos un correo con la confirmación de tu hora.",
@@ -322,7 +327,6 @@ export const useReservaBarbero = () => {
       setReservando(false);
     }
   };
-
   const handleLimpiarRut = () => {
     clearRut();
     setUsuarioEncontrado(null);
