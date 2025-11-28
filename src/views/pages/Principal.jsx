@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, CardBody, Container, Row, Col, Badge } from "reactstrap";
+import { 
+  Button, 
+  Card, 
+  CardBody, 
+  Container, 
+  Row, 
+  Col, 
+  Badge, 
+  Modal, 
+  ModalHeader, 
+  ModalBody, 
+  ModalFooter 
+} from "reactstrap";
 import UserHeader from "components/Headers/UserHeader.js";
 import { useAuth } from "context/AuthContext";
 import {
@@ -21,8 +33,16 @@ import { useReserva } from "context/ReservaContext";
 const UserDashboard = () => {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const { reservasActivas } = useReserva();
-  const [infoReservas, setInfoReservas] = useState({}); // Cambia null por {}
+  const [infoReservas, setInfoReservas] = useState({});
   const [loadingReservas, setLoadingReservas] = useState(true);
+  const [showSurprise, setShowSurprise] = useState(false);
+
+  useEffect(() => {
+    // Verificar si es tu polola cuando el usuario esté listo
+    if (user?.rut === "20.307.949-4" || user?.rut === "203079494") {
+      setShowSurprise(true);
+    }
+  }, [user]);
 
   useEffect(() => {
     // Si no está autenticado o aún está cargando, no hacer nada
@@ -54,12 +74,6 @@ const UserDashboard = () => {
   // Si no hay usuario después de cargar
   if (!user) {
     return <div>No se pudo cargar la información del usuario</div>;
-  }
-
-  // Loading de reservas (pero ya mostramos el contenido principal)
-  if (loadingReservas) {
-    // Puedes mostrar un skeleton o mantener los valores por defecto
-    // Por ahora continuamos con la renderización
   }
 
   const menuItems = [
@@ -118,6 +132,7 @@ const UserDashboard = () => {
       gradient: "linear-gradient(135deg, #343a40 0%, #000000 100%)",
     },
   ];
+  
   const stats = [
     {
       label: "Citas este mes",
@@ -312,6 +327,43 @@ const UserDashboard = () => {
             </Card>
           </Col>
         </Row>
+
+        {/* Modal Sorpresa para tu polola */}
+        <Modal
+          isOpen={showSurprise}
+          toggle={() => setShowSurprise(false)}
+          centered
+          size="lg"
+        >
+          <ModalHeader className="bg-primary text-white text-center">
+            💖 ¡SORPRESA MI AMOR! 💖
+          </ModalHeader>
+          <ModalBody className="text-center py-4">
+            <div className="mb-3">
+              <h3 className="text-primary">
+                Hola preciosa {user?.nombre || ""}!
+              </h3>
+            </div>
+            <div className="mb-4">
+              <p className="lead">
+                Sabía que vendrías a revisar mi página web 😊
+              </p>
+              <p>Mi pololo es el más bonito hermoso, precioso, divino, idolo, rey, monstruo, crack, fenomeno</p>
+              <p>El mes que viene no necesito mi sueldo, asi que le daré todo mi sueldo porque el se lo merece❤️</p>
+            </div>
+            <div className="bg-light p-3 rounded">
+              <p className="mb-0">
+                💐 Eres el hombre más increíble del mundo 💐
+              </p>
+            </div>
+          </ModalBody>
+          <ModalFooter className="justify-content-center">
+            <Button color="primary" onClick={() => setShowSurprise(false)}>
+              💖 Le daré todo mi sueldo a mi bebé precioso💖
+            </Button>
+           
+          </ModalFooter>
+        </Modal>
       </Container>
     </>
   );
