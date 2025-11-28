@@ -19,15 +19,16 @@ import {
 import { useReserva } from "context/ReservaContext";
 
 const UserDashboard = () => {
-  const { user, loading: authLoading } = useAuth(); // ← Agrega authLoading
-
+  const { user, loading: authLoading, isAuthenticated } = useAuth();
   const { reservasActivas } = useReserva();
-  const [infoReservas, setInfoReservas] = useState(null);
+  const [infoReservas, setInfoReservas] = useState({}); // Cambia null por {}
   const [loadingReservas, setLoadingReservas] = useState(true);
 
   useEffect(() => {
-    // Solo ejecutar cuando user esté disponible y no esté en loading
-    if (!user?._id || authLoading) return;
+    // Si no está autenticado o aún está cargando, no hacer nada
+    if (!isAuthenticated || authLoading || !user?._id) {
+      return;
+    }
 
     const obtenerReservasActivas = async () => {
       setLoadingReservas(true);
@@ -43,15 +44,22 @@ const UserDashboard = () => {
     };
 
     obtenerReservasActivas();
-  }, [user, authLoading]); // ← Agrega authLoading como dependencia
+  }, [user, authLoading, isAuthenticated]);
 
-  // Mostrar loading mientras auth está verificando O mientras se cargan reservas
-  if (authLoading || loadingReservas) {
-    return <div>Cargando información...</div>;
+  // Loading principal
+  if (authLoading) {
+    return <div>Cargando usuario...</div>;
   }
 
+  // Si no hay usuario después de cargar
   if (!user) {
     return <div>No se pudo cargar la información del usuario</div>;
+  }
+
+  // Loading de reservas (pero ya mostramos el contenido principal)
+  if (loadingReservas) {
+    // Puedes mostrar un skeleton o mantener los valores por defecto
+    // Por ahora continuamos con la renderización
   }
 
   const menuItems = [

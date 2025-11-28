@@ -51,6 +51,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Verificar sesión al iniciar
+  // AuthContext corregido
   useEffect(() => {
     const verifySession = async () => {
       try {
@@ -59,9 +60,20 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(true);
         localStorage.setItem("user", JSON.stringify(res.data.usuario));
       } catch (err) {
-        signOut();
+        console.log("Error verificando sesión:", err);
+        // NO llamar a signOut() automáticamente
+        // En su lugar, mantener el usuario de localStorage si existe
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          setUser(JSON.parse(storedUser));
+          setIsAuthenticated(true);
+        } else {
+          // Solo limpiar si realmente no hay usuario
+          setUser(null);
+          setIsAuthenticated(false);
+        }
       } finally {
-        setLoading(false); // aquí es más seguro
+        setLoading(false);
       }
     };
 
