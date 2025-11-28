@@ -1,40 +1,51 @@
-import { useState, useEffect, useMemo } from 'react';
-import { useUsuario } from 'context/usuariosContext';
-import { useAuth } from 'context/AuthContext';
+import { useState, useEffect, useMemo } from "react";
+import { useUsuario } from "context/usuariosContext"; // usa el context corregido
+import { useAuth } from "context/AuthContext";
 
 export const useUsuarios = (rolFiltro) => {
-  const { usuarios, cargando, getAllUsers, updateUser, subscribeUser, unsubscribeUser } = useUsuario();
+  const {
+    usuarios: usuariosContext,
+    cargando,
+    getAllUsers,        // <-- ahora sí viene del context
+    updateUser,
+    subscribeUser,
+    unsubscribeUser,
+  } = useUsuario();
+
   const { user, isAuthenticated } = useAuth();
-  
+
   const [usuariosFiltrados, setUsuariosFiltrados] = useState([]);
-  const [busqueda, setBusqueda] = useState('');
-  const [modal, setModal] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
+  const [modal, setModal] = useState(false); // para editar
+  const [modalGestion, setModalGestion] = useState(false); // para gestionar acciones
   const [usuarioEdit, setUsuarioEdit] = useState(null);
 
-  // Filtrar por rol
+  // Actualiza usuariosFiltrados cuando cambie el contexto de usuarios
   useEffect(() => {
-    const filtered = usuarios.filter(u => u.rol === rolFiltro);
+    const filtered = (usuariosContext || []).filter((u) => u.rol === rolFiltro);
     setUsuariosFiltrados(filtered);
-  }, [usuarios, rolFiltro]);
+  }, [usuariosContext, rolFiltro]);
 
-  // Cargar usuarios si es necesario
+  // Cargar usuarios al montar (si autenticado)
   useEffect(() => {
-    if (isAuthenticated && user && usuarios.length === 0 && !cargando) {
+    if (isAuthenticated && user) {
       getAllUsers();
     }
-  }, [isAuthenticated, user, usuarios.length, cargando, getAllUsers]);
+  }, [isAuthenticated, user, getAllUsers]);
 
-  // Buscar
+  // Buscar (memoizado)
   const usuariosBuscados = useMemo(() => {
-    return usuariosFiltrados.filter(u =>
-      u.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      u.apellido?.toLowerCase().includes(busqueda.toLowerCase()) ||
-      u.rut?.includes(busqueda) ||
-      u.email?.toLowerCase().includes(busqueda.toLowerCase())
+    return usuariosFiltrados.filter(
+      (u) =>
+        u.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        u.apellido?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        u.rut?.includes(busqueda) ||
+        u.email?.toLowerCase().includes(busqueda.toLowerCase())
     );
   }, [busqueda, usuariosFiltrados]);
 
   const toggleModal = () => setModal(!modal);
+  const toggleModalGestion = () => setModalGestion(!modalGestion);
 
   const handleEditar = (usuario) => {
     setUsuarioEdit(usuario);
@@ -43,64 +54,65 @@ export const useUsuarios = (rolFiltro) => {
 
   const handleGuardar = async () => {
     if (!usuarioEdit?.nombre || !usuarioEdit?.apellido || !usuarioEdit?.email) {
-      throw new Error('Completa todos los campos requeridos');
+      throw new Error("Completa todos los campos requeridos");
     }
     await updateUser(usuarioEdit._id, usuarioEdit);
     setModal(false);
+    // recarga global para mantener todo sincronizado
+    await getAllUsers();
   };
 
-  const handleSuscribir = async (usuarioId) => {
-    const usuario = usuariosFiltrados.find(u => u._id === usuarioId);
-    if (!usuario) return;
+  const handleSuscribir = async (usuarioId, accion) => {
+    const usuario = usuariosFiltrados.find((u) => u._id === usuarioId);
+    if (!usuario) return null;
 
     try {
-      let resultado;
-      if (!usuario.suscrito) {
+      let resultado = null;
+
+      if (accion === "suscribir") {
+        // subscribeUser arroja error si ya tiene suscripción (backend)
         resultado = await subscribeUser(usuarioId);
-      } else {
-        resultado = await unsubscribeUser(usuarioId);
+      } else if (accion === "cancelar") {
+        await unsubscribeUser(usuarioId);
+        resultado = null;
       }
-      
-      // 🔥 ACTUALIZAR ESTADO LOCAL después de la acción
-      setUsuariosFiltrados(prev => 
-        prev.map(u => 
-          u._id === usuarioId 
-            ? { ...u, suscrito: !usuario.suscrito } 
-            : u
-        )
-      );
-      
-      return { suscrito: !usuario.suscrito };
+
+      // recarga completa desde backend para evitar inconsistencias
+      await getAllUsers();
+
+      return resultado;
     } catch (error) {
-      throw new Error(error.message || 'No se pudo cambiar la suscripción');
+      // devolvemos el error para que el caller lo muestre con Swal (o lo manejamos aquí)
+      throw error;
     }
   };
 
-  const handleTransformarRol = async (usuarioId, nuevoRol) => {
-    await updateUser(usuarioId, { rol: nuevoRol });
-    
-    // 🔥 ACTUALIZAR ESTADO LOCAL - remover de la lista actual
-    setUsuariosFiltrados(prev => prev.filter(u => u._id !== usuarioId));
+  const handleEliminarUsuario = async (usuarioId) => {
+    // si tienes API para eliminar, llámala aquí y luego recarga
+    // await deleteUser(usuarioId);
+    await getAllUsers();
   };
 
   return {
-    // Estado
     usuarios: usuariosBuscados,
     busqueda,
     modal,
+    modalGestion,
     usuarioEdit,
     cargando,
-    
-    // Setters
+
+    // setters
     setBusqueda,
     setUsuarioEdit,
     setModal,
-    
-    // Acciones
+
+    // acciones
     handleEditar,
     handleGuardar,
     handleSuscribir,
-    handleTransformarRol,
+    handleEliminarUsuario,
     toggleModal,
+    toggleModalGestion,
+    getAllUsers, // <-- exporto esto para que el componente lo llame
   };
 };

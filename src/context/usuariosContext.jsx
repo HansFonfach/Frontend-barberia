@@ -6,6 +6,7 @@ import { putUsuario } from "api/usuarios";
 import { getUsuarioByRut } from "api/usuarios";
 import { postSubscribeUserById } from "api/usuarios";
 import { putUnsubscribeUserById } from "api/usuarios";
+import { getTodosLosUsuarios } from "api/usuarios";
 
 const UsuarioContext = createContext();
 
@@ -24,12 +25,14 @@ export const UsuarioProvider = ({ children }) => {
 
   const { isAuthenticated, user } = useAuth(); // Usar el contexto de auth
 
+  // dentro de UsuarioProvider
   const getAllUsers = async () => {
     try {
       setCargando(true);
-      const res = await getUsuarios();
-      setUsuarios(res.data);
-      setBarberos(res.data.filter((u) => u.rol === "barbero"));
+      const res = await getTodosLosUsuarios();
+      setUsuarios(res.data.usuarios); // ✅ accedemos al array real
+      console.log("Usuarios cargados:", res.data.usuarios);
+      setBarberos(res.data.usuarios.filter((u) => u.rol === "barbero"));
       setErrors(null);
     } catch (error) {
       console.error("Error al obtener los usuarios:", error);

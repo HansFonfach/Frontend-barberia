@@ -90,9 +90,12 @@ const MisReservas = () => {
   const fetchReservas = async () => {
     try {
       setCargando(true);
-      const res = await axios.get(`https://backend-barberia-yq3k.onrender.com/reservas/${userId}`, {
-        withCredentials: true,
-      });
+      const res = await axios.get(
+        `${process.env.REACT_APP_API_URL}/reservas/${userId}`,
+        {
+          withCredentials: true,
+        }
+      );
       const data = Array.isArray(res.data.reservas) ? res.data.reservas : [];
       setReservas(data);
     } catch (error) {
@@ -307,12 +310,17 @@ const MisReservas = () => {
                     </div>
                     <div className="d-flex justify-content-between text-sm">
                       <span className="text-muted">Duración:</span>
-                      <strong>{reserva.servicio?.duracion || "duracion no asignada"} min</strong>
+                      <strong>
+                        {reserva.servicio?.duracion || "duracion no asignada"}{" "}
+                        min
+                      </strong>
                     </div>
                     <div className="d-flex justify-content-between text-sm">
                       <span className="text-muted">Precio:</span>
                       <strong className="text-success">
-                        ${reserva.servicio?.precio.toLocaleString() || "precio no asignado"}
+                        $
+                        {reserva.servicio?.precio.toLocaleString() ||
+                          "precio no asignado"}
                       </strong>
                     </div>
                   </div>
@@ -568,7 +576,8 @@ const MisReservas = () => {
                             <span className="text-muted">💰 Total:</span>
                             <strong className="text-success">
                               $
-                              {reservaSeleccionada.servicio?.precio.toLocaleString() || "precio no asignado"}
+                              {reservaSeleccionada.servicio?.precio.toLocaleString() ||
+                                "precio no asignado"}
                             </strong>
                           </div>
                         </div>

@@ -293,13 +293,9 @@ export const useReservaBarbero = () => {
 
       for (const h of horasAReservar) {
         try {
-          await postReservarHora(
-            fecha,
-            barbero,
-            h,
-            servicio,
-            user._id || user.id
-          );
+          await postReservarHora(fecha, barbero, h, servicio, usuarioEncontrado._id);
+          console.log("hook",usuarioEncontrado);
+      
         } catch (error) {
           const backendMessage =
             error.response?.data?.message || "No se pudo realizar la reserva";

@@ -16,7 +16,13 @@ import UserHeader from "components/Headers/UserHeader.js";
 import { useReserva } from "context/ReservaContext";
 
 const GestionReservas = () => {
-  const { reservas, getReservasPorFechaBarbero, loading, error, cancelarReserva } = useReserva();
+  const {
+    reservas,
+    getReservasPorFechaBarbero,
+    loading,
+    error,
+    cancelarReserva,
+  } = useReserva();
 
   const [modal, setModal] = useState(false);
   const [reservaSeleccionada, setReservaSeleccionada] = useState(null);
@@ -48,6 +54,12 @@ const GestionReservas = () => {
       getReservasPorFechaBarbero(filtroFecha); // refrescar tabla
     }
   };
+
+  useEffect(() => {
+    if (reservas.length > 0) {
+      console.log("RESERVAS:", reservas);
+    }
+  }, [reservas]);
 
   return (
     <>
@@ -83,11 +95,15 @@ const GestionReservas = () => {
                   <p className="text-center">No hay reservas para esta fecha</p>
                 ) : (
                   <div className="table-responsive">
-                    <Table className="align-items-center table-flush" responsive>
+                    <Table
+                      className="align-items-center table-flush"
+                      responsive
+                    >
                       <thead className="thead-light">
                         <tr>
                           <th>Cliente</th>
                           <th>Servicio</th>
+                          <th>Asistencia</th>
                           <th>Hora</th>
                           <th>Estado</th>
                           <th>Acciones</th>
@@ -96,14 +112,52 @@ const GestionReservas = () => {
                       <tbody>
                         {reservas.map((reserva) => (
                           <tr key={reserva._id}>
-                            <td>{reserva.cliente?.nombre} {reserva.cliente?.apellido}</td>
-                            <td>{reserva.servicio?.nombre}</td>
-                            <td>{new Date(reserva.fecha).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</td>
                             <td>
-                              <Badge color={getEstado(reserva.fecha) === "Pendiente" ? "primary" : "success"}>
+                              {reserva.cliente?.suscrito && "⭐ "}
+                              {reserva.cliente?.nombre}{" "}
+                              {reserva.cliente?.apellido}
+                            </td>
+
+                            <td>{reserva.servicio?.nombre}</td>
+
+                            {/* Nueva columna Suscripción */}
+                            <td>
+                              {reserva.suscripcion ? (
+                                <Badge
+                                  color={
+                                    reserva.suscripcion.posicion >
+                                    reserva.suscripcion.limite
+                                      ? "danger"
+                                      : "success"
+                                  }
+                                >
+                                  {reserva.suscripcion.posicion}/
+                                  {reserva.suscripcion.limite}
+                                </Badge>
+                              ) : (
+                                <strong className="ml-2">-</strong>
+                              )}
+                            </td>
+
+                            <td>
+                              {new Date(reserva.fecha).toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </td>
+
+                            <td>
+                              <Badge
+                                color={
+                                  getEstado(reserva.fecha) === "Pendiente"
+                                    ? "primary"
+                                    : "success"
+                                }
+                              >
                                 {getEstado(reserva.fecha)}
                               </Badge>
                             </td>
+
                             <td>
                               <Button
                                 color="info"
@@ -114,7 +168,11 @@ const GestionReservas = () => {
                                 Ver
                               </Button>
                               {getEstado(reserva.fecha) === "Pendiente" && (
-                                <Button color="danger" size="sm" onClick={() => handleVerResumen(reserva)}>
+                                <Button
+                                  color="danger"
+                                  size="sm"
+                                  onClick={() => handleVerResumen(reserva)}
+                                >
                                   Cancelar
                                 </Button>
                               )}
@@ -142,16 +200,43 @@ const GestionReservas = () => {
               </button>
             </div>
             <div className="modal-body">
-              <p><strong>Cliente:</strong> {reservaSeleccionada.cliente?.nombre} {reservaSeleccionada.cliente?.apellido}</p>
-              <p><strong>Servicio:</strong> {reservaSeleccionada.servicio?.nombre}</p>
-              <p><strong>Hora:</strong> {new Date(reservaSeleccionada.fecha).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</p>
-              <p><strong>Estado:</strong> <Badge color={getEstado(reservaSeleccionada.fecha) === "Pendiente" ? "primary" : "success"}>{getEstado(reservaSeleccionada.fecha)}</Badge></p>
+              <p>
+                <strong>Cliente:</strong> {reservaSeleccionada.cliente?.nombre}{" "}
+                {reservaSeleccionada.cliente?.apellido}
+              </p>
+              <p>
+                <strong>Servicio:</strong>{" "}
+                {reservaSeleccionada.servicio?.nombre}
+              </p>
+              <p>
+                <strong>Hora:</strong>{" "}
+                {new Date(reservaSeleccionada.fecha).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </p>
+              <p>
+                <strong>Estado:</strong>{" "}
+                <Badge
+                  color={
+                    getEstado(reservaSeleccionada.fecha) === "Pendiente"
+                      ? "primary"
+                      : "success"
+                  }
+                >
+                  {getEstado(reservaSeleccionada.fecha)}
+                </Badge>
+              </p>
             </div>
             <div className="modal-footer">
               {getEstado(reservaSeleccionada.fecha) === "Pendiente" && (
-                <Button color="danger" onClick={handleCancelar}>Cancelar reserva</Button>
+                <Button color="danger" onClick={handleCancelar}>
+                  Cancelar reserva
+                </Button>
               )}
-              <Button color="secondary" onClick={toggle}>Cerrar</Button>
+              <Button color="secondary" onClick={toggle}>
+                Cerrar
+              </Button>
             </div>
           </>
         )}

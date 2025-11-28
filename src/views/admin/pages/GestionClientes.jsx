@@ -1,15 +1,24 @@
-import React from 'react';
-import { Container, Row, Col, Card, CardBody, CardHeader, Badge } from 'reactstrap';
-import { FiUserCheck } from 'react-icons/fi';
-import Swal from 'sweetalert2';
+import React from "react";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  CardBody,
+  CardHeader,
+  Badge,
+} from "reactstrap";
+import Swal from "sweetalert2";
 
-import UserHeader from 'components/Headers/UserHeader';
-import SearchBar from 'components/gestionUsuarios/BarraBusqueda';
-import UserTable, { AccionIcons } from 'components/gestionUsuarios/TablaUsuarios';
-import Pagination from 'components/gestionUsuarios/Paginacion';
-import UserModal from 'components/gestionUsuarios/UsuariosModel';
-import { useUsuarios } from 'hooks/useUsuarios';
-import { usePagination } from 'hooks/usePagination';
+import UserHeader from "components/Headers/UserHeader";
+import SearchBar from "components/gestionUsuarios/BarraBusqueda";
+import UserTable, { AccionIcons } from "components/gestionUsuarios/TablaUsuarios";
+import Pagination from "components/gestionUsuarios/Paginacion";
+import GestionUsuariosModal from "components/gestionUsuarios/GestionUsuarioModal";
+import UserModal from "components/gestionUsuarios/UsuariosModel";
+
+import { useUsuarios } from "hooks/useUsuarios";
+import { usePagination } from "hooks/usePagination";
 
 const GestionClientes = () => {
   const {
@@ -17,111 +26,113 @@ const GestionClientes = () => {
     busqueda,
     modal,
     usuarioEdit,
+    modalGestion,
     setBusqueda,
     setUsuarioEdit,
     handleEditar,
     handleGuardar,
     handleSuscribir,
-    handleTransformarRol,
+    handleEliminarUsuario,
     toggleModal,
-  } = useUsuarios('cliente');
+    toggleModalGestion,
+    getAllUsers   // ← EL NOMBRE CORRECTO
+  } = useUsuarios("cliente");
 
-  const { paginaActual, totalPaginas, itemsPaginados, cambiarPagina } = 
+  const { paginaActual, totalPaginas, itemsPaginados, cambiarPagina } =
     usePagination(usuarios, 5);
 
   const columnas = [
-    { key: 'nombre', label: 'Nombre' },
-    { key: 'apellido', label: 'Apellido' },
-    { key: 'rut', label: 'RUT' },
-    { key: 'email', label: 'Email' },
-    { key: 'telefono', label: 'Teléfono' },
-    { 
-      key: 'suscrito', 
-      label: 'Suscripción',
-      render: (value) => (
-        <Badge color={value ? 'success' : 'danger'}>
-          {value ? 'Activo' : 'Inactivo'}
-        </Badge>
-      )
+    { key: "nombre", label: "Nombre" },
+    { key: "apellido", label: "Apellido" },
+    { key: "rut", label: "RUT" },
+    { key: "email", label: "Email" },
+    { key: "telefono", label: "Teléfono" },
+    {
+      key: "suscripcion",
+      label: "Suscripción",
+      render: (_, usuario) => {
+        const s = usuario.suscripcion;
+
+        if (s && s.activa) {
+          return (
+            <Badge color="success">
+              Activa 
+            </Badge>
+          );
+        }
+        return <Badge color="danger">Inactivo</Badge>;
+      },
     },
   ];
 
   const acciones = [
-    { id: 'suscribir', icon: AccionIcons.SUSCRIBIR, color: 'success', title: 'Activar/desactivar suscripción' },
-    { id: 'editar', icon: AccionIcons.EDITAR, color: 'primary', title: 'Editar datos' },
-    { id: 'transformar', icon: AccionIcons.TRANSFORMAR, color: 'warning', title: 'Transformar a Barbero' },
-    { id: 'eliminar', icon: AccionIcons.ELIMINAR, color: 'danger', title: 'Eliminar cliente' },
+    {
+      id: "gestionar",
+      icon: AccionIcons.EDITAR,
+      color: "info",
+      title: "Gestionar usuario",
+    },
+    {
+      id: "editar",
+      icon: AccionIcons.EDITAR,
+      color: "warning",
+      title: "Editar información",
+    }
   ];
 
-  const handleAccion = async (accionId, cliente) => {
-    try {
-      switch (accionId) {
-        case 'editar':
-          handleEditar(cliente);
-          break;
+  const handleAccion = async (accionId, usuario) => {
+    switch (accionId) {
+      case "gestionar":
+        setUsuarioEdit(usuario);
+        toggleModalGestion();
+        break;
 
-        case 'suscribir':
-          const resultado = await handleSuscribir(cliente._id);
-          Swal.fire({
-            icon: 'success',
-            title: resultado.suscrito ? 'Cliente suscrito' : 'Suscripción cancelada',
-            timer: 1500,
-            showConfirmButton: false,
-          });
-          break;
-
-        case 'transformar':
-          const result = await Swal.fire({
-            title: '¿Convertir a barbero?',
-            text: `Convierte a ${cliente.nombre} ${cliente.apellido} en barbero.`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, convertir',
-          });
-
-          if (result.isConfirmed) {
-            await handleTransformarRol(cliente._id, 'barbero');
-            Swal.fire({
-              icon: 'success',
-              title: 'Usuario convertido',
-              text: `${cliente.nombre} ahora es barbero.`,
-              timer: 1600,
-              showConfirmButton: false,
-            });
-          }
-          break;
-
-        case 'eliminar':
-          const eliminarResult = await Swal.fire({
-            title: '¿Eliminar cliente?',
-            text: 'Esta acción no se puede deshacer.',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonText: 'Sí, eliminar',
-            confirmButtonColor: '#d33',
-          });
-
-          if (eliminarResult.isConfirmed) {
-            Swal.fire('Eliminado', 'El cliente ha sido eliminado.', 'success');
-          }
-          break;
-      }
-    } catch (error) {
-      Swal.fire('Error', error.message, 'error');
+      case "editar":
+        handleEditar(usuario);
+        break;
     }
-  };
-
-  const handleChange = (e) => {
-    setUsuarioEdit({ ...usuarioEdit, [e.target.name]: e.target.value });
   };
 
   const handleGuardarConAlerta = async () => {
     try {
       await handleGuardar();
-      Swal.fire('Guardado', 'Datos del cliente actualizados', 'success');
+      Swal.fire("Guardado", "Datos del cliente actualizados", "success");
+      getAllUsers();   // ← CORREGIDO
     } catch (error) {
-      Swal.fire('Error', error.message, 'error');
+      Swal.fire("Error", error.message, "error");
     }
+  };
+
+  const handleSuscribirModal = async () => {
+    await handleSuscribir(usuarioEdit._id, "suscribir");
+    Swal.fire("Suscripción activada", "", "success");
+    toggleModalGestion();
+    getAllUsers();   // ← CORREGIDO
+  };
+
+  const handleCancelarSuscripcionModal = async () => {
+    await handleSuscribir(usuarioEdit._id, "cancelar");
+    Swal.fire("Suscripción cancelada", "", "info");
+    toggleModalGestion();
+    getAllUsers();   // ← CORREGIDO
+  };
+
+  const handleEliminarModal = async () => {
+    const confirm = await Swal.fire({
+      title: "¿Eliminar usuario?",
+      text: "No podrás deshacer esto",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      confirmButtonText: "Eliminar",
+    });
+
+    if (!confirm.isConfirmed) return;
+
+    await handleEliminarUsuario(usuarioEdit._id);
+    Swal.fire("Eliminado", "", "success");
+    toggleModalGestion();
+    getAllUsers();   // ← CORREGIDO
   };
 
   return (
@@ -132,17 +143,7 @@ const GestionClientes = () => {
           <Col xl="10">
             <Card className="bg-secondary shadow">
               <CardHeader className="bg-white border-0">
-                <Row className="align-items-center">
-                  <Col xs="8">
-                    <h3 className="mb-0 text-default">
-                      <FiUserCheck className="text-primary mr-2" />
-                      Gestión de Clientes
-                    </h3>
-                    <p className="text-sm text-muted mb-0 mt-1">
-                      Administra los clientes registrados en tu barbería
-                    </p>
-                  </Col>
-                </Row>
+                <h3 className="mb-0 text-default">Gestión de Clientes</h3>
               </CardHeader>
 
               <CardBody>
@@ -158,7 +159,6 @@ const GestionClientes = () => {
                   columns={columnas}
                   acciones={acciones}
                   onAccion={handleAccion}
-                  emptyMessage={busqueda ? "No se encontraron clientes con tu búsqueda" : "Aún no tienes clientes registrados"}
                 />
 
                 <Pagination
@@ -172,16 +172,23 @@ const GestionClientes = () => {
         </Row>
       </Container>
 
+      {/* MODAL GESTION */}
+      <GestionUsuariosModal
+        isOpen={modalGestion}
+        toggle={toggleModalGestion}
+        usuario={usuarioEdit}
+        onSuscribir={handleSuscribirModal}
+        onCancelarSuscripcion={handleCancelarSuscripcionModal}
+        onEliminar={handleEliminarModal}
+      />
+
+      {/* MODAL EDITAR */}
       <UserModal
         isOpen={modal}
         toggle={toggleModal}
         usuario={usuarioEdit}
         onSave={handleGuardarConAlerta}
-        onFieldChange={handleChange}
         tipoUsuario="cliente"
-        camposAdicionales={[
-          { name: 'telefono', label: 'Teléfono', type: 'text', placeholder: 'Teléfono del cliente' }
-        ]}
       />
     </>
   );
