@@ -35,10 +35,9 @@ const UserDashboard = () => {
     obtenerReservasActivas();
   }, [user]);
 
-
-
-  // Si no ha cargado aún la info
-  if (!infoReservas) return null;
+  if (!infoReservas) {
+    return <div>Cargando información...</div>;
+  }
 
   const menuItems = [
     {
@@ -141,7 +140,7 @@ const UserDashboard = () => {
                     <div className="d-flex align-items-center mb-3">
                       <Sparkles size={32} className="mr-3 text-warning" />
                       <h1 className="display-4 font-weight-bold mb-0">
-                        Bienvenido, {user.nombre}
+                        Bienvenido, {user?.nombre || "Usuario"}
                       </h1>
                     </div>
                     <p className="lead mb-0 opacity-75">

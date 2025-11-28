@@ -1,5 +1,11 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { verifyRequest, loginRequest, registerRequest, forgotPasswordRequest, updateUserPasswordRequest } from "api/auth";
+import {
+  verifyRequest,
+  loginRequest,
+  registerRequest,
+  forgotPasswordRequest,
+  updateUserPasswordRequest,
+} from "api/auth";
 import { useNavigate } from "react-router-dom";
 import { setupAxiosInterceptors } from "api/axiosPrivate";
 import Swal from "sweetalert2";
@@ -52,19 +58,10 @@ export const AuthProvider = ({ children }) => {
         setUser(res.data.usuario);
         setIsAuthenticated(true);
         localStorage.setItem("user", JSON.stringify(res.data.usuario));
-      } catch (error) {
-        console.warn("Sesión inválida o expirada:", error.response?.data);
-
-        // Intentar con token de fallback
-        const localToken = localStorage.getItem("token") || sessionStorage.getItem("token");
-        if (localToken) {
-          console.log("Intentando con token de fallback...");
-          // Podrías hacer una verificación adicional aquí si quieres
-        }
-
+      } catch (err) {
         signOut();
       } finally {
-        setLoading(false);
+        setLoading(false); // aquí es más seguro
       }
     };
 
@@ -125,7 +122,11 @@ export const AuthProvider = ({ children }) => {
   // CAMBIO DE CONTRASEÑA
   const updatePassword = async (id, currentPassword, newPassword) => {
     try {
-      const res = await updateUserPasswordRequest(id, currentPassword, newPassword);
+      const res = await updateUserPasswordRequest(
+        id,
+        currentPassword,
+        newPassword
+      );
       return res.data;
     } catch (error) {
       setErrors(error.response?.data || "Error desconocido");
@@ -149,7 +150,7 @@ export const AuthProvider = ({ children }) => {
         signOut,
         register,
         forgotPassword,
-        updatePassword
+        updatePassword,
       }}
     >
       {children}
