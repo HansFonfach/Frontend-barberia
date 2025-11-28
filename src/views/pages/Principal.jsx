@@ -25,15 +25,29 @@ const UserDashboard = () => {
 
   const { reservasActivas } = useReserva();
   const [infoReservas, setInfoReservas] = useState(null);
+  const [loadingReservas, setLoadingReservas] = useState(true);
 
   useEffect(() => {
+    if (!user?._id) return; // espera a que user esté listo
+
     const obtenerReservasActivas = async () => {
-      if (!user?._id) return;
-      const res = await reservasActivas(user._id);
-      setInfoReservas(res);
+      setLoadingReservas(true);
+      try {
+        const res = await reservasActivas(user._id);
+        setInfoReservas(res || {}); // Evita null
+      } catch (error) {
+        console.error("Error al cargar reservas:", error);
+        setInfoReservas({}); // Evita quedarse pegado
+      } finally {
+        setLoadingReservas(false);
+      }
     };
+
     obtenerReservasActivas();
-  }, [user]);
+  }, [user]); // se ejecuta cada vez que user cambia
+
+  if (!user) return <div>Cargando usuario...</div>;
+  if (loadingReservas) return <div>Cargando información...</div>;
 
   if (!infoReservas) {
     return <div>Cargando información...</div>;
