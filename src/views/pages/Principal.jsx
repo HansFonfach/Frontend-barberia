@@ -11,46 +11,47 @@ import {
   CalendarCheck,
   ShieldCheck,
   Ticket,
-  TrendingUp,
   Zap,
   UserCheck,
   Sliders,
   ArrowRight,
 } from "lucide-react";
 import { useReserva } from "context/ReservaContext";
-import Swal from "sweetalert2";
 
 const UserDashboard = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth(); // ← Agrega authLoading
 
   const { reservasActivas } = useReserva();
   const [infoReservas, setInfoReservas] = useState(null);
   const [loadingReservas, setLoadingReservas] = useState(true);
 
   useEffect(() => {
-    if (!user?._id) return; // espera a que user esté listo
+    // Solo ejecutar cuando user esté disponible y no esté en loading
+    if (!user?._id || authLoading) return;
 
     const obtenerReservasActivas = async () => {
       setLoadingReservas(true);
       try {
         const res = await reservasActivas(user._id);
-        setInfoReservas(res || {}); // Evita null
+        setInfoReservas(res || {});
       } catch (error) {
         console.error("Error al cargar reservas:", error);
-        setInfoReservas({}); // Evita quedarse pegado
+        setInfoReservas({});
       } finally {
         setLoadingReservas(false);
       }
     };
 
     obtenerReservasActivas();
-  }, [user]); // se ejecuta cada vez que user cambia
+  }, [user, authLoading]); // ← Agrega authLoading como dependencia
 
-  if (!user) return <div>Cargando usuario...</div>;
-  if (loadingReservas) return <div>Cargando información...</div>;
-
-  if (!infoReservas) {
+  // Mostrar loading mientras auth está verificando O mientras se cargan reservas
+  if (authLoading || loadingReservas) {
     return <div>Cargando información...</div>;
+  }
+
+  if (!user) {
+    return <div>No se pudo cargar la información del usuario</div>;
   }
 
   const menuItems = [
