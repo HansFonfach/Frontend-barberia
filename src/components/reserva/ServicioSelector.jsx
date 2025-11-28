@@ -16,7 +16,7 @@ const ServicioSelector = ({ servicios, servicio, onSeleccionarServicio }) => {
               }
               onClick={() => onSeleccionarServicio(s._id)}
             >
-              {s.nombre} {s.duracion === 120 ? "• 2 hrs" : ""}
+              
             </Button>
           </Col>
         ))}
