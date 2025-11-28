@@ -113,7 +113,7 @@ const GestionReservas = () => {
                         {reservas.map((reserva) => (
                           <tr key={reserva._id}>
                             <td>
-                              {reserva.cliente?.suscrito && "⭐ "}
+                              {reserva.suscripcion  && "⭐ "}
                               {reserva.cliente?.nombre}{" "}
                               {reserva.cliente?.apellido}
                             </td>
