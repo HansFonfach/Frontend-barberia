@@ -21,6 +21,12 @@ import { useHorasDisponibles } from "hooks/useHorasDisponibles";
 import { useAuth } from "context/AuthContext";
 import { useHorario } from "context/HorarioContext";
 
+// Función helper para asegurar arrays
+const asegurarArray = (data) => {
+  if (Array.isArray(data)) return data;
+  return [];
+};
+
 const GestionHorarios = () => {
   // --- Estado ---
   const [fechaSeleccionada, setFechaSeleccionada] = useState(
@@ -45,9 +51,9 @@ const GestionHorarios = () => {
   // --- Hook de horas disponibles ---
   const {
     horas: horasDisponibles,
-    todasLasHoras,
-    horasBloqueadas,
-    horasExtra,
+    todasLasHoras: todasLasHorasRaw,
+    horasBloqueadas: horasBloqueadasRaw,
+    horasExtra: horasExtraRaw,
     mensaje: mensajeHoras,
     cargando: cargandoHoras,
   } = useHorasDisponibles(
@@ -56,28 +62,57 @@ const GestionHorarios = () => {
     getHorasDisponiblesBarbero
   );
 
+  // Asegurar que siempre sean arrays
+  const todasLasHoras = asegurarArray(todasLasHorasRaw);
+  const horasBloqueadas = asegurarArray(horasBloqueadasRaw);
+  const horasExtra = asegurarArray(horasExtraRaw);
+
   // --- Efectos para sincronización ---
   useEffect(() => {
+    console.log("📊 Datos del hook:", {
+      todasLasHoras,
+      horasBloqueadas,
+      horasExtra,
+      tipoTodasLasHoras: typeof todasLasHoras,
+      esArray: Array.isArray(todasLasHoras)
+    });
+
     if (!barbero || !fechaSeleccionada) return;
 
     // Cargar excepciones del día
     const cargarExcepciones = async () => {
       try {
-        const excepciones = await obtenerExcepcionesPorDia(
+        const response = await obtenerExcepcionesPorDia(
           barbero,
           fechaSeleccionada
         );
-        console.log("📅 Excepciones cargadas:", excepciones);
+        
+        console.log("📅 Respuesta de excepciones:", response);
+        
+        // MANEJO SEGURO: Verifica la estructura de la respuesta
+        let excepcionesArray = [];
+        
+        if (Array.isArray(response)) {
+          excepcionesArray = response;
+        } else if (response && Array.isArray(response.excepciones)) {
+          excepcionesArray = response.excepciones;
+        } else if (response && Array.isArray(response.data)) {
+          excepcionesArray = response.data;
+        }
+        
+        console.log("📅 Excepciones procesadas:", excepcionesArray);
 
         setHorariosPorFecha((prev) => ({
           ...prev,
           [fechaSeleccionada]: {
-            extra: excepciones
-              .filter((e) => e.tipo === "extra")
-              .map((e) => e.horaInicio),
-            canceladas: excepciones
-              .filter((e) => e.tipo === "bloqueo")
-              .map((e) => e.horaInicio),
+            extra: excepcionesArray
+              .filter((e) => e && e.tipo === "extra")
+              .map((e) => e.horaInicio)
+              .filter(Boolean),
+            canceladas: excepcionesArray
+              .filter((e) => e && e.tipo === "bloqueo")
+              .map((e) => e.horaInicio)
+              .filter(Boolean),
           },
         }));
       } catch (err) {
@@ -89,8 +124,9 @@ const GestionHorarios = () => {
     cargarExcepciones();
   }, [barbero, fechaSeleccionada, obtenerExcepcionesPorDia]);
 
-  // Sincronizar con datos del hook
+  // Sincronizar con datos del hook - CON VALIDACIONES
   useEffect(() => {
+    // Usar los arrays asegurados
     if (horasBloqueadas.length > 0 || horasExtra.length > 0) {
       console.log("🔄 Sincronizando con datos del hook:", {
         horasBloqueadas,
@@ -110,7 +146,10 @@ const GestionHorarios = () => {
 
   // --- Funciones principales ---
   const obtenerHorariosDelDia = () => {
-    if (!todasLasHoras || todasLasHoras.length === 0) {
+    // Asegurar que todasLasHoras sea array
+    const todasLasHorasArray = asegurarArray(todasLasHoras);
+    
+    if (todasLasHorasArray.length === 0) {
       return [];
     }
 
@@ -119,8 +158,11 @@ const GestionHorarios = () => {
       canceladas: [],
     };
 
+    // Asegurar que fechaData.extra sea array
+    const extraArray = asegurarArray(fechaData.extra);
+    
     // Combinar todas las horas base + horas extra
-    let horariosCombinados = [...todasLasHoras, ...fechaData.extra];
+    let horariosCombinados = [...todasLasHorasArray, ...extraArray];
     
     // Eliminar duplicados y ordenar
     const horariosUnicos = Array.from(new Set(horariosCombinados)).sort((a, b) => {
@@ -266,10 +308,16 @@ const GestionHorarios = () => {
   }
 
   const horariosDelDia = obtenerHorariosDelDia();
+  const horariosArray = asegurarArray(horariosDelDia);
+  
   const fechaData = horariosPorFecha[fechaSeleccionada] || {
     extra: [],
     canceladas: [],
   };
+
+  // Asegurar arrays para el render
+  const extraArray = asegurarArray(fechaData.extra);
+  const canceladasArray = asegurarArray(fechaData.canceladas);
 
   return (
     <>
@@ -335,8 +383,8 @@ const GestionHorarios = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {horariosDelDia.length > 0 ? (
-                      horariosDelDia.map((hora) => {
+                    {horariosArray.length > 0 ? (
+                      horariosArray.map((hora) => {
                         const estado = obtenerEstadoHora(hora);
                         
                         return (
@@ -453,19 +501,19 @@ const GestionHorarios = () => {
                 <Row className="mt-3">
                   <Col md="4">
                     <div className="text-center">
-                      <div className="h4 text-primary mb-1">{todasLasHoras?.length || 0}</div>
+                      <div className="h4 text-primary mb-1">{todasLasHoras.length}</div>
                       <small className="text-muted">Horas Base</small>
                     </div>
                   </Col>
                   <Col md="4">
                     <div className="text-center">
-                      <div className="h4 text-info mb-1">{fechaData.extra.length}</div>
+                      <div className="h4 text-info mb-1">{extraArray.length}</div>
                       <small className="text-muted">Horas Extra</small>
                     </div>
                   </Col>
                   <Col md="4">
                     <div className="text-center">
-                      <div className="h4 text-danger mb-1">{fechaData.canceladas.length}</div>
+                      <div className="h4 text-danger mb-1">{canceladasArray.length}</div>
                       <small className="text-muted">Horas Canceladas</small>
                     </div>
                   </Col>
@@ -473,9 +521,9 @@ const GestionHorarios = () => {
                 
                 {/* Detalles */}
                 <div className="mt-3 small">
-                  <div><strong>Horas base:</strong> {todasLasHoras?.join(", ") || "No hay horas base"}</div>
-                  <div><strong>Horas extra:</strong> {fechaData.extra.length > 0 ? fechaData.extra.join(", ") : "Ninguna"}</div>
-                  <div><strong>Horas canceladas:</strong> {fechaData.canceladas.length > 0 ? fechaData.canceladas.join(", ") : "Ninguna"}</div>
+                  <div><strong>Horas base:</strong> {todasLasHoras.length > 0 ? todasLasHoras.join(", ") : "No hay horas base"}</div>
+                  <div><strong>Horas extra:</strong> {extraArray.length > 0 ? extraArray.join(", ") : "Ninguna"}</div>
+                  <div><strong>Horas canceladas:</strong> {canceladasArray.length > 0 ? canceladasArray.join(", ") : "Ninguna"}</div>
                 </div>
               </CardBody>
             </Card>
