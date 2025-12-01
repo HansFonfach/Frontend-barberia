@@ -15,7 +15,14 @@ import {
   Spinner,
   Alert,
 } from "reactstrap";
-import { Check, PlusCircle, Trash2, RefreshCw, Calendar, AlertCircle } from "lucide-react";
+import {
+  Check,
+  PlusCircle,
+  Trash2,
+  RefreshCw,
+  Calendar,
+  AlertCircle,
+} from "lucide-react";
 import UserHeader from "components/Headers/UserHeader.js";
 import { useHorasDisponibles } from "hooks/useHorasDisponibles";
 import { useAuth } from "context/AuthContext";
@@ -48,7 +55,8 @@ const GestionHorarios = () => {
     agregarHoraExtraDiaria,
     obtenerExcepcionesPorDia,
     revertirHoraPorDia,
-    cancelarHoraExtraDiaria
+    cancelarHoraExtraDiaria,
+    toggleHoraPorDia,
   } = useHorario();
 
   // --- Hook de horas disponibles ---
@@ -59,9 +67,9 @@ const GestionHorarios = () => {
     horasExtra: horasExtraRaw,
     mensaje: mensajeHoras,
     cargando: cargandoHoras,
-    esFeriado: esFeriadoDesdeHook,
-    nombreFeriado: nombreFeriadoDesdeHook,
-    comportamientoFeriado: comportamientoFeriadoDesdeHook
+    esFeriado: esFeriadoDesdeHook, // ← ESTO SÍ VIENE DEL HOOK
+    nombreFeriado: nombreFeriadoDesdeHook, // ← ESTO SÍ VIENE DEL HOOK
+    comportamientoFeriado: comportamientoFeriadoDesdeHook, // ← ESTO SÍ VIENE DEL HOOK
   } = useHorasDisponibles(
     barbero,
     fechaSeleccionada,
@@ -78,13 +86,17 @@ const GestionHorarios = () => {
     setEsFeriado(esFeriadoDesdeHook || false);
     setNombreFeriado(nombreFeriadoDesdeHook || "");
     setComportamientoFeriado(comportamientoFeriadoDesdeHook || "");
-    
+
     console.log("📊 Estado feriado:", {
       esFeriado: esFeriadoDesdeHook,
       nombre: nombreFeriadoDesdeHook,
-      comportamiento: comportamientoFeriadoDesdeHook
+      comportamiento: comportamientoFeriadoDesdeHook,
     });
-  }, [esFeriadoDesdeHook, nombreFeriadoDesdeHook, comportamientoFeriadoDesdeHook]);
+  }, [
+    esFeriadoDesdeHook,
+    nombreFeriadoDesdeHook,
+    comportamientoFeriadoDesdeHook,
+  ]);
 
   // --- Efectos para sincronización ---
   useEffect(() => {
@@ -94,7 +106,7 @@ const GestionHorarios = () => {
       horasExtra,
       esFeriado,
       nombreFeriado,
-      comportamientoFeriado
+      comportamientoFeriado,
     });
 
     if (!barbero || !fechaSeleccionada) return;
@@ -106,12 +118,12 @@ const GestionHorarios = () => {
           barbero,
           fechaSeleccionada
         );
-        
+
         console.log("📅 Respuesta de excepciones:", response);
-        
+
         // MANEJO SEGURO: Verifica la estructura de la respuesta
         let excepcionesArray = [];
-        
+
         if (Array.isArray(response)) {
           excepcionesArray = response;
         } else if (response && Array.isArray(response.excepciones)) {
@@ -119,7 +131,7 @@ const GestionHorarios = () => {
         } else if (response && Array.isArray(response.data)) {
           excepcionesArray = response.data;
         }
-        
+
         console.log("📅 Excepciones procesadas:", excepcionesArray);
 
         setHorariosPorFecha((prev) => ({
@@ -148,26 +160,30 @@ const GestionHorarios = () => {
   useEffect(() => {
     // IMPORTANTE: Para feriados "bloquear_todo", todas las horas base deben aparecer como bloqueadas
     if (esFeriado && comportamientoFeriado === "bloquear_todo") {
-      console.log("🔄 Es feriado 'bloquear_todo'. Marcando todas las horas como bloqueadas.");
-      
+      console.log(
+        "🔄 Es feriado 'bloquear_todo'. Marcando todas las horas como bloqueadas."
+      );
+
       // Para feriado "bloquear_todo", todas las horas base aparecen como canceladas
       // excepto las que ya están en horasExtra
       const horasBloqueadasPorFeriado = todasLasHoras.filter(
-        hora => !horasExtra.includes(hora)
+        (hora) => !horasExtra.includes(hora)
       );
-      
+
       setHorariosPorFecha((prev) => ({
         ...prev,
         [fechaSeleccionada]: {
           ...(prev[fechaSeleccionada] || {}),
-          canceladas: [...new Set([...horasBloqueadasPorFeriado, ...horasBloqueadas])],
+          canceladas: [
+            ...new Set([...horasBloqueadasPorFeriado, ...horasBloqueadas]),
+          ],
           extra: horasExtra,
         },
       }));
     } else if (horasBloqueadas.length > 0 || horasExtra.length > 0) {
       console.log("🔄 Sincronizando con datos del hook (día normal):", {
         horasBloqueadas,
-        horasExtra
+        horasExtra,
       });
 
       setHorariosPorFecha((prev) => ({
@@ -179,13 +195,20 @@ const GestionHorarios = () => {
         },
       }));
     }
-  }, [horasBloqueadas, horasExtra, fechaSeleccionada, esFeriado, comportamientoFeriado, todasLasHoras]);
+  }, [
+    horasBloqueadas,
+    horasExtra,
+    fechaSeleccionada,
+    esFeriado,
+    comportamientoFeriado,
+    todasLasHoras,
+  ]);
 
   // --- Funciones principales ---
   const obtenerHorariosDelDia = () => {
     // Asegurar que todasLasHoras sea array
     const todasLasHorasArray = asegurarArray(todasLasHoras);
-    
+
     if (todasLasHorasArray.length === 0) {
       return [];
     }
@@ -197,16 +220,18 @@ const GestionHorarios = () => {
 
     // Asegurar que fechaData.extra sea array
     const extraArray = asegurarArray(fechaData.extra);
-    
+
     // Combinar todas las horas base + horas extra
     let horariosCombinados = [...todasLasHorasArray, ...extraArray];
-    
+
     // Eliminar duplicados y ordenar
-    const horariosUnicos = Array.from(new Set(horariosCombinados)).sort((a, b) => {
-      const [hA, mA] = a.split(":").map(Number);
-      const [hB, mB] = b.split(":").map(Number);
-      return hA - hB || mA - mB;
-    });
+    const horariosUnicos = Array.from(new Set(horariosCombinados)).sort(
+      (a, b) => {
+        const [hA, mA] = a.split(":").map(Number);
+        const [hB, mB] = b.split(":").map(Number);
+        return hA - hB || mA - mB;
+      }
+    );
 
     return horariosUnicos;
   };
@@ -221,19 +246,18 @@ const GestionHorarios = () => {
     const esCancelada = fechaData.canceladas.includes(hora);
 
     try {
-      if (esCancelada) {
-        // Revertir cancelación
-        await revertirHoraPorDia(hora, fechaSeleccionada, barbero);
-        setMensaje(`✅ Hora ${hora} reactivada correctamente`);
-      } else {
-        // Cancelar hora
-        await cancelarHoraPorDia(hora, fechaSeleccionada, barbero);
-        setMensaje(`✅ Hora ${hora} cancelada correctamente`);
-      }
+      // Determinar correctamente si es feriado
+      const esFeriadoHora =
+        esFeriado && comportamientoFeriado === "bloquear_todo";
+
+      await toggleHoraPorDia(hora, fechaSeleccionada, barbero, esFeriadoHora);
 
       // Actualizar estado local
       setHorariosPorFecha((prev) => {
-        const fechaActual = prev[fechaSeleccionada] || { extra: [], canceladas: [] };
+        const fechaActual = prev[fechaSeleccionada] || {
+          extra: [],
+          canceladas: [],
+        };
         const nuevasCanceladas = esCancelada
           ? fechaActual.canceladas.filter((h) => h !== hora)
           : [...fechaActual.canceladas, hora];
@@ -247,7 +271,11 @@ const GestionHorarios = () => {
         };
       });
 
-      // Limpiar mensaje después de 3 segundos
+      setMensaje(
+        `✅ Hora ${hora} ${
+          esCancelada ? "reactivada" : "cancelada"
+        } correctamente`
+      );
       setTimeout(() => setMensaje(""), 3000);
     } catch (err) {
       console.error("❌ Error al modificar hora:", err);
@@ -265,10 +293,13 @@ const GestionHorarios = () => {
 
     try {
       await agregarHoraExtraDiaria(barbero, fechaSeleccionada, nuevaHora);
-      
+
       setHorariosPorFecha((prev) => {
-        const fechaActual = prev[fechaSeleccionada] || { extra: [], canceladas: [] };
-        
+        const fechaActual = prev[fechaSeleccionada] || {
+          extra: [],
+          canceladas: [],
+        };
+
         // Evitar duplicados
         if (fechaActual.extra.includes(nuevaHora)) {
           setMensaje("⚠️ Esta hora extra ya existe");
@@ -299,9 +330,12 @@ const GestionHorarios = () => {
 
     try {
       await cancelarHoraExtraDiaria(barbero, fechaSeleccionada, hora);
-      
+
       setHorariosPorFecha((prev) => {
-        const fechaActual = prev[fechaSeleccionada] || { extra: [], canceladas: [] };
+        const fechaActual = prev[fechaSeleccionada] || {
+          extra: [],
+          canceladas: [],
+        };
         return {
           ...prev,
           [fechaSeleccionada]: {
@@ -326,35 +360,23 @@ const GestionHorarios = () => {
       canceladas: [],
     };
 
-    // Verificar si es feriado "bloquear_todo"
-    const esFeriadoBloquearTodo = esFeriado && comportamientoFeriado === "bloquear_todo";
-    
-    // Para feriado "bloquear_todo", todas las horas base están canceladas por defecto
-    // excepto si están en horas extra o fueron explícitamente reactivadas
+    const esFeriadoBloquearTodo =
+      esFeriado && comportamientoFeriado === "bloquear_todo";
+
     if (esFeriadoBloquearTodo) {
       const esHoraBase = todasLasHoras.includes(hora);
       const esHoraExtra = fechaData.extra.includes(hora);
-      const fueReactivada = !fechaData.canceladas.includes(hora); // Si NO está en canceladas, fue reactivada
-      
-      if (esHoraExtra) {
-        return "extra";
-      } else if (esHoraBase && !fueReactivada) {
-        return "cancelada";
-      } else if (esHoraBase && fueReactivada) {
-        return "disponible";
-      }
+      const fueReactivada = !fechaData.canceladas.includes(hora);
+
+      if (esHoraExtra) return "extra";
+      if (esHoraBase && !fueReactivada) return "cancelada"; // por feriado
+      if (esHoraBase && fueReactivada) return "disponible"; // reactivada
     }
 
-    // Lógica normal para días no feriados o feriados "permitir_excepciones"
-    if (fechaData.extra.includes(hora)) {
-      return "extra";
-    } else if (fechaData.canceladas.includes(hora)) {
-      return "cancelada";
-    } else {
-      return "disponible";
-    }
+    if (fechaData.extra.includes(hora)) return "extra";
+    if (fechaData.canceladas.includes(hora)) return "cancelada";
+    return "disponible";
   };
-
   // --- Render ---
   if (!isAuthenticated || !user) {
     return (
@@ -366,7 +388,7 @@ const GestionHorarios = () => {
 
   const horariosDelDia = obtenerHorariosDelDia();
   const horariosArray = asegurarArray(horariosDelDia);
-  
+
   const fechaData = horariosPorFecha[fechaSeleccionada] || {
     extra: [],
     canceladas: [],
@@ -377,8 +399,10 @@ const GestionHorarios = () => {
   const canceladasArray = asegurarArray(fechaData.canceladas);
 
   // Determinar si es feriado "bloquear_todo"
-  const esFeriadoBloquearTodo = esFeriado && comportamientoFeriado === "bloquear_todo";
-  const esFeriadoPermitirExcepciones = esFeriado && comportamientoFeriado === "permitir_excepciones";
+  const esFeriadoBloquearTodo =
+    esFeriado && comportamientoFeriado === "bloquear_todo";
+  const esFeriadoPermitirExcepciones =
+    esFeriado && comportamientoFeriado === "permitir_excepciones";
 
   return (
     <>
@@ -394,12 +418,18 @@ const GestionHorarios = () => {
               </small>
             </div>
           </CardHeader>
-          
+
           <CardBody>
             {/* Mensajes */}
             {mensaje && (
-              <Alert 
-                color={mensaje.includes("❌") ? "danger" : mensaje.includes("⚠️") ? "warning" : "success"} 
+              <Alert
+                color={
+                  mensaje.includes("❌")
+                    ? "danger"
+                    : mensaje.includes("⚠️")
+                    ? "warning"
+                    : "success"
+                }
                 className="mb-3"
               >
                 {mensaje}
@@ -414,12 +444,15 @@ const GestionHorarios = () => {
                   <strong>⚠️ FERIADO: {nombreFeriado}</strong>
                   {esFeriadoBloquearTodo && (
                     <div className="small mt-1">
-                      Todas las horas aparecen bloqueadas. Haz clic en "Reactivar" para habilitar las horas que quieras trabajar este feriado.
+                      Todas las horas aparecen bloqueadas. Haz clic en
+                      "Reactivar" para habilitar las horas que quieras trabajar
+                      este feriado.
                     </div>
                   )}
                   {esFeriadoPermitirExcepciones && (
                     <div className="small mt-1">
-                      Feriado con excepciones permitidas. Puedes trabajar normalmente.
+                      Feriado con excepciones permitidas. Puedes trabajar
+                      normalmente.
                     </div>
                   )}
                 </div>
@@ -471,14 +504,17 @@ const GestionHorarios = () => {
                     {horariosArray.length > 0 ? (
                       horariosArray.map((hora) => {
                         const estado = obtenerEstadoHora(hora);
-                        const esFeriadoHora = esFeriadoBloquearTodo && todasLasHoras.includes(hora);
-                        
+                        const esFeriadoHora =
+                          esFeriadoBloquearTodo && todasLasHoras.includes(hora);
+
                         return (
                           <tr key={hora} className="align-middle">
                             <td className="font-weight-bold">
                               {hora}
                               {esFeriadoHora && (
-                                <div className="small text-muted">(feriado)</div>
+                                <div className="small text-muted">
+                                  (feriado)
+                                </div>
                               )}
                             </td>
                             <td>
@@ -510,7 +546,11 @@ const GestionHorarios = () => {
                                 </Button>
                               ) : (
                                 <Button
-                                  color={estado === "cancelada" ? "secondary" : "danger"}
+                                  color={
+                                    estado === "cancelada"
+                                      ? "secondary"
+                                      : "danger"
+                                  }
                                   size="sm"
                                   onClick={() => toggleHoraCancelada(hora)}
                                   className="d-inline-flex align-items-center"
@@ -519,7 +559,9 @@ const GestionHorarios = () => {
                                   {estado === "cancelada" ? (
                                     <>
                                       <RefreshCw size={16} className="me-1" />
-                                      {esFeriadoBloquearTodo ? "Habilitar" : "Reactivar"}
+                                      {esFeriadoBloquearTodo
+                                        ? "Habilitar"
+                                        : "Reactivar"}
                                     </>
                                   ) : (
                                     <>
@@ -536,7 +578,8 @@ const GestionHorarios = () => {
                     ) : (
                       <tr>
                         <td colSpan="3" className="text-muted py-5">
-                          {mensajeHoras || "No hay horarios disponibles para esta fecha"}
+                          {mensajeHoras ||
+                            "No hay horarios disponibles para esta fecha"}
                         </td>
                       </tr>
                     )}
@@ -566,8 +609,8 @@ const GestionHorarios = () => {
                     </FormGroup>
                   </Col>
                   <Col md="3">
-                    <Button 
-                      color="info" 
+                    <Button
+                      color="info"
                       onClick={agregarHoraExtra}
                       className="d-inline-flex align-items-center"
                       disabled={!nuevaHora || esFeriadoBloquearTodo}
@@ -578,7 +621,7 @@ const GestionHorarios = () => {
                   </Col>
                   <Col md="5">
                     <small className="text-muted">
-                      {esFeriadoBloquearTodo 
+                      {esFeriadoBloquearTodo
                         ? "En feriados bloqueados, primero habilita las horas base"
                         : "Agrega horas fuera del horario regular"}
                     </small>
@@ -599,32 +642,38 @@ const GestionHorarios = () => {
                     </Badge>
                   )}
                 </h6>
-                
+
                 {esFeriado && (
                   <div className="alert alert-warning small mb-3">
-                    <strong>{nombreFeriado}</strong> - 
-                    {comportamientoFeriado === "bloquear_todo" 
-                      ? " Feriado bloqueado completamente" 
+                    <strong>{nombreFeriado}</strong> -
+                    {comportamientoFeriado === "bloquear_todo"
+                      ? " Feriado bloqueado completamente"
                       : " Feriado con excepciones permitidas"}
                   </div>
                 )}
-                
+
                 <Row className="mt-3">
                   <Col md="4">
                     <div className="text-center">
-                      <div className="h4 text-primary mb-1">{todasLasHoras.length}</div>
+                      <div className="h4 text-primary mb-1">
+                        {todasLasHoras.length}
+                      </div>
                       <small className="text-muted">Horas Base</small>
                     </div>
                   </Col>
                   <Col md="4">
                     <div className="text-center">
-                      <div className="h4 text-info mb-1">{extraArray.length}</div>
+                      <div className="h4 text-info mb-1">
+                        {extraArray.length}
+                      </div>
                       <small className="text-muted">Horas Extra</small>
                     </div>
                   </Col>
                   <Col md="4">
                     <div className="text-center">
-                      <div className="h4 text-danger mb-1">{canceladasArray.length}</div>
+                      <div className="h4 text-danger mb-1">
+                        {canceladasArray.length}
+                      </div>
                       <small className="text-muted">Horas Canceladas</small>
                       {esFeriadoBloquearTodo && (
                         <div className="small text-muted">
@@ -634,16 +683,30 @@ const GestionHorarios = () => {
                     </div>
                   </Col>
                 </Row>
-                
+
                 {/* Detalles */}
                 <div className="mt-3 small">
-                  <div><strong>Horas base:</strong> {todasLasHoras.length > 0 ? todasLasHoras.join(", ") : "No hay horas base"}</div>
-                  <div><strong>Horas extra:</strong> {extraArray.length > 0 ? extraArray.join(", ") : "Ninguna"}</div>
-                  <div><strong>Horas canceladas:</strong> {canceladasArray.length > 0 ? canceladasArray.join(", ") : "Ninguna"}</div>
+                  <div>
+                    <strong>Horas base:</strong>{" "}
+                    {todasLasHoras.length > 0
+                      ? todasLasHoras.join(", ")
+                      : "No hay horas base"}
+                  </div>
+                  <div>
+                    <strong>Horas extra:</strong>{" "}
+                    {extraArray.length > 0 ? extraArray.join(", ") : "Ninguna"}
+                  </div>
+                  <div>
+                    <strong>Horas canceladas:</strong>{" "}
+                    {canceladasArray.length > 0
+                      ? canceladasArray.join(", ")
+                      : "Ninguna"}
+                  </div>
                   {esFeriado && (
                     <div className="mt-2 text-warning">
-                      <strong>⚠️ Nota:</strong> {comportamientoFeriado === "bloquear_todo" 
-                        ? "Las horas base aparecen canceladas por feriado. Haz clic en 'Habilitar' para trabajar." 
+                      <strong>⚠️ Nota:</strong>{" "}
+                      {comportamientoFeriado === "bloquear_todo"
+                        ? "Las horas base aparecen canceladas por feriado. Haz clic en 'Habilitar' para trabajar."
                         : "Horas normales en feriado con excepciones."}
                     </div>
                   )}

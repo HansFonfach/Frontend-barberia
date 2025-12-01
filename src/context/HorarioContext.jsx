@@ -3,6 +3,7 @@
 import { getObtenerExcepcionesPorDia } from "api/horarios";
 import { postRevertirHoraPorDia } from "api/horarios";
 import { postAsignarHorario } from "api/horarios";
+import { postToggleHora } from "api/horarios";
 import { getHorariosByBarbero } from "api/horarios";
 import { postCancelarHoraExtraDiaria } from "api/horarios";
 import { postAgregarHoraExtraDiaria } from "api/horarios";
@@ -52,22 +53,42 @@ export const HorarioProvider = ({ children }) => {
     }
   };
 
-  const cancelarHoraPorDia = async (hora, fecha, barbero) => {
+  const toggleHoraPorDia = async (hora, fecha, barbero, esFeriado = false) => {
     try {
-      const res = await postCancelarHoraDiaria(barbero, fecha, hora);
+      const motivo = esFeriado
+        ? "Habilitada en feriado"
+        : "Modificación manual";
+      const res = await postToggleHora(barbero, fecha, hora, motivo, esFeriado);
       return res;
     } catch (error) {
       throw error;
     }
   };
-  const revertirHoraPorDia = async (hora, fecha, barbero) => {
+
+  const cancelarHoraPorDia = async (
+    hora,
+    fecha,
+    barbero,
+    esFeriado = false
+  ) => {
     try {
-      const res = await postRevertirHoraPorDia(barbero, fecha, hora);
+      const motivo = esFeriado ? "Bloqueada en feriado" : "Cancelación manual";
+      const res = await postToggleHora(barbero, fecha, hora, motivo, esFeriado);
       return res;
     } catch (error) {
       throw error;
     }
   };
+
+const revertirHoraPorDia = async (hora, fecha, barbero, esFeriado = false) => {
+  try {
+    const motivo = esFeriado ? "Habilitada en feriado" : "Reactivación";
+    const res = await postToggleHora(barbero, fecha, hora, motivo, esFeriado);
+    return res;
+  } catch (error) {
+    throw error;
+  }
+};
 
   const agregarHoraExtraDiaria = async (barbero, fecha, hora) => {
     try {
@@ -108,6 +129,7 @@ export const HorarioProvider = ({ children }) => {
         cancelarHoraExtraDiaria,
         crearHorarioBarbero,
         obtenerHorarioBarbero,
+        toggleHoraPorDia,
       }}
     >
       {children}

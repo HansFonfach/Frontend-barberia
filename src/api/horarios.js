@@ -6,14 +6,34 @@ export const getHorasDisponibles = async (barberoId, fecha) => {
       `/horarios/${barberoId}/horarios-disponibles?fecha=${fecha}`
     );
 
-    // ✅ CORRECCIÓN: Devolver TODA la respuesta del backend
     console.log("📊 Respuesta completa del backend en API:", res.data);
-    return res.data; // ← Esto devuelve todo el objeto
+    return res.data;
   } catch (error) {
     throw error;
   }
 };
 
+// NUEVA FUNCIÓN UNIFICADA - REEMPLAZA A cancelarHora y revertirHora
+export const postToggleHora = async (
+  barbero,
+  fecha,
+  horaInicio,
+  motivo = ""
+) => {
+  try {
+    const res = await axiosPrivate.post("/excepcionHorario/toggle", {
+      barbero,
+      fecha,
+      horaInicio,
+      motivo,
+    });
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// ESTAS YA NO SE USAN - LAS DEJAMOS POR COMPATIBILIDAD PERO DEBERÍAS ELIMINARLAS
 export const postCancelarHoraDiaria = async (
   barberoId,
   fecha,
@@ -21,11 +41,12 @@ export const postCancelarHoraDiaria = async (
   motivo
 ) => {
   try {
-    const res = await axiosPrivate.post(`/excepcionHorario/cancelar`, {
+    // Llama a toggle en su lugar
+    const res = await axiosPrivate.post("/excepcionHorario/toggle", {
       barbero: barberoId,
       fecha,
       horaInicio,
-      motivo,
+      motivo: motivo || "Cancelación manual",
     });
     return res.data;
   } catch (error) {
@@ -40,17 +61,19 @@ export const postRevertirHoraPorDia = async (
   motivo
 ) => {
   try {
-    const res = await axiosPrivate.post(`/excepcionHorario/revertir`, {
+    // Llama a toggle en su lugar
+    const res = await axiosPrivate.post("/excepcionHorario/toggle", {
       barbero: barberoId,
       fecha,
       horaInicio,
-      motivo,
+      motivo: motivo || "Reactivación",
     });
     return res.data;
   } catch (error) {
     throw error;
   }
 };
+// FIN DE FUNCIONES OBSOLETAS
 
 export const postAgregarHoraExtraDiaria = async (
   barberoId,
@@ -71,6 +94,7 @@ export const postAgregarHoraExtraDiaria = async (
     throw error;
   }
 };
+
 export const postCancelarHoraExtraDiaria = async (
   barberoId,
   fecha,
@@ -78,7 +102,7 @@ export const postCancelarHoraExtraDiaria = async (
 ) => {
   try {
     const res = await axiosPrivate.post(
-      `/excepcionHorario/cancelar-hora-extra`,
+      `/excepcionHorario/eliminar-hora-extra`, // ← CAMBIA EL ENDPOINT
       {
         barbero: barberoId,
         fecha,

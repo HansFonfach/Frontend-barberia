@@ -1,14 +1,6 @@
 // hooks/useHorasDisponibles.js
 import { useState, useEffect } from "react";
 
-// Función helper para asegurar que siempre sea un array
-const asegurarArray = (data) => {
-  if (Array.isArray(data)) return data;
-  if (data && typeof data === 'object' && data.data && Array.isArray(data.data)) return data.data;
-  if (data && typeof data === 'object') return Object.values(data);
-  return [];
-};
-
 export const useHorasDisponibles = (barbero, fecha, getHorasFn) => {
   const [horas, setHoras] = useState([]);
   const [todasLasHoras, setTodasLasHoras] = useState([]);
@@ -16,6 +8,9 @@ export const useHorasDisponibles = (barbero, fecha, getHorasFn) => {
   const [horasExtra, setHorasExtra] = useState([]);
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [esFeriado, setEsFeriado] = useState(false);
+  const [nombreFeriado, setNombreFeriado] = useState("");
+  const [comportamientoFeriado, setComportamientoFeriado] = useState("");
 
   useEffect(() => {
     if (!barbero || !fecha) {
@@ -24,6 +19,9 @@ export const useHorasDisponibles = (barbero, fecha, getHorasFn) => {
       setHorasBloqueadas([]);
       setHorasExtra([]);
       setMensaje(!barbero ? "Cargando barbero..." : "Selecciona una fecha");
+      setEsFeriado(false);
+      setNombreFeriado("");
+      setComportamientoFeriado("");
       return;
     }
 
@@ -33,39 +31,26 @@ export const useHorasDisponibles = (barbero, fecha, getHorasFn) => {
         const result = await getHorasFn(barbero, fecha);
         console.log("🔍 RESPUESTA COMPLETA DE HORAS:", result);
         
-        // VALIDACIONES SEGURAS
-        let horasDisponiblesArray = [];
-        let todasLasHorasArray = [];
-        let bloqueadasArray = [];
-        let extrasArray = [];
-        let mensajeTexto = "";
-
-        // Caso 1: Result tiene las propiedades directas
-        if (result && typeof result === 'object') {
-          horasDisponiblesArray = asegurarArray(result.horasDisponibles || result.horas || result.data || []);
-          todasLasHorasArray = asegurarArray(result.todasLasHoras || []);
-          bloqueadasArray = asegurarArray(result.horasBloqueadas || []);
-          extrasArray = asegurarArray(result.horasExtra || []);
-          mensajeTexto = result.message || result.mensaje || "";
-        }
-        // Caso 2: Result es directamente un array
-        else if (Array.isArray(result)) {
-          horasDisponiblesArray = result;
-        }
+        // EXTRAER TODAS LAS PROPIEDADES
+        setHoras(result.horasDisponibles || []);
+        setTodasLasHoras(result.todasLasHoras || []);
+        setHorasBloqueadas(result.horasBloqueadas || []);
+        setHorasExtra(result.horasExtra || []);
+        setMensaje(result.message || "");
         
-        console.log("📊 Datos procesados:", {
-          horas: horasDisponiblesArray.length,
-          todasLasHoras: todasLasHorasArray.length,
-          bloqueadas: bloqueadasArray.length,
-          extras: extrasArray.length,
-          mensaje: mensajeTexto
+        // ¡ESTAS SON LAS NUEVAS PROPIEDADES QUE ESTÁS IGNORANDO!
+        setEsFeriado(result.esFeriado || false);
+        setNombreFeriado(result.nombreFeriado || "");
+        setComportamientoFeriado(result.comportamientoFeriado || "");
+        
+        console.log("📊 Datos procesados EN HOOK:", {
+          horas: (result.horasDisponibles || []).length,
+          horasBloqueadas: (result.horasBloqueadas || []).length,
+          esFeriado: result.esFeriado,
+          nombreFeriado: result.nombreFeriado,
+          comportamientoFeriado: result.comportamientoFeriado
         });
-
-        setHoras(horasDisponiblesArray);
-        setTodasLasHoras(todasLasHorasArray);
-        setHorasBloqueadas(bloqueadasArray);
-        setHorasExtra(extrasArray);
-        setMensaje(mensajeTexto);
+        
       } catch (err) {
         console.error("❌ Error en useHorasDisponibles:", err);
         setMensaje("Error al obtener horarios");
@@ -73,6 +58,9 @@ export const useHorasDisponibles = (barbero, fecha, getHorasFn) => {
         setTodasLasHoras([]);
         setHorasBloqueadas([]);
         setHorasExtra([]);
+        setEsFeriado(false);
+        setNombreFeriado("");
+        setComportamientoFeriado("");
       } finally {
         setCargando(false);
       }
@@ -87,6 +75,9 @@ export const useHorasDisponibles = (barbero, fecha, getHorasFn) => {
     horasBloqueadas, 
     horasExtra, 
     mensaje, 
-    cargando 
+    cargando,
+    esFeriado,        // ← ¡NUEVO!
+    nombreFeriado,    // ← ¡NUEVO!
+    comportamientoFeriado  // ← ¡NUEVO!
   };
 };
