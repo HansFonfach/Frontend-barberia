@@ -22,6 +22,7 @@ import Politicas from "views/pages/Politicas";
 import CambiarContrasena from "views/pages/CambiarContraseña";
 import ReiniciarContraseña from "views/pages/ReiniciarContraseña";
 import PresentarServicios from "views/pages/PresentarServicios";
+import { FaClock, FaTag, FaCut, FaUserTie } from "react-icons/fa";
 
 // Rutas públicas (login/register)
 export const publicRoutes = [
@@ -97,7 +98,8 @@ export const clienteRoutes = [
     path: "/servicios",
     name: "Conocer servicios",
     component: <PresentarServicios />,
-    icon: "ni ni-single-02 text-primary", // 🧔‍♂️ Perfil de barberos
+    icon: <FaCut size={20} className="text-ligth mr-3" />,
+    // 🧔‍♂️ Perfil de barberos
     layout: "/admin",
   },
   {

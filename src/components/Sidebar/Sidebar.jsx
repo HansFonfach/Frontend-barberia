@@ -1,4 +1,9 @@
-import { useLocation, NavLink as NavLinkRRD, Link, useNavigate } from "react-router-dom";
+import {
+  useLocation,
+  NavLink as NavLinkRRD,
+  Link,
+  useNavigate,
+} from "react-router-dom";
 import { useState } from "react";
 import { PropTypes } from "prop-types";
 import {
@@ -52,7 +57,12 @@ const Sidebar = ({ routes, logo, usuario }) => {
             onClick={closeCollapse}
             className={activeRoute(r.layout + r.path)}
           >
-            <i className={r.icon} /> {r.name}
+            {r.icon && typeof r.icon !== "string" ? (
+              r.icon
+            ) : (
+              <i className={r.icon} />
+            )}
+            {r.name}
           </NavLink>
         </NavItem>
       ));

@@ -6,7 +6,17 @@ export const getHorasDisponibles = async (barberoId, fecha) => {
       `/horarios/${barberoId}/horarios-disponibles?fecha=${fecha}`
     );
 
-    console.log("📊 Respuesta completa del backend en API:", res.data);
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getHorarioBasePorDia = async (barberoId, fecha) => {
+  try {
+    const res = await axiosPrivate.get(
+      `/horarios/barbero/${barberoId}/horarioBase?fecha=${fecha}`
+    );
     return res.data;
   } catch (error) {
     throw error;

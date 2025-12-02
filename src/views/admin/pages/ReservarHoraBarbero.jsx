@@ -2,10 +2,14 @@
 import React from "react";
 import { Container, Card, CardBody } from "reactstrap";
 import { Scissors } from "lucide-react";
+import Swal from "sweetalert2";
 import UserHeader from "components/Headers/UserHeader.js";
 
-// Componentes
+// Hooks y Context
 import { useReservaBarbero } from "../../../hooks/useReservaBarbero";
+import { useHorario } from "context/HorarioContext";
+
+// Componentes
 import StepIndicator from "../../../components/reserva/StepIndicator";
 import RutInput from "../../../components/reserva/RutInput";
 import ServicioSelector from "../../../components/reserva/ServicioSelector";
@@ -13,26 +17,21 @@ import BarberoSelector from "../../../components/reserva/BarberoSelector";
 import WeekSelector from "../../../components/reserva/WeekSelector";
 import HorasDisponibles from "../../../components/reserva/HorasDisponibles";
 import ResumenReserva from "../../../components/reserva/ResumenReserva";
+import ModalHorasBase from "../../../components/reserva/ModalHorasBase";
 
 const ReservarHoraBarbero = () => {
   const {
-    // Estado
     fecha,
+    setFecha,
     barbero,
     hora,
     servicio,
     pasoActual,
     reservando,
-
-    // Semana
     weekStart,
     weekDays,
     loadingWeek,
-
-    // Hooks
     servicios,
-
-    // RUT y usuario
     rut,
     handleRutChange,
     error: errorRut,
@@ -41,16 +40,10 @@ const ReservarHoraBarbero = () => {
     usuarioEncontrado,
     errorBusqueda,
     rutValido,
-
-    // Barberos
     barberos,
-
-    // Horas disponibles
     horasDisponibles,
     mensajeHoras,
     cargandoHoras,
-
-    // Handlers
     handleSelectDay,
     prevWeek,
     nextWeek,
@@ -60,11 +53,225 @@ const ReservarHoraBarbero = () => {
     setHora,
   } = useReservaBarbero();
 
-  // Datos derivados
   const servicioSeleccionado = servicios.find((s) => s._id === servicio);
   const duracionSeleccionado = servicioSeleccionado?.duracion || 60;
   const barberoSeleccionado = barberos.find((b) => b._id === barbero);
 
+  // ────────────────────────────────
+  // Estado modal de notificación
+  // ────────────────────────────────
+  const [modalNotificacionOpen, setModalNotificacionOpen] =
+    React.useState(false);
+  const [selectedDiaForWaitlist, setSelectedDiaForWaitlist] =
+    React.useState(null);
+  const [horasBase, setHorasBase] = React.useState([]);
+  const [loadingHorasBase, setLoadingHorasBase] = React.useState(false);
+  const [horasSeleccionadas, setHorasSeleccionadas] = React.useState([]);
+
+  const { obtenerHorarioBasePorDia } = useHorario();
+
+  // ────────────────────────────────
+  // Abrir modal
+  // ────────────────────────────────
+  const handleOpenWaitlist = React.useCallback(
+    (data) => {
+      // data debería venir de WeekSelector con {fecha, barberoId}
+
+      // SIEMPRE usar el barbero del estado (ya seleccionado)
+      if (!barbero) {
+        Swal.fire("Error", "Debes seleccionar un barbero primero", "error");
+        return;
+      }
+
+      // Usar la fecha que viene de WeekSelector
+      const fechaSeleccionada = data?.fecha;
+      if (!fechaSeleccionada) {
+        Swal.fire("Error", "No se especificó fecha", "error");
+        return;
+      }
+
+      setSelectedDiaForWaitlist(fechaSeleccionada);
+      setModalNotificacionOpen(true);
+    },
+    [barbero]
+  ); // Solo depende de barbero
+
+  // ────────────────────────────────
+  // Effect para cargar horas cuando el modal se abre
+  // ────────────────────────────────
+  // En ReservarHoraBarbero.jsx - modificar el useEffect
+  // En ReservarHoraBarbero.jsx - useEffect modificado
+  React.useEffect(() => {
+    if (modalNotificacionOpen && selectedDiaForWaitlist && barbero) {
+      const fetchHoras = async () => {
+        setLoadingHorasBase(true);
+        setHorasBase([]);
+
+        try {
+          console.log(
+            "📡 Obteniendo bloques para:",
+            barbero,
+            selectedDiaForWaitlist
+          );
+
+          const resultado = await obtenerHorarioBasePorDia(
+            barbero,
+            selectedDiaForWaitlist
+          );
+          console.log("📡 Resultado completo:", resultado);
+
+          const bloques = Array.isArray(resultado) ? resultado : [];
+          const horasProcesadas = [];
+
+          if (bloques.length === 0) {
+            console.log("⚠️ No hay bloques para esta fecha");
+          } else {
+            bloques.forEach((bloque, index) => {
+              console.log(`📦 Bloque ${index + 1}:`, bloque);
+
+              if (bloque && bloque.horaInicio && bloque.horaFin) {
+                try {
+                  const horaInicioStr = bloque.horaInicio.toString().trim();
+                  const horaFinStr = bloque.horaFin.toString().trim();
+
+                  const inicioMatch =
+                    horaInicioStr.match(/^(\d{1,2}):(\d{2})$/);
+                  const finMatch = horaFinStr.match(/^(\d{1,2}):(\d{2})$/);
+
+                  if (inicioMatch && finMatch) {
+                    const hStart = parseInt(inicioMatch[1], 10);
+                    const mStart = parseInt(inicioMatch[2], 10);
+                    const hEnd = parseInt(finMatch[1], 10);
+                    const mEnd = parseInt(finMatch[2], 10);
+
+                    console.log(
+                      `⏰ Bloque ${
+                        index + 1
+                      }: ${hStart}:${mStart} a ${hEnd}:${mEnd}`
+                    );
+
+                    const startMin = hStart * 60 + mStart;
+                    const endMin = hEnd * 60 + mEnd;
+
+                    // ✅ CORRECCIÓN: Manejar cuando horaInicio === horaFin
+                    if (hStart === hEnd && mStart === mEnd) {
+                      // Solo una hora
+                      horasProcesadas.push(
+                        `${String(hStart).padStart(2, "0")}:${String(
+                          mStart
+                        ).padStart(2, "0")}`
+                      );
+                    } else if (startMin < endMin) {
+                      // Rango de horas
+                      for (let min = startMin; min < endMin; min += 30) {
+                        const h = Math.floor(min / 60);
+                        const m = min % 60;
+                        const horaStr = `${String(h).padStart(2, "0")}:${String(
+                          m
+                        ).padStart(2, "0")}`;
+                        horasProcesadas.push(horaStr);
+                      }
+                    } else {
+                      console.warn(
+                        `⚠️ Hora inicio mayor que hora fin en bloque ${
+                          index + 1
+                        }`
+                      );
+                    }
+                  }
+                } catch (error) {
+                  console.error(
+                    `❌ Error procesando bloque ${index + 1}:`,
+                    error
+                  );
+                }
+              }
+            });
+          }
+
+          // Eliminar duplicados y ordenar
+          const horasUnicas = [...new Set(horasProcesadas)].sort((a, b) => {
+            const [h1, m1] = a.split(":").map(Number);
+            const [h2, m2] = b.split(":").map(Number);
+            return h1 * 60 + m1 - (h2 * 60 + m2);
+          });
+
+          console.log("✅ Horas finales:", horasUnicas);
+          setHorasBase(horasUnicas);
+        } catch (err) {
+          console.error("❌ Error:", err);
+          setHorasBase([]);
+        } finally {
+          setLoadingHorasBase(false);
+        }
+      };
+
+      fetchHoras();
+    }
+  }, [
+    modalNotificacionOpen,
+    selectedDiaForWaitlist,
+    barbero,
+    obtenerHorarioBasePorDia,
+  ]);
+
+  // ────────────────────────────────
+  // Toggle hora seleccionada
+  // ────────────────────────────────
+  const toggleHoraSeleccionada = (h) => {
+    setHorasSeleccionadas((prev) =>
+      prev.includes(h) ? prev.filter((x) => x !== h) : [...prev, h]
+    );
+  };
+
+  // ────────────────────────────────
+  // Guardar Waitlist
+  // ────────────────────────────────
+  const guardarWaitlist = () => {
+    if (!barbero || !selectedDiaForWaitlist) {
+      Swal.fire("Error", "Falta información", "error");
+      return;
+    }
+
+    if (horasSeleccionadas.length === 0) {
+      Swal.fire("Atención", "Selecciona al menos una hora", "warning");
+      return;
+    }
+
+    console.log("💾 Guardando waitlist:", {
+      barberoId: barbero,
+      fecha: selectedDiaForWaitlist,
+      horas: horasSeleccionadas,
+    });
+
+    // Aquí iría tu llamada a la API para guardar la waitlist
+    Swal.fire({
+      title: "¡Solicitud guardada!",
+      html: `Te notificaremos si se libera alguna de las <b>${
+        horasSeleccionadas.length
+      }</b> hora(s) seleccionada(s):<br><small>${horasSeleccionadas.join(
+        ", "
+      )}</small>`,
+      icon: "success",
+      timer: 3000,
+    });
+
+    setModalNotificacionOpen(false);
+    setSelectedDiaForWaitlist(null);
+    setHorasSeleccionadas([]);
+    setHorasBase([]);
+  };
+
+  const cerrarModal = () => {
+    setModalNotificacionOpen(false);
+    setSelectedDiaForWaitlist(null);
+    setHorasSeleccionadas([]);
+    setHorasBase([]);
+  };
+
+  // ────────────────────────────────
+  // Render
+  // ────────────────────────────────
   return (
     <>
       <UserHeader />
@@ -86,7 +293,6 @@ const ReservarHoraBarbero = () => {
             </div>
 
             <div className="row">
-              {/* Columna izquierda: inputs y selección */}
               <div className="col-lg-7 col-md-12 pr-lg-4">
                 <RutInput
                   rut={rut}
@@ -99,7 +305,6 @@ const ReservarHoraBarbero = () => {
                   rutValido={rutValido}
                 />
 
-                {/* Mostrar el resto solo si el RUT es válido */}
                 {rutValido && (
                   <>
                     <ServicioSelector
@@ -125,6 +330,8 @@ const ReservarHoraBarbero = () => {
                         onSelectDay={handleSelectDay}
                         onPrevWeek={prevWeek}
                         onNextWeek={nextWeek}
+                        onWaitlist={handleOpenWaitlist}
+                        barberoId={barbero} // ← Esto DEBERÍA funcionar si barbero tiene valor
                       />
                     )}
 
@@ -142,7 +349,6 @@ const ReservarHoraBarbero = () => {
                 )}
               </div>
 
-              {/* Columna derecha: resumen */}
               <div className="col-lg-5 col-md-12 pl-lg-4">
                 <ResumenReserva
                   usuarioEncontrado={usuarioEncontrado}
@@ -172,6 +378,21 @@ const ReservarHoraBarbero = () => {
           </CardBody>
         </Card>
       </Container>
+
+      {/* ──────────────────────────────── */}
+      {/* MODAL HORAS BASE */}
+      {/* ──────────────────────────────── */}
+      <ModalHorasBase
+        isOpen={modalNotificacionOpen}
+        toggle={cerrarModal}
+        dia={selectedDiaForWaitlist}
+        horasBase={horasBase}
+        loading={loadingHorasBase}
+        horasSeleccionadas={horasSeleccionadas}
+        toggleHora={toggleHoraSeleccionada}
+        onGuardar={guardarWaitlist}
+        barberoSeleccionado={barberoSeleccionado}
+      />
     </>
   );
 };

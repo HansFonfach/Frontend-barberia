@@ -4,6 +4,7 @@ import { getObtenerExcepcionesPorDia } from "api/horarios";
 import { postRevertirHoraPorDia } from "api/horarios";
 import { postAsignarHorario } from "api/horarios";
 import { postToggleHora } from "api/horarios";
+import { getHorarioBasePorDia } from "api/horarios";
 import { getHorariosByBarbero } from "api/horarios";
 import { postCancelarHoraExtraDiaria } from "api/horarios";
 import { postAgregarHoraExtraDiaria } from "api/horarios";
@@ -23,8 +24,6 @@ export const HorarioProvider = ({ children }) => {
   const getHorasDisponiblesBarbero = async (barberoId, fecha) => {
     try {
       const result = await getHorasDisponibles(barberoId, fecha);
-      console.log("📊 Resultado desde API:", result);
-
       // ✅ Ahora result contiene todas las propiedades del backend
       return result; // ← Esto ya es el objeto completo
     } catch (err) {
@@ -48,11 +47,32 @@ export const HorarioProvider = ({ children }) => {
       const result = await getHorariosByBarbero(barbero);
       return result;
     } catch (err) {
-      console.error("❌ Error al asignar horarios", err);
+      console.error("❌ Error al obtener horarios", err);
       throw err;
     }
   };
 
+  const obtenerHorarioBasePorDia = async (barbero, fecha) => {
+    console.log("🌐 Request horarios base:", { barbero, fecha });
+
+    try {
+      const result = await getHorarioBasePorDia(barbero, fecha);
+      console.log("✅ Resultado completo:", result);
+
+      // Asegurar que devolvemos un array
+      if (result && result.bloques) {
+        return result.bloques; // Esto debería ser un array
+      } else if (Array.isArray(result)) {
+        return result; // Si ya es array
+      } else {
+        return []; // Array vacío por defecto
+      }
+    } catch (error) {
+      console.error("❌ Error al obtener horarios:", error);
+      return []; // Devolver array vacío en caso de error
+    }
+  };
+  
   const toggleHoraPorDia = async (hora, fecha, barbero, esFeriado = false) => {
     try {
       const motivo = esFeriado
@@ -80,15 +100,20 @@ export const HorarioProvider = ({ children }) => {
     }
   };
 
-const revertirHoraPorDia = async (hora, fecha, barbero, esFeriado = false) => {
-  try {
-    const motivo = esFeriado ? "Habilitada en feriado" : "Reactivación";
-    const res = await postToggleHora(barbero, fecha, hora, motivo, esFeriado);
-    return res;
-  } catch (error) {
-    throw error;
-  }
-};
+  const revertirHoraPorDia = async (
+    hora,
+    fecha,
+    barbero,
+    esFeriado = false
+  ) => {
+    try {
+      const motivo = esFeriado ? "Habilitada en feriado" : "Reactivación";
+      const res = await postToggleHora(barbero, fecha, hora, motivo, esFeriado);
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  };
 
   const agregarHoraExtraDiaria = async (barbero, fecha, hora) => {
     try {
@@ -130,6 +155,7 @@ const revertirHoraPorDia = async (hora, fecha, barbero, esFeriado = false) => {
         crearHorarioBarbero,
         obtenerHorarioBarbero,
         toggleHoraPorDia,
+        obtenerHorarioBasePorDia,
       }}
     >
       {children}
