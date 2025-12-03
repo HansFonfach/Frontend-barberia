@@ -12,12 +12,7 @@ import {
   Card,
   CardBody,
 } from "reactstrap";
-import {
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Bell,
-} from "lucide-react";
+import { Clock, CheckCircle, AlertCircle, Bell } from "lucide-react";
 
 const ModalHorasBase = ({
   isOpen,
@@ -38,7 +33,7 @@ const ModalHorasBase = ({
   const formatDate = (dateString) => {
     if (!dateString) return "Fecha no especificada";
     try {
-      const date = new Date(dateString);
+      const date = parseLocal(dateString);
       return date.toLocaleDateString("es-CL", {
         weekday: "long",
         day: "numeric",
@@ -50,7 +45,11 @@ const ModalHorasBase = ({
     }
   };
 
-  
+  const parseLocal = (str) => {
+    const [y, m, d] = str.split("-").map(Number);
+    return new Date(y, m - 1, d); // <-- sin UTC
+  };
+
   // Agrupar horas en mañana/tarde/noche
   const agruparHoras = (horas) => {
     const grupos = { mañana: [], tarde: [], noche: [] };
@@ -62,8 +61,6 @@ const ModalHorasBase = ({
     });
     return grupos;
   };
-
-  
 
   const horasAgrupadas = agruparHoras(horasBaseArray);
 
@@ -84,7 +81,10 @@ const ModalHorasBase = ({
             <h3 className="mb-0 ml-2 text-white" style={{ fontWeight: 900 }}>
               Notificación de Horarios
             </h3>
-            <h5 className="text-white ml-2" style={{ opacity: 0.9 ,  fontWeight: 900 }}>
+            <h5
+              className="text-white ml-2"
+              style={{ opacity: 0.9, fontWeight: 900 }}
+            >
               Te avisaremos si se libera alguna hora
             </h5>
           </div>
