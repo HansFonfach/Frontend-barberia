@@ -14,7 +14,7 @@ const ResumenReserva = ({
   cargandoHoras,
   onReservar,
   habilitado,
-  mostrarInfo
+  mostrarInfo,
 }) => {
   return (
     <>
@@ -60,9 +60,7 @@ const ResumenReserva = ({
             <div className="d-flex justify-content-between border-bottom py-1">
               <span>💸 Precio:</span>
               <strong>
-                {servicioSeleccionado
-                  ? `$${servicioSeleccionado.precio}`
-                  : "—"}
+                {servicioSeleccionado ? `$${servicioSeleccionado.precio}` : "—"}
               </strong>
             </div>
           </div>
@@ -93,15 +91,17 @@ const ResumenReserva = ({
           <Card className="border-success mt-1">
             <CardBody className="text-center">
               <MapPin size={40} className="text-success mb-2" />
-              <h6 className="font-weight-bold text-success">
+              <h5 className="font-weight-bold text-success">
                 La Santa Barberia 💈
-              </h6>
+              </h5>
               <p className="small text-muted mb-2">
                 🕒 Lunes a Viernes 8:00 - 19:00 hrs
                 <br />
-                📍 Calle Diego Portales #3343
+                ⭐ Sábado atención solo suscritos
                 <br />
-                📞 +56 9 7529 7584
+                📍 Calle Diego Portales #310
+                <br />
+                📞 +56 9 9681 7505
               </p>
               <Badge
                 color="success"

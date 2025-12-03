@@ -22,7 +22,8 @@ import Politicas from "views/pages/Politicas";
 import CambiarContrasena from "views/pages/CambiarContraseña";
 import ReiniciarContraseña from "views/pages/ReiniciarContraseña";
 import PresentarServicios from "views/pages/PresentarServicios";
-import { FaClock, FaTag, FaCut, FaUserTie } from "react-icons/fa";
+import Contacto from "views/pages/Contacto"
+import { FaCut,  } from "react-icons/fa";
 
 // Rutas públicas (login/register)
 export const publicRoutes = [
@@ -128,6 +129,13 @@ export const clienteRoutes = [
     name: "Cambiar contraseña",
     component: <CambiarContrasena />,
     invisible: true,
+    layout: "/admin",
+  },
+    {
+    path: "/contacto",
+    name: "Contacto",
+    component: <Contacto/>,
+    icon: "ni ni-notification-70 text-warning", // 📘 Políticas / reglas
     layout: "/admin",
   },
 ];
