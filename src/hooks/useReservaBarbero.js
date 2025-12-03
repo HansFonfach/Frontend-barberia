@@ -13,7 +13,7 @@ import Swal from "sweetalert2";
 const DAYS_TO_SHOW = 7;
 
 export const useReservaBarbero = () => {
-  // Estado básico
+  // --- ESTADOS BÁSICOS ---
   const [fecha, setFecha] = useState("");
   const [barbero, setBarbero] = useState("");
   const [hora, setHora] = useState("");
@@ -22,75 +22,80 @@ export const useReservaBarbero = () => {
   const [reservando, setReservando] = useState(false);
   const [rutValido, setRutValido] = useState(false);
 
-  // Semana / disponibilidad
+  // --- SEMANA ---
   const [weekStart, setWeekStart] = useState(new Date());
   const [weekDays, setWeekDays] = useState([]);
   const [loadingWeek, setLoadingWeek] = useState(false);
 
-  // Hooks / context
+  // --- HOOKS / CONTEXTOS ---
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { servicios } = useContext(ServiciosContext);
+  const { servicios, loadingServicios } = useContext(ServiciosContext);
   const { postReservarHora } = useReserva();
   const { getBarberosDisponibles, barberos, getUserByRut } = useUsuario();
   const { rut, handleRutChange, error, isValid, clearRut } = useRutValidator();
   const { getHorasDisponiblesBarbero } = useHorario();
 
-  // Búsqueda de usuario
+  // --- RUT / USUARIO ---
   const [buscandoUsuario, setBuscandoUsuario] = useState(false);
   const [usuarioEncontrado, setUsuarioEncontrado] = useState(null);
   const [errorBusqueda, setErrorBusqueda] = useState("");
 
-  // Hook para horas disponibles
+  // --- HORAS DISPONIBLES ---
   const {
     horas: horasDisponibles,
     mensaje: mensajeHoras,
     cargando: cargandoHoras,
   } = useHorasDisponibles(barbero, fecha, getHorasDisponiblesBarbero);
 
-  // Control de pasos simplificado
+  // --------------------------------------------------
+  //      CONTROL DE PASOS  (NO CORRE SI CARGANDO)
+  // --------------------------------------------------
   useEffect(() => {
-    if (!rut) {
-      setPasoActual(1);
-    } else if (!servicio || !barbero) {
-      setPasoActual(2);
-    } else if (!fecha) {
-      setPasoActual(3);
-    } else if (!hora) {
-      setPasoActual(4);
-    } else {
-      setPasoActual(5);
-    }
-  }, [rut, servicio, barbero, fecha, hora]);
+    if (loadingServicios) return;
 
+    if (!rut) setPasoActual(1);
+    else if (!servicio || !barbero) setPasoActual(2);
+    else if (!fecha) setPasoActual(3);
+    else if (!hora) setPasoActual(4);
+    else setPasoActual(5);
+  }, [rut, servicio, barbero, fecha, hora, loadingServicios]);
+
+  // --------------------------------------------------
+  //      BÚSQUEDA DE USUARIO POR RUT
+  // --------------------------------------------------
   useEffect(() => {
+    if (loadingServicios) return;
+
     let isMounted = true;
 
     const buscarUsuario = async () => {
       const rutNumerico = rut?.replace(/\D/g, "") || "";
-      if (rutNumerico.length >= 7) {
-        setBuscandoUsuario(true);
-        setUsuarioEncontrado(null);
-        setErrorBusqueda("");
-        setRutValido(false); // ← por defecto no válido hasta confirmar
-
-        try {
-          const usuario = await getUserByRut(rut);
-          if (isMounted) {
-            if (usuario && (usuario._id || usuario.id || usuario.rut)) {
-              setUsuarioEncontrado(usuario);
-              setRutValido(true); // ✅ RUT válido y usuario existe
-            } else {
-              setErrorBusqueda("Usuario no encontrado");
-            }
-          }
-        } catch (err) {
-          setErrorBusqueda("Error al buscar usuario");
-        } finally {
-          if (isMounted) setBuscandoUsuario(false);
-        }
-      } else {
+      if (rutNumerico.length < 7) {
         setRutValido(false);
+        return;
+      }
+
+      setBuscandoUsuario(true);
+      setUsuarioEncontrado(null);
+      setErrorBusqueda("");
+      setRutValido(false);
+
+      try {
+        const usuario = await getUserByRut(rut);
+
+        if (isMounted) {
+          if (usuario && (usuario._id || usuario.id || usuario.rut)) {
+            setUsuarioEncontrado(usuario);
+            setRutValido(true);
+          } else {
+            setErrorBusqueda("Usuario no encontrado");
+          }
+        }
+      } catch {
+        setErrorBusqueda("Error al buscar usuario");
+      } finally {
+        if (isMounted) setBuscandoUsuario(false);
       }
     };
 
@@ -99,10 +104,14 @@ export const useReservaBarbero = () => {
       isMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [rut]);
+  }, [rut, loadingServicios]);
 
-  // Cargar barberos al inicio
+  // --------------------------------------------------
+  //      CARGAR BARBEROS AL INICIO
+  // --------------------------------------------------
   useEffect(() => {
+    if (loadingServicios) return;
+
     const loadBarberos = async () => {
       try {
         await getBarberosDisponibles();
@@ -110,21 +119,22 @@ export const useReservaBarbero = () => {
         console.error("Error cargando barberos:", err);
       }
     };
-    loadBarberos();
-  }, [getBarberosDisponibles]);
 
-  // Utilidades
-  const formatDayLabel = (d) => {
-    return d.toLocaleDateString("es-CL", {
+    loadBarberos();
+  }, [getBarberosDisponibles, loadingServicios]);
+
+  // --------------------------------------------------
+  //     UTILIDADES Y CÁLCULOS
+  // --------------------------------------------------
+  const formatDayLabel = (d) =>
+    d.toLocaleDateString("es-CL", {
       weekday: "short",
       day: "numeric",
       month: "short",
     });
-  };
 
   const isoDate = (d) => d.toISOString().split("T")[0];
 
-  // Encontrar slots consecutivos para servicios de 2 horas
   const findConsecutiveStarts = (horas = []) => {
     const setHoras = new Set(horas);
     const starts = [];
@@ -139,12 +149,11 @@ export const useReservaBarbero = () => {
     return starts;
   };
 
-  // Construir semana de fechas
   const buildWeekDates = useCallback((start) => {
     const dates = [];
     const s = new Date(start);
     s.setHours(0, 0, 0, 0);
-    for (let i = 0; i < DAYS_TO_SHOW; i++) {
+    for (let i = 0; i < 7; i++) {
       const d = new Date(s);
       d.setDate(s.getDate() + i);
       dates.push(d);
@@ -152,9 +161,13 @@ export const useReservaBarbero = () => {
     return dates;
   }, []);
 
-  // Fetch disponibilidad semanal
+  // --------------------------------------------------
+  //    FETCH DISPONIBILIDAD SEMANAL
+  // --------------------------------------------------
   const fetchWeekAvailability = useCallback(
     async (barberoId, serviceDuracion, startDate) => {
+      if (loadingServicios) return;
+
       if (!barberoId || !serviceDuracion) {
         setWeekDays(
           buildWeekDates(startDate).map((d) => ({
@@ -169,38 +182,34 @@ export const useReservaBarbero = () => {
       }
 
       setLoadingWeek(true);
+
       try {
         const dates = buildWeekDates(startDate);
         const promises = dates.map((d) =>
-          getHorasDisponiblesBarbero(barberoId, isoDate(d)).catch((err) => {
-            console.error("Error fetch horas day:", isoDate(d), err);
-            return null;
-          })
+          getHorasDisponiblesBarbero(barberoId, isoDate(d)).catch(() => null)
         );
+
         const results = await Promise.all(promises);
 
         const newWeek = dates.map((d, idx) => {
           const res = results[idx];
-          const horas =
-            (res && res.horasDisponibles) || (res && res.horas) || [];
+          const horas = res?.horasDisponibles || res?.horas || [];
           const starts120 =
             serviceDuracion === 120 ? findConsecutiveStarts(horas) : [];
-          const available =
-            serviceDuracion === 120 ? starts120.length > 0 : horas.length > 0;
 
           return {
             date: d,
             label: formatDayLabel(d),
             iso: isoDate(d),
-            available,
+            available:
+              serviceDuracion === 120 ? starts120.length > 0 : horas.length > 0,
             hours: horas,
             starts120,
           };
         });
 
         setWeekDays(newWeek);
-      } catch (err) {
-        console.error("Error fetchWeekAvailability:", err);
+      } catch {
         setWeekDays(
           buildWeekDates(startDate).map((d) => ({
             date: d,
@@ -214,11 +223,15 @@ export const useReservaBarbero = () => {
         setLoadingWeek(false);
       }
     },
-    [buildWeekDates, getHorasDisponiblesBarbero]
+    [buildWeekDates, getHorasDisponiblesBarbero, loadingServicios]
   );
 
-  // Cuando cambian barbero, servicio o weekStart => recargar semana
+  // --------------------------------------------------
+  //      RECARGA DE SEMANA SI CAMBIA SERVICIO/BARBERO
+  // --------------------------------------------------
   useEffect(() => {
+    if (loadingServicios) return;
+
     if (!servicio || !barbero) {
       setWeekDays(
         buildWeekDates(weekStart).map((d) => ({
@@ -233,7 +246,8 @@ export const useReservaBarbero = () => {
     }
 
     const svc = servicios.find((s) => s._id === servicio);
-    const duracion = svc ? svc.duracion || 60 : 60;
+    const duracion = svc?.duracion || 60;
+
     fetchWeekAvailability(barbero, duracion, weekStart);
   }, [
     barbero,
@@ -242,11 +256,13 @@ export const useReservaBarbero = () => {
     buildWeekDates,
     fetchWeekAvailability,
     servicios,
+    loadingServicios,
   ]);
 
-  // Handlers
+  // --------------------------------------------------
+  //      HANDLERS
+  // --------------------------------------------------
   const handleSelectDay = (iso) => {
-    console.log("Seleccionando día:", iso);
     setFecha(iso);
     setHora("");
   };
@@ -254,19 +270,17 @@ export const useReservaBarbero = () => {
   const prevWeek = () => {
     const d = new Date(weekStart);
     const prev = new Date(d);
-    prev.setDate(d.getDate() - DAYS_TO_SHOW);
+    prev.setDate(d.getDate() - 7);
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    if (prev < today) {
-      setWeekStart(today);
-    } else {
-      setWeekStart(prev);
-    }
+
+    setWeekStart(prev < today ? today : prev);
   };
 
   const nextWeek = () => {
     const d = new Date(weekStart);
-    d.setDate(d.getDate() + DAYS_TO_SHOW);
+    d.setDate(d.getDate() + 7);
     setWeekStart(d);
   };
 
@@ -277,25 +291,21 @@ export const useReservaBarbero = () => {
 
   const duracionSeleccionado = (() => {
     const svc = servicios.find((s) => s._id === servicio);
-    return svc ? svc.duracion || 60 : 60;
+    return svc?.duracion || 60;
   })();
+
   const handleReservar = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
+    if (e?.preventDefault) e.preventDefault();
     if (!user)
       return Swal.fire("Error", "Debes iniciar sesión para reservar", "error");
 
     setReservando(true);
 
-    // Determinar usuario para la reserva
     const usuarioId = usuarioEncontrado?._id || user._id || user.id;
 
     if (!usuarioId) {
       setReservando(false);
-      return Swal.fire(
-        "Error",
-        "No se pudo determinar el usuario para la reserva",
-        "error"
-      );
+      return Swal.fire("Error", "No se pudo determinar el usuario", "error");
     }
 
     try {
@@ -307,8 +317,7 @@ export const useReservaBarbero = () => {
           await postReservarHora(fecha, barbero, h, servicio, usuarioId);
         } catch (error) {
           const backendMessage =
-            error.response?.data?.message || "No se pudo realizar la reserva";
-
+            error.response?.data?.message || "No se pudo reservar";
           Swal.fire("Error", backendMessage, "error");
           return;
         }
@@ -316,17 +325,17 @@ export const useReservaBarbero = () => {
 
       Swal.fire(
         "Reserva exitosa",
-        "Tu hora se ha reservado correctamente. Te enviaremos un correo con la confirmación de tu hora.",
+        "Tu hora ha sido reservada correctamente, te enviaremos un correo con los datos de tu reserva.",
         "success"
       );
       navigate("/admin/index");
-    } catch (error) {
-      console.error(error);
-      Swal.fire("Error", "No se pudo realizar la reserva.", "error");
+    } catch {
+      Swal.fire("Error", "No se pudo realizar la reserva", "error");
     } finally {
       setReservando(false);
     }
   };
+
   const handleLimpiarRut = () => {
     clearRut();
     setUsuarioEncontrado(null);
@@ -340,8 +349,8 @@ export const useReservaBarbero = () => {
     setWeekStart(today);
   };
 
-  const handleSeleccionarServicio = (servicioId) => {
-    setServicio(servicioId);
+  const handleSeleccionarServicio = (id) => {
+    setServicio(id);
     setFecha("");
     setHora("");
     const today = new Date();
@@ -349,14 +358,29 @@ export const useReservaBarbero = () => {
     setWeekStart(today);
   };
 
-  const handleSeleccionarBarbero = (barberoId) => {
-    setBarbero(barberoId);
+  const handleSeleccionarBarbero = (id) => {
+    setBarbero(id);
     setFecha("");
     setHora("");
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     setWeekStart(today);
   };
+
+  // --------------------------------------------------
+  //       **RETORNO FINAL (NO ANTES!)**
+  // --------------------------------------------------
+
+  if (loadingServicios) {
+    return {
+      loadingServicios: true,
+      pasoActual: 1,
+      servicios: [],
+      barberos: [],
+      weekDays: [],
+      horasDisponibles: [],
+    };
+  }
 
   return {
     // Estado

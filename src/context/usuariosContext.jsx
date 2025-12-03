@@ -31,7 +31,6 @@ export const UsuarioProvider = ({ children }) => {
       setCargando(true);
       const res = await getTodosLosUsuarios();
       setUsuarios(res.data.usuarios); // ✅ accedemos al array real
-      console.log("Usuarios cargados:", res.data.usuarios);
       setBarberos(res.data.usuarios.filter((u) => u.rol === "barbero"));
       setErrors(null);
     } catch (error) {

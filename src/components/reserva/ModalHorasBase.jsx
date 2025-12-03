@@ -52,6 +52,7 @@ const ModalHorasBase = ({
     }
   };
 
+  
   // Agrupar horas en mañana/tarde/noche
   const agruparHoras = (horas) => {
     const grupos = { mañana: [], tarde: [], noche: [] };
@@ -63,6 +64,8 @@ const ModalHorasBase = ({
     });
     return grupos;
   };
+
+  
 
   const horasAgrupadas = agruparHoras(horasBaseArray);
 

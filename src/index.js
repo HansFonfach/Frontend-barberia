@@ -15,6 +15,7 @@ import { ServiciosProvider } from "context/ServiciosContext";
 import { UsuarioProvider } from "context/usuariosContext";
 import { HorarioProvider } from "context/HorarioContext";
 import { EstadisticasProvider } from "context/EstadisticasContext";
+import { NotificacionProvider } from "context/NotificacionesContext";
 
 const RootRedirect = () => {
   const { user, isAuthenticated } = useAuth();
@@ -40,21 +41,23 @@ root.render(
             <HorarioProvider>
               <ReservaProvider>
                 <EstadisticasProvider>
-                  <Routes>
-                    {/* Layout de autenticación */}
-                    <Route path="/auth/*" element={<AuthLayout />} />
+                  <NotificacionProvider>
+                    <Routes>
+                      {/* Layout de autenticación */}
+                      <Route path="/auth/*" element={<AuthLayout />} />
 
-                    {/* Layout protegido */}
-                    <Route element={<ProtectedRoute />}>
-                      <Route path="/admin/*" element={<AdminLayout />} />
-                    </Route>
+                      {/* Layout protegido */}
+                      <Route element={<ProtectedRoute />}>
+                        <Route path="/admin/*" element={<AdminLayout />} />
+                      </Route>
 
-                    {/* Redirección raíz */}
-                    <Route path="/" element={<RootRedirect />} />
+                      {/* Redirección raíz */}
+                      <Route path="/" element={<RootRedirect />} />
 
-                    {/* Fallback */}
-                    <Route path="*" element={<Navigate to="/" replace />} />
-                  </Routes>
+                      {/* Fallback */}
+                      <Route path="*" element={<Navigate to="/" replace />} />
+                    </Routes>
+                  </NotificacionProvider>
                 </EstadisticasProvider>
               </ReservaProvider>
             </HorarioProvider>

@@ -242,6 +242,7 @@ const ReservarHoraBarbero = () => {
       barberoId: barbero,
       fecha: selectedDiaForWaitlist,
       horas: horasSeleccionadas,
+      usuario: usuarioEncontrado
     });
 
     // Aquí iría tu llamada a la API para guardar la waitlist
