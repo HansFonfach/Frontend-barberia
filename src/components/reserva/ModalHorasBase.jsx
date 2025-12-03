@@ -16,8 +16,6 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
-  Calendar,
-  User,
   Bell,
 } from "lucide-react";
 

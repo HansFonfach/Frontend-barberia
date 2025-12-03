@@ -133,7 +133,12 @@ export const useReservaBarbero = () => {
       month: "short",
     });
 
-  const isoDate = (d) => d.toISOString().split("T")[0];
+  const isoDate = (d) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
   const findConsecutiveStarts = (horas = []) => {
     const setHoras = new Set(horas);

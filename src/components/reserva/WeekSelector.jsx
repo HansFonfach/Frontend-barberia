@@ -2,7 +2,6 @@
 import React from "react";
 import { FormGroup, Label, Button, Spinner } from "reactstrap";
 import { ChevronLeft, ChevronRight, Bell } from "lucide-react";
-import Swal from "sweetalert2";
 
 const DAYS_TO_SHOW = 7;
 
@@ -25,7 +24,6 @@ const WeekSelector = ({
   onNextWeek,
   onWaitlist,
   barberoId, // ← NUEVO PROP: ID del barbero seleccionado
-  barberoInfo, // ← Nuevo prop
 }) => {
   const handleWaitlistRequest = async (d) => {
     console.log("🔔 Click en campanita");
@@ -37,6 +35,11 @@ const WeekSelector = ({
         barberoId: barberoId, // ← ¿Esto es undefined?
       });
     }
+  };
+
+  const parseLocalDate = (str) => {
+    const [y, m, d] = str.split("-").map(Number);
+    return new Date(y, m - 1, d); // <-- sin UTC
   };
 
   return (
@@ -163,7 +166,7 @@ const WeekSelector = ({
                           marginBottom: "2px",
                         }}
                       >
-                        {new Date(d.date).toLocaleDateString("es-CL", {
+                        {parseLocalDate(d.iso).toLocaleDateString("es-CL", {
                           weekday: "short",
                         })}
                       </div>
@@ -175,7 +178,7 @@ const WeekSelector = ({
                           marginBottom: "2px",
                         }}
                       >
-                        {new Date(d.date).getDate()}
+                        {parseLocalDate(d.iso).getDate()}
                       </div>
 
                       <div
@@ -185,7 +188,7 @@ const WeekSelector = ({
                           opacity: 0.8,
                         }}
                       >
-                        {new Date(d.date).toLocaleDateString("es-CL", {
+                        {parseLocalDate(d.iso).toLocaleDateString("es-CL", {
                           month: "short",
                         })}
                       </div>
@@ -250,17 +253,17 @@ const WeekSelector = ({
       </small>
 
       <style>{`
-        .hover-lift:hover { 
-          transform: translateY(-2px); 
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-        }
-        .hover-scale:hover {
-          transform: scale(1.1);
-        }
-        .hover-scale {
-          transition: transform 0.2s ease;
-        }
-      `}</style>
+          .hover-lift:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+          }
+          .hover-scale:hover {
+            transform: scale(1.1);
+          }
+          .hover-scale {
+            transition: transform 0.2s ease;
+          }
+        `}</style>
     </FormGroup>
   );
 };
