@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, CardBody, Container, Row, Col, Badge } from "reactstrap";
+import { Button, Card, CardBody, Container, Row, Col, Badge, Spinner } from "reactstrap";
 import UserHeader from "components/Headers/UserHeader.js";
 import { useAuth } from "context/AuthContext";
 import {
@@ -17,66 +17,73 @@ import { useEstadisticas } from "context/EstadisticasContext";
 const UserDashboard = () => {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
   const [showSurprise, setShowSurprise] = useState(false);
-  const [loadingStats, setLoadingStats] = useState(true);
   const { totalCitasEsteMes, ultimaReserva, proximaReserva } =
     useEstadisticas();
-  const [citasMes, setCitasMes] = useState(0);
-  const [loadingCitas, setLoadingCitas] = useState(true);
   const [statsData, setStatsData] = useState({
     citasMes: 0,
-    totalReservas: 0,
     ultima: null,
+    proxima: null,
   });
+  const [loadingStats, setLoadingStats] = useState(true);
+  const [errorStats, setErrorStats] = useState(null);
 
   useEffect(() => {
-    if (!user?.id) return;
+    // Solo cargar estadísticas si el usuario está autenticado y no está cargando
+    if (authLoading || !user?.id) return;
 
     const cargarStats = async () => {
-      setLoadingCitas(true);
+      setLoadingStats(true);
+      setErrorStats(null);
+      
       try {
-        const [citasMesResp, ultima, proxima] = await Promise.all([
+        const [citasMesResp, ultimaResp, proximaResp] = await Promise.all([
           totalCitasEsteMes(user.id),
-          ultimaReserva().catch((err) => err.message), // si falla devuelve el mensaje
-          proximaReserva().catch((err) => err.message),
+          ultimaReserva(user.id),
+          proximaReserva(user.id),
         ]);
 
         setStatsData({
           citasMes: citasMesResp?.total || 0,
-          ultima,
-          proxima,
+          ultima: ultimaResp?.fecha || "No hay visitas",
+          proxima: proximaResp?.fecha || "Sin citas agendadas",
         });
       } catch (err) {
-        console.error(err);
+        console.error("Error cargando estadísticas:", err);
+        setErrorStats("Error al cargar las estadísticas");
         setStatsData({
           citasMes: 0,
-          ultima: "Error cargando última reserva",
-          proxima: "Error cargando próxima reserva",
+          ultima: "Error",
+          proxima: "Error",
         });
       } finally {
-        setLoadingCitas(false);
+        setLoadingStats(false);
       }
     };
 
     cargarStats();
-  }, [user]);
+  }, [user, authLoading]); // Dependencia clave: authLoading
 
-
-
-  useEffect(() => {
-    // Verificar si es tu polola cuando el usuario esté listo
-    if (user?.rut === "20.307.949-4" || user?.rut === "203079494") {
-      setShowSurprise(true);
-    }
-  }, [user]);
-
-  // Loading principal
+  // Loading principal - mostrar spinner mientras se verifica autenticación
   if (authLoading) {
-    return <div>Cargando usuario...</div>;
+    return (
+      <Container className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
+        <Spinner color="primary" />
+      </Container>
+    );
   }
 
   // Si no hay usuario después de cargar
-  if (!user) {
-    return <div>No se pudo cargar la información del usuario</div>;
+  if (!user || !isAuthenticated) {
+    return (
+      <Container className="mt-5">
+        <Card>
+          <CardBody>
+            <h4>No autenticado</h4>
+            <p>Por favor, inicia sesión para ver tu dashboard.</p>
+          </CardBody>
+        </Card>
+      </Container>
+    );
   }
 
   const menuItems = [
@@ -109,25 +116,58 @@ const UserDashboard = () => {
     },
   ];
 
+  // Función para formatear fechas (si es necesario)
+  const formatDate = (dateString) => {
+    if (!dateString || dateString === "Error") return dateString;
+    if (dateString.includes("No hay") || dateString.includes("Sin citas")) return dateString;
+    
+    try {
+      return new Date(dateString).toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+    } catch {
+      return dateString;
+    }
+  };
+
   const stats = [
     {
       label: "Citas este mes",
-      value: loadingCitas ? "Cargando..." : statsData.citasMes,
+      value: loadingStats ? (
+        <Spinner size="sm" color="primary" />
+      ) : errorStats ? (
+        "Error"
+      ) : (
+        statsData.citasMes
+      ),
       icon: <CalendarCheck size={22} className="text-primary" />,
       color: "primary",
       description: "Total de citas realizadas este mes",
     },
-
     {
       label: "Próxima Cita",
-      value: loadingCitas ? "Cargando..." : statsData.proxima,
+      value: loadingStats ? (
+        <Spinner size="sm" color="success" />
+      ) : errorStats ? (
+        "Error"
+      ) : (
+        formatDate(statsData.proxima)
+      ),
       icon: <CalendarCheck size={22} className="text-success" />,
       description: "Tu próxima reserva agendada",
       color: "success",
     },
     {
       label: "Última Visita",
-      value: loadingCitas ? "Cargando..." : statsData.ultima,
+      value: loadingStats ? (
+        <Spinner size="sm" color="info" />
+      ) : errorStats ? (
+        "Error"
+      ) : (
+        formatDate(statsData.ultima)
+      ),
       icon: <History size={22} className="text-info" />,
       description: "Tu última vez en la barbería",
       color: "info",
@@ -189,11 +229,13 @@ const UserDashboard = () => {
                       <h6 className="text-uppercase text-muted mb-1">
                         {stat.label}
                       </h6>
-                      <h3 className="font-weight-bold mb-0">{stat.value}</h3>
-                      {stat.change && (
-                        <Badge color="success" className="rounded-pill mt-1">
-                          {stat.change}
-                        </Badge>
+                      <h3 className="font-weight-bold mb-0">
+                        {typeof stat.value === 'string' ? stat.value : stat.value}
+                      </h3>
+                      {stat.description && (
+                        <small className="text-muted d-block mt-1">
+                          {stat.description}
+                        </small>
                       )}
                     </div>
                     <div className="bg-light rounded-circle p-3 shadow-sm">
