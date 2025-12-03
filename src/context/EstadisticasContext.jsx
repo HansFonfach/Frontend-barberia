@@ -38,13 +38,10 @@ export const EstadisticasProvider = ({ children }) => {
   };
   const ultimaReserva = async () => {
     try {
-      const res = await getUltimaReserva(); // Axios call
-      return res.data.fecha; // fecha bonita si existe
+      const res = await getUltimaReserva(); // no pasar userId
+      return res.data.fecha; // ya viene formateada por el backend
     } catch (error) {
-      // Capturamos el mensaje que manda el backend
-      if (error.response && error.response.data?.message) {
-        return error.response.data.message; // "No se encontraron reservas pasadas"
-      }
+      if (error.response?.data?.message) return error.response.data.message;
       return "Error al obtener última reserva";
     }
   };
@@ -52,17 +49,11 @@ export const EstadisticasProvider = ({ children }) => {
   const proximaReserva = async () => {
     try {
       const res = await getProximaReserva();
-      // Validar si el backend dice ok false
-      if (!res.data.ok) {
-        throw new Error(res.data.message || "No se encontró próxima reserva");
-      }
-      return res.data.fecha; // o res.data.fecha si prefieres
+      if (!res.data.ok)
+        throw new Error(res.data.message || "No hay próxima reserva");
+      return res.data.fecha;
     } catch (error) {
-      // Si Axios lanza error por status >=400
-      if (error.response && error.response.data?.message) {
-        return error.response.data.message;
-      }
-      console.error("Error obteniendo próxima reserva:", error.message);
+      if (error.response?.data?.message) return error.response.data.message;
       return "Error al obtener próxima reserva";
     }
   };

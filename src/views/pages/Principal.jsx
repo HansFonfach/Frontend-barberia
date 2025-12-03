@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, CardBody, Container, Row, Col, Badge, Spinner } from "reactstrap";
+import {
+  Button,
+  Card,
+  CardBody,
+  Container,
+  Row,
+  Col,
+  Badge,
+  Spinner,
+} from "reactstrap";
 import UserHeader from "components/Headers/UserHeader.js";
 import { useAuth } from "context/AuthContext";
 import {
@@ -34,18 +43,18 @@ const UserDashboard = () => {
     const cargarStats = async () => {
       setLoadingStats(true);
       setErrorStats(null);
-      
+
       try {
         const [citasMesResp, ultimaResp, proximaResp] = await Promise.all([
-          totalCitasEsteMes(user.id),
-          ultimaReserva(user.id),
-          proximaReserva(user.id),
+          totalCitasEsteMes(),
+          ultimaReserva(),
+          proximaReserva(),
         ]);
 
         setStatsData({
           citasMes: citasMesResp?.total || 0,
-          ultima: ultimaResp?.fecha || "No hay visitas",
-          proxima: proximaResp?.fecha || "Sin citas agendadas",
+          ultima: ultimaResp || "No hay visitas",
+          proxima: proximaResp || "Sin citas agendadas",
         });
       } catch (err) {
         console.error("Error cargando estadísticas:", err);
@@ -66,7 +75,10 @@ const UserDashboard = () => {
   // Loading principal - mostrar spinner mientras se verifica autenticación
   if (authLoading) {
     return (
-      <Container className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
+      <Container
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "100vh" }}
+      >
         <Spinner color="primary" />
       </Container>
     );
@@ -119,13 +131,14 @@ const UserDashboard = () => {
   // Función para formatear fechas (si es necesario)
   const formatDate = (dateString) => {
     if (!dateString || dateString === "Error") return dateString;
-    if (dateString.includes("No hay") || dateString.includes("Sin citas")) return dateString;
-    
+    if (dateString.includes("No hay") || dateString.includes("Sin citas"))
+      return dateString;
+
     try {
-      return new Date(dateString).toLocaleDateString('es-ES', {
-        day: 'numeric',
-        month: 'long',
-        year: 'numeric'
+      return new Date(dateString).toLocaleDateString("es-ES", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
       });
     } catch {
       return dateString;
@@ -153,7 +166,7 @@ const UserDashboard = () => {
       ) : errorStats ? (
         "Error"
       ) : (
-        formatDate(statsData.proxima)
+        statsData.proxima
       ),
       icon: <CalendarCheck size={22} className="text-success" />,
       description: "Tu próxima reserva agendada",
@@ -166,7 +179,7 @@ const UserDashboard = () => {
       ) : errorStats ? (
         "Error"
       ) : (
-        formatDate(statsData.ultima)
+        statsData.ultima
       ),
       icon: <History size={22} className="text-info" />,
       description: "Tu última vez en la barbería",
@@ -230,7 +243,9 @@ const UserDashboard = () => {
                         {stat.label}
                       </h6>
                       <h3 className="font-weight-bold mb-0">
-                        {typeof stat.value === 'string' ? stat.value : stat.value}
+                        {typeof stat.value === "string"
+                          ? stat.value
+                          : stat.value}
                       </h3>
                       {stat.description && (
                         <small className="text-muted d-block mt-1">
