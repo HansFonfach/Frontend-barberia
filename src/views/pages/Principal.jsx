@@ -1,17 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { 
-  Button, 
-  Card, 
-  CardBody, 
-  Container, 
-  Row, 
-  Col, 
-  Badge, 
-  Modal, 
-  ModalHeader, 
-  ModalBody, 
-  ModalFooter 
-} from "reactstrap";
+import { Button, Card, CardBody, Container, Row, Col, Badge } from "reactstrap";
 import UserHeader from "components/Headers/UserHeader.js";
 import { useAuth } from "context/AuthContext";
 import {
@@ -21,21 +9,58 @@ import {
   Crown,
   Sparkles,
   CalendarCheck,
-  ShieldCheck,
-  Ticket,
   Zap,
-  UserCheck,
-  Sliders,
   ArrowRight,
 } from "lucide-react";
-import { useReserva } from "context/ReservaContext";
+import { useEstadisticas } from "context/EstadisticasContext";
 
 const UserDashboard = () => {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
-  const { reservasActivas } = useReserva();
-  const [infoReservas, setInfoReservas] = useState({});
-  const [loadingReservas, setLoadingReservas] = useState(true);
   const [showSurprise, setShowSurprise] = useState(false);
+  const [loadingStats, setLoadingStats] = useState(true);
+  const { totalCitasEsteMes, ultimaReserva, proximaReserva } =
+    useEstadisticas();
+  const [citasMes, setCitasMes] = useState(0);
+  const [loadingCitas, setLoadingCitas] = useState(true);
+  const [statsData, setStatsData] = useState({
+    citasMes: 0,
+    totalReservas: 0,
+    ultima: null,
+  });
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const cargarStats = async () => {
+      setLoadingCitas(true);
+      try {
+        const [citasMesResp, ultima, proxima] = await Promise.all([
+          totalCitasEsteMes(user.id),
+          ultimaReserva().catch((err) => err.message), // si falla devuelve el mensaje
+          proximaReserva().catch((err) => err.message),
+        ]);
+
+        setStatsData({
+          citasMes: citasMesResp?.total || 0,
+          ultima,
+          proxima,
+        });
+      } catch (err) {
+        console.error(err);
+        setStatsData({
+          citasMes: 0,
+          ultima: "Error cargando última reserva",
+          proxima: "Error cargando próxima reserva",
+        });
+      } finally {
+        setLoadingCitas(false);
+      }
+    };
+
+    cargarStats();
+  }, [user]);
+
+
 
   useEffect(() => {
     // Verificar si es tu polola cuando el usuario esté listo
@@ -43,28 +68,6 @@ const UserDashboard = () => {
       setShowSurprise(true);
     }
   }, [user]);
-
-  useEffect(() => {
-    // Si no está autenticado o aún está cargando, no hacer nada
-    if (!isAuthenticated || authLoading || !user?._id) {
-      return;
-    }
-
-    const obtenerReservasActivas = async () => {
-      setLoadingReservas(true);
-      try {
-        const res = await reservasActivas(user._id);
-        setInfoReservas(res || {});
-      } catch (error) {
-        console.error("Error al cargar reservas:", error);
-        setInfoReservas({});
-      } finally {
-        setLoadingReservas(false);
-      }
-    };
-
-    obtenerReservasActivas();
-  }, [user, authLoading, isAuthenticated]);
 
   // Loading principal
   if (authLoading) {
@@ -104,63 +107,30 @@ const UserDashboard = () => {
       href: "/admin/suscripcion",
       gradient: "linear-gradient(135deg, #00b09b 0%, #96c93d 100%)",
     },
-    {
-      title: "Historial Completo",
-      description: "Revisa todas tus visitas y servicios",
-      icon: <History size={24} />,
-      color: "info",
-      badge: "Ver todo",
-      href: "/historial",
-      gradient: "linear-gradient(135deg, #17a2b8 0%, #0dcaf0 100%)",
-    },
-    {
-      title: "Mi Perfil",
-      description: "Actualiza tus datos y preferencias",
-      icon: <UserCheck size={24} />,
-      color: "secondary",
-      badge: "Perfil",
-      href: "/admin/user-profile",
-      gradient: "linear-gradient(135deg, #6c757d 0%, #adb5bd 100%)",
-    },
-    {
-      title: "Configuración",
-      description: "Personaliza tu experiencia",
-      icon: <Sliders size={24} />,
-      color: "dark",
-      badge: "Ajustes",
-      href: "/configuracion",
-      gradient: "linear-gradient(135deg, #343a40 0%, #000000 100%)",
-    },
   ];
-  
+
   const stats = [
     {
       label: "Citas este mes",
-      value: `${infoReservas?.citasMes || 0}`,
+      value: loadingCitas ? "Cargando..." : statsData.citasMes,
       icon: <CalendarCheck size={22} className="text-primary" />,
       color: "primary",
       description: "Total de citas realizadas este mes",
     },
+
     {
-      label: "Suscripción",
-      value: user.suscrito ? "Activa" : "Sin suscripción",
-      icon: (
-        <ShieldCheck
-          size={22}
-          className={user.suscrito ? "text-success" : "text-muted"}
-        />
-      ),
-      color: user.suscrito ? "success" : "secondary",
-      description: user.suscrito
-        ? "Tienes acceso a beneficios premium"
-        : "Aún no estás suscrito",
+      label: "Próxima Cita",
+      value: loadingCitas ? "Cargando..." : statsData.proxima,
+      icon: <CalendarCheck size={22} className="text-success" />,
+      description: "Tu próxima reserva agendada",
+      color: "success",
     },
     {
-      label: "Reservas disponibles",
-      value: infoReservas?.restantes ?? 0,
-      icon: <Ticket size={22} className="text-warning" />,
-      color: "warning",
-      description: "Turnos que aún puedes agendar este mes",
+      label: "Última Visita",
+      value: loadingCitas ? "Cargando..." : statsData.ultima,
+      icon: <History size={22} className="text-info" />,
+      description: "Tu última vez en la barbería",
+      color: "info",
     },
   ];
 
@@ -240,7 +210,7 @@ const UserDashboard = () => {
         <Row>
           <Col xl="12">
             <div className="d-flex align-items-center mb-4">
-              <h2 className="text-black mb-0 mr-3">Acciones Rápidas</h2>
+              <h2 className="text-black mb-0 mr-3">Menú Principal</h2>
               <div className="flex-grow-1">
                 <hr className="bg-white opacity-50" />
               </div>
@@ -302,68 +272,6 @@ const UserDashboard = () => {
             </Row>
           </Col>
         </Row>
-
-        {/* CTA Final */}
-        <Row className="mt-6">
-          <Col xl="12">
-            <Card className="shadow-lg border-0 bg-gradient-dark text-white">
-              <CardBody className="p-5 text-center">
-                <Crown size={48} className="mb-3 text-warning" />
-                <h3 className="font-weight-bold mb-2">
-                  ¿Listo para la experiencia Elite?
-                </h3>
-                <p className="lead opacity-75 mb-4">
-                  Descubre todos los beneficios de nuestra suscripción premium
-                </p>
-                <Button
-                  color="warning"
-                  size="lg"
-                  className="rounded-pill px-5 font-weight-bold shadow-sm"
-                >
-                  <Crown size={18} className="mr-2" />
-                  Ver Planes Premium
-                </Button>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
-
-        {/* Modal Sorpresa para tu polola */}
-        <Modal
-          isOpen={showSurprise}
-          toggle={() => setShowSurprise(false)}
-          centered
-          size="lg"
-        >
-          <ModalHeader className="bg-primary text-white text-center">
-            💖 ¡SORPRESA MI AMOR! 💖
-          </ModalHeader>
-          <ModalBody className="text-center py-4">
-            <div className="mb-3">
-              <h3 className="text-primary">
-                Hola preciosa {user?.nombre || ""}!
-              </h3>
-            </div>
-            <div className="mb-4">
-              <p className="lead">
-                Sabía que vendrías a revisar mi página web 😊
-              </p>
-              <p>Mi pololo es el más bonito hermoso, precioso, divino, idolo, rey, monstruo, crack, fenomeno</p>
-              <p>El mes que viene no necesito mi sueldo, asi que le daré todo mi sueldo porque el se lo merece❤️</p>
-            </div>
-            <div className="bg-light p-3 rounded">
-              <p className="mb-0">
-                💐 Eres el hombre más increíble del mundo 💐
-              </p>
-            </div>
-          </ModalBody>
-          <ModalFooter className="justify-content-center">
-            <Button color="primary" onClick={() => setShowSurprise(false)}>
-              💖 Le daré todo mi sueldo a mi bebé precioso💖
-            </Button>
-           
-          </ModalFooter>
-        </Modal>
       </Container>
     </>
   );

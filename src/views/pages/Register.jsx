@@ -14,20 +14,21 @@ import { useAuth } from "context/AuthContext";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRutValidator } from "../../hooks/useRutValidador";
-import { 
-  Button, 
-  Card, 
-  CardBody, 
-  FormGroup, 
-  Form, 
-  Input, 
-  InputGroupAddon, 
-  InputGroupText, 
-  InputGroup, 
-  Row, 
+import {
+  Button,
+  Card,
+  CardBody,
+  FormGroup,
+  Form,
+  Input,
+  InputGroupAddon,
+  InputGroupText,
+  InputGroup,
+  Row,
   Col,
 } from "reactstrap";
 import Swal from "sweetalert2";
+import { FaPhone } from "react-icons/fa";
 
 const Register = () => {
   const { register } = useAuth();
@@ -36,14 +37,14 @@ const Register = () => {
   const [passwordMatch, setPasswordMatch] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
+
   const [form, setForm] = useState({
-    rut: "Rut",
-    nombre: "Nombre",
-    apellido: "Apellido", 
-    telefono: "Teléfono",
-    email: "Email",
-    password: "Password",
+    rut: "",
+    nombre: "",
+    apellido: "",
+    telefono: "",
+    email: "",
+    password: "",
     confirmPassword: "",
   });
 
@@ -52,7 +53,7 @@ const Register = () => {
     if (error) {
       Swal.fire({
         icon: "error",
-        title: "RUT inválido", 
+        title: "RUT inválido",
         text: "Por favor ingresa un RUT o pasaporte válido.",
       });
       return;
@@ -76,7 +77,7 @@ const Register = () => {
       navigate("/admin/index");
     } catch (err) {
       Swal.fire({
-        icon: "error", 
+        icon: "error",
         title: "Error",
         text: "No se pudo registrar el usuario.",
       });
@@ -90,8 +91,8 @@ const Register = () => {
     });
     if (e.target.name === "password" || e.target.name === "confirmPassword") {
       setPasswordMatch(
-        e.target.name === "confirmPassword" 
-          ? e.target.value === form.password 
+        e.target.name === "confirmPassword"
+          ? e.target.value === form.password
           : (form.confirmPassword = e.target.value)
       );
     }
@@ -166,23 +167,35 @@ const Register = () => {
                   />
                 </InputGroup>
               </FormGroup>
-              <FormGroup>
-                <InputGroup className="input-group-alternative mb-3">
-                  <InputGroupAddon addonType="prepend">
-                    <InputGroupText>
-                      <i className="ni ni-email-83" />
-                    </InputGroupText>
-                  </InputGroupAddon>
-                  <Input
-                    placeholder="Teléfono"
-                    type="number"
-                    autoComplete="new-telefono"
-                    name="telefono"
-                    value={form.telefono}
-                    onChange={handleChange}
-                  />
-                </InputGroup>
-              </FormGroup>
+              <InputGroup className="input-group-alternative mb-3">
+                <InputGroupAddon addonType="prepend">
+                  <InputGroupText>
+                    <FaPhone />
+                  </InputGroupText>
+                </InputGroupAddon>
+
+                <InputGroupAddon addonType="prepend">
+                  <InputGroupText>+569</InputGroupText>
+                </InputGroupAddon>
+
+                <Input
+                  placeholder="75345678"
+                  type="number"
+                  name="telefono"
+                  value={form.telefono}
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/\D/g, ""); // solo números
+                    if (value.length > 8) value = value.slice(0, 8);
+                    setForm({ ...form, telefono: value });
+                  }}
+                  minLength={8}
+                  maxLength={8}
+                />
+              </InputGroup>
+
+              <div className="text-muted small">
+                Ingresa solo los 8 dígitos finales (ej: 75345678).
+              </div>
               <FormGroup>
                 <InputGroup className="input-group-alternative mb-3">
                   <InputGroupAddon addonType="prepend">
@@ -200,7 +213,7 @@ const Register = () => {
                   />
                 </InputGroup>
               </FormGroup>
-              
+
               {/* Campo de Contraseña con ojito */}
               <FormGroup>
                 <InputGroup className="input-group-alternative">
@@ -223,13 +236,17 @@ const Register = () => {
                       color="link"
                       className="text-dark"
                       onClick={togglePasswordVisibility}
-                      style={{ 
-                        border: 'none', 
-                        background: 'transparent',
-                        padding: '0.75rem 1rem'
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        padding: "0.75rem 1rem",
                       }}
                     >
-                      <i className={`ni ${showPassword ? 'ni-fat-remove' : 'ni-bulb-61'}`} />
+                      <i
+                        className={`ni ${
+                          showPassword ? "ni-fat-remove" : "ni-bulb-61"
+                        }`}
+                      />
                     </Button>
                   </InputGroupAddon>
                 </InputGroup>
@@ -264,13 +281,17 @@ const Register = () => {
                       color="link"
                       className="text-dark"
                       onClick={toggleConfirmPasswordVisibility}
-                      style={{ 
-                        border: 'none', 
-                        background: 'transparent',
-                        padding: '0.75rem 1rem'
+                      style={{
+                        border: "none",
+                        background: "transparent",
+                        padding: "0.75rem 1rem",
                       }}
                     >
-                      <i className={`ni ${showConfirmPassword ? 'ni-fat-remove' : 'ni-bulb-61'}`} />
+                      <i
+                        className={`ni ${
+                          showConfirmPassword ? "ni-fat-remove" : "ni-bulb-61"
+                        }`}
+                      />
                     </Button>
                   </InputGroupAddon>
                 </InputGroup>

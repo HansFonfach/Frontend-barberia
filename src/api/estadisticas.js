@@ -13,3 +13,12 @@ export const getTotalClientes = () => {
 export const getIngresoMensual = () => {
   return axiosPrivate.get("/estadisticas/ingresoMensual");
 };
+export const getCitasEsteMes = () => {
+  return axiosPrivate.get("/estadisticas/citasMes/userId");
+};
+export const getUltimaReserva = () => {
+  return axiosPrivate.get("/estadisticas/ultima-reserva/userId");
+};
+export const getProximaReserva = () => {
+  return axiosPrivate.get("/estadisticas/proxima-reserva/userId");
+};
