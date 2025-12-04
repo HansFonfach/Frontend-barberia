@@ -124,11 +124,24 @@ const MisReservas = () => {
     setModalCancelar(true);
   };
 
+  const getEstadoCalculado = (reserva) => {
+    const ahora = new Date();
+    const fechaReserva = new Date(reserva.fecha);
+
+    if (reserva.estado === "cancelada") return "cancelada";
+    if (reserva.estado === "completada") return "completada";
+
+    // Si la fecha y hora ya pasó pero no está marcada como completada
+    if (fechaReserva < ahora) return "finalizada";
+
+    return reserva.estado; // pendiente, confirmada, etc.
+  };
+
   const getBadgeColor = (estado) => {
     const colores = {
       confirmada: "success",
       pendiente: "warning",
-      completada: "info",
+      finalizada: "success",
       cancelada: "secondary",
     };
     return colores[estado] || "secondary";
@@ -138,7 +151,7 @@ const MisReservas = () => {
     const estados = {
       confirmada: "Confirmada",
       pendiente: "Pendiente",
-      completada: "Completada",
+      finalizada: "Completada",
       cancelada: "Cancelada",
     };
     return estados[estado] || estado;
@@ -164,17 +177,23 @@ const MisReservas = () => {
 
   const esPasada = (fecha) => new Date(fecha) < new Date();
 
-  const reservasFuturas = reservas.filter(
-    (r) =>
-      r.estado !== "completada" &&
-      r.estado !== "cancelada" &&
-      !esPasada(r.fecha)
-  );
+  const reservasFuturas = reservas.filter((r) => {
+    const estado = getEstadoCalculado(r);
+    return (
+      estado !== "completada" &&
+      estado !== "cancelada" &&
+      estado !== "finalizada"
+    );
+  });
 
-  const reservasHistorial = reservas.filter(
-    (r) =>
-      r.estado === "completada" || r.estado === "cancelada" || esPasada(r.fecha)
-  );
+  const reservasHistorial = reservas.filter((r) => {
+    const estado = getEstadoCalculado(r);
+    return (
+      estado === "completada" ||
+      estado === "cancelada" ||
+      estado === "finalizada"
+    );
+  });
 
   const reservasActivas =
     tabActiva === "futuras" ? reservasFuturas : reservasHistorial;
@@ -293,10 +312,10 @@ const MisReservas = () => {
                       </small>
                     </div>
                     <Badge
-                      color={getBadgeColor(reserva.estado)}
+                      color={getBadgeColor(getEstadoCalculado(reserva))}
                       className="rounded-pill px-3 py-2 font-weight-bold"
                     >
-                      {getEstadoTexto(reserva.estado)}
+                      {getEstadoTexto(getEstadoCalculado(reserva))}
                     </Badge>
                   </div>
 
