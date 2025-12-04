@@ -20,24 +20,36 @@ import {
   CalendarCheck,
   Zap,
   ArrowRight,
+  Scissors,
 } from "lucide-react";
 import { useEstadisticas } from "context/EstadisticasContext";
+import { useLook } from "context/LookContext"; // <-- ⭐ NUEVO
 
 const UserDashboard = () => {
   const { user, loading: authLoading, isAuthenticated } = useAuth();
-  const [showSurprise, setShowSurprise] = useState(false);
   const { totalCitasEsteMes, ultimaReserva, proximaReserva } =
     useEstadisticas();
+
+  // --- NUEVO ---
+  const { estadoLookCliente } = useLook();
+
+  const [showSurprise, setShowSurprise] = useState(false);
+
   const [statsData, setStatsData] = useState({
     citasMes: 0,
     ultima: null,
     proxima: null,
   });
+
+  const [lookData, setLookData] = useState(null); // <-- ⭐ NUEVO PARA LOOK
+  const [loadingLook, setLoadingLook] = useState(true); // <-- ⭐
+  const [errorLook, setErrorLook] = useState(null); // <-- ⭐
+
   const [loadingStats, setLoadingStats] = useState(true);
   const [errorStats, setErrorStats] = useState(null);
 
+  // --- Cargar estadísticas ---
   useEffect(() => {
-    // Solo cargar estadísticas si el usuario está autenticado y no está cargando
     if (authLoading || !user?.id) return;
 
     const cargarStats = async () => {
@@ -59,20 +71,37 @@ const UserDashboard = () => {
       } catch (err) {
         console.error("Error cargando estadísticas:", err);
         setErrorStats("Error al cargar las estadísticas");
-        setStatsData({
-          citasMes: 0,
-          ultima: "Error",
-          proxima: "Error",
-        });
       } finally {
         setLoadingStats(false);
       }
     };
 
     cargarStats();
-  }, [user, authLoading]); // Dependencia clave: authLoading
+  }, [user, authLoading]);
 
-  // Loading principal - mostrar spinner mientras se verifica autenticación
+  // --- NUEVO: Cargar estado del Look (corte/barba) ---
+  useEffect(() => {
+    if (authLoading || !user?.id) return;
+
+    const cargarLook = async () => {
+      setLoadingLook(true);
+      setErrorLook(null);
+
+      try {
+        const data = await estadoLookCliente();
+        setLookData(data);
+      } catch (err) {
+        console.error("Error cargando estado del look:", err);
+        setErrorLook("Error al cargar el estado del look");
+      } finally {
+        setLoadingLook(false);
+      }
+    };
+
+    cargarLook();
+  }, [user, authLoading]);
+
+  // Loading principal
   if (authLoading) {
     return (
       <Container
@@ -84,7 +113,6 @@ const UserDashboard = () => {
     );
   }
 
-  // Si no hay usuario después de cargar
   if (!user || !isAuthenticated) {
     return (
       <Container className="mt-5">
@@ -127,23 +155,6 @@ const UserDashboard = () => {
       gradient: "linear-gradient(135deg, #00b09b 0%, #96c93d 100%)",
     },
   ];
-
-  // Función para formatear fechas (si es necesario)
-  const formatDate = (dateString) => {
-    if (!dateString || dateString === "Error") return dateString;
-    if (dateString.includes("No hay") || dateString.includes("Sin citas"))
-      return dateString;
-
-    try {
-      return new Date(dateString).toLocaleDateString("es-ES", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
-    } catch {
-      return dateString;
-    }
-  };
 
   const stats = [
     {
@@ -190,6 +201,7 @@ const UserDashboard = () => {
   return (
     <>
       <UserHeader />
+
       <Container className="mt--7" fluid>
         {/* Encabezado */}
         <Row className="mb-6">
@@ -219,7 +231,7 @@ const UserDashboard = () => {
           </Col>
         </Row>
 
-        {/* Stats */}
+        {/* Estadísticas */}
         <Row className="mb-5">
           {stats.map((stat, index) => (
             <Col lg="4" md="6" className="mb-4" key={index}>
@@ -242,11 +254,7 @@ const UserDashboard = () => {
                       <h6 className="text-uppercase text-muted mb-1">
                         {stat.label}
                       </h6>
-                      <h3 className="font-weight-bold mb-0">
-                        {typeof stat.value === "string"
-                          ? stat.value
-                          : stat.value}
-                      </h3>
+                      <h3 className="font-weight-bold mb-0">{stat.value}</h3>
                       {stat.description && (
                         <small className="text-muted d-block mt-1">
                           {stat.description}
@@ -262,6 +270,85 @@ const UserDashboard = () => {
             </Col>
           ))}
         </Row>
+
+        {/* ⭐⭐ NUEVO: ESTADO DEL LOOK ⭐⭐ */}
+        {lookData && (
+          <Row className="mb-5">
+            {/* CORTE */}
+            <Col lg="6">
+              <Card className="shadow border-0">
+                <CardBody>
+                  <div className="d-flex align-items-center mb-3">
+                    <div className="bg-success text-white rounded-circle p-3 mr-3 shadow">
+                      <Scissors size={22} />
+                    </div>
+                    <h4 className="mb-0">Estado de tu Corte</h4>
+                  </div>
+
+                  {loadingLook ? (
+                    <Spinner color="success" size="sm" />
+                  ) : errorLook ? (
+                    <p className="text-danger">Error al cargar información</p>
+                  ) : (
+                    <>
+                      <p className="text-muted mb-1">
+                        Promedio entre cortes:{" "}
+                        <strong>{lookData.corte.promedio ?? "N/A"} días</strong>
+                      </p>
+                      <p className="text-muted mb-1">
+                        Días desde el último corte:{" "}
+                        <strong>
+                          {lookData.corte.diasDesdeUltimo ?? "N/A"}
+                        </strong>
+                      </p>
+                      <hr />
+                      <p className="font-weight-bold">
+                        {lookData.corte.mensaje}
+                      </p>
+                    </>
+                  )}
+                </CardBody>
+              </Card>
+            </Col>
+
+            {/* BARBA */}
+            <Col lg="6">
+              <Card className="shadow border-0">
+                <CardBody>
+                  <div className="d-flex align-items-center mb-3">
+                    <div className="bg-primary text-white rounded-circle p-3 mr-3 shadow">
+                      <Scissors size={24} />
+                    </div>
+                    <h4 className="mb-0">Estado de tu Barba</h4>
+                  </div>
+
+                  {loadingLook ? (
+                    <Spinner color="primary" size="sm" />
+                  ) : errorLook ? (
+                    <p className="text-danger">Error al cargar información</p>
+                  ) : (
+                    <>
+                      <p className="text-muted mb-1">
+                        Promedio entre perfilados:{" "}
+                        <strong>{lookData.barba.promedio ?? "N/A"} días</strong>
+                      </p>
+                      <p className="text-muted mb-1">
+                        Días desde el último perfilado:{" "}
+                        <strong>
+                          {lookData.barba.diasDesdeUltimo ?? "N/A"}
+                        </strong>
+                      </p>
+                      <hr />
+                      <p className="font-weight-bold">
+                        {lookData.barba.mensaje}
+                      </p>
+                    </>
+                  )}
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+        )}
 
         {/* Menú Principal */}
         <Row>

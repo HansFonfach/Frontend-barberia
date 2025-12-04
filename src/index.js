@@ -16,6 +16,7 @@ import { UsuarioProvider } from "context/usuariosContext";
 import { HorarioProvider } from "context/HorarioContext";
 import { EstadisticasProvider } from "context/EstadisticasContext";
 import { NotificacionProvider } from "context/NotificacionesContext";
+import { LookProvider } from "context/LookContext";
 
 const RootRedirect = () => {
   const { user, isAuthenticated } = useAuth();
@@ -42,21 +43,23 @@ root.render(
               <ReservaProvider>
                 <EstadisticasProvider>
                   <NotificacionProvider>
-                    <Routes>
-                      {/* Layout de autenticación */}
-                      <Route path="/auth/*" element={<AuthLayout />} />
+                    <LookProvider>
+                      <Routes>
+                        {/* Layout de autenticación */}
+                        <Route path="/auth/*" element={<AuthLayout />} />
 
-                      {/* Layout protegido */}
-                      <Route element={<ProtectedRoute />}>
-                        <Route path="/admin/*" element={<AdminLayout />} />
-                      </Route>
+                        {/* Layout protegido */}
+                        <Route element={<ProtectedRoute />}>
+                          <Route path="/admin/*" element={<AdminLayout />} />
+                        </Route>
 
-                      {/* Redirección raíz */}
-                      <Route path="/" element={<RootRedirect />} />
+                        {/* Redirección raíz */}
+                        <Route path="/" element={<RootRedirect />} />
 
-                      {/* Fallback */}
-                      <Route path="*" element={<Navigate to="/" replace />} />
-                    </Routes>
+                        {/* Fallback */}
+                        <Route path="*" element={<Navigate to="/" replace />} />
+                      </Routes>
+                    </LookProvider>
                   </NotificacionProvider>
                 </EstadisticasProvider>
               </ReservaProvider>

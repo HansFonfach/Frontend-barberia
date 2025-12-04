@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Container,
   Row,
@@ -16,9 +16,13 @@ import UserTable, { AccionIcons } from "components/gestionUsuarios/TablaUsuarios
 import Pagination from "components/gestionUsuarios/Paginacion";
 import GestionUsuariosModal from "components/gestionUsuarios/GestionUsuarioModal";
 import UserModal from "components/gestionUsuarios/UsuariosModel";
+import ClienteDetallesModal from "components/gestionUsuarios/ClienteDetallesModal"; // Nuevo modal
 
 import { useUsuarios } from "hooks/useUsuarios";
 import { usePagination } from "hooks/usePagination";
+
+// Importar iconos actualizados
+import { FiEye, FiEdit } from "react-icons/fi";
 
 const GestionClientes = () => {
   const {
@@ -35,8 +39,15 @@ const GestionClientes = () => {
     handleEliminarUsuario,
     toggleModal,
     toggleModalGestion,
-    getAllUsers   // ← EL NOMBRE CORRECTO
+    getAllUsers
   } = useUsuarios("cliente");
+
+  // Estados para el nuevo modal de detalles
+  const [modalDetalles, setModalDetalles] = useState(false);
+
+  const toggleModalDetalles = () => {
+    setModalDetalles(!modalDetalles);
+  };
 
   const { paginaActual, totalPaginas, itemsPaginados, cambiarPagina } =
     usePagination(usuarios, 5);
@@ -44,47 +55,33 @@ const GestionClientes = () => {
   const columnas = [
     { key: "nombre", label: "Nombre" },
     { key: "apellido", label: "Apellido" },
-    { key: "rut", label: "RUT" },
-    { key: "email", label: "Email" },
     { key: "telefono", label: "Teléfono" },
-    {
-      key: "suscripcion",
-      label: "Suscripción",
-      render: (_, usuario) => {
-        const s = usuario.suscripcion;
 
-        if (s && s.activa) {
-          return (
-            <Badge color="success">
-              Activa 
-            </Badge>
-          );
-        }
-        return <Badge color="danger">Inactivo</Badge>;
-      },
-    },
   ];
 
+  // Solo 2 acciones en la tabla - más simple y moderno
   const acciones = [
     {
-      id: "gestionar",
-      icon: AccionIcons.EDITAR,
+      id: "ver",
+      icon: <FiEye size={16} />,
       color: "info",
-      title: "Gestionar usuario",
+      title: "Ver detalles y gestionar",
+      className: "btn-outline-info"
     },
     {
       id: "editar",
-      icon: AccionIcons.EDITAR,
+      icon: <FiEdit size={16} />,
       color: "warning",
       title: "Editar información",
+      className: "btn-outline-warning"
     }
   ];
 
   const handleAccion = async (accionId, usuario) => {
     switch (accionId) {
-      case "gestionar":
+      case "ver":
         setUsuarioEdit(usuario);
-        toggleModalGestion();
+        toggleModalDetalles();
         break;
 
       case "editar":
@@ -96,8 +93,14 @@ const GestionClientes = () => {
   const handleGuardarConAlerta = async () => {
     try {
       await handleGuardar();
-      Swal.fire("Guardado", "Datos del cliente actualizados", "success");
-      getAllUsers();   // ← CORREGIDO
+      Swal.fire({
+        icon: "success",
+        title: "Guardado",
+        text: "Datos del cliente actualizados",
+        showConfirmButton: false,
+        timer: 1500
+      });
+      getAllUsers();
     } catch (error) {
       Swal.fire("Error", error.message, "error");
     }
@@ -105,34 +108,52 @@ const GestionClientes = () => {
 
   const handleSuscribirModal = async () => {
     await handleSuscribir(usuarioEdit._id, "suscribir");
-    Swal.fire("Suscripción activada", "", "success");
-    toggleModalGestion();
-    getAllUsers();   // ← CORREGIDO
+    Swal.fire({
+      icon: "success",
+      title: "Suscripción activada",
+      showConfirmButton: false,
+      timer: 1500
+    });
+    toggleModalDetalles();
+    getAllUsers();
   };
 
   const handleCancelarSuscripcionModal = async () => {
     await handleSuscribir(usuarioEdit._id, "cancelar");
-    Swal.fire("Suscripción cancelada", "", "info");
-    toggleModalGestion();
-    getAllUsers();   // ← CORREGIDO
+    Swal.fire({
+      icon: "info",
+      title: "Suscripción cancelada",
+      showConfirmButton: false,
+      timer: 1500
+    });
+    toggleModalDetalles();
+    getAllUsers();
   };
 
   const handleEliminarModal = async () => {
     const confirm = await Swal.fire({
-      title: "¿Eliminar usuario?",
-      text: "No podrás deshacer esto",
+      title: "¿Eliminar cliente?",
+      text: `${usuarioEdit.nombre} ${usuarioEdit.apellido} será eliminado permanentemente`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
-      confirmButtonText: "Eliminar",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, eliminar",
+      cancelButtonText: "Cancelar"
     });
 
     if (!confirm.isConfirmed) return;
 
     await handleEliminarUsuario(usuarioEdit._id);
-    Swal.fire("Eliminado", "", "success");
-    toggleModalGestion();
-    getAllUsers();   // ← CORREGIDO
+    Swal.fire({
+      icon: "success",
+      title: "Eliminado",
+      text: "El cliente ha sido eliminado",
+      showConfirmButton: false,
+      timer: 1500
+    });
+    toggleModalDetalles();
+    getAllUsers();
   };
 
   return (
@@ -172,17 +193,21 @@ const GestionClientes = () => {
         </Row>
       </Container>
 
-      {/* MODAL GESTION */}
-      <GestionUsuariosModal
-        isOpen={modalGestion}
-        toggle={toggleModalGestion}
+      {/* MODAL DETALLES DEL CLIENTE (NUEVO) */}
+      <ClienteDetallesModal
+        isOpen={modalDetalles}
+        toggle={toggleModalDetalles}
         usuario={usuarioEdit}
+        onEditar={() => {
+          toggleModalDetalles();
+          handleEditar(usuarioEdit);
+        }}
         onSuscribir={handleSuscribirModal}
         onCancelarSuscripcion={handleCancelarSuscripcionModal}
         onEliminar={handleEliminarModal}
       />
 
-      {/* MODAL EDITAR */}
+      {/* MODAL EDITAR (MANTENIDO) */}
       <UserModal
         isOpen={modal}
         toggle={toggleModal}
