@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Button, Card, CardBody, Container, Row, Col, Badge } from "reactstrap";
 import UserHeader from "components/Headers/UserHeader.js";
-import { useAuth } from "context/AuthContext";
+import { useEstadisticas } from "context/EstadisticasContext";
 import {
   Calendar,
   Users,
@@ -9,50 +9,54 @@ import {
   Scissors,
   Settings,
   BarChart3,
-  TrendingUp,
-  Shield,
-  Zap,
   Sliders,
   ArrowRight,
   Crown,
   User,
   CreditCard,
+  Zap,
 } from "lucide-react";
-import { useEstadisticas } from "context/EstadisticasContext";
 
 const AdminDashboard = () => {
   const {
     ingresoMensual,
     totalSuscripcionesActivas,
-    totalClientes,
     totalReservasHoyBarbero,
+    proximoCliente,
   } = useEstadisticas();
+
   const [infoIngresos, setInfoIngresos] = useState({});
-  const [clientes, setClientes] = useState({});
+  const [proxCliente, setProxCliente] = useState({});
   const [suscripcionesActivas, setSuscripcionesActivas] = useState({});
   const [reservasHoy, setReservasHoy] = useState({});
 
   useEffect(() => {
     const cargarDatosDashBoard = async () => {
       try {
-        const [ingreso, clientes, suscripcionesActivas, reservasHoy] =
+        const [ingreso, proximoClienteReservado, suscripciones, reservas] =
           await Promise.all([
             ingresoMensual(),
-            totalClientes(),
+            proximoCliente(),
             totalSuscripcionesActivas(),
             totalReservasHoyBarbero(),
           ]);
+
         setInfoIngresos(ingreso);
-        setClientes(clientes);
-        setSuscripcionesActivas(suscripcionesActivas);
-        setReservasHoy(reservasHoy);
+        setProxCliente(proximoClienteReservado);
+        setSuscripcionesActivas(suscripciones);
+        setReservasHoy(reservas);
       } catch (error) {
         console.error("Error cargando datos del dashboard:", error);
       }
     };
-    cargarDatosDashBoard();
-  }, []);
 
+    cargarDatosDashBoard();
+  }, [
+    ingresoMensual,
+    proximoCliente,
+    totalSuscripcionesActivas,
+    totalReservasHoyBarbero,
+  ]);
 
   const menuItems = [
     {
@@ -143,14 +147,16 @@ const AdminDashboard = () => {
       change: "+1",
     },
     {
-      label: "Total clientes",
-      value: clientes.total,
-      icon: <User size={20} />, // 👤 más claro que Shield
-      status: "success",
-      change: "+3",
+      label: "Próximo Cliente",
+      value: proxCliente?.data?.cliente?.nombreCompleto || "-",
+      icon: <User size={20} />,
+      extra: {
+        hora: proxCliente?.data?.hora || "-",
+      },
     },
+
     {
-      label: "Ingresos Mes",
+      label: "Ingreso del mes",
       value: `$${infoIngresos.ingresoTotal}`,
       icon: <CreditCard size={20} />, // 💳 o BarChart3 si quieres gráfico
       change: "+12%",
@@ -175,7 +181,7 @@ const AdminDashboard = () => {
                       </h1>
                     </div>
                     <p className="lead mb-0 opacity-75">
-                      Gestión completa de La Santa Barberia
+                      Gestión completa de La Santa Barbería
                     </p>
                   </Col>
                   <Col lg="4" className="text-lg-right">
@@ -197,7 +203,7 @@ const AdminDashboard = () => {
                 className="shadow-sm border-0 h-100 hover-zoom"
                 style={{
                   borderRadius: "16px",
-                  transition: "transform 0.25s ease, box-shadow 0.25s ease",
+                  transition: "transform 0.25s ease",
                 }}
                 onMouseEnter={(e) =>
                   (e.currentTarget.style.transform = "translateY(-5px)")
@@ -213,10 +219,16 @@ const AdminDashboard = () => {
                         {stat.label}
                       </h6>
                       <h3 className="font-weight-bold mb-0">{stat.value}</h3>
-                      {stat.change && (
-                        <Badge color="success" className="rounded-pill mt-1">
-                          {stat.change}
-                        </Badge>
+
+                      {stat.extra && (
+                        <div className="mt-1">
+                          <small className="d-block text-muted">
+                            {stat.extra.fecha}
+                          </small>
+                          <small className="d-block text-muted">
+                            {stat.extra.hora}
+                          </small>
+                        </div>
                       )}
                     </div>
                     <div className="bg-light rounded-circle p-3 shadow-sm">

@@ -1,6 +1,7 @@
 import { getTotalClientes } from "api/estadisticas";
 import { getTotalReservasHoyBarbero } from "api/estadisticas";
 import { getUltimaReserva } from "api/estadisticas";
+import { getProximoCliente } from "api/estadisticas";
 import { getProximaReserva } from "api/estadisticas";
 import { getCitasEsteMes } from "api/estadisticas";
 import { getTotalSuscripcionesActivas } from "api/estadisticas";
@@ -58,6 +59,18 @@ export const EstadisticasProvider = ({ children }) => {
     }
   };
 
+  const proximoCliente = async () => {
+    try {
+      const res = await getProximoCliente();
+      if (!res.data.success)
+        throw new Error(res.data.message || "No hay reservas aún");
+      return res.data;
+    } catch (error) {
+      if (error.response?.data?.message) return error.response.data.message;
+      return "Error al obtener próxima cliente";
+    }
+  };
+
   const totalSuscripcionesActivas = async () => {
     try {
       const res = await getTotalSuscripcionesActivas();
@@ -94,6 +107,7 @@ export const EstadisticasProvider = ({ children }) => {
         totalCitasEsteMes,
         ultimaReserva,
         proximaReserva,
+        proximoCliente
       }}
     >
       {children}

@@ -22,3 +22,6 @@ export const getUltimaReserva = () => {
 export const getProximaReserva = () => {
   return axiosPrivate.get("/estadisticas/proxima-reserva/userId");
 };
+export const getProximoCliente = () =>{
+  return axiosPrivate.get("/estadisticas/proximo-cliente")
+}
