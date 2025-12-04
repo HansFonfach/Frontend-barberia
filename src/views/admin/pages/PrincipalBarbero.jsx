@@ -135,6 +135,14 @@ const AdminDashboard = () => {
 
   const stats = [
     {
+      label: "Próximo Cliente",
+      value: proxCliente?.data?.cliente?.nombreCompleto || "-",
+      icon: <User size={20} />,
+      extra: {
+        hora: proxCliente?.data?.hora || "-",
+      },
+    },
+    {
       label: "Reservas Hoy",
       value: reservasHoy.total,
       icon: <Calendar size={20} />, // 📅 más intuitivo para reservas
@@ -145,14 +153,6 @@ const AdminDashboard = () => {
       value: suscripcionesActivas.total,
       icon: <Users size={20} />, // 👥 está bien para suscriptores
       change: "+1",
-    },
-    {
-      label: "Próximo Cliente",
-      value: proxCliente?.data?.cliente?.nombreCompleto || "-",
-      icon: <User size={20} />,
-      extra: {
-        hora: proxCliente?.data?.hora || "-",
-      },
     },
 
     {
