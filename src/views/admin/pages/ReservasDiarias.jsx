@@ -61,6 +61,11 @@ const GestionReservas = () => {
     }
   }, [reservas]);
 
+  const handleNoAsistio = (reserva) => {
+    // lógica para marcar no asistencia
+    console.log("Marcando como no asistió:", reserva);
+  };
+
   return (
     <>
       <UserHeader />
@@ -113,7 +118,8 @@ const GestionReservas = () => {
                         {reservas.map((reserva) => (
                           <tr key={reserva._id}>
                             <td>
-                              {reserva.suscripcion  && "⭐ "}
+                              {(reserva.suscripcion && "⭐") ||
+                                (!reserva.suscripcion && "🧔🏻‍♂️")}
                               {reserva.cliente?.nombre}{" "}
                               {reserva.cliente?.apellido}
                             </td>
@@ -157,7 +163,6 @@ const GestionReservas = () => {
                                 {getEstado(reserva.fecha)}
                               </Badge>
                             </td>
-
                             <td>
                               <Button
                                 color="info"
@@ -167,14 +172,18 @@ const GestionReservas = () => {
                               >
                                 Ver
                               </Button>
+
                               {getEstado(reserva.fecha) === "Pendiente" && (
-                                <Button
-                                  color="danger"
-                                  size="sm"
-                                  onClick={() => handleVerResumen(reserva)}
-                                >
-                                  Cancelar
-                                </Button>
+                                <>
+                                  <Button
+                                    color="danger"
+                                    size="sm"
+                                    className="mr-2"
+                                    onClick={() => handleVerResumen(reserva)}
+                                  >
+                                    Cancelar
+                                  </Button>
+                                </>
                               )}
                             </td>
                           </tr>
@@ -190,55 +199,208 @@ const GestionReservas = () => {
       </Container>
 
       {/* Modal resumen de reserva */}
-      <Modal isOpen={modal} toggle={toggle} className="modal-dialog-centered">
+      <Modal
+        isOpen={modal}
+        toggle={toggle}
+        className="modal-dialog-centered modal-lg"
+      >
         {reservaSeleccionada && (
-          <>
-            <div className="modal-header">
-              <h6 className="modal-title">Resumen de reserva</h6>
-              <button aria-label="Close" className="close" onClick={toggle}>
-                <span aria-hidden={true}>×</span>
+          <div className="modal-content">
+            {/* Header con color primario de Argon */}
+            <div className="modal-header bg-gradient-primary">
+              <h5 className="modal-title text-white">
+                <i className="ni ni-single-copy-04 mr-2"></i>
+                Detalles de la Reserva
+              </h5>
+              <button
+                type="button"
+                className="close text-white"
+                data-dismiss="modal"
+                aria-label="Close"
+                onClick={toggle}
+              >
+                <span aria-hidden="true">&times;</span>
               </button>
             </div>
+
             <div className="modal-body">
-              <p>
-                <strong>Cliente:</strong> {reservaSeleccionada.cliente?.nombre}{" "}
-                {reservaSeleccionada.cliente?.apellido}
-              </p>
-              <p>
-                <strong>Servicio:</strong>{" "}
-                {reservaSeleccionada.servicio?.nombre}
-              </p>
-              <p>
-                <strong>Hora:</strong>{" "}
-                {new Date(reservaSeleccionada.fecha).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </p>
-              <p>
-                <strong>Estado:</strong>{" "}
-                <Badge
-                  color={
-                    getEstado(reservaSeleccionada.fecha) === "Pendiente"
-                      ? "primary"
-                      : "success"
-                  }
-                >
-                  {getEstado(reservaSeleccionada.fecha)}
-                </Badge>
-              </p>
+              <Row>
+                {/* Información del Cliente */}
+                <Col md="6">
+                  <Card className="card-profile shadow-sm mb-4">
+                    <CardHeader className="bg-white border-0">
+                      <div className="d-flex align-items-center">
+                        <div className="mr-3">
+                          <span className="avatar avatar-lg rounded-circle bg-gradient-primary">
+                            <i className="ni ni-single-02 text-white"></i>
+                          </span>
+                        </div>
+                        <div>
+                          <h5 className="mb-0">
+                            {reservaSeleccionada.cliente?.nombre}{" "}
+                            {reservaSeleccionada.cliente?.apellido}
+                          </h5>
+                          <p className="text-sm text-muted mb-0">
+                            {reservaSeleccionada.suscripcion
+                              ? "Suscriptor"
+                              : "Cliente Regular"}
+                          </p>
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardBody>
+                      <div className="pl-md-4">
+                        <p className="mb-2">
+                          <strong className="text-muted">
+                            <i className="ni ni-mobile-button mr-1"></i>
+                            Teléfono:
+                          </strong>
+                          <span className="ml-2">
+                            {reservaSeleccionada.cliente?.telefono}
+                          </span>
+                        </p>
+                        <p className="mb-0">
+                          <strong className="text-muted">
+                            <i className="ni ni-tag mr-1"></i>
+                            Tipo:
+                          </strong>
+                          <Badge
+                            color={
+                              reservaSeleccionada.suscripcion
+                                ? "success"
+                                : "info"
+                            }
+                            className="ml-2"
+                          >
+                            {reservaSeleccionada.suscripcion
+                              ? "Suscriptor"
+                              : "Regular"}
+                          </Badge>
+                        </p>
+                      </div>
+                    </CardBody>
+                  </Card>
+                </Col>
+
+                {/* Detalles de la Reserva */}
+                <Col md="6">
+                  <Card className="shadow-sm mb-4">
+                    <CardHeader className="bg-white border-0">
+                      <h6 className="mb-0">
+                        <i className="ni ni-time-alarm mr-2"></i>
+                        Información de la Reserva
+                      </h6>
+                    </CardHeader>
+                    <CardBody>
+                      <div className="pl-md-4">
+                        <p className="mb-2">
+                          <strong className="text-muted">
+                            <i className="ni ni-scissors mr-1"></i>
+                            Servicio:
+                          </strong>
+                          <span className="ml-2">
+                            {reservaSeleccionada.servicio?.nombre}
+                          </span>
+                        </p>
+                        <p className="mb-2">
+                          <strong className="text-muted">
+                            <i className="ni ni-watch-time mr-1"></i>
+                            Hora:
+                          </strong>
+                          <span className="ml-2">
+                            {new Date(
+                              reservaSeleccionada.fecha
+                            ).toLocaleTimeString([], {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </span>
+                        </p>
+                        <p className="mb-2">
+                          <strong className="text-muted">
+                            <i className="ni ni-calendar-grid-58 mr-1"></i>
+                            Fecha:
+                          </strong>
+                          <span className="ml-2">
+                            {new Date(
+                              reservaSeleccionada.fecha
+                            ).toLocaleDateString()}
+                          </span>
+                        </p>
+                        <p className="mb-0">
+                          <strong className="text-muted">
+                            <i className="ni ni-check-bold mr-1"></i>
+                            Estado:
+                          </strong>
+                          <Badge
+                            color={
+                              getEstado(reservaSeleccionada.fecha) ===
+                              "Pendiente"
+                                ? "primary"
+                                : "info"
+                            }
+                            className="ml-2"
+                          >
+                            {getEstado(reservaSeleccionada.fecha)}
+                          </Badge>
+                        </p>
+                      </div>
+                    </CardBody>
+                  </Card>
+                </Col>
+              </Row>
             </div>
             <div className="modal-footer">
-              {getEstado(reservaSeleccionada.fecha) === "Pendiente" && (
-                <Button color="danger" onClick={handleCancelar}>
-                  Cancelar reserva
+              {getEstado(reservaSeleccionada.fecha) === "Pendiente" ? (
+                <>
+                  <Button
+                    color="warning"
+                    className="mr-2"
+                    onClick={() => {
+                      if (window.confirm("¿Marcar como NO ASISTIÓ?")) {
+                        handleNoAsistio(reservaSeleccionada);
+                        setModal(false);
+                      }
+                    }}
+                  >
+                    <i className="ni ni-user-run mr-1"></i>
+                    No asistió
+                  </Button>
+
+                  <Button
+                    color="danger"
+                    className="mr-2"
+                    onClick={handleCancelar}
+                  >
+                    <i className="ni ni-fat-remove mr-1"></i>
+                    Cancelar
+                  </Button>
+                </>
+              ) : (
+                // Solo para reservas pasadas
+                <Button
+                  color="warning"
+                  className="mr-2"
+                  onClick={() => {
+                    if (
+                      window.confirm("¿Marcar como NO ASISTIÓ (retroactivo)?")
+                    ) {
+                      handleNoAsistio(reservaSeleccionada);
+                      setModal(false);
+                    }
+                  }}
+                >
+                  <i className="ni ni-user-run mr-1"></i>
+                  No asistió
                 </Button>
               )}
+
               <Button color="secondary" onClick={toggle}>
+                <i className="ni ni-curved-next mr-1"></i>
                 Cerrar
               </Button>
             </div>
-          </>
+          </div>
         )}
       </Modal>
     </>

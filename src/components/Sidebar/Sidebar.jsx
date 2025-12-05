@@ -134,6 +134,10 @@ const Sidebar = ({ routes, logo, usuario }) => {
                 <i className="ni ni-single-02" />
                 <span>Perfil</span>
               </DropdownItem>
+              <DropdownItem to="/admin/cambiar-contrasena" tag={Link}>
+                <i className="ni ni-single-02" />
+                <span>Cambiar contraseña</span>
+              </DropdownItem>
               <DropdownItem href="" onClick={handleLogout}>
                 <i className="ni ni-user-run" />
                 <span>Cerrar Sesion</span>

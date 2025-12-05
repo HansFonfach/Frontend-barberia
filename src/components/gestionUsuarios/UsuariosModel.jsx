@@ -28,6 +28,7 @@ const UsuarioModal = ({
     { name: "nombre", label: "Nombre", type: "text" },
     { name: "apellido", label: "Apellido", type: "text" },
     { name: "email", label: "Email", type: "email" },
+    { name: "telefono", label: "Telefono", type: "number" },
   ];
 
   const todosLosCampos = [...camposBase, ...camposAdicionales];

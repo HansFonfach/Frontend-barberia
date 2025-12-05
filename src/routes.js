@@ -22,8 +22,8 @@ import Politicas from "views/pages/Politicas";
 import CambiarContrasena from "views/pages/CambiarContraseña";
 import ReiniciarContraseña from "views/pages/ReiniciarContraseña";
 import PresentarServicios from "views/pages/PresentarServicios";
-import Contacto from "views/pages/Contacto"
-import { FaCut,  } from "react-icons/fa";
+import Contacto from "views/pages/Contacto";
+import { FaCut } from "react-icons/fa";
 
 // Rutas públicas (login/register)
 export const publicRoutes = [
@@ -131,11 +131,11 @@ export const clienteRoutes = [
     invisible: true,
     layout: "/admin",
   },
-    {
+  {
     path: "/contacto",
     name: "Contacto",
-    component: <Contacto/>,
-    icon: "ni ni-notification-70 text-warning", // 📘 Políticas / reglas
+    component: <Contacto />,
+    icon: "ni ni-email-83 text-info", // icono acorde a contacto
     layout: "/admin",
   },
 ];
@@ -143,7 +143,7 @@ export const barberoRoutes = [
   // Dashboard
   {
     path: "/dashboard",
-    name: "Dashboard",
+    name: "Inicio",
     icon: "ni ni-tv-2 text-primary",
     layout: "/admin",
     component: <AdminDashboard />,
@@ -159,8 +159,8 @@ export const barberoRoutes = [
     section: "reservas",
   },
   {
-    path: "/reservas-hoy",
-    name: "Reservas Diarias",
+    path: "/reservas",
+    name: "Ver reservas",
     icon: "fas fa-calendar-day text-success",
     layout: "/admin",
     component: <ReservasDiarias />,

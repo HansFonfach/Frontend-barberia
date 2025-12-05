@@ -56,7 +56,22 @@ const GestionClientes = () => {
     { key: "nombre", label: "Nombre" },
     { key: "apellido", label: "Apellido" },
     { key: "telefono", label: "Teléfono" },
+    {
+      key: "suscripcion",
+      label: "Suscripción",
+      render: (_, usuario) => {
+        const s = usuario.suscripcion;
 
+        if (s && s.activa) {
+          return (
+            <Badge color="success" pill className="px-3">
+              Activa
+            </Badge>
+          );
+        }
+        return <Badge color="danger" pill className="px-3">Inactivo</Badge>;
+      },
+    },
   ];
 
   // Solo 2 acciones en la tabla - más simple y moderno

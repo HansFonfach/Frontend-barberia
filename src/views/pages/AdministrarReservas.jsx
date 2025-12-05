@@ -299,9 +299,9 @@ const MisReservas = () => {
                   }`,
                 }}
               >
-                <CardBody className="p-4">
+                <CardBody className="p-4 border">
                   {/* Header con fecha y estado */}
-                  <div className="d-flex justify-content-between align-items-start mb-3">
+                  <div className="d-flex justify-content-between align-items-start mb-3 ">
                     <div>
                       <h6 className="font-weight-bold text-dark mb-1">
                         {formatFecha(reserva.fecha)}
