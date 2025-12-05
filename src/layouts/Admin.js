@@ -27,19 +27,26 @@ const AdminLayout = (props) => {
         routes={routes}
         logo={{
           innerLink: "/admin/index",
-          imgSrc: require("../assets/img/brand/argon-react.png"),
+          imgSrc: require("../assets/img/brand/lasanta.png"),
           imgAlt: "Logo",
+          
         }}
       />
       <div className="main-content" ref={mainContent}>
-        <AdminNavbar {...props} brandText={user?.rol === "barbero" ? "Dashboard" : "Inicio"} />
+        <AdminNavbar
+          {...props}
+          brandText={user?.rol === "barbero" ? "Dashboard" : "Inicio"}
+        />
         <Routes>
           {routes.map((r, idx) => (
             <Route key={idx} path={r.path} element={r.component} />
           ))}
           {/* Redirección por defecto según rol */}
           {user?.rol === "barbero" ? (
-            <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
+            <Route
+              path="*"
+              element={<Navigate to="/admin/dashboard" replace />}
+            />
           ) : (
             <Route path="*" element={<Navigate to="/admin/index" replace />} />
           )}

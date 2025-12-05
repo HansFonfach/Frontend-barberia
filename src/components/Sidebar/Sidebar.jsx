@@ -91,15 +91,17 @@ const Sidebar = ({ routes, logo, usuario }) => {
         </button>
 
         {/* Brand */}
-        {logo && (
-          <NavbarBrand className="pt-0" {...navbarBrandProps}>
-            <img
-              alt={logo.imgAlt}
-              className="navbar-brand-img"
-              src={logo.imgSrc}
-            />
-          </NavbarBrand>
-        )}
+        <img
+          alt={logo.imgAlt}
+          src={logo.imgSrc}
+          style={{
+            width: "180px",
+            height: "auto",
+            maxHeight: "none",
+            objectFit: "contain",
+          }}
+          className="logo-sidebar-custom"
+        />
 
         {/* User menu (mobile) */}
         <Nav className="align-items-center d-md-none">
@@ -151,19 +153,17 @@ const Sidebar = ({ routes, logo, usuario }) => {
           {/* Collapse header (mobile) */}
           <div className="navbar-collapse-header d-md-none">
             <Row>
-              {logo && (
-                <Col xs="6" className="collapse-brand">
-                  {logo.innerLink ? (
-                    <Link to={logo.innerLink}>
-                      <img alt={logo.imgAlt} src={logo.imgSrc} />
-                    </Link>
-                  ) : (
-                    <a href={logo.outterLink}>
-                      <img alt={logo.imgAlt} src={logo.imgSrc} />
-                    </a>
-                  )}
-                </Col>
-              )}
+              <img
+                alt={logo.imgAlt}
+                src={logo.imgSrc}
+                style={{
+                  width: "180px",
+                  height: "auto",
+                  maxHeight: "none",
+                  objectFit: "contain",
+                }}
+                className="logo-sidebar-custom"
+              />
               <Col xs="6" className="collapse-close">
                 <button
                   className="navbar-toggler"
