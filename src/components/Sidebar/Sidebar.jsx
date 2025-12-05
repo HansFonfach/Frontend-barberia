@@ -153,17 +153,37 @@ const Sidebar = ({ routes, logo, usuario }) => {
           {/* Collapse header (mobile) */}
           <div className="navbar-collapse-header d-md-none">
             <Row>
-              <img
-                alt={logo.imgAlt}
-                src={logo.imgSrc}
-                style={{
-                  width: "180px",
-                  height: "auto",
-                  maxHeight: "none",
-                  objectFit: "contain",
-                }}
-                className="logo-sidebar-custom"
-              />
+              {logo && (
+                <Col xs="6" className="collapse-brand">
+                  {logo.innerLink ? (
+                    <Link to={logo.innerLink}>
+                      <img
+                        alt={logo.imgAlt}
+                        src={logo.imgSrc}
+                        style={{
+                          width: "200px", // ⭐ Cambia aquí el tamaño en collapse
+                          height: "auto",
+                          objectFit: "contain",
+                          display: "block",
+                        }}
+                      />
+                    </Link>
+                  ) : (
+                    <a href={logo.outterLink}>
+                      <img
+                        alt={logo.imgAlt}
+                        src={logo.imgSrc}
+                        style={{
+                          width: "200px", // ⭐ Cambia aquí el tamaño en collapse
+                          height: "auto",
+                          objectFit: "contain",
+                          display: "block",
+                        }}
+                      />
+                    </a>
+                  )}
+                </Col>
+              )}
               <Col xs="6" className="collapse-close">
                 <button
                   className="navbar-toggler"
