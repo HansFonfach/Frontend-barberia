@@ -7,6 +7,7 @@ import { getUsuarioByRut } from "api/usuarios";
 import { postSubscribeUserById } from "api/usuarios";
 import { putUnsubscribeUserById } from "api/usuarios";
 import { getTodosLosUsuarios } from "api/usuarios";
+import { getSubActiva } from "api/usuarios";
 
 const UsuarioContext = createContext();
 
@@ -22,6 +23,8 @@ export const UsuarioProvider = ({ children }) => {
   const [barberos, setBarberos] = useState([]);
   const [errors, setErrors] = useState(null);
   const [cargando, setCargando] = useState(true);
+  const [suscripcionActiva, setSuscripcionActiva] = useState(null);
+  const [suscripcionLista, setSuscripcionLista] = useState(false); // 👈 NUEVO
 
   const { isAuthenticated, user } = useAuth(); // Usar el contexto de auth
 
@@ -84,6 +87,25 @@ export const UsuarioProvider = ({ children }) => {
       throw err;
     }
   };
+  const getSuscripcionActiva = async () => {
+    try {
+      const res = await getSubActiva();
+      setErrors(null);
+
+      setSuscripcionActiva(res.data || null);
+      setSuscripcionLista(true); // 👈 AHORA SÍ
+
+      return res.data;
+    } catch (error) {
+      const err = error.response?.data || { message: error.message };
+      setErrors(err);
+
+      setSuscripcionActiva(null);
+      setSuscripcionLista(true); // 👈 IMPORTANTE también en error
+
+      throw err;
+    }
+  };
 
   // En tu context - agrega más logs
   const getUserByRut = async (rut) => {
@@ -140,12 +162,15 @@ export const UsuarioProvider = ({ children }) => {
         barberos,
         errors,
         cargando,
+        suscripcionActiva,
+        suscripcionLista,
         updateUser,
         getAllUsers,
         getBarberosDisponibles,
         getUserByRut,
         subscribeUser,
         unsubscribeUser,
+        getSuscripcionActiva,
       }}
     >
       {children}

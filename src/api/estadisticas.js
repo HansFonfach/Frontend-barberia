@@ -20,7 +20,7 @@ export const getUltimaReserva = () => {
   return axiosPrivate.get("/estadisticas/ultima-reserva/userId");
 };
 export const getProximaReserva = () => {
-  return axiosPrivate.get("/estadisticas/proxima-reserva/userId");
+  return axiosPrivate.get("/estadisticas/proxima-reserva");
 };
 export const getProximoCliente = () =>{
   return axiosPrivate.get("/estadisticas/proximo-cliente")

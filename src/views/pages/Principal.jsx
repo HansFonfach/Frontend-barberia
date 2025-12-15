@@ -216,6 +216,7 @@ const UserDashboard = () => {
                         Bienvenido, {user?.nombre || "Usuario"}
                       </h1>
                     </div>
+                
                     <p className="lead mb-0 opacity-75">
                       Tu experiencia en La Santa Barberia
                     </p>

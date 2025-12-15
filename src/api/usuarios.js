@@ -16,10 +16,14 @@ export const postSubscribeUserById = (_id) => {
   return axiosPrivate.post(`/suscripcion/usuario/${_id}/suscribir`);
 };
 
-export const putUnsubscribeUserById = (_id) =>{
+export const putUnsubscribeUserById = (_id) => {
   return axiosPrivate.put(`/suscripcion/usuario/${_id}/cancelarSub`);
-}
+};
 
-export const getTodosLosUsuarios = () =>{
+export const getTodosLosUsuarios = () => {
   return axiosPrivate.get(`/usuarios/todosLosUsuarios`);
-}
+};
+
+export const getSubActiva = () => {
+  return axiosPrivate.get("/suscripcion/usuario/activa");
+};

@@ -24,6 +24,7 @@ import ReiniciarContraseña from "views/pages/ReiniciarContraseña";
 import PresentarServicios from "views/pages/PresentarServicios";
 import Contacto from "views/pages/Contacto";
 import { FaCut } from "react-icons/fa";
+import SuscripcionResultado from "views/pages/SuscripcionResultado";
 
 // Rutas públicas (login/register)
 export const publicRoutes = [
@@ -58,6 +59,13 @@ export const publicRoutes = [
 ];
 
 export const clienteRoutes = [
+  {
+    path: "/suscripcion/resultado",
+    name: "ResultadoSuscripcion",
+    component: <SuscripcionResultado />,
+    invisible: true,
+    layout: "/admin",
+  },
   {
     path: "/index",
     name: "Inicio",

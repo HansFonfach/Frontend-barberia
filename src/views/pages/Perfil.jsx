@@ -9,6 +9,7 @@ import {
   Container,
   Row,
   Col,
+  Badge,
 } from "reactstrap";
 import UserHeader from "components/Headers/UserHeader.js";
 import { useAuth } from "context/AuthContext";
@@ -26,8 +27,7 @@ const generarColor = (nombre) => {
     "#FDFFB6",
   ];
   if (!nombre) return "#CCCCCC";
-  const index =
-    nombre.charCodeAt(0) % colores.length;
+  const index = nombre.charCodeAt(0) % colores.length;
   return colores[index];
 };
 
@@ -69,25 +69,20 @@ const Perfil = () => {
               <h3 className="mb-0 text-dark">
                 {user?.nombre} {user?.apellido}
               </h3>
-              <h5 className="text-muted mb-2">{user?.email}</h5>
 
-              <span
-                className={`badge ${
-                  user?.suscrito ? "bg-success" : "bg-secondary"
-                } text-white mb-3`}
-              >
-                {user?.suscrito ? "Usuario Suscrito" : "Usuario No Suscrito"}
-              </span>
+              {user.suscrito && (
+                <p className="mt-3">
+                  <Badge color="success" className="px-3 py-2 text-dark">
+                    ⭐ Suscripción activa
+                  </Badge>
+                </p>
+              )}
 
               <p className="text-muted px-3">
-                Bienvenido a tu perfil personal 👋  
-                Aquí podrás consultar y editar tus datos personales.  
-                Pronto podrás subir una foto de perfil y más.
+                Bienvenido a tu perfil personal 👋 Aquí podrás consultar y
+                editar tus datos personales. Pronto podrás subir una foto de
+                perfil y más.
               </p>
-
-              <Button color="primary" size="sm" className="mt-2">
-                Editar información
-              </Button>
             </Card>
           </Col>
 
@@ -111,28 +106,24 @@ const Perfil = () => {
                     <Row>
                       <Col lg="6">
                         <FormGroup>
-                          <label className="form-control-label">
-                            Nombre
-                          </label>
+                          <label className="form-control-label">Nombre</label>
                           <Input
                             className="form-control-alternative"
                             type="text"
                             value={user?.nombre || ""}
-                            disabled
+                            required
                           />
                         </FormGroup>
                       </Col>
 
                       <Col lg="6">
                         <FormGroup>
-                          <label className="form-control-label">
-                            Apellido
-                          </label>
+                          <label className="form-control-label">Apellido</label>
                           <Input
                             className="form-control-alternative"
                             type="text"
                             value={user?.apellido || ""}
-                            disabled
+                            required
                           />
                         </FormGroup>
                       </Col>
@@ -155,14 +146,12 @@ const Perfil = () => {
 
                       <Col lg="6">
                         <FormGroup>
-                          <label className="form-control-label">
-                            Teléfono
-                          </label>
+                          <label className="form-control-label">Teléfono</label>
                           <Input
                             className="form-control-alternative"
                             type="text"
                             value={user?.telefono || "No registrado"}
-                            disabled
+                            required
                           />
                         </FormGroup>
                       </Col>
