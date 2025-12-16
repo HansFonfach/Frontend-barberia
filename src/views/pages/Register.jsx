@@ -127,6 +127,7 @@ const Register = () => {
                     type="text"
                     name="rut"
                     value={rut}
+                    maxLength={12}
                     onChange={handleRutChange}
                     className={error ? "is-invalid" : ""}
                   />

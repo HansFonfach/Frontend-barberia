@@ -52,6 +52,7 @@
     "date-fns": "^2.30.0",
     "dayjs": "^1.11.18",
     "framer-motion": "^12.23.24",
+    "html2canvas": "^1.4.1",
     "lucide-react": "^0.544.0",
     "moment": "2.29.4",
     "nouislider": "15.4.0",

@@ -25,6 +25,7 @@ import PresentarServicios from "views/pages/PresentarServicios";
 import Contacto from "views/pages/Contacto";
 import { FaCut } from "react-icons/fa";
 import SuscripcionResultado from "views/pages/SuscripcionResultado";
+import CatalogoCanjes from "views/pages/CatalogoCanjes";
 
 // Rutas públicas (login/register)
 export const publicRoutes = [
@@ -70,7 +71,7 @@ export const clienteRoutes = [
     path: "/index",
     name: "Inicio",
     component: <Principal />,
-    icon: "ni ni-shop text-yellow", // 🏠 Inicio
+    icon: "ni ni-shop text-dark", // 🏠 Inicio
     layout: "/admin",
   },
   {
@@ -144,6 +145,13 @@ export const clienteRoutes = [
     name: "Contacto",
     component: <Contacto />,
     icon: "ni ni-email-83 text-info", // icono acorde a contacto
+    layout: "/admin",
+  },
+  {
+    path: "/catalogo-canjes",
+    name: "Canjear puntos",
+    component: <CatalogoCanjes />,
+    icon: "ni ni-trophy text-yellow",
     layout: "/admin",
   },
 ];

@@ -331,6 +331,7 @@ export const useReservaBarbero = () => {
       Swal.fire(
         "Reserva exitosa",
         "Tu hora ha sido reservada correctamente, te enviaremos un correo con los datos de tu reserva.",
+
         "success"
       );
       navigate("/admin/index");

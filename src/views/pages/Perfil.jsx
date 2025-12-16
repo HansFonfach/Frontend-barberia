@@ -39,6 +39,8 @@ const getIniciales = (nombre = "", apellido = "") => {
   );
 };
 
+
+
 const Perfil = () => {
   const { user } = useAuth();
   const iniciales = getIniciales(user?.nombre, user?.apellido);
