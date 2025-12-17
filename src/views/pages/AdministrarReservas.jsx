@@ -144,7 +144,7 @@ const MisReservas = () => {
       finalizada: "success",
       cancelada: "secondary",
     };
-    return colores[estado] || "secondary";
+    return colores[estado] || "success";
   };
 
   const getEstadoTexto = (estado) => {

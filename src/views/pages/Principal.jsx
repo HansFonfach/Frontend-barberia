@@ -15,19 +15,13 @@ import UserHeader from "components/Headers/UserHeader";
 import { useAuth } from "context/AuthContext";
 import { useEstadisticas } from "context/EstadisticasContext";
 import { useLook } from "context/LookContext";
-import {
-  Sparkles,
-  Calendar,
-  Scissors,
-  Star,
-  Zap,
-  Gift,
-} from "lucide-react";
+import { Sparkles, Calendar, Scissors, Star, Zap } from "lucide-react";
 
 const UserDashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { ultimaReserva, proximaReserva } = useEstadisticas();
   const { estadoLookCliente } = useLook();
+  console.log(user);
 
   const [data, setData] = useState(null);
   const [look, setLook] = useState(null);
@@ -35,7 +29,7 @@ const UserDashboard = () => {
 
   // ⭐ MOCK puntos
   const puntos = 120;
-  const meta = 200;
+  const meta = 150;
 
   useEffect(() => {
     if (!user?.id) return;
@@ -59,7 +53,10 @@ const UserDashboard = () => {
 
   if (authLoading || loading) {
     return (
-      <Container fluid className="d-flex justify-content-center align-items-center min-vh-100">
+      <Container
+        fluid
+        className="d-flex justify-content-center align-items-center min-vh-100"
+      >
         <Spinner color="primary" size="lg" />
       </Container>
     );
@@ -96,7 +93,6 @@ const UserDashboard = () => {
       `}</style>
 
       <Container fluid className="mt--7">
-
         {/* ================= HERO ================= */}
         <Row className="mb-5">
           <Col>
@@ -156,9 +152,7 @@ const UserDashboard = () => {
                   </small>
                   {data.ultima ? (
                     <>
-                      <h3 className="font-weight-bold mb-1">
-                        {data.ultima}
-                      </h3>
+                      <h3 className="font-weight-bold mb-1">{data.ultima}</h3>
                       <small className="text-muted">
                         Mantener una frecuencia regular mejora tu look
                       </small>
@@ -197,12 +191,8 @@ const UserDashboard = () => {
                           <Scissors size={20} />
                         </div>
                         <div>
-                          <h4 className="mb-0 text-capitalize">
-                            Tu {tipo}
-                          </h4>
-                          <small className="text-muted">
-                            Estado actual
-                          </small>
+                          <h4 className="mb-0 text-capitalize">Tu {tipo}</h4>
+                          <small className="text-muted">Estado actual</small>
                         </div>
                       </div>
 
@@ -212,9 +202,7 @@ const UserDashboard = () => {
                             <small className="text-muted d-block">
                               Última vez
                             </small>
-                            <strong>
-                              {look[tipo].diasDesdeUltimo} días
-                            </strong>
+                            <strong>{look[tipo].diasDesdeUltimo} días</strong>
                           </div>
                         </Col>
                         <Col xs="6">
@@ -222,9 +210,7 @@ const UserDashboard = () => {
                             <small className="text-muted d-block">
                               Frecuencia ideal
                             </small>
-                            <strong>
-                              {look[tipo].promedio} días
-                            </strong>
+                            <strong>{look[tipo].promedio} días</strong>
                           </div>
                         </Col>
                       </Row>
@@ -253,19 +239,20 @@ const UserDashboard = () => {
                     <Star className="text-warning mr-2" size={24} />
                     <h4 className="mb-0">Tus puntos</h4>
                   </div>
-                  <Badge color="warning" pill>
-                    {puntos} pts
+                  <Badge color="success" pill>
+                    {user.puntos} pts
                   </Badge>
                 </div>
 
                 <Progress
-                  value={(puntos / meta) * 100}
+                  value={(user.puntos / meta) * 100}
                   style={{ height: 10 }}
                   className="mb-2"
                 />
 
                 <small className="text-muted">
-                  Te faltan <strong>{meta - puntos}</strong> puntos para tu próximo beneficio
+                  Te faltan <strong>{meta - user.puntos}</strong> puntos para tu
+                  próximo beneficio
                 </small>
               </CardBody>
             </Card>
@@ -299,7 +286,6 @@ const UserDashboard = () => {
             </Col>
           </Row>
         )}
-
       </Container>
     </>
   );

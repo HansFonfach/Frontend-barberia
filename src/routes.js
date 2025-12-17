@@ -26,6 +26,7 @@ import Contacto from "views/pages/Contacto";
 import { FaCut } from "react-icons/fa";
 import SuscripcionResultado from "views/pages/SuscripcionResultado";
 import CatalogoCanjes from "views/pages/CatalogoCanjes";
+import GestionCanjes from "views/admin/pages/GestionCanjes";
 
 // Rutas públicas (login/register)
 export const publicRoutes = [
@@ -112,6 +113,14 @@ export const clienteRoutes = [
     // 🧔‍♂️ Perfil de barberos
     layout: "/admin",
   },
+
+  {
+    path: "/catalogo-canjes",
+    name: "Canjear puntos",
+    component: <CatalogoCanjes />,
+    icon: "ni ni-trophy text-yellow",
+    layout: "/admin",
+  },
   {
     path: "/centro-ayuda",
     name: "Centro de ayuda",
@@ -145,13 +154,6 @@ export const clienteRoutes = [
     name: "Contacto",
     component: <Contacto />,
     icon: "ni ni-email-83 text-info", // icono acorde a contacto
-    layout: "/admin",
-  },
-  {
-    path: "/catalogo-canjes",
-    name: "Canjear puntos",
-    component: <CatalogoCanjes />,
-    icon: "ni ni-trophy text-yellow",
     layout: "/admin",
   },
 ];
@@ -206,6 +208,13 @@ export const barberoRoutes = [
     layout: "/admin",
     component: <GestionServicios />,
     section: "gestion",
+  },
+  {
+    path: "/gestion-canjes",
+    name: "Gestionar canjes",
+    icon: "ni ni-shop text-info",
+    component: <GestionCanjes />,
+    layout: "/admin",
   },
   {
     path: "/gestion-horarios",

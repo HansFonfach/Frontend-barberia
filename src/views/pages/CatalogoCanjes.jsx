@@ -19,6 +19,7 @@ import {
   FaStar,
 } from "react-icons/fa";
 
+
 /* -------------------------------------------------
    MOCK DE CANJES (DESPUÉS VIENE DEL BACK)
 ------------------------------------------------- */
