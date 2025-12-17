@@ -1,4 +1,10 @@
-import { createContext, useContext, useEffect, useState, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import {
   verifyRequest,
   loginRequest,
@@ -53,6 +59,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   // Función para verificar sesión que se puede llamar desde fuera
+  // 🔍 Verificar sesión (se ejecuta al iniciar)
   const verifySession = useCallback(async () => {
     try {
       const res = await verifyRequest();
@@ -61,58 +68,40 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem("user", JSON.stringify(res.data.usuario));
       return res.data.usuario;
     } catch (err) {
-      console.log("Error verificando sesión:", err);
-      
-      // Si hay error 401 (no autorizado), mantener usuario local
-      if (err.response?.status === 401) {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          const parsedUser = JSON.parse(storedUser);
-          setUser(parsedUser);
-          setIsAuthenticated(true);
-          return parsedUser;
-        }
-      }
-      
-      // Si no hay usuario almacenado
-      localStorage.removeItem("user");
       setUser(null);
       setIsAuthenticated(false);
+      localStorage.removeItem("user");
       return null;
     } finally {
       setLoading(false);
-      setInitialCheckDone(true);
+      setInitialCheckDone(true); // 🔑 evita loading infinito
     }
   }, []);
 
-  // Verificar sesión al iniciar
+  // 🚀 Check inicial
   useEffect(() => {
     verifySession();
   }, [verifySession]);
 
   // LOGIN
+  // 🔐 Login
   const signIn = async (credentials) => {
     try {
       setLoading(true);
       const res = await loginRequest(credentials);
-      const usuario = res.data.user;
 
-      if (res.data.token) saveToken(res.data.token);
-
-      // Esperar un momento para que la cookie se establezca
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
-      // Verificar sesión inmediatamente después del login
-      const verifiedUser = await verifySession();
-      
-      if (verifiedUser) {
-        localStorage.setItem("user", JSON.stringify(verifiedUser));
-        setUser(verifiedUser);
-        setIsAuthenticated(true);
-        setErrors(null);
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
       }
 
-      return { ...res.data, user: verifiedUser || usuario };
+      const verifiedUser = await verifySession();
+
+      if (!verifiedUser) {
+        throw new Error("No se pudo verificar la sesión");
+      }
+
+      setErrors(null);
+      return verifiedUser;
     } catch (error) {
       setErrors(error.response?.data || "Error desconocido");
       throw error;
@@ -131,11 +120,11 @@ export const AuthProvider = ({ children }) => {
       if (res.data.token) saveToken(res.data.token);
 
       // Esperar un momento para que la cookie se establezca
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       // Verificar sesión después del registro
       const verifiedUser = await verifySession();
-      
+
       if (verifiedUser) {
         localStorage.setItem("user", JSON.stringify(verifiedUser));
         setUser(verifiedUser);

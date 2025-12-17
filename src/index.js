@@ -17,6 +17,7 @@ import { HorarioProvider } from "context/HorarioContext";
 import { EstadisticasProvider } from "context/EstadisticasContext";
 import { NotificacionProvider } from "context/NotificacionesContext";
 import { LookProvider } from "context/LookContext";
+import { CanjeProvider } from "context/CanjeContext";
 
 const RootRedirect = () => {
   const { user, isAuthenticated } = useAuth();
@@ -44,21 +45,26 @@ root.render(
                 <EstadisticasProvider>
                   <NotificacionProvider>
                     <LookProvider>
-                      <Routes>
-                        {/* Layout de autenticación */}
-                        <Route path="/auth/*" element={<AuthLayout />} />
+                      <CanjeProvider>
+                        <Routes>
+                          {/* Layout de autenticación */}
+                          <Route path="/auth/*" element={<AuthLayout />} />
 
-                        {/* Layout protegido */}
-                        <Route element={<ProtectedRoute />}>
-                          <Route path="/admin/*" element={<AdminLayout />} />
-                        </Route>
+                          {/* Layout protegido */}
+                          <Route element={<ProtectedRoute />}>
+                            <Route path="/admin/*" element={<AdminLayout />} />
+                          </Route>
 
-                        {/* Redirección raíz */}
-                        <Route path="/" element={<RootRedirect />} />
+                          {/* Redirección raíz */}
+                          <Route path="/" element={<RootRedirect />} />
 
-                        {/* Fallback */}
-                        <Route path="*" element={<Navigate to="/" replace />} />
-                      </Routes>
+                          {/* Fallback */}
+                          <Route
+                            path="*"
+                            element={<Navigate to="/" replace />}
+                          />
+                        </Routes>
+                      </CanjeProvider>
                     </LookProvider>
                   </NotificacionProvider>
                 </EstadisticasProvider>

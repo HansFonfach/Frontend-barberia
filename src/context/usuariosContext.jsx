@@ -110,10 +110,8 @@ export const UsuarioProvider = ({ children }) => {
   // En tu context - agrega más logs
   const getUserByRut = async (rut) => {
     try {
-      console.log("🌐 Haciendo request a API con RUT:", rut);
       const res = await getUsuarioByRut(rut);
-      console.log("📡 Respuesta de API:", res);
-      console.log("📊 Datos del usuario:", res.data);
+
       return res.data;
     } catch (error) {
       console.error("💥 Error en getUserByRut:", error);
