@@ -16,20 +16,22 @@ import { useAuth } from "context/AuthContext";
 import { useEstadisticas } from "context/EstadisticasContext";
 import { useLook } from "context/LookContext";
 import { Sparkles, Calendar, Scissors, Star, Zap } from "lucide-react";
+import { useUsuario } from "context/usuariosContext";
 
 const UserDashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { ultimaReserva, proximaReserva } = useEstadisticas();
   const { estadoLookCliente } = useLook();
-  console.log(user);
+  const { getVerPuntos, puntos } = useUsuario();
 
   const [data, setData] = useState(null);
   const [look, setLook] = useState(null);
   const [loading, setLoading] = useState(true);
 
+
   // ⭐ MOCK puntos
-  const puntos = 120;
-  const meta = 150;
+
+  const meta = 900;
 
   useEffect(() => {
     if (!user?.id) return;
@@ -41,6 +43,7 @@ const UserDashboard = () => {
         ultimaReserva(),
         proximaReserva(),
         estadoLookCliente(),
+        getVerPuntos(), // solo dispara la carga
       ]);
 
       setData({ ultima, proxima });
@@ -50,6 +53,7 @@ const UserDashboard = () => {
 
     cargar();
   }, [user]);
+
 
   if (authLoading || loading) {
     return (
@@ -240,18 +244,18 @@ const UserDashboard = () => {
                     <h4 className="mb-0">Tus puntos</h4>
                   </div>
                   <Badge color="success" pill>
-                    {user.puntos} pts
+                    {puntos} pts
                   </Badge>
                 </div>
 
                 <Progress
-                  value={(user.puntos / meta) * 100}
+                  value={(puntos / meta) * 100}
                   style={{ height: 10 }}
                   className="mb-2"
                 />
 
                 <small className="text-muted">
-                  Te faltan <strong>{meta - user.puntos}</strong> puntos para tu
+                  Te faltan <strong>{meta - puntos}</strong> puntos para tu
                   próximo beneficio
                 </small>
               </CardBody>

@@ -27,3 +27,7 @@ export const getTodosLosUsuarios = () => {
 export const getSubActiva = () => {
   return axiosPrivate.get("/suscripcion/usuario/activa");
 };
+
+export const getVerMisPuntos = () => {
+  return axiosPrivate.get("/usuarios/misPuntos");
+};

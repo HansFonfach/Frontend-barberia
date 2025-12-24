@@ -23,20 +23,18 @@ import ServiciosContext from "context/ServiciosContext";
 import Swal from "sweetalert2";
 
 const GestionServicios = () => {
-  const [servicios2, setServicios] = useState([]);
-
   const [modal, setModal] = useState(false);
   const [editando, setEditando] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [form, setForm] = useState({
-    id: null,
+    _id: null,
     nombre: "",
     precio: "",
     duracion: "",
     descripcion: "",
   });
 
-  const { servicios, crearServicio, deleteServicio } =
+  const { servicios, crearServicio, deleteServicio, updateServicio } =
     useContext(ServiciosContext);
 
   const toggle = () => setModal(!modal);
@@ -47,7 +45,7 @@ const GestionServicios = () => {
   const handleNuevo = () => {
     setEditando(false);
     setForm({
-      id: null,
+      _id: null,
       nombre: "",
       precio: "",
       duracion: "",
@@ -63,25 +61,64 @@ const GestionServicios = () => {
   };
 
   const handleGuardar = async () => {
-    if (!form.nombre || !form.precio || !form.duracion || !form.descripcion) {
-      alert("Por favor, completa los campos obligatorios");
+    // Validaciones básicas
+    if (!form.nombre.trim()) {
+      Swal.fire({
+        title: "Error",
+        text: "El nombre del servicio es obligatorio",
+        icon: "error",
+      });
+      return;
+    }
+
+    if (!form.precio || parseFloat(form.precio) <= 0) {
+      Swal.fire({
+        title: "Error",
+        text: "El precio debe ser mayor a 0",
+        icon: "error",
+      });
       return;
     }
 
     try {
       if (editando) {
-        // Aquí podrías implementar actualizarServicio()
+        await updateServicio(form._id, {
+          nombre: form.nombre.trim(),
+          precio: parseFloat(form.precio),
+          duracion: parseInt(form.duracion) || 30,
+          descripcion: form.descripcion.trim(),
+        });
+        
+        Swal.fire({
+          title: "¡Éxito!",
+          text: "Servicio actualizado correctamente",
+          icon: "success",
+          timer: 1500,
+        });
       } else {
         await crearServicio(
-          form.nombre,
-          form.precio,
-          form.duracion,
-          form.descripcion
+          form.nombre.trim(),
+          parseFloat(form.precio),
+          parseInt(form.duracion) || 30,
+          form.descripcion.trim()
         );
+        
+        Swal.fire({
+          title: "¡Éxito!",
+          text: "Servicio creado correctamente",
+          icon: "success",
+          timer: 1500,
+        });
       }
+
       setModal(false);
+      setEditando(false);
     } catch (error) {
-      console.error("Error al guardar servicio:", error);
+      Swal.fire({
+        title: "Error",
+        text: error?.response?.data?.message || "Error al guardar el servicio",
+        icon: "error",
+      });
     }
   };
 
@@ -228,7 +265,6 @@ const GestionServicios = () => {
                           <th scope="col" className="sort" data-sort="duration">
                             Duración
                           </th>
-
                           <th scope="col" className="sort">
                             Acciones
                           </th>
@@ -243,6 +279,13 @@ const GestionServicios = () => {
                                   <span className="name mb-0 text-sm">
                                     {servicio.nombre}
                                   </span>
+                                  {servicio.descripcion && (
+                                    <p className="text-xs text-muted mb-0 mt-1">
+                                      {servicio.descripcion.length > 50
+                                        ? `${servicio.descripcion.substring(0, 50)}...`
+                                        : servicio.descripcion}
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                             </th>
@@ -259,7 +302,6 @@ const GestionServicios = () => {
                                 {servicio.duracion} min
                               </span>
                             </td>
-
                             <td className="text-right">
                               <div className="d-flex align-items-center justify-content">
                                 <Button
@@ -337,7 +379,11 @@ const GestionServicios = () => {
                     onChange={handleChange}
                     placeholder="Ej: Corte de pelo clásico"
                     type="text"
+                    required
                   />
+                  {!form.nombre.trim() && (
+                    <small className="text-danger">Este campo es obligatorio</small>
+                  )}
                 </FormGroup>
               </Col>
             </Row>
@@ -358,8 +404,14 @@ const GestionServicios = () => {
                       value={form.precio}
                       onChange={handleChange}
                       placeholder="7000"
+                      min="0"
+                      step="0.01"
+                      required
                     />
                   </InputGroup>
+                  {(!form.precio || parseFloat(form.precio) <= 0) && (
+                    <small className="text-danger">El precio debe ser mayor a 0</small>
+                  )}
                 </FormGroup>
               </Col>
               <Col md="6">
@@ -375,6 +427,8 @@ const GestionServicios = () => {
                       value={form.duracion}
                       onChange={handleChange}
                       placeholder="30"
+                      min="1"
+                      required
                     />
                     <InputGroupAddon addonType="append">
                       <InputGroupText>min</InputGroupText>

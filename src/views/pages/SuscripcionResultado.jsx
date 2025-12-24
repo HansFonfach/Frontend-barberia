@@ -5,69 +5,90 @@ import { Spinner } from "reactstrap";
 import html2canvas from "html2canvas";
 import TarjetaSuscriptor from "../../components/tarjeta/tarjetaSuscriptor";
 
-const BENEFITS = [
-  "Acceso completo a todos los cursos",
-  "Contenido exclusivo para suscriptores",
-  "Soporte prioritario 24/7",
-  "Certificados digitales de finalización",
-  "Actualizaciones de contenido mensuales",
-  "Comunidad privada de miembros",
-];
-
 const SuscripcionResultado = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const tarjetaRef = useRef(null); // 🔑 ref para la tarjeta oculta
+  const tarjetaRef = useRef(null);
 
   const [status, setStatus] = useState("loading");
   const [message, setMessage] = useState("");
   const [suscripcionInfo, setSuscripcionInfo] = useState({});
   const [clienteNombre, setClienteNombre] = useState("Usuario Suscrito");
 
+  /* =========================================================
+     PROCESAR RESULTADO TRANSBANK
+  ========================================================= */
   useEffect(() => {
     const query = new URLSearchParams(location.search);
+
     const success = query.get("success");
     const cancelado = query.get("cancelado");
+    const rechazado = query.get("rechazado");
+    const error = query.get("error");
+
     const suscripcionId = query.get("suscripcionId");
     const fechaInicio = query.get("fechaInicio");
     const fechaFin = query.get("fechaFin");
     const nombre = query.get("nombre");
 
-    if (cancelado) {
-      setStatus("cancelled");
-      setMessage("El proceso de suscripción fue cancelado por el usuario.");
-    } else if (success) {
+    if (success) {
       setStatus("success");
-      setMessage("¡Felicidades! Tu suscripción ha sido activada exitosamente.");
+      setMessage("¡Tu suscripción fue activada correctamente!");
       setSuscripcionInfo({ suscripcionId, fechaInicio, fechaFin });
       setClienteNombre(nombre || "Usuario Suscrito");
       updateUserSubscriptionStatus({ fechaFin });
-    } else {
-      setStatus("error");
-      setMessage("No se pudo procesar el pago. Por favor, intenta nuevamente.");
+      return;
     }
+
+    if (cancelado) {
+      setStatus("cancelled");
+      setMessage("El proceso de pago fue cancelado por el usuario.");
+      return;
+    }
+
+    if (rechazado) {
+      setStatus("rejected");
+      setMessage(
+        "El pago fue rechazado por Transbank. Verifica los datos de tu tarjeta o intenta con otro medio de pago."
+      );
+      return;
+    }
+
+    if (error) {
+      setStatus("error");
+      setMessage(
+        "Ocurrió un error al procesar el pago. Si el problema persiste, contáctanos."
+      );
+      return;
+    }
+
+    setStatus("error");
+    setMessage("No se pudo determinar el estado del pago.");
   }, [location.search]);
 
+  /* =========================================================
+     ACTUALIZAR USUARIO LOCAL
+  ========================================================= */
   const updateUserSubscriptionStatus = ({ fechaFin }) => {
     try {
-      const userData = JSON.parse(localStorage.getItem("userData"));
-      if (userData) {
-        userData.suscrito = true;
-        userData.fechaFinSuscripcion = fechaFin;
-        localStorage.setItem("userData", JSON.stringify(userData));
-      }
+      const updateStorage = (storage, key) => {
+        const data = JSON.parse(storage.getItem(key));
+        if (!data) return;
+        data.suscrito = true;
+        data.fechaFinSuscripcion = fechaFin;
+        storage.setItem(key, JSON.stringify(data));
+      };
 
-      const sessionUser = JSON.parse(sessionStorage.getItem("user"));
-      if (sessionUser) {
-        sessionUser.suscrito = true;
-        sessionUser.fechaFinSuscripcion = fechaFin;
-        sessionStorage.setItem("user", JSON.stringify(sessionUser));
-      }
+      updateStorage(localStorage, "userData");
+      updateStorage(sessionStorage, "user");
     } catch (error) {
-      console.error("Error actualizando estado:", error);
+      console.error("Error actualizando estado local:", error);
     }
   };
 
+  /* =========================================================
+     HELPERS
+  ========================================================= */
   const formatDate = (iso) =>
     iso
       ? new Date(iso).toLocaleDateString("es-CL", {
@@ -83,6 +104,9 @@ const SuscripcionResultado = () => {
     return diff > 0 ? Math.ceil(diff / (1000 * 60 * 60 * 24)) : 0;
   };
 
+  /* =========================================================
+     DESCARGAR TARJETA
+  ========================================================= */
   const descargarTarjeta = async () => {
     if (!tarjetaRef.current) return;
 
@@ -93,7 +117,7 @@ const SuscripcionResultado = () => {
     });
 
     const link = document.createElement("a");
-    link.download = "tarjeta-suscriptor-la-santa-barberia.png";
+    link.download = "tarjeta-suscriptor.png";
     link.href = canvas.toDataURL("image/png");
     link.click();
   };
@@ -103,6 +127,9 @@ const SuscripcionResultado = () => {
     fechaFin: suscripcionInfo.fechaFin,
   };
 
+  /* =========================================================
+     RENDER
+  ========================================================= */
   return (
     <>
       <UserHeader />
@@ -110,84 +137,106 @@ const SuscripcionResultado = () => {
       <div className="container mt-5">
         <div className="row justify-content-center">
           <div className="col-lg-8">
+
+            {/* LOADING */}
             {status === "loading" && (
-              <div className="card shadow-lg border-0">
-                <div className="card-body text-center p-5">
-                  <Spinner color="primary" size="lg" />
-                  <h3 className="mt-4 text-primary">
-                    Procesando tu suscripción
-                  </h3>
-                  <p className="text-muted">
-                    Estamos confirmando el pago. Esto puede tomar unos segundos...
-                  </p>
-                </div>
+              <div className="card shadow border-0 text-center p-5">
+                <Spinner color="primary" />
+                <h4 className="mt-4">Procesando tu pago…</h4>
+                <p className="text-muted">Por favor espera un momento</p>
               </div>
             )}
 
+            {/* SUCCESS */}
             {status === "success" && (
-              <div className="card shadow-lg border-0 overflow-hidden">
-                <div className="card-header bg-gradient-success text-white text-center py-4">
-                  <h1 className="display-5 fw-bold">¡Suscripción Exitosa!</h1>
-                  <p className="lead mb-0">
-                    Gracias por unirte a nuestra comunidad premium
-                  </p>
+              <div className="card shadow-lg border-0">
+                <div className="card-header bg-success text-white text-center py-4">
+                  <h2>🎉 Suscripción Exitosa</h2>
                 </div>
 
-                <div className="card-body p-5">
-                  <h4 className="text-center mb-4">{message}</h4>
+                <div className="card-body text-center p-5">
+                  <p className="lead">{message}</p>
 
-                  <div className="text-center mb-4">
-                    <p>
-                      ID Suscripción:{" "}
-                      <strong>{suscripcionInfo.suscripcionId}</strong>
-                    </p>
-                    <p>
-                      Inicio:{" "}
-                      <strong>{formatDate(suscripcionInfo.fechaInicio)}</strong>
-                    </p>
-                    <p>
-                      Vencimiento:{" "}
-                      <strong>{formatDate(suscripcionInfo.fechaFin)}</strong>
-                    </p>
-                    <p>
-                      Días restantes:{" "}
-                      <strong>
-                        {getRemainingDays(suscripcionInfo.fechaFin)}
-                      </strong>
-                    </p>
-                  </div>
+                  <p>
+                    <strong>Inicio:</strong>{" "}
+                    {formatDate(suscripcionInfo.fechaInicio)}
+                  </p>
+                  <p>
+                    <strong>Vencimiento:</strong>{" "}
+                    {formatDate(suscripcionInfo.fechaFin)}
+                  </p>
+                  <p>
+                    <strong>Días restantes:</strong>{" "}
+                    {getRemainingDays(suscripcionInfo.fechaFin)}
+                  </p>
 
-                  {/* BOTÓN */}
-                  <div className="text-center">
-                    <button
-                      className="btn btn-warning btn-lg px-5"
-                      onClick={descargarTarjeta}
-                    >
-                      Descargar tarjeta de suscriptor
-                    </button>
-                  </div>
+                  <button
+                    className="btn btn-warning btn-lg mt-4"
+                    onClick={descargarTarjeta}
+                  >
+                    Descargar tarjeta de suscriptor
+                  </button>
                 </div>
               </div>
             )}
+
+            {/* CANCELLED */}
+            {status === "cancelled" && (
+              <div className="card shadow border-0 text-center p-5">
+                <h3>⚠️ Pago cancelado</h3>
+                <p>{message}</p>
+                <button
+                  className="btn btn-primary mt-3"
+                  onClick={() => navigate("/suscripcion")}
+                >
+                  Intentar nuevamente
+                </button>
+              </div>
+            )}
+
+            {/* REJECTED */}
+            {status === "rejected" && (
+              <div className="card shadow border-0 text-center p-5">
+                <h3>❌ Pago rechazado</h3>
+                <p>{message}</p>
+                <button
+                  className="btn btn-danger mt-3"
+                  onClick={() => navigate("/suscripcion")}
+                >
+                  Reintentar pago
+                </button>
+              </div>
+            )}
+
+            {/* ERROR */}
+            {status === "error" && (
+              <div className="card shadow border-0 text-center p-5">
+                <h3>🚫 Error en el pago</h3>
+                <p>{message}</p>
+                <button
+                  className="btn btn-secondary mt-3"
+                  onClick={() => navigate("/")}
+                >
+                  Volver al inicio
+                </button>
+              </div>
+            )}
+
           </div>
         </div>
       </div>
 
-      {/* TARJETA OCULTA (NO VISIBLE) */}
-      <div
-        style={{
-          position: "absolute",
-          left: "-9999px",
-          top: 0,
-        }}
-      >
-        <div ref={tarjetaRef}>
-          <TarjetaSuscriptor
-            cliente={{ nombre: clienteNombre }}
-            suscripcion={suscripcion}
-          />
+      {/* TARJETA OCULTA */}
+      {status === "success" && (
+        <div style={{ position: "absolute", left: "-9999px", top: 0 }}>
+          <div ref={tarjetaRef}>
+            <TarjetaSuscriptor
+              cliente={{ nombre: clienteNombre }}
+              suscripcion={suscripcion}
+            />
+          </div>
         </div>
-      </div>
+      )}
     </>
   );
 };

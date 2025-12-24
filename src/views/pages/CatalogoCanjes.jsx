@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Container,
   Row,
@@ -8,6 +8,7 @@ import {
   CardHeader,
   Badge,
   Button,
+  Spinner,
 } from "reactstrap";
 import UserHeader from "components/Headers/UserHeader";
 import {
@@ -18,64 +19,86 @@ import {
   FaGift,
   FaStar,
 } from "react-icons/fa";
+import { useCanje } from "context/CanjeContext";
+import Swal from "sweetalert2";
 
-
-/* -------------------------------------------------
-   MOCK DE CANJES (DESPUÉS VIENE DEL BACK)
-------------------------------------------------- */
-const CANJES_MOCK = [
-  {
-    id: 1,
-    nombre: "Café Gratis",
-    descripcion: "Disfruta un café mientras esperas tu corte.",
-    puntos: 150,
-    icon: <FaCoffee size={32} />,
-    tipo: "consumo",
-  },
-  {
-    id: 2,
-    nombre: "Bebida",
-    descripcion: "Bebida fría a elección.",
-    puntos: 200,
-    icon: <FaGlassWhiskey size={32} />,
-    tipo: "consumo",
-  },
-  {
-    id: 3,
-    nombre: "Cerveza",
-    descripcion: "Cerveza helada post corte.",
-    puntos: 300,
-    icon: <FaBeer size={32} />,
-    tipo: "consumo",
-  },
-  {
-    id: 4,
-    nombre: "10% de Descuento",
-    descripcion: "10% de descuento en cualquier servicio.",
-    puntos: 500,
-    icon: <FaPercent size={32} />,
-    tipo: "beneficio",
-  },
-  {
-    id: 5,
-    nombre: "Servicio Gratis",
-    descripcion: "Un servicio de barbería completamente gratis.",
-    puntos: 1200,
-    icon: <FaGift size={32} />,
-    tipo: "premium",
-  },
-  {
-    id: 6,
-    nombre: "1 Mes de Suscripción Pro",
-    descripcion: "Acceso completo a beneficios Pro por 1 mes.",
-    puntos: 3000,
-    icon: <FaStar size={32} />,
-    tipo: "premium",
-  },
-];
+const iconMap = {
+  cafe: <FaCoffee size={32} />,
+  bebida: <FaGlassWhiskey size={32} />,
+  cerveza: <FaBeer size={32} />,
+  descuento: <FaPercent size={32} />,
+  regalo: <FaGift size={32} />,
+  premium: <FaStar size={32} />,
+};
 
 const CatalogoCanjes = () => {
+  const {
+    listarCanjes,
+    canjear,
+    canjes,
+    loading,
+    loadingCanje,
+  } = useCanje();
+
   const [canjeSeleccionado, setCanjeSeleccionado] = useState(null);
+
+  /* =========================
+     CARGA INICIAL
+  ========================= */
+  useEffect(() => {
+    listarCanjes();
+  }, [listarCanjes]);
+
+  /* =========================
+     CANJEAR
+  ========================= */
+  const handleCanjear = async () => {
+    if (!canjeSeleccionado) return;
+
+    const result = await Swal.fire({
+      title: "¿Confirmar canje?",
+      text: `Se descontarán ${canjeSeleccionado.puntos} puntos`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Sí, canjear",
+      cancelButtonText: "Cancelar",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      await canjear(canjeSeleccionado._id);
+
+      await Swal.fire({
+        icon: "success",
+        title: "Canje realizado 🎉",
+        text: "Tu recompensa fue canjeada con éxito",
+        timer: 2000,
+        showConfirmButton: false,
+      });
+
+      setCanjeSeleccionado(null);
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text:
+          error?.response?.data?.message ||
+          "No se pudo realizar el canje",
+      });
+    }
+  };
+
+  /* =========================
+     LOADING GLOBAL (solo carga inicial)
+  ========================= */
+  if (loading) {
+    return (
+      <Container fluid className="d-flex justify-content-center mt-5">
+        <Spinner color="primary" />
+      </Container>
+    );
+  }
 
   return (
     <>
@@ -85,63 +108,39 @@ const CatalogoCanjes = () => {
         <Row className="justify-content-center">
           <Col lg="10">
             <Card className="shadow border-0">
-              {/* HEADER */}
               <CardHeader className="bg-transparent text-center">
-                <h2 className="font-weight-bold mb-2">Catálogo de Canjes 🎁</h2>
-                <p
-                  className="text-muted"
-                  style={{ maxWidth: "720px", margin: "0 auto" }}
-                >
-                  Acumula puntos con tus reservas y canjéalos por beneficios
-                  exclusivos. Mientras más reservas hagas, mejores premios
-                  obtienes.
+                <h2 className="font-weight-bold mb-2">
+                  Catálogo de Canjes 🎁
+                </h2>
+                <p className="text-muted">
+                  Canjea tus puntos por beneficios exclusivos
                 </p>
               </CardHeader>
 
-              {/* BODY */}
               <CardBody>
                 <Row>
                   {/* LISTADO */}
                   <Col lg={canjeSeleccionado ? "8" : "12"}>
                     <Row>
-                      {CANJES_MOCK.map((item) => (
-                        <Col key={item.id} xs="12" sm="6" md="4" lg="3">
+                      {canjes.length === 0 && (
+                        <Col className="text-center text-muted mt-4">
+                          No hay canjes disponibles
+                        </Col>
+                      )}
+
+                      {canjes.map((item) => (
+                        <Col key={item._id} xs="12" sm="6" md="4" lg="3">
                           <Card
                             className="shadow-sm mb-4"
-                            style={{
-                              cursor: "pointer",
-                              borderRadius: "12px",
-                              transition: "all 0.25s ease",
-                            }}
+                            style={{ cursor: "pointer" }}
                             onClick={() => setCanjeSeleccionado(item)}
-                            onMouseEnter={(e) =>
-                              (e.currentTarget.style.transform =
-                                "translateY(-4px)")
-                            }
-                            onMouseLeave={(e) =>
-                              (e.currentTarget.style.transform =
-                                "translateY(0)")
-                            }
                           >
                             <div className="d-flex justify-content-center mt-4">
-                              <div
-                                style={{
-                                  width: "80px",
-                                  height: "80px",
-                                  borderRadius: "50%",
-                                  background: "#f0f0f0",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  boxShadow: "0 4px 10px rgba(0,0,0,0.12)",
-                                }}
-                              >
-                                {item.icon}
-                              </div>
+                              {iconMap[item.tipo] || <FaGift size={32} />}
                             </div>
 
                             <CardBody className="text-center">
-                              <h5 className="font-weight-bold mb-1">
+                              <h5 className="font-weight-bold">
                                 {item.nombre}
                               </h5>
 
@@ -149,8 +148,17 @@ const CatalogoCanjes = () => {
                                 {item.descripcion}
                               </p>
 
-                              <Badge color="primary" pill className="mt-2">
+                              <Badge color="primary" pill className="mr-1">
                                 {item.puntos} pts
+                              </Badge>
+
+                              <Badge
+                                color={
+                                  item.stock > 0 ? "success" : "danger"
+                                }
+                                pill
+                              >
+                                Stock: {item.stock}
                               </Badge>
                             </CardBody>
                           </Card>
@@ -159,45 +167,52 @@ const CatalogoCanjes = () => {
                     </Row>
                   </Col>
 
-                  {/* PANEL DETALLE */}
+                  {/* DETALLE */}
                   {canjeSeleccionado && (
                     <Col lg="4">
                       <Card
                         className="shadow border-0 sticky-top"
                         style={{ top: "90px" }}
                       >
-                        <div className="d-flex justify-content-center mt-4">
-                          <div
-                            style={{
-                              width: "130px",
-                              height: "130px",
-                              borderRadius: "50%",
-                              background: "#f0f0f0",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              boxShadow: "0 5px 15px rgba(0,0,0,0.15)",
-                            }}
-                          >
-                            {canjeSeleccionado.icon}
-                          </div>
-                        </div>
-
                         <CardBody>
-                          <h3 className="font-weight-bold mt-3">
+                          <h3 className="font-weight-bold">
                             {canjeSeleccionado.nombre}
                           </h3>
 
-                          <Badge color="success" pill className="mb-3">
+                          <Badge color="primary" pill className="mb-2">
                             {canjeSeleccionado.puntos} puntos
+                          </Badge>
+
+                          <Badge
+                            color={
+                              canjeSeleccionado.stock > 0
+                                ? "success"
+                                : "danger"
+                            }
+                            pill
+                            className="mb-3 ml-2"
+                          >
+                            Stock: {canjeSeleccionado.stock}
                           </Badge>
 
                           <p className="text-muted">
                             {canjeSeleccionado.descripcion}
                           </p>
 
-                          <Button color="primary" block>
-                            Canjear recompensa
+                          <Button
+                            color="primary"
+                            block
+                            disabled={
+                              loadingCanje ||
+                              canjeSeleccionado.stock <= 0
+                            }
+                            onClick={handleCanjear}
+                          >
+                            {loadingCanje ? (
+                              <Spinner size="sm" />
+                            ) : (
+                              "Canjear recompensa"
+                            )}
                           </Button>
 
                           <Button
@@ -207,7 +222,7 @@ const CatalogoCanjes = () => {
                             className="mt-2"
                             onClick={() => setCanjeSeleccionado(null)}
                           >
-                            Volver al catálogo
+                            Volver
                           </Button>
                         </CardBody>
                       </Card>

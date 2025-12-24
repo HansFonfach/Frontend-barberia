@@ -19,3 +19,7 @@ export const putDeleteCanje = (id) => {
 export const getAllCanje = () => {
   return axiosPrivate.get("/canjes/listarCanjes");
 };
+
+export const postCanjearPuntos = (idCanje) => {
+  return axiosPrivate.post(`/canjes/canjear/${idCanje}`);
+};

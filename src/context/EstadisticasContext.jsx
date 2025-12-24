@@ -43,7 +43,7 @@ export const EstadisticasProvider = ({ children }) => {
       return res.data.fecha; // ya viene formateada por el backend
     } catch (error) {
       if (error.response?.data?.message) return error.response.data.message;
-      return "Error al obtener última reserva";
+  
     }
   };
 
@@ -55,7 +55,6 @@ export const EstadisticasProvider = ({ children }) => {
       return res.data.fecha;
     } catch (error) {
       if (error.response?.data?.message) return error.response.data.message;
-      return "Error al obtener próxima reserva";
     }
   };
 
@@ -107,7 +106,7 @@ export const EstadisticasProvider = ({ children }) => {
         totalCitasEsteMes,
         ultimaReserva,
         proximaReserva,
-        proximoCliente
+        proximoCliente,
       }}
     >
       {children}

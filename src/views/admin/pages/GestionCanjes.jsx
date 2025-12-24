@@ -31,7 +31,7 @@ const categorias = [
   { id: "descuento", label: "Descuento", color: "success" },
   { id: "producto", label: "Producto", color: "success" },
   { id: "servicio", label: "Servicio", color: "success" },
-  { id: "otro", label: "Otro", color: "success" },
+  { id: "otro", label: "Otro", color: "info" },
 ];
 
 const GestionCanjesPro = () => {

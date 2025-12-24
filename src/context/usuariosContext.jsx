@@ -8,6 +8,7 @@ import { postSubscribeUserById } from "api/usuarios";
 import { putUnsubscribeUserById } from "api/usuarios";
 import { getTodosLosUsuarios } from "api/usuarios";
 import { getSubActiva } from "api/usuarios";
+import { getVerMisPuntos } from "api/usuarios";
 
 const UsuarioContext = createContext();
 
@@ -25,6 +26,7 @@ export const UsuarioProvider = ({ children }) => {
   const [cargando, setCargando] = useState(true);
   const [suscripcionActiva, setSuscripcionActiva] = useState(null);
   const [suscripcionLista, setSuscripcionLista] = useState(false); // 👈 NUEVO
+  const [puntos, setPuntos] = useState(0);
 
   const { isAuthenticated, user } = useAuth(); // Usar el contexto de auth
 
@@ -153,6 +155,25 @@ export const UsuarioProvider = ({ children }) => {
     fetchData();
   }, [isAuthenticated, user]); // Dependencias: cuando auth o user cambien
 
+  const getVerPuntos = async () => {
+    if (!isAuthenticated) return;
+
+    try {
+      setCargando(true);
+      const res = await getVerMisPuntos();
+
+      console.log("🟢 Puntos desde backend:", res.data.puntos);
+
+      setPuntos(res.data.puntos);
+      setErrors(null);
+    } catch (error) {
+      console.error("🔴 Error al obtener los puntos:", error);
+      setErrors(error.response?.data || error.message);
+    } finally {
+      setCargando(false);
+    }
+  };
+
   return (
     <UsuarioContext.Provider
       value={{
@@ -160,6 +181,7 @@ export const UsuarioProvider = ({ children }) => {
         barberos,
         errors,
         cargando,
+        puntos,
         suscripcionActiva,
         suscripcionLista,
         updateUser,
@@ -169,6 +191,7 @@ export const UsuarioProvider = ({ children }) => {
         subscribeUser,
         unsubscribeUser,
         getSuscripcionActiva,
+        getVerPuntos,
       }}
     >
       {children}
