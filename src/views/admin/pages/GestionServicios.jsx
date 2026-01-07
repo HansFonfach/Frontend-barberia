@@ -30,7 +30,6 @@ const GestionServicios = () => {
     _id: null,
     nombre: "",
     precio: "",
-    duracion: "",
     descripcion: "",
   });
 
@@ -48,7 +47,6 @@ const GestionServicios = () => {
       _id: null,
       nombre: "",
       precio: "",
-      duracion: "",
       descripcion: "",
     });
     setModal(true);
@@ -61,22 +59,13 @@ const GestionServicios = () => {
   };
 
   const handleGuardar = async () => {
-    // Validaciones básicas
     if (!form.nombre.trim()) {
-      Swal.fire({
-        title: "Error",
-        text: "El nombre del servicio es obligatorio",
-        icon: "error",
-      });
+      Swal.fire("Error", "El nombre del servicio es obligatorio", "error");
       return;
     }
 
     if (!form.precio || parseFloat(form.precio) <= 0) {
-      Swal.fire({
-        title: "Error",
-        text: "El precio debe ser mayor a 0",
-        icon: "error",
-      });
+      Swal.fire("Error", "El precio debe ser mayor a 0", "error");
       return;
     }
 
@@ -85,392 +74,220 @@ const GestionServicios = () => {
         await updateServicio(form._id, {
           nombre: form.nombre.trim(),
           precio: parseFloat(form.precio),
-          duracion: parseInt(form.duracion) || 30,
           descripcion: form.descripcion.trim(),
         });
-        
-        Swal.fire({
-          title: "¡Éxito!",
-          text: "Servicio actualizado correctamente",
-          icon: "success",
-          timer: 1500,
-        });
+        Swal.fire("Éxito", "Servicio actualizado correctamente", "success");
       } else {
         await crearServicio(
           form.nombre.trim(),
           parseFloat(form.precio),
-          parseInt(form.duracion) || 30,
           form.descripcion.trim()
         );
-        
-        Swal.fire({
-          title: "¡Éxito!",
-          text: "Servicio creado correctamente",
-          icon: "success",
-          timer: 1500,
-        });
+        Swal.fire("Éxito", "Servicio creado correctamente", "success");
       }
 
       setModal(false);
       setEditando(false);
     } catch (error) {
-      Swal.fire({
-        title: "Error",
-        text: error?.response?.data?.message || "Error al guardar el servicio",
-        icon: "error",
-      });
+      Swal.fire(
+        "Error",
+        error?.response?.data?.message || "Error al guardar el servicio",
+        "error"
+      );
     }
   };
 
   const handleEliminar = async (servicio) => {
     const confirmar = await Swal.fire({
       title: "¿Eliminar servicio?",
-      text: `Se eliminará el servicio "${servicio.nombre}". Esta acción no se puede deshacer.`,
+      text: `Se eliminará "${servicio.nombre}"`,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
-      cancelButtonColor: "#3085d6",
-      confirmButtonText: "Sí, eliminar",
+      confirmButtonText: "Eliminar",
       cancelButtonText: "Cancelar",
     });
 
     if (!confirmar.isConfirmed) return;
 
-    try {
-      await deleteServicio(servicio._id);
-
-      Swal.fire({
-        title: "Eliminado",
-        text: "El servicio fue eliminado correctamente.",
-        icon: "success",
-        timer: 1500,
-      });
-    } catch (error) {
-      Swal.fire({
-        title: "Error",
-        text:
-          error?.response?.data?.message || "No se pudo eliminar el servicio.",
-        icon: "error",
-      });
-    }
+    await deleteServicio(servicio._id);
+    Swal.fire("Eliminado", "Servicio eliminado correctamente", "success");
   };
 
-  // Filtrar servicios por búsqueda
+  // 🔹 Función para truncar texto
+  const truncateText = (text, max = 60) => {
+    if (!text) return "";
+    return text.length > max ? text.substring(0, max) + "..." : text;
+  };
+
   const serviciosFiltrados = servicios.filter(
-    (servicio) =>
-      servicio.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      servicio.descripcion.toLowerCase().includes(busqueda.toLowerCase())
+    (s) =>
+      s.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
+      s.descripcion.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   return (
     <>
       <UserHeader />
+
       <Container className="mt--7" fluid>
         <Row className="justify-content-center">
-          <Col className="mb-5" xl="10">
-            {/* Card Principal */}
-            <Card className="bg-secondary shadow">
-              <CardHeader className="bg-white border-0">
+          <Col xl="10">
+            <Card className="shadow bg-secondary">
+              <CardHeader className="bg-white border-0 pb-3">
                 <Row className="align-items-center">
-                  <Col xs="8">
-                    <h3 className="mb-0 text-default">
-                      <i className="ni ni-scissors text-primary mr-2"></i>
+                  <Col>
+                    <h3 className="mb-0">
+                      <i className="ni ni-settings text-primary mr-2" />
                       Gestión de Servicios
                     </h3>
-                    <p className="text-sm text-muted mb-0 mt-1">
+                    <small className="text-muted">
                       Administra los servicios de tu barbería
-                    </p>
+                    </small>
                   </Col>
-                  <Col className="text-right" xs="4">
-                    <Button
-                      color="primary"
-                      size="sm"
-                      onClick={handleNuevo}
-                      className="btn-icon"
-                    >
-                      <span className="btn-inner--icon">
-                        <i className="ni ni-fat-add"></i>
-                      </span>
-                      <span className="btn-inner--text">Nuevo Servicio</span>
+                  <Col className="text-right">
+                    <Button color="primary" size="sm" onClick={handleNuevo}>
+                      <i className="ni ni-fat-add mr-2" />
+                      Nuevo Servicio
                     </Button>
                   </Col>
                 </Row>
               </CardHeader>
 
               <CardBody>
-                {/* Barra de búsqueda y estadísticas */}
                 <Row className="mb-4">
-                  <Col lg="6">
+                  <Col md="6">
                     <InputGroup className="input-group-alternative">
                       <InputGroupAddon addonType="prepend">
                         <InputGroupText>
-                          <i className="ni ni-zoom-split-in"></i>
+                          <i className="ni ni-zoom-split-in" />
                         </InputGroupText>
                       </InputGroupAddon>
                       <Input
                         placeholder="Buscar servicios..."
                         value={busqueda}
                         onChange={(e) => setBusqueda(e.target.value)}
-                        className="form-control-alternative"
                       />
                     </InputGroup>
                   </Col>
                   <Col
-                    lg="6"
+                    md="6"
                     className="d-flex align-items-center justify-content-end"
                   >
-                    <Badge color="primary" className="badge-dot mr-2">
-                      <i className="bg-primary"></i>
+                    <Badge color="primary" pill>
+                      {serviciosFiltrados.length} servicios
                     </Badge>
-                    <span className="text-sm text-muted">
-                      {serviciosFiltrados.length} servicios encontrados
-                    </span>
                   </Col>
                 </Row>
 
-                {serviciosFiltrados.length === 0 ? (
-                  <div className="text-center py-6">
-                    <div className="icon icon-shape icon-shape-primary icon-lg rounded-circle mb-4">
-                      <i className="ni ni-scissors"></i>
-                    </div>
-                    <h4 className="display-4 mb-2">No hay servicios</h4>
-                    <p className="lead text-muted mb-4">
-                      {busqueda
-                        ? "No se encontraron servicios con tu búsqueda"
-                        : "Comienza agregando tu primer servicio"}
-                    </p>
-                    <Button
-                      color="primary"
-                      onClick={handleNuevo}
-                      className="mt-2"
-                    >
-                      <i className="ni ni-fat-add mr-2"></i>
-                      Agregar primer servicio
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="table-responsive">
-                    <Table
-                      className="align-items-center table-flush"
-                      responsive
-                    >
-                      <thead className="thead-light">
-                        <tr>
-                          <th scope="col" className="sort" data-sort="name">
-                            Servicio
-                          </th>
-                          <th scope="col" className="sort" data-sort="price">
-                            Precio
-                          </th>
-                          <th scope="col" className="sort" data-sort="duration">
-                            Duración
-                          </th>
-                          <th scope="col" className="sort">
-                            Acciones
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="list">
-                        {serviciosFiltrados.map((servicio) => (
-                          <tr key={servicio._id}>
-                            <th scope="row">
-                              <div className="media align-items-center">
-                                <div className="media-body">
-                                  <span className="name mb-0 text-sm">
-                                    {servicio.nombre}
-                                  </span>
-                                  {servicio.descripcion && (
-                                    <p className="text-xs text-muted mb-0 mt-1">
-                                      {servicio.descripcion.length > 50
-                                        ? `${servicio.descripcion.substring(0, 50)}...`
-                                        : servicio.descripcion}
-                                    </p>
-                                  )}
-                                </div>
-                              </div>
-                            </th>
-                            <td className="budget">
-                              <span className="text-success font-weight-600">
-                                ${servicio.precio.toLocaleString()}
-                              </span>
-                            </td>
-                            <td>
-                              <Badge color="default" className="badge-dot">
-                                <i className="bg-info"></i>
-                              </Badge>
-                              <span className="text-sm ml-2">
-                                {servicio.duracion} min
-                              </span>
-                            </td>
-                            <td className="text-right">
-                              <div className="d-flex align-items-center justify-content">
-                                <Button
-                                  color="primary"
-                                  size="sm"
-                                  className="btn-icon-only mr-2"
-                                  onClick={() => handleEditar(servicio)}
-                                >
-                                  <span className="btn-inner--icon">
-                                    <i className="ni ni-ruler-pencil"></i>
-                                  </span>
-                                </Button>
-                                <Button
-                                  color="danger"
-                                  size="sm"
-                                  className="btn-icon-only"
-                                  onClick={() => handleEliminar(servicio)}
-                                >
-                                  <span className="btn-inner--icon">
-                                    <i className="ni ni-fat-remove"></i>
-                                  </span>
-                                </Button>
-                              </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </Table>
-                  </div>
-                )}
+                {/* TABLA COMPACTA */}
+                <Table responsive size="sm" className="align-items-center table-compact">
+                  <thead className="thead-light">
+                    <tr>
+                      <th style={{ width: "55%" }}>Servicio</th>
+                      <th style={{ width: "20%" }}>Precio</th>
+                      <th style={{ width: "25%" }} className="text-right">
+                        Acciones
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {serviciosFiltrados.map((servicio) => (
+                      <tr key={servicio._id}>
+                        <td className="py-2">
+                          <div className="font-weight-bold">
+                            {servicio.nombre}
+                          </div>
+                          {servicio.descripcion && (
+                            <div className="text-xs text-muted">
+                              {truncateText(servicio.descripcion, 18)}
+                            </div>
+                          )}
+                        </td>
+
+                        <td className="py-2 font-weight-bold">
+                          ${servicio.precio.toLocaleString()}
+                        </td>
+
+                        <td className="py-2 text-right">
+                          <Button
+                            size="sm"
+                            color="primary"
+                            className="mr-1"
+                            onClick={() => handleEditar(servicio)}
+                          >
+                            <i className="ni ni-ruler-pencil" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            color="danger"
+                            onClick={() => handleEliminar(servicio)}
+                          >
+                            <i className="ni ni-fat-remove" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </Table>
               </CardBody>
             </Card>
           </Col>
         </Row>
       </Container>
 
-      {/* Modal de Argon */}
-      <Modal
-        isOpen={modal}
-        toggle={toggle}
-        className="modal-dialog-centered"
-        modalClassName="bd-example-modal-lg"
-      >
+      {/* MODAL */}
+      <Modal isOpen={modal} toggle={toggle} centered>
         <div className="modal-header">
-          <h6 className="modal-title" id="modal-title-default">
-            <i
-              className={`ni ${
-                editando ? "ni-ruler-pencil" : "ni-fat-add"
-              } text-primary mr-2`}
-            ></i>
+          <h5 className="modal-title">
             {editando ? "Editar Servicio" : "Nuevo Servicio"}
-          </h6>
-          <button
-            aria-label="Close"
-            className="close"
-            data-dismiss="modal"
-            type="button"
-            onClick={toggle}
-          >
-            <span aria-hidden={true}>×</span>
+          </h5>
+          <button className="close" onClick={toggle}>
+            ×
           </button>
         </div>
+
         <ModalBody>
           <Form>
-            <Row>
-              <Col md="12">
-                <FormGroup>
-                  <label className="form-control-label" htmlFor="nombre">
-                    Nombre del servicio *
-                  </label>
-                  <Input
-                    className="form-control-alternative"
-                    name="nombre"
-                    value={form.nombre}
-                    onChange={handleChange}
-                    placeholder="Ej: Corte de pelo clásico"
-                    type="text"
-                    required
-                  />
-                  {!form.nombre.trim() && (
-                    <small className="text-danger">Este campo es obligatorio</small>
-                  )}
-                </FormGroup>
-              </Col>
-            </Row>
-            <Row>
-              <Col md="6">
-                <FormGroup>
-                  <label className="form-control-label" htmlFor="precio">
-                    Precio *
-                  </label>
-                  <InputGroup className="input-group-alternative">
-                    <InputGroupAddon addonType="prepend">
-                      <InputGroupText>$</InputGroupText>
-                    </InputGroupAddon>
-                    <Input
-                      className="form-control-alternative"
-                      type="number"
-                      name="precio"
-                      value={form.precio}
-                      onChange={handleChange}
-                      placeholder="7000"
-                      min="0"
-                      step="0.01"
-                      required
-                    />
-                  </InputGroup>
-                  {(!form.precio || parseFloat(form.precio) <= 0) && (
-                    <small className="text-danger">El precio debe ser mayor a 0</small>
-                  )}
-                </FormGroup>
-              </Col>
-              <Col md="6">
-                <FormGroup>
-                  <label className="form-control-label" htmlFor="duracion">
-                    Duración (minutos) *
-                  </label>
-                  <InputGroup className="input-group-alternative">
-                    <Input
-                      className="form-control-alternative"
-                      type="number"
-                      name="duracion"
-                      value={form.duracion}
-                      onChange={handleChange}
-                      placeholder="30"
-                      min="1"
-                      required
-                    />
-                    <InputGroupAddon addonType="append">
-                      <InputGroupText>min</InputGroupText>
-                    </InputGroupAddon>
-                  </InputGroup>
-                </FormGroup>
-              </Col>
-            </Row>
-            <Row>
-              <Col md="12">
-                <FormGroup>
-                  <label className="form-control-label" htmlFor="descripcion">
-                    Descripción
-                  </label>
-                  <Input
-                    type="textarea"
-                    className="form-control-alternative"
-                    name="descripcion"
-                    value={form.descripcion}
-                    onChange={handleChange}
-                    placeholder="Escribe una descripción del servicio..."
-                    rows="4"
-                  />
-                </FormGroup>
-              </Col>
-            </Row>
+            <FormGroup>
+              <label>Nombre *</label>
+              <Input name="nombre" value={form.nombre} onChange={handleChange} />
+            </FormGroup>
+
+            <FormGroup>
+              <label>Precio *</label>
+              <InputGroup>
+                <InputGroupAddon addonType="prepend">
+                  <InputGroupText>$</InputGroupText>
+                </InputGroupAddon>
+                <Input
+                  type="number"
+                  name="precio"
+                  value={form.precio}
+                  onChange={handleChange}
+                />
+              </InputGroup>
+            </FormGroup>
+
+            <FormGroup>
+              <label>Descripción</label>
+              <Input
+                type="textarea"
+                name="descripcion"
+                value={form.descripcion}
+                onChange={handleChange}
+              />
+            </FormGroup>
           </Form>
         </ModalBody>
+
         <div className="modal-footer">
-          <Button
-            color="link"
-            className="ml-auto"
-            data-dismiss="modal"
-            onClick={toggle}
-          >
+          <Button color="link" onClick={toggle}>
             Cancelar
           </Button>
           <Button color="primary" onClick={handleGuardar}>
-            <i
-              className={`ni ${editando ? "ni-check-bold" : "ni-fat-add"} mr-2`}
-            ></i>
-            {editando ? "Guardar Cambios" : "Crear Servicio"}
+            Guardar
           </Button>
         </div>
       </Modal>

@@ -9,6 +9,7 @@ import { putUnsubscribeUserById } from "api/usuarios";
 import { getTodosLosUsuarios } from "api/usuarios";
 import { getSubActiva } from "api/usuarios";
 import { getVerMisPuntos } from "api/usuarios";
+import { postAsignarServiciosAlBarbero } from "api/usuarios";
 
 const UsuarioContext = createContext();
 
@@ -27,6 +28,7 @@ export const UsuarioProvider = ({ children }) => {
   const [suscripcionActiva, setSuscripcionActiva] = useState(null);
   const [suscripcionLista, setSuscripcionLista] = useState(false); // 👈 NUEVO
   const [puntos, setPuntos] = useState(0);
+  const [servicios, setServicios] = useState([]);
 
   const { isAuthenticated, user } = useAuth(); // Usar el contexto de auth
 
@@ -109,24 +111,63 @@ export const UsuarioProvider = ({ children }) => {
     }
   };
 
-  // En tu context - agrega más logs
+  // En la función getUserByRut del contexto
   const getUserByRut = async (rut) => {
     try {
-      const res = await getUsuarioByRut(rut);
+      console.log("🚀 [CONTEXTO] Iniciando búsqueda para RUT:", rut);
 
-      return res.data;
-    } catch (error) {
-      console.error("💥 Error en getUserByRut:", error);
-      console.error("📋 Detalles del error:", {
-        status: error.response?.status,
-        data: error.response?.data,
-        message: error.message,
+      const res = await getUsuarioByRut(rut);
+      console.log("📡 [CONTEXTO] Respuesta HTTP recibida:", {
+        status: res.status,
+        statusText: res.statusText,
+        headers: res.headers,
       });
-      setErrors(error.response?.data || error.message);
-      return null;
+
+      // EXTRA IMPORTANTE: Verifica la estructura exacta
+      console.log(
+        "📊 [CONTEXTO] Datos crudos:",
+        JSON.stringify(res.data, null, 2)
+      );
+
+      // Verifica diferentes estructuras posibles
+      if (res.data && res.data._id) {
+        console.log("✅ [CONTEXTO] Estructura OK - tiene _id");
+        return res.data;
+      } else if (res.data && res.data.id) {
+        console.log("✅ [CONTEXTO] Estructura OK - tiene id");
+        return { ...res.data, _id: res.data.id }; // Normalizar
+      } else if (res.data && typeof res.data === "object") {
+        console.log(
+          "⚠️ [CONTEXTO] Estructura inesperada, devolviendo tal cual"
+        );
+        return res.data;
+      } else {
+        console.warn("❌ [CONTEXTO] Respuesta vacía o inválida");
+        throw new Error("Respuesta inválida del servidor");
+      }
+    } catch (error) {
+      console.error("💥 [CONTEXTO] Error completo:", {
+        name: error.name,
+        message: error.message,
+        isAxiosError: error.isAxiosError,
+        responseStatus: error.response?.status,
+        responseData: error.response?.data,
+        requestUrl: error.config?.url,
+      });
+
+      // Si es error 404, lanzar mensaje específico
+      if (error.response?.status === 404) {
+        throw new Error("Usuario no encontrado");
+      }
+
+      // Si hay mensaje del backend, usarlo
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+
+      throw new Error("Error al buscar usuario");
     }
   };
-
   // Recargar usuarios cuando la autenticación cambie
   useEffect(() => {
     const fetchData = async () => {
@@ -174,6 +215,19 @@ export const UsuarioProvider = ({ children }) => {
     }
   };
 
+  const asignarServiciosAlBarbero = async (barberoId, serviciosAsignados) => {
+    try {
+      const res = await postAsignarServiciosAlBarbero(
+        barberoId,
+        serviciosAsignados
+      );
+      return res.data; // deja que el componente o el ServiciosContext refresque
+    } catch (error) {
+      console.error("🔴 Error al asignar servicios:", error);
+      throw error;
+    }
+  };
+
   return (
     <UsuarioContext.Provider
       value={{
@@ -184,6 +238,7 @@ export const UsuarioProvider = ({ children }) => {
         puntos,
         suscripcionActiva,
         suscripcionLista,
+        servicios,
         updateUser,
         getAllUsers,
         getBarberosDisponibles,
@@ -192,6 +247,7 @@ export const UsuarioProvider = ({ children }) => {
         unsubscribeUser,
         getSuscripcionActiva,
         getVerPuntos,
+        asignarServiciosAlBarbero,
       }}
     >
       {children}

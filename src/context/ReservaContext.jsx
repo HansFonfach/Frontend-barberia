@@ -53,6 +53,7 @@ export const ReservaProvider = ({ children }) => {
   };
 
   const postReservarHora = async (fecha, barbero, hora, servicio, usuario) => {
+    console.log(barbero, fecha, hora, servicio, usuario);
     if (!barbero || !fecha || !usuario || !servicio || !hora) {
       console.warn("Faltan datos para reservar la hora");
       setError("Faltan datos para reservar la hora");

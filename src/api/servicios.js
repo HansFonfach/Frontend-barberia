@@ -15,3 +15,7 @@ export const postUpdateServicios = (id, data) => {
 export const postDeleteServicios = (id) => {
   return axiosPrivate.delete(`/servicios/${id}`);
 };
+
+export const getServiciosBarbero = (barberoId) =>{
+  return axiosPrivate.get(`/barberoServicio/barberos/${barberoId}/servicios`)
+}

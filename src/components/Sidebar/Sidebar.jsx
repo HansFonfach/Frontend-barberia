@@ -5,7 +5,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { useState } from "react";
-import { PropTypes } from "prop-types";
+import PropTypes from "prop-types";
 import {
   Collapse,
   UncontrolledDropdown,
@@ -20,7 +20,6 @@ import {
   NavItem,
   NavLink,
   Navbar,
-  NavbarBrand,
   Container,
   Row,
   Col,
@@ -28,210 +27,213 @@ import {
 } from "reactstrap";
 import { useAuth } from "context/AuthContext";
 
+/* =======================
+   CONFIG SECCIONES
+======================= */
+const sectionTitles = {
+  principal: "Principal",
+  reservas: "Reservas",
+  gestion: "Gestión",
+  otros: "Otros",
+};
+
 const Sidebar = ({ routes, logo, usuario }) => {
   const [collapseOpen, setCollapseOpen] = useState(false);
-  const location = useLocation(); // ✅ Esto reemplaza la prop 'location'
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
 
-  const { user, signOut } = useAuth();
-  const navigate = useNavigate(); // Hook para redirigir al usuario;
-
-  const handleLogout = async () => {
-    await signOut(); // Llama a la función de logout
-    navigate("/auth/login"); // Redirige al login
-  };
-
-  const toggleCollapse = () => setCollapseOpen((prev) => !prev);
+  const toggleCollapse = () => setCollapseOpen(!collapseOpen);
   const closeCollapse = () => setCollapseOpen(false);
 
-  const activeRoute = (routeName) =>
-    location.pathname.indexOf(routeName) > -1 ? "active" : "";
+  const handleLogout = async () => {
+    await signOut();
+    navigate("/auth/login");
+  };
 
-  const createLinks = (routes) =>
-    routes
+  const activeRoute = (route) =>
+    location.pathname.indexOf(route) > -1 ? "active" : "";
+
+  /* =======================
+     LINKS AGRUPADOS
+  ======================= */
+  const renderGroupedLinks = (routes) => {
+    const grouped = routes
       .filter((r) => !r.invisible)
-      .map((r, idx) => (
-        <NavItem key={idx}>
-          <NavLink
-            to={r.layout + r.path}
-            tag={NavLinkRRD}
-            onClick={closeCollapse}
-            className={activeRoute(r.layout + r.path)}
-          >
-            {r.icon && typeof r.icon !== "string" ? (
-              r.icon
-            ) : (
-              <i className={r.icon} />
-            )}
-            {r.name}
-          </NavLink>
-        </NavItem>
-      ));
+      .reduce((acc, route) => {
+        const section = route.section || "otros";
+        if (!acc[section]) acc[section] = [];
+        acc[section].push(route);
+        return acc;
+      }, {});
 
-  let navbarBrandProps;
-  if (logo && logo.innerLink) {
-    navbarBrandProps = { to: logo.innerLink, tag: Link };
-  } else if (logo && logo.outterLink) {
-    navbarBrandProps = { href: logo.outterLink, target: "_blank" };
-  }
+    return Object.keys(grouped).map((sectionKey) => (
+      <div key={sectionKey} className="sidebar-section">
+        <div className="sidebar-section-title">
+          {sectionTitles[sectionKey] || sectionKey}
+        </div>
+
+        <Nav navbar>
+          {grouped[sectionKey].map((r, idx) => (
+            <NavItem key={idx}>
+              <NavLink
+                to={r.layout + r.path}
+                tag={NavLinkRRD}
+                onClick={closeCollapse}
+                className={`sidebar-link ${activeRoute(
+                  r.layout + r.path
+                )}`}
+              >
+                {r.icon && typeof r.icon !== "string" ? (
+                  r.icon
+                ) : (
+                  <i className={`${r.icon} sidebar-icon`} />
+                )}
+                <span>{r.name}</span>
+              </NavLink>
+            </NavItem>
+          ))}
+        </Nav>
+      </div>
+    ));
+  };
 
   return (
-    <Navbar
-      className="navbar-vertical fixed-left navbar-light bg-white"
-      expand="md"
-      id="sidenav-main"
-    >
-      <Container fluid>
-        {/* Toggler */}
-        <button
-          className="navbar-toggler"
-          type="button"
-          onClick={toggleCollapse}
-        >
-          <span className="navbar-toggler-icon" />
-        </button>
+    <>
+      {/* =======================
+           CSS EMBEBIDO
+      ======================= */}
+      <style>{`
+        .sidebar-link {
+          padding: 0.65rem 1.25rem;
+          margin: 3px 12px;
+          border-radius: 0.45rem;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          font-size: 0.95rem;
+          color: #525f7f !important;
+          transition: all 0.2s ease;
+        }
 
-        {/* Brand */}
-        <img
-          alt={logo.imgAlt}
-          src={logo.imgSrc}
-          style={{
-            width: "180px",
-            height: "auto",
-            maxHeight: "none",
-            objectFit: "contain",
-          }}
-          className="logo-sidebar-custom"
-        />
+        .sidebar-link:hover {
+          background: rgba(0,0,0,0.04);
+          transform: translateX(2px);
+        }
 
-        {/* User menu (mobile) */}
-        <Nav className="align-items-center d-md-none">
-          <UncontrolledDropdown nav>
-            <DropdownToggle nav className="nav-link-icon">
-              <i className="ni ni-bell-55" />
-            </DropdownToggle>
-            <DropdownMenu className="dropdown-menu-arrow" right>
-              <DropdownItem>Notificación 1</DropdownItem>
-              <DropdownItem>Notificación 2</DropdownItem>
-            </DropdownMenu>
-          </UncontrolledDropdown>
+        .sidebar-link.active {
+          background: rgba(0,0,0,0.08);
+          font-weight: 600;
+          color: #000 !important;
+        }
 
-          <UncontrolledDropdown nav>
-            <DropdownToggle nav>
-              <Media className="align-items-center">
-                <span className="avatar avatar-sm rounded-circle">
-                  <img
-                    alt="avatar"
-                    src={require("../../assets/img/theme/team-1-800x800.jpg")}
-                  />
-                </span>
-              </Media>
-            </DropdownToggle>
-            <DropdownMenu className="dropdown-menu-arrow" right>
-              <DropdownItem className="noti-title" header tag="div">
-                <h6 className="text-overflow m-0">
+        .sidebar-icon {
+          font-size: 0.95rem;
+          min-width: 18px;
+          text-align: center;
+        }
+
+        .sidebar-section {
+          margin-bottom: 1rem;
+        }
+
+        .sidebar-section-title {
+          padding: 0.75rem 1.25rem 0.35rem;
+          font-size: 0.7rem;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          color: #8898aa;
+          text-transform: uppercase;
+        }
+
+        .logo-sidebar-custom {
+          max-width: 180px;
+          margin: 1rem auto;
+          display: block;
+        }
+      `}</style>
+
+      {/* =======================
+           SIDEBAR
+      ======================= */}
+      <Navbar
+        className="navbar-vertical fixed-left navbar-light bg-white"
+        expand="md"
+        id="sidenav-main"
+      >
+        <Container fluid>
+          {/* TOGGLER */}
+          <button
+            className="navbar-toggler"
+            type="button"
+            onClick={toggleCollapse}
+          >
+            <span className="navbar-toggler-icon" />
+          </button>
+
+          {/* LOGO */}
+          <Link to={logo?.innerLink || "/admin"}>
+            <img
+              src={logo.imgSrc}
+              alt={logo.imgAlt}
+              className="logo-sidebar-custom"
+            />
+          </Link>
+
+          {/* USUARIO MOBILE */}
+          <Nav className="align-items-center d-md-none">
+            <UncontrolledDropdown nav>
+              <DropdownToggle nav>
+                <Media className="align-items-center">
+                  <span className="avatar avatar-sm rounded-circle">
+                    <img
+                      alt="avatar"
+                      src={require("../../assets/img/theme/team-1-800x800.jpg")}
+                    />
+                  </span>
+                </Media>
+              </DropdownToggle>
+              <DropdownMenu right>
+                <DropdownItem header>
                   Bienvenido {usuario?.nombre}
-                </h6>
-              </DropdownItem>
-              <DropdownItem to="/admin/perfil" tag={Link}>
-                <i className="ni ni-single-02" />
-                <span>Perfil</span>
-              </DropdownItem>
-              <DropdownItem to="/admin/cambiar-contrasena" tag={Link}>
-                <i className="ni ni-single-02" />
-                <span>Cambiar contraseña</span>
-              </DropdownItem>
-              <DropdownItem href="" onClick={handleLogout}>
-                <i className="ni ni-user-run" />
-                <span>Cerrar Sesion</span>
-              </DropdownItem>
-            </DropdownMenu>
-          </UncontrolledDropdown>
-        </Nav>
+                </DropdownItem>
+                <DropdownItem to="/admin/perfil" tag={Link}>
+                  Perfil
+                </DropdownItem>
+                <DropdownItem to="/admin/cambiar-contrasena" tag={Link}>
+                  Cambiar contraseña
+                </DropdownItem>
+                <DropdownItem onClick={handleLogout}>
+                  Cerrar sesión
+                </DropdownItem>
+              </DropdownMenu>
+            </UncontrolledDropdown>
+          </Nav>
 
-        {/* Collapse */}
-        <Collapse navbar isOpen={collapseOpen}>
-          {/* Collapse header (mobile) */}
-          <div className="navbar-collapse-header d-md-none">
-            <Row>
-              {logo && (
-                <Col xs="6" className="collapse-brand">
-                  {logo.innerLink ? (
-                    <Link to={logo.innerLink}>
-                      <img
-                        alt={logo.imgAlt}
-                        src={logo.imgSrc}
-                        style={{
-                          width: "200px", // ⭐ Cambia aquí el tamaño en collapse
-                          height: "auto",
-                          objectFit: "contain",
-                          display: "block",
-                        }}
-                      />
-                    </Link>
-                  ) : (
-                    <a href={logo.outterLink}>
-                      <img
-                        alt={logo.imgAlt}
-                        src={logo.imgSrc}
-                        style={{
-                          width: "200px", // ⭐ Cambia aquí el tamaño en collapse
-                          height: "auto",
-                          objectFit: "contain",
-                          display: "block",
-                        }}
-                      />
-                    </a>
-                  )}
-                </Col>
-              )}
-              <Col xs="6" className="collapse-close">
-                <button
-                  className="navbar-toggler"
-                  type="button"
-                  onClick={toggleCollapse}
-                >
-                  <span />
-                  <span />
-                </button>
-              </Col>
-            </Row>
-          </div>
+          {/* COLLAPSE */}
+          <Collapse navbar isOpen={collapseOpen}>
+            {/* SEARCH MOBILE */}
+            <Form className="mt-4 mb-3 d-md-none">
+              <InputGroup className="input-group-rounded input-group-merge">
+                <Input placeholder="Buscar" type="search" />
+                <InputGroupText>
+                  <i className="fa fa-search" />
+                </InputGroupText>
+              </InputGroup>
+            </Form>
 
-          {/* Search form (mobile) */}
-          <Form className="mt-4 mb-3 d-md-none">
-            <InputGroup className="input-group-rounded input-group-merge">
-              <Input placeholder="Buscar" type="search" />
-              <InputGroupText>
-                <i className="fa fa-search" />
-              </InputGroupText>
-            </InputGroup>
-          </Form>
-
-          {/* Quick Access label */}
-          <div className="text-muted px-3 mt-4 mb-2 text-uppercase">
-            Acceso rápido
-          </div>
-          <hr className="my-2" />
-
-          {/* Navigation links */}
-          <Nav navbar>{createLinks(routes)}</Nav>
-        </Collapse>
-      </Container>
-    </Navbar>
+            {/* LINKS */}
+            {renderGroupedLinks(routes)}
+          </Collapse>
+        </Container>
+      </Navbar>
+    </>
   );
 };
 
-Sidebar.defaultProps = { routes: [{}] };
-
 Sidebar.propTypes = {
-  routes: PropTypes.arrayOf(PropTypes.object),
-  logo: PropTypes.shape({
-    innerLink: PropTypes.string,
-    outterLink: PropTypes.string,
-    imgSrc: PropTypes.string.isRequired,
-    imgAlt: PropTypes.string.isRequired,
-  }),
-  location: PropTypes.object,
+  routes: PropTypes.array,
+  logo: PropTypes.object,
   usuario: PropTypes.object,
 };
 

@@ -9,9 +9,9 @@ export const putUsuario = (id, data) => {
 };
 
 export const getUsuarioByRut = (rut) => {
+  console.log(`📡 API: GET /usuarios/rut/${rut} en puerto 4000`);
   return axiosPrivate.get(`/usuarios/rut/${rut}`);
 };
-
 export const postSubscribeUserById = (_id) => {
   return axiosPrivate.post(`/suscripcion/usuario/${_id}/suscribir`);
 };
@@ -30,4 +30,8 @@ export const getSubActiva = () => {
 
 export const getVerMisPuntos = () => {
   return axiosPrivate.get("/usuarios/misPuntos");
+};
+
+export const postAsignarServiciosAlBarbero = (barberoId, serviciosAsignados) => {
+  return axiosPrivate.post(`/barberoServicio/barberos/${barberoId}/servicios`, serviciosAsignados);
 };

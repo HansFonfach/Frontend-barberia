@@ -1,83 +1,92 @@
-// hooks/useHorasDisponibles.js
+// hooks/useHorasDisponibles.js - VERSIÓN CORREGIDA
 import { useState, useEffect } from "react";
 
-export const useHorasDisponibles = (barbero, fecha, getHorasFn) => {
+export const useHorasDisponibles = (barbero, fecha, servicioId, getHorasFn) => {
   const [horas, setHoras] = useState([]);
-  const [todasLasHoras, setTodasLasHoras] = useState([]);
-  const [horasBloqueadas, setHorasBloqueadas] = useState([]);
-  const [horasExtra, setHorasExtra] = useState([]);
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
-  const [esFeriado, setEsFeriado] = useState(false);
-  const [nombreFeriado, setNombreFeriado] = useState("");
-  const [comportamientoFeriado, setComportamientoFeriado] = useState("");
+  const [dataCompleta, setDataCompleta] = useState(null);
 
   useEffect(() => {
-    if (!barbero || !fecha) {
+    console.log("🔄 useHorasDisponibles:", {
+      barbero: barbero || "NO",
+      fecha: fecha || "NO",
+      servicioId: servicioId || "NO"
+    });
+
+    // 1. Si NO hay barbero seleccionado
+    if (!barbero) {
+      console.log("⏸️ Pausado: Esperando selección de barbero");
       setHoras([]);
-      setTodasLasHoras([]);
-      setHorasBloqueadas([]);
-      setHorasExtra([]);
-      setMensaje(!barbero ? "Cargando barbero..." : "Selecciona una fecha");
-      setEsFeriado(false);
-      setNombreFeriado("");
-      setComportamientoFeriado("");
+      setMensaje("Selecciona un barbero");
+      setDataCompleta(null);
       return;
     }
 
+    // 2. Si NO hay fecha seleccionada
+    if (!fecha) {
+      console.log("⏸️ Pausado: Esperando selección de fecha");
+      setHoras([]);
+      setMensaje("Selecciona un día");
+      setDataCompleta(null);
+      return;
+    }
+
+    // 3. Si NO hay servicio seleccionado
+    if (!servicioId) {
+      console.log("⏸️ Pausado: Esperando selección de servicio");
+      setHoras([]);
+      setMensaje("Selecciona un servicio");
+      setDataCompleta(null);
+      return;
+    }
+
+    // 4. ¡TODO COMPLETO! Puede hacer la llamada
+    console.log("🚀 Todos los datos listos, haciendo llamada API...");
+
     const fetchHoras = async () => {
       setCargando(true);
+      setMensaje("");
       try {
-        const result = await getHorasFn(barbero, fecha);
-        console.log("🔍 RESPUESTA COMPLETA DE HORAS:", result);
+        console.log("📡 Llamando API con:", { barbero, fecha, servicioId });
+        const res = await getHorasFn(barbero, fecha, servicioId);
         
-        // EXTRAER TODAS LAS PROPIEDADES
-        setHoras(result.horasDisponibles || []);
-        setTodasLasHoras(result.todasLasHoras || []);
-        setHorasBloqueadas(result.horasBloqueadas || []);
-        setHorasExtra(result.horasExtra || []);
-        setMensaje(result.message || "");
-        
-        // ¡ESTAS SON LAS NUEVAS PROPIEDADES QUE ESTÁS IGNORANDO!
-        setEsFeriado(result.esFeriado || false);
-        setNombreFeriado(result.nombreFeriado || "");
-        setComportamientoFeriado(result.comportamientoFeriado || "");
-        
-        console.log("📊 Datos procesados EN HOOK:", {
-          horas: (result.horasDisponibles || []).length,
-          horasBloqueadas: (result.horasBloqueadas || []).length,
-          esFeriado: result.esFeriado,
-          nombreFeriado: result.nombreFeriado,
-          comportamientoFeriado: result.comportamientoFeriado
+        console.log("✅ API respondió:", {
+          horasCount: res.horasDisponibles?.length || 0,
+          todasHoras: res.todasLasHoras?.length || 0,
+          feriado: res.esFeriado
         });
         
+        setHoras(res.horasDisponibles || []);
+        setDataCompleta(res);
+        
+        if (!res.horasDisponibles || res.horasDisponibles.length === 0) {
+          if (res.esFeriado) {
+            setMensaje(`🎉 Feriado: ${res.nombreFeriado || 'Día festivo'}`);
+          } else {
+            setMensaje("No hay horas disponibles para esta fecha");
+          }
+        }
       } catch (err) {
-        console.error("❌ Error en useHorasDisponibles:", err);
-        setMensaje("Error al obtener horarios");
+        console.error("❌ Error API:", {
+          mensaje: err.message,
+          data: err.response?.data
+        });
         setHoras([]);
-        setTodasLasHoras([]);
-        setHorasBloqueadas([]);
-        setHorasExtra([]);
-        setEsFeriado(false);
-        setNombreFeriado("");
-        setComportamientoFeriado("");
+        setMensaje(err.response?.data?.message || "Error al obtener horarios");
+        setDataCompleta(null);
       } finally {
         setCargando(false);
       }
     };
 
     fetchHoras();
-  }, [barbero, fecha, getHorasFn]);
+  }, [barbero, fecha, servicioId, getHorasFn]);
 
   return { 
-    horas,
-    todasLasHoras,
-    horasBloqueadas, 
-    horasExtra, 
+    horas, 
     mensaje, 
-    cargando,
-    esFeriado,        // ← ¡NUEVO!
-    nombreFeriado,    // ← ¡NUEVO!
-    comportamientoFeriado  // ← ¡NUEVO!
+    cargando, 
+    dataCompleta
   };
 };

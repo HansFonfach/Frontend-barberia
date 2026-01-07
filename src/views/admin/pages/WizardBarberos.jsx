@@ -12,259 +12,293 @@ import {
   Label,
   Spinner,
 } from "reactstrap";
-import { Save } from "lucide-react";
+import { Save, Clock } from "lucide-react";
 import UserHeader from "components/Headers/UserHeader";
 import Swal from "sweetalert2";
 import { useUsuario } from "context/usuariosContext";
 import { useHorario } from "context/HorarioContext";
 
-const diasSemana = [
-  "Lunes",
-  "Martes",
-  "Miércoles",
-  "Jueves",
-  "Viernes",
-  "Sábado",
-  "Domingo",
+/* =========================
+   MOCKS
+========================= */
+
+const barberosMock = [
+  { _id: "1", nombre: "Juan", apellido: "Pérez" },
+  { _id: "2", nombre: "Pedro", apellido: "González" },
 ];
 
-// 🔹 Bloques de 1 hora entre 08:00 y 19:00
-const generarBloques = () => {
-  const bloques = [];
-  for (let hora = 8; hora <= 19; hora++) {
-    const horaStr = hora.toString().padStart(2, "0");
-    bloques.push(`${horaStr}:00`);
-  }
-  return bloques;
-};
+const diasSemana = [
+  { nombre: "Lunes", valor: 1 },
+  { nombre: "Martes", valor: 2 },
+  { nombre: "Miércoles", valor: 3 },
+  { nombre: "Jueves", valor: 4 },
+  { nombre: "Viernes", valor: 5 },
+  { nombre: "Sábado", valor: 6 },
+  { nombre: "Domingo", valor: 0 },
+];
+
+/* =========================
+   STATE BASE
+========================= */
+
+const horarioInicial = diasSemana.reduce((acc, dia) => {
+  acc[dia.valor] = {
+    activo: false,
+    horaInicio: "09:00",
+    horaFin: "19:00",
+    colacionInicio: "14:00",
+    colacionFin: "15:00",
+    duracionBloque: 60,
+  };
+  return acc;
+}, {});
 
 const GestionHorariosBase = () => {
   const [barberoSeleccionado, setBarberoSeleccionado] = useState("");
-  const [bloques] = useState(generarBloques());
-  const [horarios, setHorarios] = useState(() =>
-    diasSemana.reduce((acc, dia) => {
-      acc[dia] = [];
-      return acc;
-    }, {})
-  );
+  const [horarios, setHorarios] = useState(horarioInicial);
   const [cargando, setCargando] = useState(false);
-
   const { barberos } = useUsuario();
-  const { crearHorarioBarbero, obtenerHorarioBarbero } = useHorario();
+  const { crearHorarioBarbero } = useHorario();
+  /* =========================
+     HANDLERS
+  ========================= */
 
-  // 🔹 Normaliza las horas para mantener formato "HH:mm"
-  const normalizarHora = (hora) => {
-    if (!hora) return "";
-    const [h, m] = hora.split(":");
-    return `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
+  const handleChange = (dia, campo, valor) => {
+    setHorarios((prev) => ({
+      ...prev,
+      [dia]: {
+        ...prev[dia],
+        [campo]: valor,
+      },
+    }));
   };
 
-  // 🔹 Alterna selección de un bloque horario
-  const toggleBloque = (dia, bloque) => {
-    const horaNormalizada = normalizarHora(bloque);
-    setHorarios((prev) => {
-      const diaBloques = prev[dia] || [];
-      const nuevo = diaBloques.includes(horaNormalizada)
-        ? diaBloques.filter((b) => b !== horaNormalizada)
-        : [...diaBloques, horaNormalizada];
-      return { ...prev, [dia]: nuevo };
-    });
-  };
-
-  // 🔹 Guarda horarios base
   const guardarHorario = async () => {
     if (!barberoSeleccionado) {
       Swal.fire("Atención", "Debes seleccionar un barbero", "warning");
       return;
     }
 
-    const diasConBloques = Object.entries(horarios).filter(
-      ([, bloques]) => bloques.length > 0
-    );
-
-    if (diasConBloques.length === 0) {
-      Swal.fire("Atención", "Selecciona al menos un bloque horario", "warning");
-      return;
-    }
-
     try {
       setCargando(true);
 
-      for (const [dia, bloquesDia] of diasConBloques) {
-        // Lunes → 1, ..., Domingo → 0
-        let diaNumero = diasSemana.indexOf(dia) + 1;
-        if (diaNumero === 7) diaNumero = 0;
+      for (const [diaSemana, config] of Object.entries(horarios)) {
+        if (!config.activo) continue;
 
-        const bloquesFormateados = bloquesDia.map((horaInicio) => {
-          return {
-            horaInicio: normalizarHora(horaInicio),
-            horaFin: normalizarHora(horaInicio), // misma hora seleccionada
-          };
+        await crearHorarioBarbero({
+          barbero: barberoSeleccionado,
+          diaSemana: Number(diaSemana),
+          horaInicio: config.horaInicio,
+          horaFin: config.horaFin,
+          colacionInicio: config.colacionInicio || null,
+          colacionFin: config.colacionFin || null,
+          duracionBloque: Number(config.duracionBloque),
         });
-
-        await crearHorarioBarbero(
-          barberoSeleccionado,
-          diaNumero,
-          bloquesFormateados
-        );
       }
 
-      Swal.fire(
-        "Éxito",
-        "Horarios base creados exitosamente para el barbero",
-        "success"
-      );
-
-      // Reinicia los horarios seleccionados
-      setHorarios(
-        diasSemana.reduce((acc, dia) => {
-          acc[dia] = [];
-          return acc;
-        }, {})
-      );
+      Swal.fire("Éxito", "Horarios guardados correctamente", "success");
     } catch (error) {
-      Swal.fire(
-        "Error",
-        error.response?.data?.message || "Error al crear los horarios",
-        "error"
-      );
+      Swal.fire("Error", "Error al guardar horarios", "error");
     } finally {
       setCargando(false);
     }
   };
 
-  // 🔹 Carga horarios existentes del barbero
+  /* =========================
+     MOCK CARGA HORARIOS
+  ========================= */
+
   useEffect(() => {
-    const cargarHorarios = async () => {
-      if (!barberoSeleccionado) return;
-      try {
-        const data = await obtenerHorarioBarbero(barberoSeleccionado);
+    if (!barberoSeleccionado) return;
 
-        const nuevosHorarios = diasSemana.reduce((acc, dia) => {
-          acc[dia] = [];
-          return acc;
-        }, {});
+    // Simula respuesta del back
+    const horariosMockBack = [
+      {
+        diaSemana: 1,
+        horaInicio: "09:00",
+        horaFin: "18:00",
+        colacionInicio: "14:00",
+        colacionFin: "15:00",
+        duracionBloque: 30,
+      },
+      {
+        diaSemana: 5,
+        horaInicio: "10:00",
+        horaFin: "20:00",
+        duracionBloque: 45,
+      },
+    ];
 
-        data.forEach((h) => {
-          const diaNombre = diasSemana[h.dia === 0 ? 6 : h.dia - 1]; // domingo al final
-          h.bloques.forEach((b) => {
-            nuevosHorarios[diaNombre].push(normalizarHora(b.horaInicio));
-          });
-        });
+    const nuevos = { ...horarioInicial };
 
-        setHorarios(nuevosHorarios);
-      } catch (error) {
-        console.error("Error al cargar horarios", error);
-      }
-    };
+    horariosMockBack.forEach((h) => {
+      nuevos[h.diaSemana] = {
+        activo: true,
+        horaInicio: h.horaInicio,
+        horaFin: h.horaFin,
+        colacionInicio: h.colacionInicio || "",
+        colacionFin: h.colacionFin || "",
+        duracionBloque: h.duracionBloque || 30,
+      };
+    });
 
-    cargarHorarios();
+    setHorarios(nuevos);
   }, [barberoSeleccionado]);
+
+  /* =========================
+     RENDER
+  ========================= */
 
   return (
     <>
       <UserHeader title="Gestión de Horarios Base" />
       <Container className="mt-4" fluid>
-        <Row>
-          <Col xl="12">
-            <Card className="shadow border-0">
-              <CardHeader className="bg-dark text-white d-flex justify-content-between align-items-center">
-                <h4 className="mb-0 text-white">Definir Horarios Base</h4>
-              </CardHeader>
-              <CardBody>
-                <Row className="align-items-end mb-4">
-                  <Col md="4">
-                    <Label>Barbero</Label>
-                    <Input
-                      type="select"
-                      value={barberoSeleccionado}
-                      onChange={(e) => setBarberoSeleccionado(e.target.value)}
-                    >
-                      <option value="">Seleccione un barbero</option>
-                      {barberos.map((b) => (
-                        <option key={b._id} value={b._id}>
-                          {b.nombre} {b.apellido}
-                        </option>
-                      ))}
-                    </Input>
-                  </Col>
-                  <Col md="3">
-                    <Button
-                      color="success"
-                      onClick={guardarHorario}
-                      disabled={cargando}
-                      className="mt-2"
-                    >
-                      {cargando ? (
-                        <Spinner size="sm" />
-                      ) : (
-                        <Save className="me-2" />
-                      )}
-                      Guardar Horarios
-                    </Button>
-                  </Col>
-                </Row>
+        <Card className="shadow border-0">
+          <CardHeader className="bg-primary text-white">
+            <h4 className="mb-0 text-white">Horarios base por día</h4>
+          </CardHeader>
 
-                {/* AGENDA VISUAL */}
-                <div
-                  className="table-responsive border rounded"
-                  style={{ overflowX: "auto" }}
+          <CardBody>
+            {/* BARBERO */}
+            <Row className="mb-4">
+              <Col md="4">
+                <Label>Barbero</Label>
+                <Input
+                  type="select"
+                  value={barberoSeleccionado}
+                  onChange={(e) => setBarberoSeleccionado(e.target.value)}
                 >
-                  <table className="table table-bordered text-center align-middle">
-                    <thead
-                      style={{ backgroundColor: "#f8f9fa", color: "#212529" }}
-                    >
-                      <tr>
-                        <th style={{ width: "80px" }}>Hora</th>
-                        {diasSemana.map((dia) => (
-                          <th key={dia} style={{ fontWeight: "bold" }}>
-                            {dia}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {bloques.map((bloque) => (
-                        <tr key={bloque}>
-                          <td
-                            className="fw-bold"
-                            style={{
-                              backgroundColor: "#f1f3f5",
-                              color: "#000",
-                            }}
-                          >
-                            {normalizarHora(bloque)}
-                          </td>
-                          {diasSemana.map((dia) => {
-                            const seleccionado = horarios[dia]?.includes(
-                              normalizarHora(bloque)
-                            );
-                            return (
-                              <td
-                                key={dia + bloque}
-                                onClick={() => toggleBloque(dia, bloque)}
-                                style={{
-                                  cursor: "pointer",
-                                  backgroundColor: seleccionado
-                                    ? "#ffc107"
-                                    : "#ffffff",
-                                  color: seleccionado ? "#000" : "#6c757d",
-                                  transition: "0.2s",
-                                }}
-                              >
-                                {seleccionado ? "✔️" : ""}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
+                  <option value="">Seleccione un barbero</option>
+                  {barberos.map((b) => (
+                    <option key={b._id} value={b._id}>
+                      {b.nombre} {b.apellido}
+                    </option>
+                  ))}
+                </Input>
+              </Col>
+            </Row>
+
+            {/* HORARIOS */}
+            {diasSemana.map((dia) => {
+              const data = horarios[dia.valor];
+
+              return (
+                <Card key={dia.valor} className="mb-3 border">
+                  <CardBody>
+                    <Row className="align-items-end">
+                      <Col md="2">
+                        <Label check>
+                          <Input
+                            type="checkbox"
+                            checked={data.activo}
+                            onChange={(e) =>
+                              handleChange(
+                                dia.valor,
+                                "activo",
+                                e.target.checked
+                              )
+                            }
+                          />{" "}
+                          <strong>{dia.nombre}</strong>
+                        </Label>
+                      </Col>
+
+                      <Col md="2">
+                        <Label>Inicio</Label>
+                        <Input
+                          type="time"
+                          disabled={!data.activo}
+                          value={data.horaInicio}
+                          onChange={(e) =>
+                            handleChange(
+                              dia.valor,
+                              "horaInicio",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </Col>
+
+                      <Col md="2">
+                        <Label>Fin</Label>
+                        <Input
+                          type="time"
+                          disabled={!data.activo}
+                          value={data.horaFin}
+                          onChange={(e) =>
+                            handleChange(dia.valor, "horaFin", e.target.value)
+                          }
+                        />
+                      </Col>
+
+                      <Col md="2">
+                        <Label>Colación inicio</Label>
+                        <Input
+                          type="time"
+                          disabled={!data.activo}
+                          value={data.colacionInicio}
+                          onChange={(e) =>
+                            handleChange(
+                              dia.valor,
+                              "colacionInicio",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </Col>
+
+                      <Col md="2">
+                        <Label>Colación fin</Label>
+                        <Input
+                          type="time"
+                          disabled={!data.activo}
+                          value={data.colacionFin}
+                          onChange={(e) =>
+                            handleChange(
+                              dia.valor,
+                              "colacionFin",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </Col>
+
+                      <Col md="2">
+                        <Label>
+                          <Clock size={14} className="me-1" />
+                          Bloque (min)
+                        </Label>
+                        <Input
+                          type="number"
+                          min="5"
+                          step="5"
+                          disabled={!data.activo}
+                          value={data.duracionBloque}
+                          onChange={(e) =>
+                            handleChange(
+                              dia.valor,
+                              "duracionBloque",
+                              e.target.value
+                            )
+                          }
+                        />
+                      </Col>
+                    </Row>
+                  </CardBody>
+                </Card>
+              );
+            })}
+
+            <Button
+              color="success"
+              onClick={guardarHorario}
+              disabled={cargando}
+            >
+              {cargando ? <Spinner size="sm" /> : <Save className="me-2" />}
+              Guardar Horarios
+            </Button>
+          </CardBody>
+        </Card>
       </Container>
     </>
   );

@@ -16,6 +16,10 @@ const ResumenReserva = ({
   habilitado,
   mostrarInfo,
 }) => {
+  const nombreServicio = servicioSeleccionado?.nombre || "—";
+  const duracionServicio = servicioSeleccionado?.duracion;
+  const precioServicio = servicioSeleccionado?.precio;
+
   return (
     <>
       <Card className="border-success shadow-sm mb-3">
@@ -33,14 +37,16 @@ const ResumenReserva = ({
                   : rut || "—"}
               </strong>
             </div>
+
             <div className="d-flex justify-content-between border-bottom py-1">
               <span>✂️ Servicio:</span>
               <strong>
-                {servicioSeleccionado
-                  ? `${servicioSeleccionado.nombre} (${servicioSeleccionado.duracion} min)`
-                  : "—"}
+                {duracionServicio
+                  ? `${nombreServicio} (${duracionServicio} min)`
+                  : nombreServicio}
               </strong>
             </div>
+
             <div className="d-flex justify-content-between border-bottom py-1">
               <span>👨‍💼 Barbero:</span>
               <strong>
@@ -49,32 +55,36 @@ const ResumenReserva = ({
                   : "—"}
               </strong>
             </div>
+
             <div className="d-flex justify-content-between border-bottom py-1">
               <span>📅 Fecha:</span>
               <strong>{fecha || "—"}</strong>
             </div>
+
             <div className="d-flex justify-content-between border-bottom py-1">
               <span>⏰ Hora:</span>
               <strong>{hora || "—"}</strong>
             </div>
+
             <div className="d-flex justify-content-between border-bottom py-1">
               <span>💸 Precio:</span>
               <strong>
-                {servicioSeleccionado ? `$${servicioSeleccionado.precio}` : "—"}
+                {precioServicio
+                  ? `$${precioServicio.toLocaleString("es-CL")}`
+                  : "—"}
               </strong>
             </div>
           </div>
         </CardBody>
       </Card>
 
-      {/* Acciones */}
       <div className="d-grid gap-2">
         <Button
           color="success"
           size="lg"
           className="font-weight-bold"
           onClick={onReservar}
-          disabled={!habilitado}
+          disabled={!habilitado || cargandoHoras}
         >
           {reservando ? (
             <>
@@ -86,13 +96,12 @@ const ResumenReserva = ({
           )}
         </Button>
 
-        {/* Info barbería */}
         {mostrarInfo && (
           <Card className="border-success mt-1">
             <CardBody className="text-center">
               <MapPin size={40} className="text-success mb-2" />
               <h5 className="font-weight-bold text-success">
-                La Santa Barberia 💈
+                La Santa Barbería 💈
               </h5>
               <p className="small text-muted mb-2">
                 🕒 Lunes a Viernes 8:00 - 19:00 hrs

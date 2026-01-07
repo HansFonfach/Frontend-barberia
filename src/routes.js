@@ -1,4 +1,5 @@
 // src/routes/routes.js
+
 import Principal from "views/pages/Principal";
 import ReservarHora from "views/pages/ReservarHora";
 import Suscripcion from "views/pages/Suscripcion";
@@ -23,97 +24,87 @@ import CambiarContrasena from "views/pages/CambiarContraseña";
 import ReiniciarContraseña from "views/pages/ReiniciarContraseña";
 import PresentarServicios from "views/pages/PresentarServicios";
 import Contacto from "views/pages/Contacto";
-import { FaCut } from "react-icons/fa";
 import SuscripcionResultado from "views/pages/SuscripcionResultado";
 import CatalogoCanjes from "views/pages/CatalogoCanjes";
 import GestionCanjes from "views/admin/pages/GestionCanjes";
+import AsignarServiciosBarberos from "views/admin/pages/AsignarServiciosBarberos";
 
-// Rutas públicas (login/register)
+/* =========================
+   🔓 RUTAS PÚBLICAS
+========================= */
 export const publicRoutes = [
   {
     path: "/login",
-    name: "Login",
     component: <Login />,
     layout: "/auth",
     invisible: true,
   },
   {
     path: "/register",
-    name: "Register",
     component: <Register />,
     layout: "/auth",
     invisible: true,
   },
   {
     path: "/forgot-password",
-    name: "Forgot Password",
     component: <ForgotPassword />,
     layout: "/auth",
     invisible: true,
   },
   {
     path: "/reiniciar-contrasena/:token",
-    name: "Reiniciar contraseña",
     component: <ReiniciarContraseña />,
     layout: "/auth",
     invisible: true,
   },
 ];
 
+/* =========================
+   👤 CLIENTE
+========================= */
 export const clienteRoutes = [
-  {
-    path: "/suscripcion/resultado",
-    name: "ResultadoSuscripcion",
-    component: <SuscripcionResultado />,
-    invisible: true,
-    layout: "/admin",
-  },
   {
     path: "/index",
     name: "Inicio",
     component: <Principal />,
-    icon: "ni ni-shop text-dark", // 🏠 Inicio
+    icon: "ni ni-shop text-primary",
     layout: "/admin",
   },
   {
     path: "/reservar-hora",
-    name: "Reservar Hora",
+    name: "Reservar hora",
     component: <ReservarHora />,
-    icon: "ni ni-calendar-grid-58 text-orange", // 🗓️ Agendar
+    icon: "ni ni-calendar-grid-58 text-success",
     layout: "/admin",
   },
-
   {
     path: "/administrar-reservas",
-    name: "Administrar Reservas",
+    name: "Mis reservas",
     component: <Administrar />,
-    icon: "ni ni-folder-17 text-info", // 📁 Mis reservas
+    icon: "ni ni-folder-17 text-info",
     layout: "/admin",
   },
   {
     path: "/suscripcion",
-    name: "Suscribirse",
+    name: "Suscripción",
     component: <Suscripcion />,
-    icon: "ni ni-credit-card text-success", // 💳 Suscripción
+    icon: "ni ni-credit-card text-warning",
     layout: "/admin",
   },
-
   {
     path: "/barberos",
-    name: "Conocer barberos",
+    name: "Barberos",
     component: <BarberosPage />,
-    icon: "ni ni-single-02 text-primary", // 🧔‍♂️ Perfil de barberos
+    icon: "ni ni-single-02 text-primary",
     layout: "/admin",
   },
   {
     path: "/servicios",
-    name: "Conocer servicios",
+    name: "Servicios",
     component: <PresentarServicios />,
-    icon: <FaCut size={20} className="text-ligth mr-3" />,
-    // 🧔‍♂️ Perfil de barberos
+    icon: "fas fa-cut text-danger",
     layout: "/admin",
   },
-
   {
     path: "/catalogo-canjes",
     name: "Canjear puntos",
@@ -125,119 +116,141 @@ export const clienteRoutes = [
     path: "/centro-ayuda",
     name: "Centro de ayuda",
     component: <CentroAyuda />,
-    icon: "ni ni-support-16 text-purple", // 💬 Ayuda / FAQ
+    icon: "ni ni-support-16 text-purple",
     layout: "/admin",
   },
   {
     path: "/politicas",
     name: "Políticas",
     component: <Politicas />,
-    icon: "ni ni-notification-70 text-warning", // 📘 Políticas / reglas
-    layout: "/admin",
-  },
-  {
-    path: "/perfil",
-    name: "Perfil",
-    component: <Perfil />,
-    invisible: true,
-    layout: "/admin",
-  },
-  {
-    path: "/cambiar-contrasena",
-    name: "Cambiar contraseña",
-    component: <CambiarContrasena />,
-    invisible: true,
+    icon: "ni ni-book-bookmark text-info",
     layout: "/admin",
   },
   {
     path: "/contacto",
     name: "Contacto",
     component: <Contacto />,
-    icon: "ni ni-email-83 text-info", // icono acorde a contacto
+    icon: "ni ni-email-83 text-info",
     layout: "/admin",
+  },
+
+  // ocultas
+  {
+    path: "/perfil",
+    component: <Perfil />,
+    layout: "/admin",
+    invisible: true,
+  },
+  {
+    path: "/cambiar-contrasena",
+    component: <CambiarContrasena />,
+    layout: "/admin",
+    invisible: true,
+  },
+  {
+    path: "/suscripcion/resultado",
+    component: <SuscripcionResultado />,
+    layout: "/admin",
+    invisible: true,
   },
 ];
+
+/* =========================
+   ✂️ BARBERO / ADMIN
+========================= */
 export const barberoRoutes = [
-  // Dashboard
   {
     path: "/dashboard",
-    name: "Inicio",
+    name: "Dashboard",
     icon: "ni ni-tv-2 text-primary",
-    layout: "/admin",
     component: <AdminDashboard />,
+    layout: "/admin",
     section: "principal",
   },
-  // Reservas
+
+  /* Reservas */
   {
     path: "/reservar-hora-cliente",
     name: "Agendar cliente",
     icon: "ni ni-calendar-grid-58 text-success",
-    layout: "/admin",
     component: <ReservarHoraBarbero />,
+    layout: "/admin",
     section: "reservas",
   },
   {
     path: "/reservas",
-    name: "Ver reservas",
+    name: "Reservas del día",
     icon: "fas fa-calendar-day text-success",
-    layout: "/admin",
     component: <ReservasDiarias />,
+    layout: "/admin",
     section: "reservas",
   },
-  // Gestión
+
+  /* Gestión */
   {
     path: "/gestion-clientes",
-    name: "Gestionar clientes",
+    name: "Clientes",
     icon: "fas fa-users text-warning",
-    layout: "/admin",
     component: <GestionClientes />,
+    layout: "/admin",
     section: "gestion",
   },
   {
     path: "/gestion-barberos",
-    name: "Gestionar Barberos",
+    name: "Barberos",
     icon: "fas fa-user-tie text-primary",
-    layout: "/admin",
     component: <CrearBarberoCompleto />,
+    layout: "/admin",
     section: "gestion",
   },
   {
     path: "/gestion-servicios",
-    name: "Gestionar servicios",
-    icon: "fas fa-briefcase text-info",
-    layout: "/admin",
+    name: "Servicios",
+    icon: "fas fa-scissors text-danger",
     component: <GestionServicios />,
+    layout: "/admin",
     section: "gestion",
   },
   {
-    path: "/gestion-canjes",
-    name: "Gestionar canjes",
-    icon: "ni ni-shop text-info",
-    component: <GestionCanjes />,
+    path: "/asignar-servicios",
+    name: "Asignar servicios",
+    icon: "ni ni-settings text-info",
+    component: <AsignarServiciosBarberos />,
     layout: "/admin",
+    section: "gestion",
   },
   {
     path: "/gestion-horarios",
-    name: "Gestionar horarios",
+    name: "Horarios",
     icon: "fas fa-clock text-danger",
-    layout: "/admin",
     component: <GestionHorariosBarbero />,
+    layout: "/admin",
     section: "gestion",
   },
   {
     path: "/asignar-horas",
-    name: "Asignar horarios Barberos",
-    icon: "fas fa-user-clock text-primary", // 👤⏰ Horarios por barbero
-    layout: "/admin",
+    name: "Asignar horarios",
+    icon: "fas fa-user-clock text-primary",
     component: <WizardBarberoSemana />,
+    layout: "/admin",
+    section: "gestion",
   },
-  // Estadísticas
+  {
+    path: "/gestion-canjes",
+    name: "Canjes",
+    icon: "ni ni-shop text-warning",
+    component: <GestionCanjes />,
+    layout: "/admin",
+    section: "gestion",
+  },
+
+  /* Otros */
   {
     path: "/estadisticas",
     name: "Estadísticas",
     icon: "fas fa-chart-line text-info",
-    layout: "/admin",
     component: <Estadisticas />,
+    layout: "/admin",
     section: "otros",
   },
 ];

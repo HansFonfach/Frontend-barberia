@@ -1,6 +1,6 @@
 // src/views/admin/pages/components/RutClienteStep.jsx
 import React from "react";
-import { FormGroup, Label, Input, Button, Spinner } from "reactstrap";
+import { FormGroup, Label, Input, Button, Spinner, Alert } from "reactstrap";
 
 const RutInput = ({
   rut,
@@ -10,9 +10,12 @@ const RutInput = ({
   buscandoUsuario,
   usuarioEncontrado,
   errorBusqueda,
-  rutValido,
 }) => {
-  // Debug
+  const getInputClass = () => {
+    if (errorRut || errorBusqueda) return "is-invalid";
+    if (usuarioEncontrado) return "is-valid border-success";
+    return "";
+  };
 
   return (
     <FormGroup className="mb-4">
@@ -25,49 +28,85 @@ const RutInput = ({
           type="text"
           value={rut}
           onChange={handleRutChange}
-          placeholder="Ingresa RUT del cliente"
-          className={`py-3 ${errorRut ? "is-invalid" : "border-success"}`}
+          placeholder="Ingresa RUT del cliente o pasaporte"
+          className={`py-3 ${getInputClass()}`}
           style={{ paddingRight: "50px" }}
+          disabled={buscandoUsuario}
         />
 
-        {rut && (
+        {rut && !buscandoUsuario && (
           <Button
             color="link"
-            className="position-absolute p-0"
+            className="position-absolute p-0 text-muted"
             style={{ right: "15px", top: "50%", transform: "translateY(-50%)" }}
             onClick={handleLimpiarRut}
+            title="Limpiar RUT"
           >
             ✕
           </Button>
         )}
+
+        {buscandoUsuario && (
+          <div
+            className="position-absolute"
+            style={{ right: "15px", top: "50%", transform: "translateY(-50%)" }}
+          >
+            <Spinner size="sm" color="primary" />
+          </div>
+        )}
       </div>
 
-      {/* Estados */}
-
+      {/* Mensajes de estado */}
       {buscandoUsuario && (
-        <div className="alert alert-info py-2 mb-2">
+        <Alert color="info" className="py-2 mb-2 d-flex align-items-center">
           <Spinner size="sm" className="me-2" />
-          Buscando cliente...
-        </div>
+          <span className="small">Buscando cliente en el sistema...</span>
+        </Alert>
       )}
 
-      {usuarioEncontrado && (
-        <div className="mt-2 text-success fw-bold">
-          🧍 {usuarioEncontrado.nombre} {usuarioEncontrado.apellido}
-        </div>
+      {usuarioEncontrado && !buscandoUsuario && (
+        <Alert color="success" className="py-2 mb-2">
+          <div className="d-flex align-items-center">
+            <div>
+              <strong className="d-block">Cliente encontrado:</strong>
+              <div className="mt-1">
+                <span className="fw-bold">
+                  {usuarioEncontrado.nombre} {usuarioEncontrado.apellido}
+                </span>
+              </div>
+            </div>
+          </div>
+        </Alert>
       )}
 
-      {errorBusqueda && (
-        <div className="mt-2 text-danger small">❌ {errorBusqueda}</div>
+      {errorBusqueda && !buscandoUsuario && (
+        <Alert color="danger" className="py-2 mb-2">
+          <div className="d-flex align-items-center">
+            <span className="me-2">❌</span>
+            <span>{errorBusqueda}</span>
+          </div>
+        </Alert>
       )}
 
-  
+      {errorRut && !buscandoUsuario && (
+        <Alert color="warning" className="py-2 mb-2">
+          <div className="d-flex align-items-center">
+            <span className="me-2">⚠️</span>
+            <span>{errorRut}</span>
+          </div>
+        </Alert>
+      )}
+
       {/* Estado inicial */}
-      {!rut && !buscandoUsuario && !usuarioEncontrado && !errorBusqueda && (
-        <div className="text-muted small">
-          Ingresa el RUT del cliente para buscar en el sistema
-        </div>
-      )}
+      {!rut &&
+        !buscandoUsuario &&
+        !usuarioEncontrado &&
+        !errorBusqueda &&
+        !errorRut && (
+          <div className="text-muted small">
+            
+          </div>
+        )}
     </FormGroup>
   );
 };

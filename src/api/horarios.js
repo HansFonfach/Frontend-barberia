@@ -1,9 +1,15 @@
 import { axiosPrivate } from "./axiosPrivate";
 
-export const getHorasDisponibles = async (barberoId, fecha) => {
+export const getHorasDisponibles = async (barberoId, fecha, servicioId) => {
   try {
     const res = await axiosPrivate.get(
-      `/horarios/${barberoId}/horarios-disponibles?fecha=${fecha}`
+      `/horarios/barbero/${barberoId}/horas-disponibles`,
+      {
+        params: {
+          fecha,
+          servicioId,
+        },
+      }
     );
 
     return res.data;
@@ -136,17 +142,18 @@ export const getObtenerExcepcionesPorDia = async (barberoId, fecha) => {
   }
 };
 
-export const postAsignarHorario = async (barbero, dia, bloques) => {
-  try {
-    const res = await axiosPrivate.post("/horarios", {
-      barbero,
-      dia,
-      bloques,
-    });
-    return res.data;
-  } catch (error) {
-    throw error;
-  }
+export const postAsignarHorario = async (horario) => {
+  const res = await axiosPrivate.post("/horarios", {
+    barbero: horario.barbero,
+    diaSemana: horario.diaSemana,
+    horaInicio: horario.horaInicio,
+    horaFin: horario.horaFin,
+    colacionInicio: horario.colacionInicio,
+    colacionFin: horario.colacionFin,
+    duracionBloque: horario.duracionBloque,
+  });
+
+  return res.data;
 };
 
 export const getHorariosByBarbero = async (barberoId) => {

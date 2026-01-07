@@ -1,5 +1,13 @@
 import React, { useState } from "react";
-import { Container, Row, Col, Card, CardBody, CardHeader, Spinner } from "reactstrap";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  CardBody,
+  CardHeader,
+  Spinner,
+} from "reactstrap";
 import UserHeader from "components/Headers/UserHeader";
 import { iniciarPagoSuscripcion } from "api/pagos";
 import Swal from "sweetalert2";
@@ -9,12 +17,42 @@ const SubscriptionPage = () => {
   const [suscripcionData, setSuscripcionData] = useState(null);
 
   const benefits = [
-    { icon: "⏰", title: "Reserva anticipada", description: "Podrás agendar tus turnos con 30 días de anticipación." },
-    { icon: "📅", title: "Uso del mes siguiente", description: "La membresía se paga por adelantado y se usa el mes siguiente." },
-    { icon: "💈", title: "Horarios exclusivos de sábado", description: "Sábados: 10:00, 11:00, 12:00 y 13:00." },
-    { icon: "✂️", title: "Dos cortes por mes", description: "Incluye dos cortes mensuales con prioridad." },
-    { icon: "🚫", title: "Uso personal", description: "Intransferible, solo para el titular." },
-    { icon: "💸", title: "Pago anticipado", description: "Pago previo para mantener tu cupo exclusivo." },
+    {
+      icon: "📅",
+      title: "Acceso a sábados",
+      description:
+        "Reserva horarios exclusivos los días sábado, disponibles solo para suscriptores.",
+    },
+    {
+      icon: "💸",
+      title: "Ahorro garantizado",
+      description:
+        "Dos servicios por $25.000. Precio normal $30.000. Ahorras todos los meses.",
+    },
+    {
+      icon: "⏳",
+      title: "Agenda extendida",
+      description:
+        "Reserva con hasta 31 días de anticipación (16 días más que un usuario normal).",
+    },
+    {
+      icon: "⭐",
+      title: "Atención preferente",
+      description:
+        "Prioridad en horarios y cupos, incluso en fechas de alta demanda.",
+    },
+    {
+      icon: "🎁",
+      title: "Puntos adicionales",
+      description:
+        "Recibe puntos extra al suscribirte y accede a futuros beneficios.",
+    },
+    {
+      icon: "🚫",
+      title: "Membresía personal",
+      description:
+        "Suscripción intransferible, diseñada para clientes frecuentes.",
+    },
   ];
 
   const startPayment = async () => {
@@ -22,13 +60,11 @@ const SubscriptionPage = () => {
       setLoading(true);
       const res = await iniciarPagoSuscripcion();
 
-      // Guardamos algunos datos temporales de la transacción para mostrar en UI si quieres
       setSuscripcionData({
         buyOrder: res.buyOrder,
         monto: 25000,
       });
 
-      // Crear formulario para Webpay
       const form = document.createElement("form");
       form.method = "POST";
       form.action = res.url;
@@ -42,13 +78,10 @@ const SubscriptionPage = () => {
 
       document.body.appendChild(form);
 
-      // Mostrar mensaje breve
       Swal.fire({
         title: "Redirigiendo a Transbank...",
-        text: "Por favor espera mientras se procesa tu pago.",
-        didOpen: () => {
-          Swal.showLoading();
-        },
+        text: "Estás a un paso de asegurar tu membresía exclusiva.",
+        didOpen: () => Swal.showLoading(),
         allowOutsideClick: false,
         allowEscapeKey: false,
       });
@@ -56,7 +89,6 @@ const SubscriptionPage = () => {
       setTimeout(() => form.submit(), 1000);
     } catch (error) {
       setLoading(false);
-      console.error("Error iniciando pago:", error);
       Swal.fire({
         icon: "error",
         title: "Error",
@@ -70,29 +102,57 @@ const SubscriptionPage = () => {
       <UserHeader />
       <Container className="mt--7" fluid>
         <Row className="justify-content-center">
-          <Col lg="10">
-            <Card className="shadow border-0">
-              <CardHeader className="bg-transparent text-center">
-                <h2 className="font-weight-bold mb-2">Membresía Barbería Premium</h2>
-                <p className="text-warning mb-2 font-weight-bold">
-                  Reserva anticipada, horarios exclusivos y atención prioritaria
+          <Col xl="9" lg="10">
+            <Card className="shadow-lg border-0">
+              {/* HEADER */}
+              <CardHeader className="bg-transparent text-center pb-4">
+                <h1 className="font-weight-bold mb-2">
+                  Membresía Barbería Premium
+                </h1>
+
+                <p className="text-warning font-weight-bold mb-3">
+                  Exclusividad, ahorro y prioridad real en tu agenda
                 </p>
-                <div className="price-tag bg-gradient-success text-white d-inline-block px-4 py-2 rounded-pill">
-                  <span className="h3 font-weight-bold mb-0">$25.000</span>
-                  <span className="ml-2">/ mensual</span>
+
+                <div className="d-inline-flex align-items-center bg-gradient-success text-white px-4 py-3 rounded-pill shadow">
+                  <span className="h2 font-weight-bold mb-0">$25.000</span>
+                  <span className="ml-2">/ mes</span>
                 </div>
+
+                <p className="text-muted mt-3 mb-1">
+                  Valor normal: <del>$30.000</del> · Ahorras $5.000 cada mes
+                </p>
+
+                <span className="badge badge-warning mt-2">
+                  Cupos limitados · Atención preferente garantizada
+                </span>
               </CardHeader>
-              <CardBody>
-                {/* Beneficios */}
+
+              <CardBody className="px-lg-5">
+                {/* BENEFICIOS */}
                 <Row className="mb-5">
                   {benefits.map((b, i) => (
                     <Col key={i} md="6" className="mb-4">
-                      <Card className="h-100 shadow-sm border-0">
-                        <CardBody className="d-flex align-items-start">
-                          <div style={{ fontSize: "2rem", marginRight: "1rem" }}>{b.icon}</div>
+                      <Card className="h-100 border-0 shadow-sm">
+                        <CardBody className="d-flex">
+                          <div
+                            className="mr-3 d-flex align-items-center justify-content-center rounded-circle bg-gradient-success text-white"
+                            style={{
+                              width: 48,
+                              height: 48,
+                              fontSize: "1.4rem",
+                              flexShrink: 0,
+                            }}
+                          >
+                            {b.icon}
+                          </div>
                           <div>
-                            <h6 className="font-weight-bold mb-1">{b.title}</h6>
-                            <p className="text-muted small mb-0">{b.description}</p>
+                            <h6 className="font-weight-bold mb-1">
+                              {b.title}
+                            </h6>
+                            <p className="text-muted small mb-0">
+                              {b.description}
+                            </p>
                           </div>
                         </CardBody>
                       </Card>
@@ -100,15 +160,23 @@ const SubscriptionPage = () => {
                   ))}
                 </Row>
 
-                {/* Pago */}
-                <Row className="mb-5">
+                {/* CTA */}
+                <Row>
                   <Col>
-                    <Card className="bg-gradient-success text-white shadow border-0">
-                      <CardBody className="text-center">
+                    <Card className="bg-gradient-success text-white border-0 shadow-lg">
+                      <CardBody className="text-center py-5">
                         {!suscripcionData ? (
                           <>
-                            <h4 className="font-weight-bold mb-3">Activar Membresía</h4>
-                            <p className="mb-4">Realiza tu pago online de forma rápida y segura.</p>
+                            <h3 className="font-weight-bold mb-3">
+                              Asegura tu cupo mensual
+                            </h3>
+
+                            <p className="mb-4">
+                              Limitamos la cantidad de suscriptores para
+                              garantizar horarios preferentes y atención
+                              personalizada.
+                            </p>
+
                             <button
                               className="btn bg-yellow btn-lg font-weight-bold px-5 py-3"
                               onClick={startPayment}
@@ -119,16 +187,34 @@ const SubscriptionPage = () => {
                                   <Spinner size="sm" /> Procesando...
                                 </>
                               ) : (
-                                "💳 Pagar con Webpay"
+                                "💳 Suscribirme ahora"
                               )}
                             </button>
+
+                            <p className="text-white-50 small mt-3 mb-0">
+                              Membresía exclusiva · Uso personal · No
+                              transferible
+                            </p>
                           </>
                         ) : (
                           <>
-                            <h4 className="font-weight-bold mb-3">Suscripción Iniciada</h4>
-                            <p className="mb-2">Tu pago fue iniciado correctamente. Serás redirigido a Transbank.</p>
-                            <p className="mb-0">ID Transacción: <strong>{suscripcionData.buyOrder}</strong></p>
-                            <p className="mb-0">Monto: <strong>${suscripcionData.monto.toLocaleString()}</strong></p>
+                            <h4 className="font-weight-bold mb-3">
+                              Suscripción iniciada
+                            </h4>
+                            <p className="mb-2">
+                              Serás redirigido a Transbank para completar el
+                              pago.
+                            </p>
+                            <p className="mb-0">
+                              Transacción:{" "}
+                              <strong>{suscripcionData.buyOrder}</strong>
+                            </p>
+                            <p className="mb-0">
+                              Monto:{" "}
+                              <strong>
+                                ${suscripcionData.monto.toLocaleString()}
+                              </strong>
+                            </p>
                           </>
                         )}
                       </CardBody>

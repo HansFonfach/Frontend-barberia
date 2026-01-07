@@ -1,14 +1,14 @@
 // context/HorarioContext.jsx
 
 import { getObtenerExcepcionesPorDia } from "api/horarios";
-import { postRevertirHoraPorDia } from "api/horarios";
+
 import { postAsignarHorario } from "api/horarios";
 import { postToggleHora } from "api/horarios";
 import { getHorarioBasePorDia } from "api/horarios";
 import { getHorariosByBarbero } from "api/horarios";
 import { postCancelarHoraExtraDiaria } from "api/horarios";
 import { postAgregarHoraExtraDiaria } from "api/horarios";
-import { getHorasDisponibles, postCancelarHoraDiaria } from "api/horarios.js";
+import { getHorasDisponibles } from "api/horarios.js";
 import { createContext, useContext } from "react";
 
 const HorarioContext = createContext();
@@ -21,20 +21,21 @@ export const useHorario = () => {
 };
 
 export const HorarioProvider = ({ children }) => {
-  const getHorasDisponiblesBarbero = async (barberoId, fecha) => {
+  const getHorasDisponiblesBarbero = async (barberoId, fecha, servicioId) => {
     try {
-      const result = await getHorasDisponibles(barberoId, fecha);
-      // ✅ Ahora result contiene todas las propiedades del backend
-      return result; // ← Esto ya es el objeto completo
+      const result = await getHorasDisponibles(barberoId, fecha, servicioId);
+      console.log(result);
+
+      return result; // objeto completo del backend
     } catch (err) {
       console.error("❌ Error al obtener horas disponibles:", err);
       throw err;
     }
   };
 
-  const crearHorarioBarbero = async (barbero, dia, bloques) => {
+  const crearHorarioBarbero = async (horario) => {
     try {
-      const result = await postAsignarHorario(barbero, dia, bloques);
+      const result = await postAsignarHorario(horario);
       return result;
     } catch (err) {
       console.error("❌ Error al asignar horarios", err);
@@ -72,7 +73,7 @@ export const HorarioProvider = ({ children }) => {
       return []; // Devolver array vacío en caso de error
     }
   };
-  
+
   const toggleHoraPorDia = async (hora, fecha, barbero, esFeriado = false) => {
     try {
       const motivo = esFeriado
