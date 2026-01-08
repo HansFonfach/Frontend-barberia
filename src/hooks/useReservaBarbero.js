@@ -8,13 +8,6 @@ import { useRutValidator } from "hooks/useRutValidador";
 import { useUsuario } from "context/usuariosContext";
 import { useHorario } from "context/HorarioContext";
 import Swal from "sweetalert2";
-import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
-
-// Configurar dayjs
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 export const useReservaBarbero = () => {
   // --- ESTADOS BÁSICOS ---
@@ -26,7 +19,7 @@ export const useReservaBarbero = () => {
   const [reservando, setReservando] = useState(false);
 
   // --- SEMANA ---
-  const [weekStart, setWeekStart] = useState(dayjs().tz("America/Santiago"));
+  const [weekStart, setWeekStart] = useState(new Date());
   const [weekDays, setWeekDays] = useState([]);
   const [loadingWeek, setLoadingWeek] = useState(false);
 
@@ -79,51 +72,27 @@ export const useReservaBarbero = () => {
   } = useHorasDisponibles(barbero, fecha, servicio, getHorasDisponiblesBarbero);
 
   // --------------------------------------------------
-  // FUNCIONES DE FECHA CORREGIDAS CON ZONA HORARIA
-  // --------------------------------------------------
-  const isoDate = useCallback((d) => {
-    // Asegurarnos que 'd' sea dayjs en zona horaria Chile
-    const fechaChile = dayjs.isDayjs(d) ? d : dayjs(d).tz("America/Santiago");
-    return fechaChile.format("YYYY-MM-DD");
-  }, []);
-
-  const formatDayLabel = useCallback((d) => {
-    const fechaChile = dayjs.isDayjs(d) ? d : dayjs(d).tz("America/Santiago");
-    return fechaChile.format("ddd DD MMM");
-  }, []);
-
-  const buildWeekDates = useCallback((start) => {
-    const startDate = dayjs.isDayjs(start) ? start : dayjs(start).tz("America/Santiago");
-    const dates = [];
-    
-    for (let i = 0; i < 7; i++) {
-      dates.push(startDate.add(i, "day"));
-    }
-    
-    return dates;
-  }, []);
-
-  // --------------------------------------------------
-  // CONTROL DE PASOS
+  // CONTROL DE PASOS - FLUJO BARBERO
   // --------------------------------------------------
   useEffect(() => {
     if (loadingServicios) return;
 
+    // FLUJO BARBERO: siempre necesita usuario encontrado primero
     if (!usuarioEncontrado) {
-      setPasoActual(1);
+      setPasoActual(1); // Paso 1: Ingresar RUT del cliente
     } else if (!servicio || !barbero) {
-      setPasoActual(2);
+      setPasoActual(2); // Paso 2: Seleccionar servicio y barbero
     } else if (!fecha) {
-      setPasoActual(3);
+      setPasoActual(3); // Paso 3: Seleccionar fecha
     } else if (!hora) {
-      setPasoActual(4);
+      setPasoActual(4); // Paso 4: Seleccionar hora
     } else {
-      setPasoActual(5);
+      setPasoActual(5); // Paso 5: Resumen
     }
   }, [servicio, barbero, fecha, hora, loadingServicios, usuarioEncontrado]);
 
   // --------------------------------------------------
-  // FILTRADO DE BARBEROS
+  // FILTRADO DE BARBEROS SEGÚN SERVICIO
   // --------------------------------------------------
   const barberosFiltrados = servicio
     ? barberos.filter((b) => {
@@ -135,7 +104,7 @@ export const useReservaBarbero = () => {
     : [];
 
   // --------------------------------------------------
-  // CARGAR SERVICIOS
+  // CARGAR SERVICIOS DE CADA BARBERO AL SELECCIONAR SERVICIO
   // --------------------------------------------------
   useEffect(() => {
     if (!servicio) return;
@@ -148,10 +117,13 @@ export const useReservaBarbero = () => {
   }, [servicio, barberos, serviciosBarberos, cargarServiciosBarbero]);
 
   // --------------------------------------------------
-  // BÚSQUEDA DE USUARIO
+  // BÚSQUEDA DE USUARIO POR RUT - CON DEBOUNCE
   // --------------------------------------------------
+  // En el useEffect de búsqueda, REEMPLAZA completamente:
   useEffect(() => {
+    // Solo buscar si hay un RUT limpio válido
     if (!cleanRut || cleanRut.length < 3) {
+      console.log("⏸️ No buscar: RUT muy corto o vacío");
       setUsuarioEncontrado(null);
       setErrorBusqueda("");
       setBuscandoUsuario(false);
@@ -169,41 +141,79 @@ export const useReservaBarbero = () => {
       setErrorBusqueda("");
 
       try {
+        console.log(`🔍 [EFECTO] Buscando usuario con: "${cleanRut}"`);
+
         const usuario = await getUserByRut(cleanRut);
+
+        console.log(`📦 [EFECTO] Resultado recibido:`, usuario);
 
         if (isMounted) {
           if (usuario && usuario._id) {
+            console.log(
+              "✅ [EFECTO] Usuario ENCONTRADO, actualizando estado..."
+            );
             setUsuarioEncontrado(usuario);
             setErrorBusqueda("");
           } else {
+            console.log("❌ [EFECTO] Usuario NO encontrado");
             setErrorBusqueda("Usuario no encontrado");
             setUsuarioEncontrado(null);
           }
         }
       } catch (err) {
+        console.error("❌ [EFECTO] Error en búsqueda:", err.message);
         if (isMounted) {
           setErrorBusqueda(err.message || "Error al buscar usuario");
           setUsuarioEncontrado(null);
         }
       } finally {
         if (isMounted) {
+          console.log("🏁 [EFECTO] Finalizando búsqueda");
           setBuscandoUsuario(false);
         }
       }
     };
 
+    // Clear previous timeout
     if (timeoutId) clearTimeout(timeoutId);
+
+    // Nuevo timeout con debounce
     timeoutId = setTimeout(buscarUsuario, 800);
 
     return () => {
+      console.log("🧹 [EFECTO] Limpiando efecto");
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, [cleanRut, getUserByRut]);
 
   // --------------------------------------------------
-  // SEMANA Y DISPONIBILIDAD - CORREGIDO
+  // SEMANA Y DISPONIBILIDAD
   // --------------------------------------------------
+  const isoDate = (d) =>
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+      d.getDate()
+    ).padStart(2, "0")}`;
+
+  const formatDayLabel = (d) =>
+    d.toLocaleDateString("es-CL", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    });
+
+  const buildWeekDates = useCallback((start) => {
+    const dates = [];
+    const s = new Date(start);
+    s.setHours(0, 0, 0, 0);
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(s);
+      d.setDate(s.getDate() + i);
+      dates.push(d);
+    }
+    return dates;
+  }, []);
+
   const fetchWeekAvailability = useCallback(
     async (barberoId, serviceId, startDate) => {
       if (!barberoId || !serviceId) {
@@ -228,29 +238,10 @@ export const useReservaBarbero = () => {
       setLoadingWeek(true);
       try {
         const dates = buildWeekDates(startDate);
-        
-        console.log("🔄 Fetching week availability:", {
-          barberoId,
-          serviceId,
-          startDate: startDate.format("YYYY-MM-DD"),
-          dates: dates.map(d => d.format("YYYY-MM-DD"))
-        });
-
         const promises = dates.map((d) =>
           getHorasDisponiblesBarbero(barberoId, isoDate(d), serviceId)
-            .then((res) => {
-              console.log(`📊 Horas para ${isoDate(d)}:`, {
-                horas: res?.horasDisponibles,
-                cantidad: res?.horasDisponibles?.length,
-                fechaEnviada: isoDate(d),
-                respuestaCompleta: res
-              });
-              return res;
-            })
-            .catch((err) => {
-              console.error(`❌ Error para ${isoDate(d)}:`, err);
-              return { horasDisponibles: [] };
-            })
+            .then((res) => res)
+            .catch(() => ({ horasDisponibles: [] }))
         );
 
         const results = await Promise.all(promises);
@@ -258,13 +249,6 @@ export const useReservaBarbero = () => {
         const newWeek = dates.map((d, idx) => {
           const res = results[idx];
           const horas = res?.horasDisponibles || [];
-          
-          console.log(`📅 Día ${isoDate(d)}:`, {
-            horasDisponibles: horas,
-            cantidad: horas.length,
-            fechaFrontend: d.format("YYYY-MM-DD")
-          });
-
           return {
             date: d,
             label: formatDayLabel(d),
@@ -272,29 +256,23 @@ export const useReservaBarbero = () => {
             available: horas.length > 0,
             horasDisponibles: horas,
             mensaje: horas.length === 0 ? "No disponible" : "",
-            // Agregar info extra para debug
-            _debug: {
-              fechaEnviada: isoDate(d),
-              fechaBackend: res?.fecha,
-              duracionServicio: res?.duracionServicio
-            }
           };
         });
 
         setWeekDays(newWeek);
       } catch (err) {
-        console.error("❌ Error en fetchWeekAvailability:", err);
+        console.error(err);
       } finally {
         setLoadingWeek(false);
       }
     },
-    [buildWeekDates, formatDayLabel, getHorasDisponiblesBarbero, isoDate]
+    [buildWeekDates, getHorasDisponiblesBarbero]
   );
 
-  // Efecto principal de disponibilidad
   useEffect(() => {
     if (loadingServicios) return;
 
+    // Solo cargar disponibilidad si hay usuario encontrado
     if (!usuarioEncontrado || !servicio || !barbero) {
       const dates = buildWeekDates(weekStart);
       setWeekDays(
@@ -330,33 +308,45 @@ export const useReservaBarbero = () => {
   // HANDLERS
   // --------------------------------------------------
   const handleSelectDay = (iso) => {
-    console.log("📅 Día seleccionado:", iso);
     setFecha(iso);
     setHora("");
   };
 
   const prevWeek = () => {
-    setWeekStart(weekStart.subtract(7, "day"));
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() - 7);
+    setWeekStart(d);
   };
 
   const nextWeek = () => {
-    setWeekStart(weekStart.add(7, "day"));
+    const d = new Date(weekStart);
+    d.setDate(d.getDate() + 7);
+    setWeekStart(d);
   };
 
   const handleSeleccionarServicio = (id) => {
-    console.log("✂️ Servicio seleccionado:", id);
     setServicio(id);
     setFecha("");
     setHora("");
-    setWeekStart(dayjs().tz("America/Santiago"));
+    setWeekStart(new Date());
   };
 
   const handleSeleccionarBarbero = (id) => {
-    console.log("💈 Barbero seleccionado:", id);
     setBarbero(id);
     setFecha("");
     setHora("");
-    setWeekStart(dayjs().tz("America/Santiago"));
+    setWeekStart(new Date());
+  };
+
+  const nextHour = (h) => {
+    const [hh, mm] = h.split(":").map(Number);
+    const totalMinutos = hh * 60 + mm + 60;
+    const nuevaH = Math.floor(totalMinutos / 60);
+    const nuevaM = totalMinutos % 60;
+    return `${String(nuevaH).padStart(2, "0")}:${String(nuevaM).padStart(
+      2,
+      "0"
+    )}`;
   };
 
   const calcularHoraFin = useCallback(
@@ -372,7 +362,6 @@ export const useReservaBarbero = () => {
     },
     [duracionServicio]
   );
-
   const handleReservar = async (e) => {
     if (e?.preventDefault) e.preventDefault();
 
@@ -390,20 +379,12 @@ export const useReservaBarbero = () => {
       return;
     }
 
-    console.log("📤 Reservando:", {
-      fecha,
-      barbero,
-      hora,
-      servicio,
-      cliente: usuarioEncontrado._id,
-      duracion: duracionServicio
-    });
-
     setReservando(true);
 
     try {
       const usuarioId = usuarioEncontrado._id || usuarioEncontrado.id;
 
+      // ✅ UNA SOLA RESERVA
       await postReservarHora(fecha, barbero, hora, servicio, usuarioId);
 
       Swal.fire({
@@ -413,6 +394,7 @@ export const useReservaBarbero = () => {
           <p><strong>Cliente:</strong> ${usuarioEncontrado.nombre} ${
           usuarioEncontrado.apellido
         }</p>
+          <p><strong>RUT:</strong> ${usuarioEncontrado.rut}</p>
           <p><strong>Barbero:</strong> ${
             barberos.find((b) => b._id === barbero)?.nombre || "Barbero"
           }</p>
@@ -428,14 +410,11 @@ export const useReservaBarbero = () => {
       handleLimpiarTodo();
       navigate("/admin/mis-reservas");
     } catch (error) {
-      console.error("❌ Error al reservar:", error);
+      console.error("Error al reservar:", error);
       Swal.fire({
         title: "Error",
         text: error.response?.data?.message || "No se pudo realizar la reserva",
         icon: "error",
-        footer: error.response?.data?.detalles 
-          ? `<div class="text-left"><small>${JSON.stringify(error.response.data.detalles)}</small></div>`
-          : undefined
       });
     } finally {
       setReservando(false);
@@ -446,11 +425,12 @@ export const useReservaBarbero = () => {
     clearRut();
     setUsuarioEncontrado(null);
     setErrorBusqueda("");
+    // Limpiar todos los campos
     setServicio("");
     setBarbero("");
     setFecha("");
     setHora("");
-    setWeekStart(dayjs().tz("America/Santiago"));
+    setWeekStart(new Date());
   };
 
   const handleLimpiarTodo = () => {
@@ -489,7 +469,7 @@ export const useReservaBarbero = () => {
     buscandoUsuario,
     usuarioEncontrado,
     errorBusqueda,
-    cleanRut,
+    cleanRut, // 👈 Exportamos cleanRut
     barberos,
     barberosFiltrados,
 
