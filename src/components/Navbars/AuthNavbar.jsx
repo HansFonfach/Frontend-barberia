@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+
 import { Navbar,  Container } from "reactstrap";
 
 const AuthNavbar = () => {

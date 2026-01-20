@@ -327,13 +327,7 @@ const MisReservas = () => {
                         {reserva.servicio?.nombre || "Servicio no asignado"}
                       </h6>
                     </div>
-                    <div className="d-flex justify-content-between text-sm">
-                      <span className="text-muted">Duración:</span>
-                      <strong>
-                        {reserva.servicio?.duracion || "duracion no asignada"}{" "}
-                        min
-                      </strong>
-                    </div>
+
                     <div className="d-flex justify-content-between text-sm">
                       <span className="text-muted">Precio:</span>
                       <strong className="text-success">
@@ -445,7 +439,7 @@ const MisReservas = () => {
               <Card className="shadow-sm rounded-lg border-0 bg-white mb-4">
                 <CardBody className="p-0">
                   {/* Header pestañas */}
-                  <div className="bg-light p-3 border-bottom rounded-top">
+                  <div className="bg-success p-3 border-bottom rounded-top">
                     <Row className="align-items-center">
                       <Col>
                         <Nav tabs className="border-0">
@@ -459,7 +453,7 @@ const MisReservas = () => {
                               className={`cursor-pointer rounded-lg font-weight-bold px-3 py-2 mr-2 ${
                                 tabActiva === "futuras"
                                   ? "bg-success text-white"
-                                  : "bg-light text-dark"
+                                  : "bg-success text-white"
                               }`}
                             >
                               <Calendar size={16} className="mr-1" /> Próximas
@@ -468,7 +462,7 @@ const MisReservas = () => {
                                 color={
                                   tabActiva === "futuras" ? "light" : "success"
                                 }
-                                className="ml-2 text-dark"
+                                className="ml-2 text-white"
                               >
                                 {reservasFuturas.length}
                               </Badge>
@@ -484,35 +478,23 @@ const MisReservas = () => {
                               className={`cursor-pointer rounded-lg font-weight-bold px-3 py-2 ${
                                 tabActiva === "historial"
                                   ? "bg-success text-white"
-                                  : "bg-light text-dark"
+                                  : "bg-success text-white"
                               }`}
                             >
                               <History size={16} className="mr-1" /> Historial
                               <Badge
                                 color={
                                   tabActiva === "historial"
-                                    ? "light"
+                                    ? "success"
                                     : "success"
                                 }
-                                className="ml-2 text-dark"
+                                className="ml-2 text-white"
                               >
                                 {reservasHistorial.length}
                               </Badge>
                             </NavLink>
                           </NavItem>
                         </Nav>
-                      </Col>
-                      <Col xs="auto">
-                        {tabActiva === "futuras" && (
-                          <Button
-                            color="success"
-                            size="sm"
-                            href="/reservar-hora"
-                            className="rounded-lg font-weight-bold px-3 py-2"
-                          >
-                            <Plus size={16} className="mr-1" /> Nueva Reserva
-                          </Button>
-                        )}
                       </Col>
                     </Row>
                   </div>

@@ -28,7 +28,6 @@ const UserDashboard = () => {
   const [look, setLook] = useState(null);
   const [loading, setLoading] = useState(true);
 
-
   // ⭐ MOCK puntos
 
   const meta = 900;
@@ -53,7 +52,6 @@ const UserDashboard = () => {
 
     cargar();
   }, [user]);
-
 
   if (authLoading || loading) {
     return (
@@ -108,38 +106,6 @@ const UserDashboard = () => {
                     Bienvenido, {user.nombre}
                   </h1>
                 </div>
-
-                {data.proxima ? (
-                  <>
-                    <p className="lead opacity-75 mb-1">
-                      Tu próxima cita está confirmada
-                    </p>
-                    <h3 className="font-weight-bold d-flex align-items-center">
-                      <Calendar className="mr-2" />
-                      {data.proxima}
-                    </h3>
-                    <Button
-                      color="warning"
-                      className="rounded-pill font-weight-bold px-4 mt-3"
-                      href="/admin/mis-reservas"
-                    >
-                      Ver detalles
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <p className="lead opacity-75 mb-3">
-                      Aún no tienes una cita agendada
-                    </p>
-                    <Button
-                      color="warning"
-                      className="rounded-pill font-weight-bold px-4"
-                      href="/admin/reservar-hora"
-                    >
-                      Reservar ahora
-                    </Button>
-                  </>
-                )}
               </CardBody>
             </Card>
           </Col>
@@ -147,6 +113,33 @@ const UserDashboard = () => {
 
         {/* ================= ÚLTIMA VISITA ================= */}
         <Row className="mb-5">
+          <Col>
+            <Card className="border-0 shadow card-hover">
+              <CardBody className="p-4 d-flex justify-content-between align-items-center">
+                <div>
+                  <small className="text-muted text-uppercase">
+                    Próxima cita
+                  </small>
+                  {data.proxima ? (
+                    <>
+                      <h3 className="font-weight-bold mb-1">{data.proxima}</h3>
+                      <small className="text-muted">
+                        Tu próxima cita está confirmada
+                      </small>
+                    </>
+                  ) : (
+                    <Alert color="info" className="mb-0 mt-2">
+                      Aún no tienes una cita agendada
+                    </Alert>
+                  )}
+                </div>
+                <div className="bg-light rounded-circle p-3 d-none d-md-flex">
+                  <Scissors />
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+
           <Col>
             <Card className="border-0 shadow card-hover">
               <CardBody className="p-4 d-flex justify-content-between align-items-center">
@@ -202,7 +195,7 @@ const UserDashboard = () => {
 
                       <Row className="mb-3">
                         <Col xs="6">
-                          <div className="bg-light rounded p-3 text-center">
+                          <div className="border rounded p-3 text-center">
                             <small className="text-muted d-block">
                               Última vez
                             </small>
@@ -210,7 +203,7 @@ const UserDashboard = () => {
                           </div>
                         </Col>
                         <Col xs="6">
-                          <div className="bg-light rounded p-3 text-center">
+                          <div className="border rounded p-3 text-center">
                             <small className="text-muted d-block">
                               Frecuencia ideal
                             </small>

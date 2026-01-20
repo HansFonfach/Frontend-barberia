@@ -4,7 +4,7 @@ import { useLocation, Route, Routes, Navigate } from "react-router-dom";
 import { Container, Row, Col } from "reactstrap";
 
 // core components
-import AuthNavbar from "components/Navbars/AuthNavbar.js";
+import AuthNavbar from "components/Navbars/AuthNavbar.jsx";
 import AuthFooter from "components/Footers/AuthFooter.js";
 
 import { publicRoutes } from "routes.js";
@@ -42,7 +42,7 @@ const Auth = (props) => {
                 <Col lg="5" md="6">
                   <h1 className="text-white">BIENVENIDO!</h1>
                   <p className="text-lead text-light">
-                    Bienvenido al sistema de reserva de horas para:
+                    Bienvenido al sistema de reserva de horas para
                     <span className="text-white d-block">La Santa Barbería.</span>
                   </p>
                 </Col>

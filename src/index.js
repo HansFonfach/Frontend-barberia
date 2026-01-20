@@ -19,10 +19,14 @@ import { NotificacionProvider } from "context/NotificacionesContext";
 import { LookProvider } from "context/LookContext";
 import { CanjeProvider } from "context/CanjeContext";
 
+import Landing from "views/pages/Landing";
+
 const RootRedirect = () => {
   const { user, isAuthenticated } = useAuth();
 
-  if (!isAuthenticated) return <Navigate to="/auth/login" replace />;
+  if (!isAuthenticated) {
+    return <Landing />;
+  }
 
   return (
     <Navigate
@@ -47,16 +51,19 @@ root.render(
                     <LookProvider>
                       <CanjeProvider>
                         <Routes>
-                          {/* Layout de autenticación */}
+                          {/* Landing pública */}
+                          <Route path="/" element={<RootRedirect />} />
+
+                          {/* Auth */}
                           <Route path="/auth/*" element={<AuthLayout />} />
 
-                          {/* Layout protegido */}
+                          {/* Protegido */}
                           <Route element={<ProtectedRoute />}>
-                            <Route path="/admin/*" element={<AdminLayout />} />
+                            <Route
+                              path="/admin/*"
+                              element={<AdminLayout />}
+                            />
                           </Route>
-
-                          {/* Redirección raíz */}
-                          <Route path="/" element={<RootRedirect />} />
 
                           {/* Fallback */}
                           <Route

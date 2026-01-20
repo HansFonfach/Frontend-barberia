@@ -28,6 +28,7 @@ import SuscripcionResultado from "views/pages/SuscripcionResultado";
 import CatalogoCanjes from "views/pages/CatalogoCanjes";
 import GestionCanjes from "views/admin/pages/GestionCanjes";
 import AsignarServiciosBarberos from "views/admin/pages/AsignarServiciosBarberos";
+import Landing from "views/pages/Landing";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -57,6 +58,12 @@ export const publicRoutes = [
     layout: "/auth",
     invisible: true,
   },
+   {
+    path: "/inicio",
+    component: <Landing/>,
+    invisible: true,
+  },
+
 ];
 
 /* =========================
@@ -221,7 +228,7 @@ export const barberoRoutes = [
   },
   {
     path: "/gestion-horarios",
-    name: "Horarios",
+    name: "Administrar Horarios",
     icon: "fas fa-clock text-danger",
     component: <GestionHorariosBarbero />,
     layout: "/admin",
