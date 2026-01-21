@@ -32,19 +32,20 @@ const WeekSelector = ({
     fechaSeleccionada: fecha,
     barberoId,
     barberoInfo: barberoInfo?.nombre || "No info",
-    weekDays: weekDays?.map(d => ({
-      fecha: d.iso,
-      disponible: d.available,
-      mensaje: d.mensaje,
-      horasCount: d.horasDisponibles?.length || 0
-    })) || []
+    weekDays:
+      weekDays?.map((d) => ({
+        fecha: d.iso,
+        disponible: d.available,
+        mensaje: d.mensaje,
+        horasCount: d.horasDisponibles?.length || 0,
+      })) || [],
   });
 
   const handleWaitlistRequest = async (d) => {
     console.log("🔔 Click en campanita - Datos:", {
       fecha: d.iso,
       barberoId,
-      barberoInfo
+      barberoInfo,
     });
 
     if (!barberoId) {
@@ -85,7 +86,9 @@ const WeekSelector = ({
   if (loadingWeek) {
     return (
       <FormGroup className="mb-4">
-        <Label className="font-weight-bold">📅 Disponibilidad de la semana</Label>
+        <Label className="font-weight-bold">
+          📅 Disponibilidad de la semana
+        </Label>
         <div className="d-flex align-items-center justify-content-center py-4 bg-light rounded">
           <Spinner size="sm" className="me-2" />
           <span>Cargando disponibilidad...</span>
@@ -98,7 +101,9 @@ const WeekSelector = ({
   if (!weekDays || weekDays.length === 0) {
     return (
       <FormGroup className="mb-4">
-        <Label className="font-weight-bold">📅 Disponibilidad de la semana</Label>
+        <Label className="font-weight-bold">
+          📅 Disponibilidad de la semana
+        </Label>
         <div className="alert alert-info text-center py-3">
           <i className="fas fa-calendar me-2"></i>
           <strong>No hay datos de disponibilidad</strong>
@@ -113,7 +118,9 @@ const WeekSelector = ({
   return (
     <FormGroup className="mb-4">
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <Label className="font-weight-bold mb-0 h5">📅 Disponibilidad de la semana</Label>
+        <Label className="font-weight-bold mb-0 h5">
+          📅 Disponibilidad de la semana
+        </Label>
         {barberoInfo && (
           <Badge color="info" pill className="px-3 py-1">
             {barberoInfo.nombre}
@@ -144,7 +151,9 @@ const WeekSelector = ({
               const isToday = isoDate(new Date()) === d.iso;
               const isSelected = d.iso === fecha;
               const diaDisponible = d.available;
-              const horasDisponibles = d.horasDisponibles || [];
+              const horasDisponibles = (d.horas || []).filter(
+                (h) => h.estado === "disponible",
+              );
               const esFeriado = d.esFeriado;
 
               return (
@@ -204,7 +213,14 @@ const WeekSelector = ({
                         boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
                       }}
                     >
-                      <span className="small" style={{ fontSize: "10px", fontWeight: "bold", color: "white" }}>
+                      <span
+                        className="small"
+                        style={{
+                          fontSize: "10px",
+                          fontWeight: "bold",
+                          color: "white",
+                        }}
+                      >
                         🎉
                       </span>
                     </div>
@@ -225,23 +241,23 @@ const WeekSelector = ({
                       boxShadow: isSelected
                         ? "0 6px 16px rgba(8, 238, 161, 0.3)"
                         : diaDisponible
-                        ? "0 2px 6px rgba(0,0,0,0.08)"
-                        : "0 1px 3px rgba(0,0,0,0.05)",
+                          ? "0 2px 6px rgba(0,0,0,0.08)"
+                          : "0 1px 3px rgba(0,0,0,0.05)",
                       backgroundColor: isSelected
                         ? "rgba(9, 207, 98, 1)"
                         : diaDisponible
-                        ? "#ffffff"
-                        : "#f8f9fa",
+                          ? "#ffffff"
+                          : "#f8f9fa",
                       color: isSelected
                         ? "#ffffff"
                         : diaDisponible
-                        ? "#212529"
-                        : "#6c757d",
+                          ? "#212529"
+                          : "#6c757d",
                       border: isSelected
                         ? "2px solid #28a745"
                         : diaDisponible
-                        ? "1px solid #e9ecef"
-                        : "1px solid #dee2e6",
+                          ? "1px solid #e9ecef"
+                          : "1px solid #dee2e6",
                       cursor: diaDisponible ? "pointer" : "not-allowed",
                       display: "flex",
                       flexDirection: "column",
@@ -334,7 +350,9 @@ const WeekSelector = ({
                           fontWeight: "700",
                           marginTop: "4px",
                           color: isSelected ? "#fff" : "#28a745",
-                          backgroundColor: isSelected ? "rgba(255,255,255,0.2)" : "rgba(40,167,69,0.1)",
+                          backgroundColor: isSelected
+                            ? "rgba(255,255,255,0.2)"
+                            : "rgba(40,167,69,0.1)",
                           padding: "2px 6px",
                           borderRadius: "10px",
                         }}
@@ -363,23 +381,23 @@ const WeekSelector = ({
       {/* Información adicional */}
       <div className="d-flex justify-content-between align-items-center text-muted small">
         <div>
-          {weekDays.filter(d => d.available).length > 0 && (
+          {weekDays.filter((d) => d.available).length > 0 && (
             <span>
-              <i className="fas fa-circle text-success me-1" style={{ fontSize: "8px" }}></i>
-              {weekDays.filter(d => d.available).length} días disponibles
+              <i
+                className="fas fa-circle text-success me-1"
+                style={{ fontSize: "8px" }}
+              ></i>
+              {weekDays.filter((d) => d.available).length} días disponibles
             </span>
           )}
         </div>
         <div>
-          <span>
-            Semana del{" "}
-            {formatDayLabel(new Date(weekStart))}
-          </span>
+          <span>Semana del {formatDayLabel(new Date(weekStart))}</span>
         </div>
       </div>
 
       {/* Instrucciones */}
-      {!weekDays.some(d => d.available) && weekDays.length > 0 && (
+      {!weekDays.some((d) => d.available) && weekDays.length > 0 && (
         <div className="alert alert-light border mt-3 text-center py-2">
           <p className="mb-1 small">
             <i className="fas fa-info-circle me-1"></i>

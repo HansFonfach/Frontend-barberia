@@ -11,7 +11,6 @@ import { useHorario } from "context/HorarioContext";
 import { useHorasDisponibles } from "hooks/useHorasDisponibles";
 import { useNavigate } from "react-router-dom";
 
-
 export const useReservaCliente = () => {
   // ────────────────────────────────
   // USUARIO LOGUEADO
@@ -34,7 +33,7 @@ export const useReservaCliente = () => {
   const [weekStart, setWeekStart] = useState(new Date());
   const [weekDays, setWeekDays] = useState([]);
   const [loadingWeek, setLoadingWeek] = useState(false);
-    const navigate = useNavigate();
+  const navigate = useNavigate();
 
   // ────────────────────────────────
   // CONTEXTOS
@@ -119,7 +118,7 @@ export const useReservaCliente = () => {
   // ────────────────────────────────
   const isoDate = (d) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-      d.getDate()
+      d.getDate(),
     ).padStart(2, "0")}`;
 
   const formatDayLabel = (d) =>
@@ -144,54 +143,71 @@ export const useReservaCliente = () => {
   // ────────────────────────────────
   // CARGAR DISPONIBILIDAD SEMANAL
   // ────────────────────────────────
-  const fetchWeekAvailability = useCallback(
-    async (barberoId, serviceId, startDate) => {
-      if (!barberoId || !serviceId) {
-        const dates = buildWeekDates(startDate);
-        setWeekDays(
-          dates.map((d) => ({
+ const fetchWeekAvailability = useCallback(
+  async (barberoId, serviceId, startDate) => {
+    const dates = buildWeekDates(startDate);
+
+    // ⛔ Sin barbero o servicio → semana bloqueada
+    if (!barberoId || !serviceId) {
+      setWeekDays(
+        dates.map((d) => ({
+          date: d,
+          label: formatDayLabel(d),
+          iso: isoDate(d),
+          available: false,
+          horas: [],
+          mensaje: "Selecciona servicio y barbero",
+        }))
+      );
+      return;
+    }
+
+    setLoadingWeek(true);
+
+    try {
+      const results = await Promise.all(
+        dates.map((d) =>
+          getHorasDisponiblesBarbero(barberoId, isoDate(d), serviceId).catch(
+            () => ({ horas: [] })
+          )
+        )
+      );
+
+      setWeekDays(
+        dates.map((d, idx) => {
+          const horas = results[idx]?.horas || [];
+
+          const horasDisponibles = horas.filter(
+            (h) => h.estado === "disponible"
+          );
+
+          return {
             date: d,
             label: formatDayLabel(d),
             iso: isoDate(d),
-            available: false,
-            horasDisponibles: [],
-            mensaje: "Selecciona servicio y barbero",
-          }))
-        );
-        return;
-      }
 
-      setLoadingWeek(true);
+            // ✅ día habilitado si hay horas libres
+            available: horasDisponibles.length > 0,
 
-      try {
-        const dates = buildWeekDates(startDate);
-        const results = await Promise.all(
-          dates.map((d) =>
-            getHorasDisponiblesBarbero(barberoId, isoDate(d), serviceId).catch(
-              () => ({ horasDisponibles: [] })
-            )
-          )
-        );
+            // 🔥 guardamos TODAS las horas con estado
+            horas,
 
-        setWeekDays(
-          dates.map((d, idx) => {
-            const horas = results[idx]?.horasDisponibles || [];
-            return {
-              date: d,
-              label: formatDayLabel(d),
-              iso: isoDate(d),
-              available: horas.length > 0,
-              horasDisponibles: horas,
-              mensaje: horas.length ? "" : "No disponible",
-            };
-          })
-        );
-      } finally {
-        setLoadingWeek(false);
-      }
-    },
-    [buildWeekDates, getHorasDisponiblesBarbero]
-  );
+            mensaje:
+              horas.length === 0
+                ? "No disponible"
+                : horasDisponibles.length === 0
+                ? "Sin horas libres"
+                : "",
+          };
+        })
+      );
+    } finally {
+      setLoadingWeek(false);
+    }
+  },
+  [buildWeekDates, getHorasDisponiblesBarbero]
+);
+
 
   useEffect(() => {
     if (!servicio || !barbero) return;
@@ -254,7 +270,7 @@ export const useReservaCliente = () => {
         barbero, // ✂️ barberoId
         hora, // ⏰ hora
         servicio, // 🧾 servicioId
-        user.id // 👤 usuarioId
+        user.id, // 👤 usuarioId
       );
 
       Swal.fire("Reserva creada", "Tu hora fue agendada", "success");
@@ -264,7 +280,7 @@ export const useReservaCliente = () => {
       Swal.fire(
         "Error",
         error?.response?.data?.message || "No se pudo reservar",
-        "error"
+        "error",
       );
     } finally {
       setReservando(false);

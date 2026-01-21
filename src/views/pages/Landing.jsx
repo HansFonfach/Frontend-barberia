@@ -22,7 +22,6 @@ const Landing = () => {
 
   return (
     <div className="bg-white">
-      <AuthNavbar />
       
       {/* SECCIÓN HERO - Estilo Moderno Oscuro */}
       <div className="position-relative bg-darker py-7 py-lg-8" style={{
