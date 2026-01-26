@@ -140,9 +140,9 @@ const MisReservas = () => {
   const getBadgeColor = (estado) => {
     const colores = {
       confirmada: "success",
-      pendiente: "warning",
+      pendiente: "info",
       finalizada: "success",
-      cancelada: "secondary",
+      cancelada: "warning",
     };
     return colores[estado] || "success";
   };

@@ -164,3 +164,9 @@ export const getHorariosByBarbero = async (barberoId) => {
     throw error;
   }
 };
+
+export const deleteHorarioDia = async (barberoId, diaSemana) => {
+  return axiosPrivate.delete(
+    `/horarios/barbero/${barberoId}/dia/${diaSemana}`,
+  );
+};

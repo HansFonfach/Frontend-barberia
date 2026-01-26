@@ -5,6 +5,7 @@ import { getObtenerExcepcionesPorDia } from "api/horarios";
 import { postAsignarHorario } from "api/horarios";
 import { postToggleHora } from "api/horarios";
 import { getHorarioBasePorDia } from "api/horarios";
+import { deleteHorarioDia } from "api/horarios";
 import { getHorariosByBarbero } from "api/horarios";
 import { postCancelarHoraExtraDiaria } from "api/horarios";
 import { postAgregarHoraExtraDiaria } from "api/horarios";
@@ -53,6 +54,16 @@ export const HorarioProvider = ({ children }) => {
     }
   };
 
+  const eliminarHorarioDia = async (barberoId, diaSemana) => {
+    try {
+      const result = await deleteHorarioDia(barberoId, diaSemana);
+      return result;
+    } catch (error) {
+      console.error("❌ Error al obtener horarios", error);
+      throw error;
+    }
+  };
+
   const obtenerHorarioBasePorDia = async (barbero, fecha) => {
     console.log("🌐 Request horarios base:", { barbero, fecha });
 
@@ -90,7 +101,7 @@ export const HorarioProvider = ({ children }) => {
     hora,
     fecha,
     barbero,
-    esFeriado = false
+    esFeriado = false,
   ) => {
     try {
       const motivo = esFeriado ? "Bloqueada en feriado" : "Cancelación manual";
@@ -105,7 +116,7 @@ export const HorarioProvider = ({ children }) => {
     hora,
     fecha,
     barbero,
-    esFeriado = false
+    esFeriado = false,
   ) => {
     try {
       const motivo = esFeriado ? "Habilitada en feriado" : "Reactivación";
@@ -155,6 +166,7 @@ export const HorarioProvider = ({ children }) => {
         cancelarHoraExtraDiaria,
         crearHorarioBarbero,
         obtenerHorarioBarbero,
+        eliminarHorarioDia,
         toggleHoraPorDia,
         obtenerHorarioBasePorDia,
       }}

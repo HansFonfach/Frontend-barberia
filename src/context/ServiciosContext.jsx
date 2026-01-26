@@ -63,9 +63,9 @@ export const ServiciosProvider = ({ children }) => {
   // Crear un nuevo servicio
   // ────────────────────────────────
   const crearServicio = useCallback(
-    async (nombre, precio, duracion, descripcion) => {
+    async (nombre, precio, descripcion) => {
       try {
-        const res = await postCreateServicios({ nombre, precio, duracion, descripcion });
+        const res = await postCreateServicios({ nombre, precio, descripcion });
         await getAllServicios();
         return res.data;
       } catch (err) {
@@ -73,7 +73,7 @@ export const ServiciosProvider = ({ children }) => {
         throw err;
       }
     },
-    [getAllServicios]
+    [getAllServicios],
   );
 
   // ────────────────────────────────
@@ -90,7 +90,7 @@ export const ServiciosProvider = ({ children }) => {
         throw err;
       }
     },
-    [getAllServicios]
+    [getAllServicios],
   );
 
   // ────────────────────────────────
@@ -107,7 +107,7 @@ export const ServiciosProvider = ({ children }) => {
         throw err;
       }
     },
-    [getAllServicios]
+    [getAllServicios],
   );
 
   // ────────────────────────────────
@@ -128,7 +128,7 @@ export const ServiciosProvider = ({ children }) => {
       crearServicio,
       updateServicio,
       deleteServicio,
-      serviciosBarberos,      // servicios por barbero
+      serviciosBarberos, // servicios por barbero
       cargarServiciosBarbero, // función para traer servicios de un barbero
     }),
     [
@@ -140,10 +140,14 @@ export const ServiciosProvider = ({ children }) => {
       deleteServicio,
       serviciosBarberos,
       cargarServiciosBarbero,
-    ]
+    ],
   );
 
-  return <ServiciosContext.Provider value={value}>{children}</ServiciosContext.Provider>;
+  return (
+    <ServiciosContext.Provider value={value}>
+      {children}
+    </ServiciosContext.Provider>
+  );
 };
 
 export default ServiciosContext;
