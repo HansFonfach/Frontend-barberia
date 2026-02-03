@@ -76,48 +76,34 @@ const GestionServicios = () => {
           precio: parseFloat(form.precio),
           descripcion: form.descripcion.trim(),
         });
-        Swal.fire("Éxito", "Servicio actualizado correctamente", "success");
       } else {
         await crearServicio(
           form.nombre.trim(),
           parseFloat(form.precio),
           form.descripcion.trim()
         );
-        Swal.fire("Éxito", "Servicio creado correctamente", "success");
       }
 
+      Swal.fire("Listo", "Servicio guardado", "success");
       setModal(false);
-      setEditando(false);
     } catch (error) {
-      Swal.fire(
-        "Error",
-        error?.response?.data?.message || "Error al guardar el servicio",
-        "error"
-      );
+      Swal.fire("Error", "No se pudo guardar", "error");
     }
   };
 
   const handleEliminar = async (servicio) => {
     const confirmar = await Swal.fire({
       title: "¿Eliminar servicio?",
-      text: `Se eliminará "${servicio.nombre}"`,
+      text: servicio.nombre,
       icon: "warning",
       showCancelButton: true,
       confirmButtonColor: "#d33",
-      confirmButtonText: "Eliminar",
-      cancelButtonText: "Cancelar",
     });
 
-    if (!confirmar.isConfirmed) return;
-
-    await deleteServicio(servicio._id);
-    Swal.fire("Eliminado", "Servicio eliminado correctamente", "success");
-  };
-
-  // 🔹 Función para truncar texto
-  const truncateText = (text, max = 60) => {
-    if (!text) return "";
-    return text.length > max ? text.substring(0, max) + "..." : text;
+    if (confirmar.isConfirmed) {
+      await deleteServicio(servicio._id);
+      Swal.fire("Eliminado", "Servicio eliminado", "success");
+    }
   };
 
   const serviciosFiltrados = servicios.filter(
@@ -133,104 +119,118 @@ const GestionServicios = () => {
       <Container className="mt--7" fluid>
         <Row className="justify-content-center">
           <Col xl="10">
-            <Card className="shadow bg-secondary">
-              <CardHeader className="bg-white border-0 pb-3">
-                <Row className="align-items-center">
+            <Card className="shadow">
+              <CardHeader>
+                <Row>
                   <Col>
-                    <h3 className="mb-0">
-                      <i className="ni ni-settings text-primary mr-2" />
-                      Gestión de Servicios
-                    </h3>
+                    <h3>Gestión de Servicios</h3>
                     <small className="text-muted">
-                      Administra los servicios de tu barbería
+                      Administra los servicios
                     </small>
                   </Col>
+
                   <Col className="text-right">
                     <Button color="primary" size="sm" onClick={handleNuevo}>
-                      <i className="ni ni-fat-add mr-2" />
-                      Nuevo Servicio
+                      + Nuevo
                     </Button>
                   </Col>
                 </Row>
               </CardHeader>
 
               <CardBody>
-                <Row className="mb-4">
+                {/* BUSCADOR */}
+                <Row className="mb-3">
                   <Col md="6">
-                    <InputGroup className="input-group-alternative">
-                      <InputGroupAddon addonType="prepend">
-                        <InputGroupText>
-                          <i className="ni ni-zoom-split-in" />
-                        </InputGroupText>
-                      </InputGroupAddon>
-                      <Input
-                        placeholder="Buscar servicios..."
-                        value={busqueda}
-                        onChange={(e) => setBusqueda(e.target.value)}
-                      />
-                    </InputGroup>
+                    <Input
+                      placeholder="Buscar..."
+                      value={busqueda}
+                      onChange={(e) => setBusqueda(e.target.value)}
+                    />
                   </Col>
-                  <Col
-                    md="6"
-                    className="d-flex align-items-center justify-content-end"
-                  >
-                    <Badge color="primary" pill>
+
+                  <Col className="text-right d-none d-md-block">
+                    <Badge color="primary">
                       {serviciosFiltrados.length} servicios
                     </Badge>
                   </Col>
                 </Row>
 
-                {/* TABLA COMPACTA */}
-                <Table responsive size="sm" className="align-items-center table-compact">
-                  <thead className="thead-light">
-                    <tr>
-                      <th style={{ width: "55%" }}>Servicio</th>
-                      <th style={{ width: "20%" }}>Precio</th>
-                      <th style={{ width: "25%" }} className="text-right">
-                        Acciones
-                      </th>
-                    </tr>
-                  </thead>
+                {/* MOBILE CARDS */}
+                <div className="d-block d-md-none">
+                  {serviciosFiltrados.map((s) => (
+                    <Card key={s._id} className="mb-3 shadow-sm">
+                      <CardBody>
+                        <h5>{s.nombre}</h5>
 
-                  <tbody>
-                    {serviciosFiltrados.map((servicio) => (
-                      <tr key={servicio._id}>
-                        <td className="py-2">
-                          <div className="font-weight-bold">
-                            {servicio.nombre}
-                          </div>
-                          {servicio.descripcion && (
-                            <div className="text-xs text-muted">
-                              {truncateText(servicio.descripcion, 18)}
-                            </div>
-                          )}
-                        </td>
+                        <p className="text-muted small mb-2">
+                          {s.descripcion}
+                        </p>
 
-                        <td className="py-2 font-weight-bold">
-                          ${servicio.precio.toLocaleString()}
-                        </td>
+                        <Badge color="success" pill>
+                          ${s.precio}
+                        </Badge>
 
-                        <td className="py-2 text-right">
+                        <div className="mt-3 d-flex justify-content-between">
                           <Button
                             size="sm"
                             color="primary"
-                            className="mr-1"
-                            onClick={() => handleEditar(servicio)}
+                            onClick={() => handleEditar(s)}
                           >
-                            <i className="ni ni-ruler-pencil" />
+                            Editar
                           </Button>
+
                           <Button
                             size="sm"
                             color="danger"
-                            onClick={() => handleEliminar(servicio)}
+                            onClick={() => handleEliminar(s)}
                           >
-                            <i className="ni ni-fat-remove" />
+                            Eliminar
                           </Button>
-                        </td>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* DESKTOP TABLE */}
+                <div className="d-none d-md-block">
+                  <Table responsive>
+                    <thead>
+                      <tr>
+                        <th>Servicio</th>
+                        <th>Precio</th>
+                        <th className="text-right">Acciones</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </Table>
+                    </thead>
+
+                    <tbody>
+                      {serviciosFiltrados.map((s) => (
+                        <tr key={s._id}>
+                          <td>{s.nombre}</td>
+                          <td>${s.precio}</td>
+                          <td className="text-right">
+                            <Button
+                              size="sm"
+                              color="primary"
+                              className="mr-2"
+                              onClick={() => handleEditar(s)}
+                            >
+                              Editar
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              color="danger"
+                              onClick={() => handleEliminar(s)}
+                            >
+                              Eliminar
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                </div>
               </CardBody>
             </Card>
           </Col>
@@ -239,35 +239,21 @@ const GestionServicios = () => {
 
       {/* MODAL */}
       <Modal isOpen={modal} toggle={toggle} centered>
-        <div className="modal-header">
-          <h5 className="modal-title">
-            {editando ? "Editar Servicio" : "Nuevo Servicio"}
-          </h5>
-          <button className="close" onClick={toggle}>
-            ×
-          </button>
-        </div>
-
         <ModalBody>
           <Form>
             <FormGroup>
-              <label>Nombre *</label>
+              <label>Nombre</label>
               <Input name="nombre" value={form.nombre} onChange={handleChange} />
             </FormGroup>
 
             <FormGroup>
-              <label>Precio *</label>
-              <InputGroup>
-                <InputGroupAddon addonType="prepend">
-                  <InputGroupText>$</InputGroupText>
-                </InputGroupAddon>
-                <Input
-                  type="number"
-                  name="precio"
-                  value={form.precio}
-                  onChange={handleChange}
-                />
-              </InputGroup>
+              <label>Precio</label>
+              <Input
+                type="number"
+                name="precio"
+                value={form.precio}
+                onChange={handleChange}
+              />
             </FormGroup>
 
             <FormGroup>
@@ -279,17 +265,12 @@ const GestionServicios = () => {
                 onChange={handleChange}
               />
             </FormGroup>
+
+            <Button block color="primary" onClick={handleGuardar}>
+              Guardar
+            </Button>
           </Form>
         </ModalBody>
-
-        <div className="modal-footer">
-          <Button color="link" onClick={toggle}>
-            Cancelar
-          </Button>
-          <Button color="primary" onClick={handleGuardar}>
-            Guardar
-          </Button>
-        </div>
       </Modal>
     </>
   );

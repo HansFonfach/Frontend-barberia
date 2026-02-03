@@ -32,6 +32,16 @@ export const getVerMisPuntos = () => {
   return axiosPrivate.get("/usuarios/misPuntos");
 };
 
-export const postAsignarServiciosAlBarbero = (barberoId, serviciosAsignados) => {
-  return axiosPrivate.post(`/barberoServicio/barberos/${barberoId}/servicios`, serviciosAsignados);
+export const postAsignarServiciosAlBarbero = (
+  barberoId,
+  serviciosAsignados,
+) => {
+  return axiosPrivate.post(
+    `/barberoServicio/barberos/${barberoId}/servicios`,
+    serviciosAsignados,
+  );
+};
+
+export const postCrearBarbero = (data) => {
+  return axiosPrivate.post(`/usuarios/barbero/crearBarbero`, data);
 };

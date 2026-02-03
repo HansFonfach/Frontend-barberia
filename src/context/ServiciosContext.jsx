@@ -51,6 +51,7 @@ export const ServiciosProvider = ({ children }) => {
       const res = await getServiciosBarbero(barberoId); // axiosPrivate.get(...)
       const data = res.data || [];
       setServiciosBarberos((prev) => ({ ...prev, [barberoId]: data }));
+      
       return data;
     } catch (error) {
       console.error("❌ Error cargando servicios del barbero:", error);

@@ -10,6 +10,7 @@ import { getTodosLosUsuarios } from "api/usuarios";
 import { getSubActiva } from "api/usuarios";
 import { getVerMisPuntos } from "api/usuarios";
 import { postAsignarServiciosAlBarbero } from "api/usuarios";
+import { postCrearBarbero } from "api/usuarios";
 
 const UsuarioContext = createContext();
 
@@ -126,7 +127,7 @@ export const UsuarioProvider = ({ children }) => {
       // EXTRA IMPORTANTE: Verifica la estructura exacta
       console.log(
         "📊 [CONTEXTO] Datos crudos:",
-        JSON.stringify(res.data, null, 2)
+        JSON.stringify(res.data, null, 2),
       );
 
       // Verifica diferentes estructuras posibles
@@ -138,7 +139,7 @@ export const UsuarioProvider = ({ children }) => {
         return { ...res.data, _id: res.data.id }; // Normalizar
       } else if (res.data && typeof res.data === "object") {
         console.log(
-          "⚠️ [CONTEXTO] Estructura inesperada, devolviendo tal cual"
+          "⚠️ [CONTEXTO] Estructura inesperada, devolviendo tal cual",
         );
         return res.data;
       } else {
@@ -219,11 +220,21 @@ export const UsuarioProvider = ({ children }) => {
     try {
       const res = await postAsignarServiciosAlBarbero(
         barberoId,
-        serviciosAsignados
+        serviciosAsignados,
       );
       return res.data; // deja que el componente o el ServiciosContext refresque
     } catch (error) {
       console.error("🔴 Error al asignar servicios:", error);
+      throw error;
+    }
+  };
+
+  const crearBarbero = async (data) => {
+    try {
+      const res = await postCrearBarbero(data);
+      return res.data;
+    } catch (error) {
+      console.error("Error al crear barbero", error);
       throw error;
     }
   };
@@ -239,6 +250,7 @@ export const UsuarioProvider = ({ children }) => {
         suscripcionActiva,
         suscripcionLista,
         servicios,
+        crearBarbero,
         updateUser,
         getAllUsers,
         getBarberosDisponibles,

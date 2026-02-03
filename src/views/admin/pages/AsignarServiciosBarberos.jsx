@@ -21,9 +21,18 @@ import ServiciosContext from "context/ServiciosContext";
 const AsignarServiciosBarbero = () => {
   const [barberoId, setBarberoId] = useState("");
   const [serviciosAsignados, setServiciosAsignados] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
 
   const { asignarServiciosAlBarbero, barberos } = useUsuario();
   const { servicios, cargarServiciosBarbero } = useContext(ServiciosContext);
+
+  // Detectar tamaño de pantalla
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   // ────────────────────────────────
   // Toggle servicio (activar / desactivar)
@@ -132,93 +141,162 @@ const AsignarServiciosBarbero = () => {
 
       <Container className="mt--6 pb-6" fluid>
         <Row className="justify-content-center">
-          <Col lg="10">
+          <Col xl="10" lg="12" md="12">
             <Card className="shadow border-0">
-              <CardBody className="px-lg-5 py-lg-5">
+              <CardBody className={isMobile ? "p-3" : "px-lg-5 py-lg-5"}>
                 {/* HEADER */}
-                <div className="d-flex justify-content-between align-items-center mb-5">
-                  <div>
-                    <h2 className="mb-1">Asignar Servicios a Barbero</h2>
-                    <p className="text-muted mb-0">
-                      Activa, edita o desactiva servicios sin borrarlos
-                    </p>
-                  </div>
-                  {barberoSeleccionado && (
-                    <Badge color="info" className="px-3 py-2">
-                      {serviciosActivosCount} activo(s)
-                    </Badge>
-                  )}
+                <div className="mb-4">
+                  <h2 className={isMobile ? "h4 mb-2" : "mb-1"}>
+                    Asignar Servicios a Barbero
+                  </h2>
+                  <p className="text-muted mb-3">
+                    Activa, edita o desactiva servicios sin borrarlos
+                  </p>
+                  
+                  <Row className="align-items-center mb-3">
+                    <Col xs={barberoSeleccionado ? 8 : 12}>
+                      {/* SELECT BARBERO */}
+                      <FormGroup>
+                        <Label className="font-weight-bold">
+                          Seleccionar Barbero
+                        </Label>
+                        <Input
+                          type="select"
+                          value={barberoId}
+                          onChange={(e) => setBarberoId(e.target.value)}
+                          className={isMobile ? "form-control-sm" : ""}
+                        >
+                          <option value="">-- Elige un barbero --</option>
+                          {barberos.map((b) => (
+                            <option key={b._id} value={b._id}>
+                              {b.nombre} {b.apellido}
+                            </option>
+                          ))}
+                        </Input>
+                      </FormGroup>
+                    </Col>
+                    
+                    {barberoSeleccionado && (
+                      <Col xs={4} className="text-right">
+                        <Badge color="info" className="px-3 py-2" pill>
+                          {serviciosActivosCount} activo(s)
+                        </Badge>
+                      </Col>
+                    )}
+                  </Row>
                 </div>
 
-                {/* SELECT BARBERO */}
-                <FormGroup className="mb-5">
-                  <Label className="font-weight-bold">
-                    Seleccionar Barbero
-                  </Label>
-                  <Input
-                    type="select"
-                    value={barberoId}
-                    onChange={(e) => setBarberoId(e.target.value)}
-                  >
-                    <option value="">-- Elige un barbero --</option>
-                    {barberos.map((b) => (
-                      <option key={b._id} value={b._id}>
-                        {b.nombre} {b.apellido}
-                      </option>
-                    ))}
-                  </Input>
-                </FormGroup>
-
-                {/* TABLE */}
+                {/* TABLE / MOBILE CARDS */}
                 {barberoId && (
-                  <div className="table-responsive">
-                    <Table hover className="align-middle">
-                      <thead className="thead-dark">
-                        <tr>
-                          <th width="50" className="text-center text-white">
-                            ✓
-                          </th>
-                          <th className="text-white">Servicio</th>
-                          <th width="200" className="text-white">
-                            Duración (min)
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                  <>
+                    {isMobile ? (
+                      // VISTA MOBILE - CARDS
+                      <div className="mt-4">
                         {servicios.map((s) => {
                           const asignado = serviciosAsignados.find(
                             (x) => x.servicioId === s._id
                           );
 
                           return (
-                            <tr
-                              key={s._id}
-                              className={asignado?.activo ? "table-active" : ""}
+                            <Card 
+                              key={s._id} 
+                              className={`mb-3 ${asignado?.activo ? 'border-primary' : ''}`}
                             >
-                              <td className="text-center">
-                                <Input
-                                  type="checkbox"
-                                  checked={!!asignado?.activo}
-                                  onChange={() => toggleServicio(s._id)}
-                                />
-                              </td>
-                              <td className="font-weight-bold">{s.nombre}</td>
-                              <td>
-                                <Input
-                                  type="number"
-                                  disabled={!asignado?.activo}
-                                  value={asignado?.duracion || ""}
-                                  onChange={(e) =>
-                                    updateCampo(s._id, e.target.value)
-                                  }
-                                />
-                              </td>
-                            </tr>
+                              <CardBody className="p-3">
+                                <Row className="align-items-center mb-2">
+                                  <Col xs={10}>
+                                    <h6 className="font-weight-bold mb-0">
+                                      {s.nombre}
+                                    </h6>
+                                  </Col>
+                                  <Col xs={2} className="text-right">
+                                    <FormGroup check className="m-0">
+                                      <Input
+                                        type="checkbox"
+                                        checked={!!asignado?.activo}
+                                        onChange={() => toggleServicio(s._id)}
+                                        className="m-0"
+                                      />
+                                    </FormGroup>
+                                  </Col>
+                                </Row>
+                                
+                                <Row className="align-items-center">
+                                  <Col xs={8}>
+                                    <Label className="mb-0 text-muted small">
+                                      Duración (minutos)
+                                    </Label>
+                                  </Col>
+                                  <Col xs={4}>
+                                    <Input
+                                      type="number"
+                                      disabled={!asignado?.activo}
+                                      value={asignado?.duracion || ""}
+                                      onChange={(e) =>
+                                        updateCampo(s._id, e.target.value)
+                                      }
+                                      bsSize="sm"
+                                      className="text-right"
+                                    />
+                                  </Col>
+                                </Row>
+                              </CardBody>
+                            </Card>
                           );
                         })}
-                      </tbody>
-                    </Table>
-                  </div>
+                      </div>
+                    ) : (
+                      // VISTA DESKTOP - TABLE
+                      <div className="table-responsive">
+                        <Table hover className="align-middle">
+                          <thead className="thead-dark">
+                            <tr>
+                              <th width="50" className="text-center text-white">
+                                ✓
+                              </th>
+                              <th className="text-white">Servicio</th>
+                              <th width="200" className="text-white">
+                                Duración (min)
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {servicios.map((s) => {
+                              const asignado = serviciosAsignados.find(
+                                (x) => x.servicioId === s._id
+                              );
+
+                              return (
+                                <tr
+                                  key={s._id}
+                                  className={asignado?.activo ? "table-active" : ""}
+                                >
+                                  <td className="text-center">
+                                    <Input
+                                      type="checkbox"
+                                      checked={!!asignado?.activo}
+                                      onChange={() => toggleServicio(s._id)}
+                                    />
+                                  </td>
+                                  <td className="font-weight-bold">{s.nombre}</td>
+                                  <td>
+                                    <Input
+                                      type="number"
+                                      disabled={!asignado?.activo}
+                                      value={asignado?.duracion || ""}
+                                      onChange={(e) =>
+                                        updateCampo(s._id, e.target.value)
+                                      }
+                                    />
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </Table>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {/* FOOTER */}
@@ -226,9 +304,10 @@ const AsignarServiciosBarbero = () => {
                   <div className="mt-4 d-flex justify-content-end">
                     <Button
                       color="primary"
-                      size="lg"
+                      size={isMobile ? "md" : "lg"}
                       onClick={guardar}
                       disabled={!serviciosAsignados.length}
+                      block={isMobile}
                     >
                       Guardar Cambios
                     </Button>
