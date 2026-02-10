@@ -55,7 +55,7 @@ const AsignarServiciosBarbero = () => {
         ...prev,
         {
           servicioId,
-          duracion: 30,
+          duracion: 60,
           activo: true,
         },
       ];

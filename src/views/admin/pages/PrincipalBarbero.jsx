@@ -139,7 +139,8 @@ const AdminDashboard = () => {
       value: proxCliente?.data?.cliente?.nombreCompleto || "-",
       icon: <User size={20} />,
       extra: {
-        hora: proxCliente?.data?.hora || "-",
+        hora: proxCliente?.data?.hora,
+        fecha: proxCliente?.data?.fecha || "-",
       },
     },
     {
@@ -220,13 +221,10 @@ const AdminDashboard = () => {
                       </h6>
                       <h3 className="font-weight-bold mb-0">{stat.value}</h3>
 
-                      {stat.extra && (
+                      {stat.extra && stat.extra.fecha && stat.extra.hora && (
                         <div className="mt-1">
                           <small className="d-block text-muted">
-                            {stat.extra.fecha}
-                          </small>
-                          <small className="d-block text-muted">
-                            {stat.extra.hora}
+                            📅 {stat.extra.fecha} &nbsp; 🕒 {stat.extra.hora}
                           </small>
                         </div>
                       )}

@@ -45,3 +45,7 @@ export const postAsignarServiciosAlBarbero = (
 export const postCrearBarbero = (data) => {
   return axiosPrivate.post(`/usuarios/barbero/crearBarbero`, data);
 };
+
+export const updateEstadoUsuario = (id, estado) => {
+  return axiosPrivate.patch(`/usuarios/${id}/estado`, { estado });
+};

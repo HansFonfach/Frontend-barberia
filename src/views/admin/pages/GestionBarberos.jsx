@@ -50,7 +50,7 @@ const GestionBarberos = () => {
     handleEditar,
     handleGuardar,
     toggleModal,
-    handleTransformarRol,
+    handleCambiarEstado, // ✅ correcto
   } = useUsuarios("barbero");
 
   const { paginaActual, totalPaginas, itemsPaginados, cambiarPagina } =
@@ -75,15 +75,18 @@ const GestionBarberos = () => {
     {
       key: "estado",
       label: "Estado",
-      render: (value) => (
-        <Badge
-          color={value ? "success" : "danger"}
-          className="py-2 px-3"
-          style={{ borderRadius: "20px", fontWeight: "500" }}
-        >
-          {value ? "Activo" : "Inactivo"}
-        </Badge>
-      ),
+      render: (value) => {
+        const activo = value === "activo";
+        return (
+          <Badge
+            color={activo ? "success" : "danger"}
+            className="py-2 px-3"
+            style={{ borderRadius: "20px", fontWeight: "500" }}
+          >
+            {activo ? "Activo" : "Inactivo"}
+          </Badge>
+        );
+      },
     },
   ];
 
@@ -95,35 +98,48 @@ const GestionBarberos = () => {
       title: "Editar datos",
     },
     {
-      id: "eliminar",
+      id: "estado",
       icon: AccionIcons.ELIMINAR,
-      color: "danger",
-      title: "Eliminar barbero",
+      color: "warning",
+      title: "Activar / Inactivar",
     },
   ];
 
-  const handleAccion = async (accionId, barbero) => {
+  const handleAccion = async (accionId, usuario) => {
     try {
-      if (accionId === "editar") handleEditar(barbero);
+      if (accionId === "editar") {
+        handleEditar(usuario);
+      }
 
-      if (accionId === "eliminar") {
-        const result = await Swal.fire({
-          title: "¿Eliminar barbero?",
-          text: `${barbero.nombre} ${barbero.apellido} dejará de ser barbero.`,
+      if (accionId === "estado") {
+        const activar = usuario.estado === "inactivo";
+
+        const confirm = await Swal.fire({
+          title: activar ? "¿Reactivar usuario?" : "¿Inactivar usuario?",
+          text: activar
+            ? "El usuario podrá volver a acceder al sistema"
+            : "El usuario no podrá acceder al sistema",
           icon: "warning",
           showCancelButton: true,
-          confirmButtonText: "Sí, eliminar",
+          confirmButtonText: activar ? "Sí, reactivar" : "Sí, inactivar",
           cancelButtonText: "Cancelar",
-          reverseButtons: true,
         });
 
-        if (result.isConfirmed) {
-          await handleTransformarRol(barbero._id, "cliente");
-          Swal.fire("Listo", "Barbero eliminado", "success");
+        if (confirm.isConfirmed) {
+          await handleCambiarEstado(
+            usuario._id,
+            activar ? "activo" : "inactivo"
+          );
+
+          Swal.fire(
+            "Listo",
+            activar ? "Usuario reactivado" : "Usuario inactivado",
+            "success"
+          );
         }
       }
     } catch (error) {
-      Swal.fire("Error", error.message, "error");
+      Swal.fire("Error", error.message || "Ocurrió un error", "error");
     }
   };
 
@@ -166,62 +182,66 @@ const GestionBarberos = () => {
                   totalResultados={usuarios.length}
                 />
 
-                {/* MOBILE CARDS */}
                 {isMobile ? (
                   <Row className="mt-3">
-                    {itemsPaginados.map((u) => (
-                      <Col xs="12" key={u._id} className="mb-3">
-                        <Card className="shadow-sm">
-                          <CardBody className="p-3">
-                            <Row className="align-items-center">
-                              <Col xs="8">
-                                <h6 className="mb-1 font-weight-bold">
-                                  {u.nombre} {u.apellido}
-                                </h6>
-                                <small className="text-muted d-block">
-                                  {u.email}
-                                </small>
-                                <small className="text-muted">RUT: {u.rut}</small>
-                              </Col>
-                              <Col xs="4" className="text-right">
-                                <Badge 
-                                  color={u.estado ? "success" : "danger"}
-                                  className="py-1 px-2"
-                                  style={{ fontSize: "0.75rem" }}
-                                >
-                                  {u.estado ? "Activo" : "Inactivo"}
-                                </Badge>
-                              </Col>
-                            </Row>
-                            
-                            <hr className="my-2" />
-                            
-                            <Row className="mt-2">
-                              <Col xs="6" className="pr-1">
-                                <Button
-                                  size="sm"
-                                  color="primary"
-                                  block
-                                  onClick={() => handleAccion("editar", u)}
-                                >
-                                  Editar
-                                </Button>
-                              </Col>
-                              <Col xs="6" className="pl-1">
-                                <Button
-                                  size="sm"
-                                  color="danger"
-                                  block
-                                  onClick={() => handleAccion("eliminar", u)}
-                                >
-                                  Eliminar
-                                </Button>
-                              </Col>
-                            </Row>
-                          </CardBody>
-                        </Card>
-                      </Col>
-                    ))}
+                    {itemsPaginados.map((u) => {
+                      const activo = u.estado === "activo";
+
+                      return (
+                        <Col xs="12" key={u._id} className="mb-3">
+                          <Card className="shadow-sm">
+                            <CardBody className="p-3">
+                              <Row className="align-items-center">
+                                <Col xs="8">
+                                  <h6 className="mb-1 font-weight-bold">
+                                    {u.nombre} {u.apellido}
+                                  </h6>
+                                  <small className="text-muted d-block">
+                                    {u.email}
+                                  </small>
+                                  <small className="text-muted">
+                                    RUT: {u.rut}
+                                  </small>
+                                </Col>
+                                <Col xs="4" className="text-right">
+                                  <Badge
+                                    color={activo ? "success" : "danger"}
+                                    className="py-1 px-2"
+                                  >
+                                    {activo ? "Activo" : "Inactivo"}
+                                  </Badge>
+                                </Col>
+                              </Row>
+
+                              <hr className="my-2" />
+
+                              <Row>
+                                <Col xs="6" className="pr-1">
+                                  <Button
+                                    size="sm"
+                                    color="primary"
+                                    block
+                                    onClick={() => handleAccion("editar", u)}
+                                  >
+                                    Editar
+                                  </Button>
+                                </Col>
+                                <Col xs="6" className="pl-1">
+                                  <Button
+                                    size="sm"
+                                    color={activo ? "danger" : "success"}
+                                    block
+                                    onClick={() => handleAccion("estado", u)}
+                                  >
+                                    {activo ? "Inactivar" : "Reactivar"}
+                                  </Button>
+                                </Col>
+                              </Row>
+                            </CardBody>
+                          </Card>
+                        </Col>
+                      );
+                    })}
                   </Row>
                 ) : (
                   <UserTable
@@ -256,7 +276,6 @@ const GestionBarberos = () => {
 
       <Modal isOpen={modalCrear} toggle={toggleCrear} centered size="lg">
         <ModalHeader toggle={toggleCrear}>Crear Barbero</ModalHeader>
-
         <ModalBody>
           <Form>
             <Row>
@@ -266,7 +285,7 @@ const GestionBarberos = () => {
                   <Input
                     value={rut}
                     onChange={handleRutChange}
-                    className={`border ${rutError ? "is-invalid" : ""}`}
+                    className={rutError ? "is-invalid" : ""}
                   />
                   {rutError && (
                     <small className="text-danger">{rutError}</small>
@@ -293,7 +312,6 @@ const GestionBarberos = () => {
                   <Input
                     type="password"
                     name="password"
-                    placeholder="Contraseña"
                     value={formCrear.password}
                     onChange={handleCrearChange}
                   />
@@ -306,7 +324,6 @@ const GestionBarberos = () => {
                   <Input
                     type="password"
                     name="confirmaPassword"
-                    placeholder="Confirmar contraseña"
                     value={formCrear.confirmaPassword}
                     onChange={handleCrearChange}
                   />

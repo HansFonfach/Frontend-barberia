@@ -14,9 +14,6 @@ import {
   FormGroup,
   Input,
   Badge,
-  InputGroup,
-  InputGroupAddon,
-  InputGroupText,
 } from "reactstrap";
 import UserHeader from "components/Headers/UserHeader.js";
 import ServiciosContext from "context/ServiciosContext";
@@ -112,6 +109,8 @@ const GestionServicios = () => {
       s.descripcion.toLowerCase().includes(busqueda.toLowerCase())
   );
 
+  const sinServicios = serviciosFiltrados.length === 0;
+
   return (
     <>
       <UserHeader />
@@ -155,64 +154,41 @@ const GestionServicios = () => {
                   </Col>
                 </Row>
 
-                {/* MOBILE CARDS */}
-                <div className="d-block d-md-none">
-                  {serviciosFiltrados.map((s) => (
-                    <Card key={s._id} className="mb-3 shadow-sm">
-                      <CardBody>
-                        <h5>{s.nombre}</h5>
+                {/* ESTADO VACÍO */}
+                {sinServicios && (
+                  <div className="text-center py-5 text-muted">
+                    <i className="ni ni-box-2" style={{ fontSize: 40 }} />
+                    <h4 className="mt-3">No hay servicios aún</h4>
+                    <p className="mb-3">
+                      Crea tu primer servicio para poder asignarlo a las
+                      reservas.
+                    </p>
+                    <Button color="primary" size="sm" onClick={handleNuevo}>
+                      + Crear servicio
+                    </Button>
+                  </div>
+                )}
 
-                        <p className="text-muted small mb-2">
-                          {s.descripcion}
-                        </p>
+                {/* MOBILE */}
+                {!sinServicios && (
+                  <div className="d-block d-md-none">
+                    {serviciosFiltrados.map((s) => (
+                      <Card key={s._id} className="mb-3 shadow-sm">
+                        <CardBody>
+                          <h5>{s.nombre}</h5>
 
-                        <Badge color="success" pill>
-                          ${s.precio}
-                        </Badge>
+                          <p className="text-muted small mb-2">
+                            {s.descripcion}
+                          </p>
 
-                        <div className="mt-3 d-flex justify-content-between">
-                          <Button
-                            size="sm"
-                            color="primary"
-                            onClick={() => handleEditar(s)}
-                          >
-                            Editar
-                          </Button>
+                          <Badge color="success" pill>
+                            ${s.precio}
+                          </Badge>
 
-                          <Button
-                            size="sm"
-                            color="danger"
-                            onClick={() => handleEliminar(s)}
-                          >
-                            Eliminar
-                          </Button>
-                        </div>
-                      </CardBody>
-                    </Card>
-                  ))}
-                </div>
-
-                {/* DESKTOP TABLE */}
-                <div className="d-none d-md-block">
-                  <Table responsive>
-                    <thead>
-                      <tr>
-                        <th>Servicio</th>
-                        <th>Precio</th>
-                        <th className="text-right">Acciones</th>
-                      </tr>
-                    </thead>
-
-                    <tbody>
-                      {serviciosFiltrados.map((s) => (
-                        <tr key={s._id}>
-                          <td>{s.nombre}</td>
-                          <td>${s.precio}</td>
-                          <td className="text-right">
+                          <div className="mt-3 d-flex justify-content-between">
                             <Button
                               size="sm"
                               color="primary"
-                              className="mr-2"
                               onClick={() => handleEditar(s)}
                             >
                               Editar
@@ -225,12 +201,54 @@ const GestionServicios = () => {
                             >
                               Eliminar
                             </Button>
-                          </td>
+                          </div>
+                        </CardBody>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+
+                {/* DESKTOP */}
+                {!sinServicios && (
+                  <div className="d-none d-md-block">
+                    <Table responsive>
+                      <thead>
+                        <tr>
+                          <th>Servicio</th>
+                          <th>Precio</th>
+                          <th className="text-right">Acciones</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                </div>
+                      </thead>
+
+                      <tbody>
+                        {serviciosFiltrados.map((s) => (
+                          <tr key={s._id}>
+                            <td>{s.nombre}</td>
+                            <td>${s.precio}</td>
+                            <td className="text-right">
+                              <Button
+                                size="sm"
+                                color="primary"
+                                className="mr-2"
+                                onClick={() => handleEditar(s)}
+                              >
+                                Editar
+                              </Button>
+
+                              <Button
+                                size="sm"
+                                color="danger"
+                                onClick={() => handleEliminar(s)}
+                              >
+                                Eliminar
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </div>
+                )}
               </CardBody>
             </Card>
           </Col>
@@ -243,7 +261,11 @@ const GestionServicios = () => {
           <Form>
             <FormGroup>
               <label>Nombre</label>
-              <Input name="nombre" value={form.nombre} onChange={handleChange} />
+              <Input
+                name="nombre"
+                value={form.nombre}
+                onChange={handleChange}
+              />
             </FormGroup>
 
             <FormGroup>

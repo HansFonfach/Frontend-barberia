@@ -115,14 +115,11 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
       const res = await registerRequest(data);
-      const usuario = res.data.user;
 
       if (res.data.token) saveToken(res.data.token);
 
-      // Esperar un momento para que la cookie se establezca
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      // Verificar sesión después del registro
       const verifiedUser = await verifySession();
 
       if (verifiedUser) {
@@ -132,9 +129,14 @@ export const AuthProvider = ({ children }) => {
         setErrors(null);
       }
 
-      return { ...res.data, user: verifiedUser || usuario };
+      return { ...res.data, user: verifiedUser };
     } catch (error) {
-      setErrors(error.response?.data || "Error desconocido");
+      const msg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Error desconocido";
+
+      setErrors(msg);
       throw error;
     } finally {
       setLoading(false);
@@ -158,7 +160,7 @@ export const AuthProvider = ({ children }) => {
       const res = await updateUserPasswordRequest(
         id,
         currentPassword,
-        newPassword
+        newPassword,
       );
       return res.data;
     } catch (error) {

@@ -1,15 +1,17 @@
 import { useState, useEffect, useMemo } from "react";
 import { useUsuario } from "context/usuariosContext"; // usa el context corregido
 import { useAuth } from "context/AuthContext";
+import Swal from "sweetalert2";
 
 export const useUsuarios = (rolFiltro) => {
   const {
     usuarios: usuariosContext,
     cargando,
-    getAllUsers,        // <-- ahora sí viene del context
+    getAllUsers, // <-- ahora sí viene del context
     updateUser,
     subscribeUser,
     unsubscribeUser,
+    cambiarEstadoUsuario,
   } = useUsuario();
 
   const { user, isAuthenticated } = useAuth();
@@ -40,7 +42,7 @@ export const useUsuarios = (rolFiltro) => {
         u.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
         u.apellido?.toLowerCase().includes(busqueda.toLowerCase()) ||
         u.rut?.includes(busqueda) ||
-        u.email?.toLowerCase().includes(busqueda.toLowerCase())
+        u.email?.toLowerCase().includes(busqueda.toLowerCase()),
     );
   }, [busqueda, usuariosFiltrados]);
 
@@ -60,6 +62,26 @@ export const useUsuarios = (rolFiltro) => {
     setModal(false);
     // recarga global para mantener todo sincronizado
     await getAllUsers();
+  };
+
+  const handleCambiarEstado = async (usuarioId, estado) => {
+    try {
+      if (!usuarioId) {
+        throw new Error("No se ha encontrado al usuario");
+      }
+
+      await cambiarEstadoUsuario(usuarioId, estado);
+
+      // siempre refrescamos
+      await getAllUsers();
+    } catch (error) {
+      console.error(error);
+      Swal.fire(
+        "Error",
+        "No se pudo actualizar el estado del usuario",
+        "error",
+      );
+    }
   };
 
   const handleSuscribir = async (usuarioId, accion) => {
@@ -87,12 +109,6 @@ export const useUsuarios = (rolFiltro) => {
     }
   };
 
-  const handleEliminarUsuario = async (usuarioId) => {
-    // si tienes API para eliminar, llámala aquí y luego recarga
-    // await deleteUser(usuarioId);
-    await getAllUsers();
-  };
-
   return {
     usuarios: usuariosBuscados,
     busqueda,
@@ -110,7 +126,7 @@ export const useUsuarios = (rolFiltro) => {
     handleEditar,
     handleGuardar,
     handleSuscribir,
-    handleEliminarUsuario,
+    handleCambiarEstado,
     toggleModal,
     toggleModalGestion,
     getAllUsers, // <-- exporto esto para que el componente lo llame

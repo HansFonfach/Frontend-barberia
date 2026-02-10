@@ -50,6 +50,8 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // 1️⃣ Validaciones frontend primero
     if (error) {
       Swal.fire({
         icon: "error",
@@ -58,28 +60,40 @@ const Register = () => {
       });
       return;
     }
-    try {
-      await register({ ...form, rut });
-      if (form.password !== form.confirmPassword) {
-        Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: "Las contraseñas no coinciden.",
-        });
-        return;
-      }
-      Swal.fire({
-        title: "Registro exitoso!",
-        text: "¡Felicitaciones! Hemos creado tu cuenta exitosamente!",
-        icon: "success",
-        confirmButtonText: "Aceptar",
-      });
-      navigate("/admin/index");
-    } catch (err) {
+
+    if (form.password !== form.confirmPassword) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: "No se pudo registrar el usuario.",
+        text: "Las contraseñas no coinciden.",
+      });
+      return;
+    }
+
+    try {
+      // 2️⃣ Registrar
+      await register({ ...form, rut });
+
+      // 3️⃣ Éxito
+      Swal.fire({
+        title: "Registro exitoso 🎉",
+        text: "¡Tu cuenta fue creada correctamente!",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+      });
+
+      navigate("/admin/index");
+    } catch (err) {
+      // 4️⃣ Error REAL del backend
+      const message =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        "Error al registrar. Intenta nuevamente.";
+
+      Swal.fire({
+        icon: "error",
+        title: "No se pudo registrar",
+        text: message,
       });
     }
   };
@@ -93,7 +107,7 @@ const Register = () => {
       setPasswordMatch(
         e.target.name === "confirmPassword"
           ? e.target.value === form.password
-          : (form.confirmPassword = e.target.value)
+          : (form.confirmPassword = e.target.value),
       );
     }
   };
@@ -123,7 +137,7 @@ const Register = () => {
                     </InputGroupText>
                   </InputGroupAddon>
                   <Input
-                    placeholder="RUT ejemplo: 19.301.809-2 o Pasaporte"
+                    placeholder="Ingrese rut sin puntos ni guión"
                     type="text"
                     name="rut"
                     value={rut}
@@ -194,9 +208,6 @@ const Register = () => {
                 />
               </InputGroup>
 
-              <div className="text-muted small">
-                Ingresa solo los 8 dígitos finales (ej: 75345678).
-              </div>
               <FormGroup>
                 <InputGroup className="input-group-alternative mb-3">
                   <InputGroupAddon addonType="prepend">
@@ -272,8 +283,8 @@ const Register = () => {
                       passwordMatch === null
                         ? ""
                         : passwordMatch
-                        ? "is-valid"
-                        : "is-invalid"
+                          ? "is-valid"
+                          : "is-invalid"
                     }
                   />
                   <InputGroupAddon addonType="append">
@@ -308,12 +319,6 @@ const Register = () => {
                 )}
               </FormGroup>
 
-              <div className="text-muted font-italic">
-                <small>
-                  password strength:{" "}
-                  <span className="text-success font-weight-700">strong</span>
-                </small>
-              </div>
               <div className="text-center">
                 <Button className="mt-4" color="primary" type="submit">
                   Crear cuenta

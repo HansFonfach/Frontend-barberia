@@ -11,6 +11,8 @@ import { getSubActiva } from "api/usuarios";
 import { getVerMisPuntos } from "api/usuarios";
 import { postAsignarServiciosAlBarbero } from "api/usuarios";
 import { postCrearBarbero } from "api/usuarios";
+import { updateInactivarUsuario } from "api/usuarios";
+import { updateEstadoUsuario } from "api/usuarios";
 
 const UsuarioContext = createContext();
 
@@ -239,6 +241,15 @@ export const UsuarioProvider = ({ children }) => {
     }
   };
 
+const cambiarEstadoUsuario = async (id, estado) => {
+  try {
+    await updateEstadoUsuario(id, estado);
+    await getAllUsers();
+  } catch (error) {
+    throw error;
+  }
+};
+
   return (
     <UsuarioContext.Provider
       value={{
@@ -260,6 +271,7 @@ export const UsuarioProvider = ({ children }) => {
         getSuscripcionActiva,
         getVerPuntos,
         asignarServiciosAlBarbero,
+        cambiarEstadoUsuario
       }}
     >
       {children}
