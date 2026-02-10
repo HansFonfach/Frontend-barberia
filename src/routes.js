@@ -58,12 +58,11 @@ export const publicRoutes = [
     layout: "/auth",
     invisible: true,
   },
-   {
+  {
     path: "/inicio",
-    component: <Landing/>,
+    component: <Landing />,
     invisible: true,
   },
-
 ];
 
 /* =========================
@@ -226,19 +225,20 @@ export const barberoRoutes = [
     layout: "/admin",
     section: "gestion",
   },
-  {
-    path: "/gestion-horarios",
-    name: "Administrar Horarios",
-    icon: "fas fa-clock text-danger",
-    component: <GestionHorariosBarbero />,
-    layout: "/admin",
-    section: "gestion",
-  },
+
   {
     path: "/asignar-horas",
     name: "Asignar horarios",
     icon: "fas fa-user-clock text-primary",
     component: <WizardBarberoSemana />,
+    layout: "/admin",
+    section: "gestion",
+  },
+  {
+    path: "/gestion-horarios",
+    name: "Administrar Horarios",
+    icon: "fas fa-clock text-danger",
+    component: <GestionHorariosBarbero />,
     layout: "/admin",
     section: "gestion",
   },

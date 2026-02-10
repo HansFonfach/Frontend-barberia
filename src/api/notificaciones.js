@@ -1,18 +1,11 @@
 import { axiosPrivate } from "./axiosPrivate";
 
-export const postCrearNotificacion = async (
-  fecha,
-  horas,
-  barberoId,
-  usuarioId
-) => {
+export const postCrearNotificacion = async (payload) => {
   try {
-    return axiosPrivate.post("/notificaciones/crearNotificacion", {
-      fecha,
-      horas,
-      barberoId,
-      usuarioId,
-    });
+    return await axiosPrivate.post(
+      "/notificaciones/crearNotificacion",
+      payload
+    );
   } catch (error) {
     throw error;
   }

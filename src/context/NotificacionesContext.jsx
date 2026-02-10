@@ -12,16 +12,33 @@ export const NotificacionProvider = ({ children }) => {
     setNotificaciones(data);
   };
 
-const crearNotificacion = async ({ fecha, horas, barberoId, usuarioId }) => {
-  try {
-    const res = await postCrearNotificacion(fecha, horas, barberoId, usuarioId);
-    console.log("✅ Estoy en el context:", res.data);
-    return res.data;
-  } catch (error) {
-    console.error("❌ Error en crearNotificacion:", error.response?.data || error.message);
-    throw error;
-  }
-};
+  const crearNotificacion = async ({
+    fecha,
+    hora,
+    horas,
+    barberoId,
+    usuarioId,
+  }) => {
+    try {
+      const payload = {
+        fecha,
+        barberoId,
+        usuarioId,
+        ...(hora ? { hora } : {}),
+        ...(horas ? { horas } : {}),
+      };
+
+      const res = await postCrearNotificacion(payload);
+      console.log("✅ Estoy en el context:", res.data);
+      return res.data;
+    } catch (error) {
+      console.error(
+        "❌ Error en crearNotificacion:",
+        error.response?.data || error.message,
+      );
+      throw error;
+    }
+  };
 
   return (
     <NotificacionContext.Provider
