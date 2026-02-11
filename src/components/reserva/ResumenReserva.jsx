@@ -42,7 +42,7 @@ const ResumenReserva = ({
               <span>✂️ Servicio:</span>
               <strong>
                 {duracionServicio
-                  ? `${nombreServicio} (${duracionServicio} min)`
+                  ? `${nombreServicio} `
                   : nombreServicio}
               </strong>
             </div>
