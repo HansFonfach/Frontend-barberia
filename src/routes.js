@@ -29,6 +29,7 @@ import CatalogoCanjes from "views/pages/CatalogoCanjes";
 import GestionCanjes from "views/admin/pages/GestionCanjes";
 import AsignarServiciosBarberos from "views/admin/pages/AsignarServiciosBarberos";
 import Landing from "views/pages/Landing";
+import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -61,6 +62,11 @@ export const publicRoutes = [
   {
     path: "/inicio",
     component: <Landing />,
+    invisible: true,
+  },
+  {
+    path: "/reservar",
+    component: <ReservarHoraInvitado />,
     invisible: true,
   },
 ];

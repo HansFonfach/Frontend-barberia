@@ -55,7 +55,7 @@ const Landing = () => {
                   onClick={() => navigate("/reservar")}
                 >
                   <span className="btn-inner--icon"><FaCalendarCheck /></span>
-                  <span className="btn-inner--text ml-2">Reservar ahora</span>
+                  <span className="btn-inner--text ml-2">Reservar como invitado</span>
                 </Button>
                 <Button
                   className="btn-neutral btn-icon px-4"
@@ -83,7 +83,7 @@ const Landing = () => {
         <Row className="justify-content-center">
           {[
             { title: "Servicios", desc: "Cortes y barba premium", icon: <FaCut size={30}/>, color: "text-primary" },
-            { title: "Barberos", desc: "Expertos a tu elección", icon: <FaUserFriends size={30}/>, color: "text-info" },
+            { title: "Profesionales", desc: "Expertos a tu elección", icon: <FaUserFriends size={30}/>, color: "text-info" },
             { title: "Horarios", desc: "Tú eliges el momento", icon: <MdAccessTime size={30}/>, color: "text-success" }
           ].map((item, idx) => (
             <Col lg="4" key={idx} className="mb-4">

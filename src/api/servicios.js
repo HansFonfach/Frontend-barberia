@@ -1,7 +1,8 @@
 import { axiosPrivate } from "./axiosPrivate";
+import { axiosPublic } from "./axiosPublic";
 
 export const getServicios = () => {
-  return axiosPrivate.get("/servicios");
+  return axiosPublic.get("/servicios");
 };
 
 export const postCreateServicios = (data) => {
@@ -17,5 +18,5 @@ export const postDeleteServicios = (id) => {
 };
 
 export const getServiciosBarbero = (barberoId) =>{
-  return axiosPrivate.get(`/barberoServicio/barberos/${barberoId}/servicios`)
+  return axiosPublic.get(`/barberoServicio/barberos/${barberoId}/servicios`)
 }

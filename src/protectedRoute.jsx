@@ -2,10 +2,10 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "context/AuthContext";
 
 export default function ProtectedRoute() {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, initialCheckDone } = useAuth();
 
-  // Mientras verifica sesión, no renderizar nada (o muestra spinner)
-  if (loading) {
+  // Mientras verifica sesión
+  if (loading || !initialCheckDone) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
         <div className="spinner-border text-warning" role="status">
@@ -15,11 +15,11 @@ export default function ProtectedRoute() {
     );
   }
 
-  // Si no está autenticado (y ya terminó de verificar)
+  // Si no está autenticado
   if (!isAuthenticated) {
     return <Navigate to="/auth/login" replace />;
   }
 
-  // Si está autenticado, renderiza la ruta
+  // Si está autenticado
   return <Outlet />;
 }

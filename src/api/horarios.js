@@ -1,8 +1,9 @@
 import { axiosPrivate } from "./axiosPrivate";
+import { axiosPublic } from "./axiosPublic";
 
 export const getHorasDisponibles = async (barberoId, fecha, servicioId) => {
   try {
-    const res = await axiosPrivate.get(
+    const res = await axiosPublic.get(
       `/horarios/barbero/${barberoId}/horas-disponibles`,
       {
         params: {

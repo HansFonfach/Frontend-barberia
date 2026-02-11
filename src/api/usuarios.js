@@ -1,7 +1,8 @@
 import { axiosPrivate } from "./axiosPrivate";
+import { axiosPublic } from "./axiosPublic";
 
 export const getUsuarios = () => {
-  return axiosPrivate.get("/usuarios");
+  return axiosPublic.get("/usuarios");
 };
 
 export const putUsuario = (id, data) => {

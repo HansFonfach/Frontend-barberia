@@ -74,13 +74,19 @@ export const AuthProvider = ({ children }) => {
       return null;
     } finally {
       setLoading(false);
-      setInitialCheckDone(true); // 🔑 evita loading infinito
+      setInitialCheckDone(true); // 🔑 evita mostrar alerta antes de tiempo
     }
   }, []);
 
   // 🚀 Check inicial
   useEffect(() => {
-    verifySession();
+    const token = localStorage.getItem("token");
+    if (token) {
+      verifySession();
+    } else {
+      setLoading(false);
+      setInitialCheckDone(true); // marca como verificado aunque no haya token
+    }
   }, [verifySession]);
 
   // LOGIN

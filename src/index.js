@@ -20,6 +20,7 @@ import { LookProvider } from "context/LookContext";
 import { CanjeProvider } from "context/CanjeContext";
 
 import Landing from "views/pages/Landing";
+import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
 
 const RootRedirect = () => {
   const { user, isAuthenticated } = useAuth();
@@ -53,6 +54,7 @@ root.render(
                         <Routes>
                           {/* Landing pública */}
                           <Route path="/" element={<RootRedirect />} />
+                          <Route path="/reservar" element={<ReservarHoraInvitado />} />
 
                           {/* Auth */}
                           <Route path="/auth/*" element={<AuthLayout />} />
