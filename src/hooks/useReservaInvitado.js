@@ -1,34 +1,44 @@
 // src/hooks/useReservaInvitado.js
-import { useState, useContext, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Swal from "sweetalert2";
-import { useReserva } from "context/ReservaContext";
-import ServiciosContext from "context/ServiciosContext";
-import { useUsuario } from "context/usuariosContext";
-import { useHorario } from "context/HorarioContext";
-import { useHorasDisponibles } from "hooks/useHorasDisponibles";
+import { getServiciosPublicos, getServiciosBarbero } from "api/servicios";
+import { getBarberosPublico } from "api/usuarios";
+import { getHorasDisponibles } from "api/horarios";
 import { postReservarHoraInvitado } from "api/invitado";
+import { useHorasDisponibles } from "hooks/useHorasDisponibles";
 
-export const useReservaInvitado = () => {
+export const useReservaInvitado = (slug) => {
   // ────────────────────────────────
-  // ESTADOS BÁSICOS
+  // REFS PARA CONTROLAR BUCLES
   // ────────────────────────────────
-  const [fecha, setFecha] = useState("");
-  const [barbero, setBarbero] = useState("");
-  const [hora, setHora] = useState("");
+  const fetchingWeekRef = useRef(false);
+  const prevBarberoRef = useRef("");
+  const prevServicioRef = useRef("");
+  const prevWeekStartRef = useRef("");
+
+  // ────────────────────────────────
+  // ESTADOS BASE
+  // ────────────────────────────────
+  const [servicios, setServicios] = useState([]);
+  const [barberos, setBarberos] = useState([]);
+  const [serviciosBarberos, setServiciosBarberos] = useState({});
+
   const [servicio, setServicio] = useState("");
-  const [pasoActual, setPasoActual] = useState(1);
-  const [reservando, setReservando] = useState(false);
+  const [barbero, setBarbero] = useState("");
+  const [fecha, setFecha] = useState("");
+  const [hora, setHora] = useState("");
 
-  // ────────────────────────────────
-  // SEMANA
-  // ────────────────────────────────
+  // 📅 ESTADOS PARA LA SEMANA
   const [weekStart, setWeekStart] = useState(new Date());
   const [weekDays, setWeekDays] = useState([]);
   const [loadingWeek, setLoadingWeek] = useState(false);
 
-  // ────────────────────────────────
-  // INVITADO
-  // ────────────────────────────────
+  const [loadingServicios, setLoadingServicios] = useState(true);
+  const [loadingBarberos, setLoadingBarberos] = useState(true);
+  const [reservando, setReservando] = useState(false);
+
+  const [pasoActual, setPasoActual] = useState(1);
+
   const [invitado, setInvitado] = useState({
     nombre: "",
     apellido: "",
@@ -38,81 +48,29 @@ export const useReservaInvitado = () => {
   });
 
   // ────────────────────────────────
-  // CONTEXTOS
-  // ────────────────────────────────
-  const { barberos, getBarberosDisponibles } = useUsuario();
-  const { servicios, serviciosBarberos, cargarServiciosBarbero, loadingServicios } = useContext(ServiciosContext);
-  const { getHorasDisponiblesBarbero, } = useHorario(); // Ajusta según tu contexto reserva/invitado
-
-  // ────────────────────────────────
-  // CARGAR BARBEROS Y SERVICIOS
-  // ────────────────────────────────
-  useEffect(() => {
-    getBarberosDisponibles();
-  }, [getBarberosDisponibles]);
-
-  useEffect(() => {
-    if (!servicio) return;
-    barberos.forEach((b) => {
-      if (!serviciosBarberos[b._id]) {
-        cargarServiciosBarbero(b._id);
-      }
-    });
-  }, [servicio, barberos, serviciosBarberos, cargarServiciosBarbero]);
-
-  // ────────────────────────────────
-  // DURACIÓN DEL SERVICIO
-  // ────────────────────────────────
-  const duracionServicio = (() => {
-    if (!barbero || !servicio) return 60;
-    const serviciosB = serviciosBarberos[barbero] || [];
-    const svc = serviciosB.find((s) => {
-      const servicioId = s.servicioId?._id || s.servicioId;
-      return String(servicioId) === String(servicio);
-    });
-    return svc?.duracion || 60;
-  })();
-
-  // ────────────────────────────────
-  // HORAS DISPONIBLES (usa tu hook compartido)
+  // HOOK DE HORAS DISPONIBLES
   // ────────────────────────────────
   const {
     horas: horasDisponibles,
     mensaje: mensajeHoras,
     cargando: cargandoHoras,
     dataCompleta: horasDataCompleta,
-  } = useHorasDisponibles(barbero, fecha, servicio, getHorasDisponiblesBarbero);
-
-  // ────────────────────────────────
-  // FILTRAR BARBEROS SEGÚN SERVICIO
-  // ────────────────────────────────
-  const barberosFiltrados = servicio
-    ? barberos.filter((b) => {
-        const serviciosB = serviciosBarberos[b._id] || [];
-        return serviciosB.some((s) => String(s.servicioId?._id || s.servicioId) === String(servicio));
-      })
-    : [];
-
-  // ────────────────────────────────
-  // CONTROL DE PASOS
-  // ────────────────────────────────
-  useEffect(() => {
-    if (loadingServicios) return;
-    if (!servicio) setPasoActual(1);
-    else if (!barbero) setPasoActual(2);
-    else if (!fecha) setPasoActual(3);
-    else if (!hora) setPasoActual(4);
-    else setPasoActual(5);
-  }, [servicio, barbero, fecha, hora, loadingServicios]);
+  } = useHorasDisponibles(barbero, fecha, servicio, getHorasDisponibles);
 
   // ────────────────────────────────
   // UTILIDADES FECHA
   // ────────────────────────────────
   const isoDate = (d) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
+      d.getDate(),
+    ).padStart(2, "0")}`;
 
   const formatDayLabel = (d) =>
-    d.toLocaleDateString("es-CL", { weekday: "short", day: "numeric", month: "short" });
+    d.toLocaleDateString("es-CL", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+    });
 
   const buildWeekDates = useCallback((start) => {
     const dates = [];
@@ -127,53 +85,306 @@ export const useReservaInvitado = () => {
   }, []);
 
   // ────────────────────────────────
+  // CARGA INICIAL: SERVICIOS + BARBEROS
+  // ────────────────────────────────
+  useEffect(() => {
+    if (!slug) return;
+
+    const fetchInicial = async () => {
+      try {
+        setLoadingServicios(true);
+        setLoadingBarberos(true);
+
+        const [serviciosRes, barberosRes] = await Promise.all([
+          getServiciosPublicos(slug),
+          getBarberosPublico(slug),
+        ]);
+
+        setServicios(
+          Array.isArray(serviciosRes?.data?.servicios)
+            ? serviciosRes.data.servicios
+            : [],
+        );
+        setBarberos(Array.isArray(barberosRes?.data) ? barberosRes.data : []);
+      } catch (e) {
+        console.error("❌ Error carga inicial:", e);
+        setServicios([]);
+        setBarberos([]);
+      } finally {
+        setLoadingServicios(false);
+        setLoadingBarberos(false);
+      }
+    };
+
+    fetchInicial();
+  }, [slug]);
+
+  // ────────────────────────────────
+  // CARGAR SERVICIOS DE UN BARBERO (CACHE)
+  // ────────────────────────────────
+  const cargarServiciosBarbero = useCallback(
+    async (barberoId) => {
+      if (!barberoId || serviciosBarberos[barberoId]) return;
+
+      try {
+        const data = await getServiciosBarbero(barberoId);
+
+        setServiciosBarberos((prev) => ({
+          ...prev,
+          [barberoId]: Array.isArray(data?.data) ? data.data : [],
+        }));
+      } catch (e) {
+        console.error("❌ Error servicios barbero:", e);
+        setServiciosBarberos((prev) => ({ ...prev, [barberoId]: [] }));
+      }
+    },
+    [serviciosBarberos],
+  );
+
+  // ────────────────────────────────
+  // FILTRAR BARBEROS SEGÚN SERVICIO SELECCIONADO
+  // ────────────────────────────────
+  const barberosFiltrados = servicio
+    ? barberos.filter((b) => {
+        const serviciosB = serviciosBarberos[b._id] || [];
+        return serviciosB.some(
+          (s) => String(s.servicioId) === String(servicio),
+        );
+      })
+    : [];
+
+  // ────────────────────────────────
+  // DURACIÓN DEL SERVICIO
+  // ────────────────────────────────
+  const duracionServicio = (() => {
+    if (!barbero || !servicio) return 60;
+    const serviciosB = serviciosBarberos[barbero] || [];
+    const match = serviciosB.find(
+      (s) => String(s.servicioId) === String(servicio),
+    );
+    return match?.duracion || 60;
+  })();
+
+  // ────────────────────────────────
   // CARGAR DISPONIBILIDAD SEMANAL
   // ────────────────────────────────
-  const fetchWeekAvailability = useCallback(async () => {
-    const dates = buildWeekDates(weekStart);
-    if (!barbero || !servicio) {
-      setWeekDays(dates.map((d) => ({
+  const fetchWeekAvailability = useCallback(
+    async (barberoId, serviceId, startDate) => {
+      // Evitar llamadas múltiples
+      if (fetchingWeekRef.current) {
+        return;
+      }
+
+      const dates = buildWeekDates(startDate);
+      const weekStartKey = isoDate(startDate);
+
+      // Verificar si ya cargamos estos mismos datos
+      if (
+        prevBarberoRef.current === barberoId &&
+        prevServicioRef.current === serviceId &&
+        prevWeekStartRef.current === weekStartKey
+      ) {
+        return;
+      }
+
+      if (!barberoId || !serviceId) {
+        console.log("⛔ No se puede cargar semana - falta:", {
+          barberoId,
+          serviceId,
+        });
+        const emptyDays = dates.map((d) => ({
+          date: d,
+          label: formatDayLabel(d),
+          iso: isoDate(d),
+          available: false,
+          horas: [],
+          mensaje: !barberoId
+            ? "Selecciona un barbero"
+            : "Selecciona un servicio",
+        }));
+        setWeekDays(emptyDays);
+        return;
+      }
+
+      console.log("✅ Cargando semana para:", {
+        barberoId,
+        serviceId,
+        startDate,
+      });
+
+      fetchingWeekRef.current = true;
+      setLoadingWeek(true);
+
+      try {
+        const results = await Promise.all(
+          dates.map(async (d) => {
+            try {
+              const response = await getHorasDisponibles(
+                barberoId,
+                isoDate(d),
+                serviceId,
+              );
+
+              // Extraer horas de la respuesta
+              const horasData = response?.horas || [];
+
+              return {
+                horas: Array.isArray(horasData) ? horasData : [],
+                esFeriado: response?.esFeriado || false,
+                nombreFeriado: response?.nombreFeriado || "",
+              };
+            } catch (error) {
+              console.error(`Error en fecha ${isoDate(d)}:`, error);
+              return { horas: [], esFeriado: false, nombreFeriado: "" };
+            }
+          }),
+        );
+
+        const newWeekDays = dates.map((d, idx) => {
+          const data = results[idx] || { horas: [] };
+          const horas = data.horas || [];
+          const horasArray = Array.isArray(horas) ? horas : [];
+
+          const horasDisponibles = horasArray.filter(
+            (h) => h?.estado === "disponible",
+          );
+
+          return {
+            date: d,
+            label: formatDayLabel(d),
+            iso: isoDate(d),
+            available: horasDisponibles.length > 0,
+            horas: horasArray,
+            esFeriado: data.esFeriado || false,
+            nombreFeriado: data.nombreFeriado || "",
+            mensaje:
+              horasArray.length === 0
+                ? "No disponible"
+                : horasDisponibles.length === 0
+                  ? "Sin horas libres"
+                  : "",
+          };
+        });
+
+        console.log("📅 Días de semana actualizados:", newWeekDays);
+        setWeekDays(newWeekDays);
+
+        // Guardar referencia de lo que cargamos
+        prevBarberoRef.current = barberoId;
+        prevServicioRef.current = serviceId;
+        prevWeekStartRef.current = weekStartKey;
+      } catch (error) {
+        console.error("Error cargando disponibilidad semanal:", error);
+        const errorDays = dates.map((d) => ({
+          date: d,
+          label: formatDayLabel(d),
+          iso: isoDate(d),
+          available: false,
+          horas: [],
+          mensaje: "Error al cargar",
+        }));
+        setWeekDays(errorDays);
+      } finally {
+        setLoadingWeek(false);
+        fetchingWeekRef.current = false;
+      }
+    },
+    [buildWeekDates, formatDayLabel, isoDate],
+  );
+
+  // ────────────────────────────────
+  // EFECTO PARA CARGAR SEMANA - VERSIÓN CONTROLADA
+  // ────────────────────────────────
+  useEffect(() => {
+    console.log("🔄 Efecto semana - verificando:", { servicio, barbero });
+
+    // Mostrar días vacíos si falta algún dato
+    if (!servicio || !barbero) {
+      console.log("⏳ Esperando selección completa...");
+      const dates = buildWeekDates(weekStart);
+      const emptyDays = dates.map((d) => ({
         date: d,
         label: formatDayLabel(d),
         iso: isoDate(d),
         available: false,
         horas: [],
-        mensaje: "Selecciona servicio y barbero",
-      })));
+        mensaje: !barbero
+          ? "Selecciona un barbero"
+          : !servicio
+            ? "Selecciona un servicio"
+            : "Completa la selección",
+      }));
+      setWeekDays(emptyDays);
       return;
     }
 
-    setLoadingWeek(true);
-    try {
-      const results = await Promise.all(
-        dates.map((d) => getHorasDisponiblesBarbero(barbero, isoDate(d), servicio).catch(() => ({ horas: [] })))
-      );
+    // Programar la carga con un pequeño delay para evitar múltiples llamadas
+    const timeoutId = setTimeout(() => {
+      fetchWeekAvailability(barbero, servicio, weekStart);
+    }, 300);
 
-      setWeekDays(dates.map((d, idx) => {
-        const horas = results[idx]?.horas || [];
-        const horasLibres = horas.filter((h) => h.estado === "disponible");
-        return {
-          date: d,
-          label: formatDayLabel(d),
-          iso: isoDate(d),
-          available: horasLibres.length > 0,
-          horas,
-          mensaje: horas.length === 0 ? "No disponible" : horasLibres.length === 0 ? "Sin horas libres" : "",
-        };
-      }));
-    } finally {
-      setLoadingWeek(false);
-    }
-  }, [barbero, servicio, weekStart, buildWeekDates, getHorasDisponiblesBarbero]);
+    return () => clearTimeout(timeoutId);
+  }, [
+    servicio,
+    barbero,
+    weekStart,
+    fetchWeekAvailability,
+    buildWeekDates,
+    formatDayLabel,
+    isoDate,
+  ]);
 
+  // ────────────────────────────────
+  // CONTROL DE PASOS
+  // ────────────────────────────────
   useEffect(() => {
-    fetchWeekAvailability();
-  }, [barbero, servicio, weekStart, fetchWeekAvailability]);
+    if (!servicio) setPasoActual(1);
+    else if (!barbero) setPasoActual(2);
+    else if (!fecha) setPasoActual(3);
+    else if (!hora) setPasoActual(4);
+    else setPasoActual(5);
+  }, [servicio, barbero, fecha, hora]);
 
   // ────────────────────────────────
-  // HANDLERS
+  // HANDLERS DE SELECCIÓN
   // ────────────────────────────────
+  const handleSeleccionarServicio = (id) => {
+    console.log("📌 Servicio seleccionado:", id);
+    setServicio(id);
+    setBarbero("");
+    setFecha("");
+    setHora("");
+    setWeekStart(new Date());
+
+    // Resetear referencias
+    prevBarberoRef.current = "";
+    prevServicioRef.current = "";
+    prevWeekStartRef.current = "";
+
+    barberos.forEach((b) => {
+      cargarServiciosBarbero(b._id);
+    });
+  };
+
+  const handleSeleccionarBarbero = (id) => {
+    console.log("👤 Barbero seleccionado:", id, "con servicio:", servicio);
+    setBarbero(id);
+    setFecha("");
+    setHora("");
+    setWeekStart(new Date());
+
+    // Resetear referencias de semana para forzar recarga
+    prevBarberoRef.current = "";
+    prevServicioRef.current = "";
+    prevWeekStartRef.current = "";
+
+    if (!serviciosBarberos[id]) {
+      cargarServiciosBarbero(id);
+    }
+  };
+
   const handleSelectDay = (iso) => {
+    console.log("📅 Día seleccionado:", iso);
     setFecha(iso);
     setHora("");
   };
@@ -182,87 +393,106 @@ export const useReservaInvitado = () => {
     const d = new Date(weekStart);
     d.setDate(d.getDate() - 7);
     setWeekStart(d);
+    // Resetear referencia de semana para forzar recarga
+    prevWeekStartRef.current = "";
   };
 
   const nextWeek = () => {
     const d = new Date(weekStart);
     d.setDate(d.getDate() + 7);
     setWeekStart(d);
+    // Resetear referencia de semana para forzar recarga
+    prevWeekStartRef.current = "";
   };
 
-  const handleSeleccionarServicio = (id) => {
-    setServicio(id);
-    setBarbero("");
-    setFecha("");
-    setHora("");
-    setWeekStart(new Date());
-  };
-
-  const handleSeleccionarBarbero = (id) => {
-    setBarbero(id);
-    setFecha("");
-    setHora("");
-    setWeekStart(new Date());
-  };
-
-  // ────────────────────────────────
-  // RESERVAR COMO INVITADO
-  // ────────────────────────────────
   const reservarComoInvitado = async () => {
-    if (!invitado.nombre || !invitado.apellido || !invitado.rut || !invitado.telefono || !invitado.email) {
-      Swal.fire("Error", "Completa todos tus datos", "warning");
-      return;
+    if (Object.values(invitado).some((v) => !v)) {
+      return Swal.fire("Error", "Completa tus datos", "warning");
     }
 
     if (!servicio || !barbero || !fecha || !hora) {
-      Swal.fire("Error", "Completa todos los pasos", "warning");
-      return;
+      return Swal.fire("Error", "Completa todos los pasos", "warning");
     }
 
     setReservando(true);
     try {
-      await postReservarHoraInvitado({ fecha, barbero, hora, servicio, invitado });
+      // 👇 CORRECCIÓN: pasar slug y payload por separado
+      await postReservarHoraInvitado(slug, {
+        servicio,
+        barbero,
+        fecha,
+        hora,
+        nombre: invitado.nombre, // ← Sacar del objeto invitado
+        apellido: invitado.apellido, // ← Sacar del objeto invitado
+        rut: invitado.rut, // ← Sacar del objeto invitado
+        email: invitado.email, // ← Sacar del objeto invitado
+        telefono: invitado.telefono, // ← Sacar del objeto invitado
+      });
       Swal.fire("Reserva creada", "Tu hora fue agendada", "success");
-      setHora(""); setFecha(""); setBarbero(""); setServicio("");
-      setInvitado({ nombre: "", apellido: "", rut: "", telefono: "", email: "" });
-    } catch (error) {
-      Swal.fire("Error", error?.response?.data?.message || "No se pudo reservar", "error");
+
+      // Resetear formulario después de reservar exitosamente
+      setServicio("");
+      setBarbero("");
+      setFecha("");
+      setHora("");
+      setInvitado({
+        nombre: "",
+        apellido: "",
+        rut: "",
+        telefono: "",
+        email: "",
+      });
+    } catch (e) {
+      console.error("Error al reservar:", e);
+      Swal.fire(
+        "Error",
+        e?.response?.data?.message || "No se pudo reservar",
+        "error",
+      );
     } finally {
       setReservando(false);
     }
   };
-
+  // ────────────────────────────────
+  // EXPORT
+  // ────────────────────────────────
   return {
-    fecha, setFecha,
-    barbero, setBarbero,
-    hora, setHora,
-    servicio, setServicio,
-    pasoActual,
-    reservando,
-
-    weekStart,
-    weekDays,
-    loadingWeek,
-
+    // data
     servicios,
     barberos,
     barberosFiltrados,
     serviciosBarberos,
-    loadingServicios,
-
     horasDisponibles,
     mensajeHoras,
-    cargandoHoras,
     horasDataCompleta,
+
+    servicio,
+    barbero,
+    fecha,
+    hora,
+    invitado,
+
+    loadingServicios,
+    loadingBarberos,
+    cargandoHoras,
+    reservando,
+    pasoActual,
     duracionServicio,
 
+    // 📅 datos de la semana
+    weekStart,
+    weekDays,
+    loadingWeek,
+
+    // actions
+    setInvitado,
+    setHora,
+    handleSeleccionarServicio,
+    handleSeleccionarBarbero,
     handleSelectDay,
     prevWeek,
     nextWeek,
-    handleSeleccionarServicio,
-    handleSeleccionarBarbero,
     reservarComoInvitado,
-    invitado,
-    setInvitado,
+    cargarServiciosBarbero,
   };
 };

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "context/AuthContext";
+import { useParams } from "react-router-dom";
 
 import {
   Button,
@@ -27,19 +28,25 @@ const Login = () => {
     password: "",
   });
 
-  const { signIn,  isAuthenticated } = useAuth();
+  const { signIn, isAuthenticated } = useAuth();
+  const { slug } = useParams();
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (isAuthenticated) navigate("/admin/index");
+    if (isAuthenticated) {
+      navigate(`/${slug}/admin`);
+    }
   }, [isAuthenticated]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      await signIn(form);
+      await signIn({
+        ...form,
+        slug,
+      });
       // Si login exitoso, el useEffect redirige automáticamente
     } catch (error) {
       Swal.fire({
@@ -158,18 +165,15 @@ const Login = () => {
         </Card>
         <Row className="mt-3">
           <Col xs="6">
-            <a
-              className="text-light"
-              href="#pablo"
-              onClick={(e) => e.preventDefault()}
-            >
-              <Link to="/auth/forgot-password" className="text-white"> Olvidé mi contraseña</Link>
-            </a>
+            <Link to={`/${slug}/forgot-password`} className="text-white">
+              Olvidé mi contraseña
+            </Link>
           </Col>
+
           <Col className="text-right" xs="6">
-            <a className="text-light" onClick={(e) => e.preventDefault()}>
-               <Link to="/auth/register" className="text-white"> Registrarme</Link>
-            </a>
+            <Link to={`/${slug}/register`} className="text-white">
+              Registrarme
+            </Link>
           </Col>
         </Row>
       </Col>

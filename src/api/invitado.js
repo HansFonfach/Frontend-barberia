@@ -1,5 +1,5 @@
 import { axiosPublic } from "./axiosPublic";
 
-export const postReservarHoraInvitado = (data) => {
-  return axiosPublic.post("/reserva/invitado", data);
+export const postReservarHoraInvitado = (slug, payload) => {
+  return axiosPublic.post(`/reserva/invitado/${slug}`, payload);
 };

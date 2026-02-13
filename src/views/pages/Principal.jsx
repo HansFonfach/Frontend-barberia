@@ -17,13 +17,14 @@ import { useEstadisticas } from "context/EstadisticasContext";
 import { useLook } from "context/LookContext";
 import { Sparkles, Calendar, Scissors, Star, Zap } from "lucide-react";
 import { useUsuario } from "context/usuariosContext";
+import { useParams } from "react-router-dom";
 
 const UserDashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { ultimaReserva, proximaReserva } = useEstadisticas();
   const { estadoLookCliente } = useLook();
   const { getVerPuntos, puntos } = useUsuario();
-
+  const { slug } = useParams();
   const [data, setData] = useState(null);
   const [look, setLook] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -31,6 +32,16 @@ const UserDashboard = () => {
   // ⭐ MOCK puntos
 
   const meta = 900;
+
+  useEffect(() => {
+    if (!user?.empresa?.slug) return;
+
+    if (slug !== user.empresa.slug) {
+      window.location.replace(`/${user.empresa.slug}/dashboard`);
+    }
+  }, [slug, user?.empresa?.slug]);
+
+console.log(user, user.data);
 
   useEffect(() => {
     if (!user?.id) return;

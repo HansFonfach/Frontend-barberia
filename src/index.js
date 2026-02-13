@@ -1,86 +1,123 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+
+// Estilos
 import "assets/plugins/nucleo/css/nucleo.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import "assets/scss/argon-dashboard-react.scss";
 
-import AdminLayout from "layouts/Admin.js";
-import AuthLayout from "layouts/Auth.js";
+// Layouts
+import AdminLayout from "layouts/Admin";
+import AuthLayout from "layouts/Auth";
 import ProtectedRoute from "protectedRoute";
 
-import { AuthProvider, useAuth } from "context/AuthContext";
-import { ReservaProvider } from "context/ReservaContext";
-import { ServiciosProvider } from "context/ServiciosContext";
+// Context global
+import { AuthProvider } from "context/AuthContext";
+import { EmpresaProvider } from "context/EmpresaContext";
+
+// Providers solo para admin
 import { UsuarioProvider } from "context/usuariosContext";
+import { ServiciosProvider } from "context/ServiciosContext";
 import { HorarioProvider } from "context/HorarioContext";
+import { ReservaProvider } from "context/ReservaContext";
 import { EstadisticasProvider } from "context/EstadisticasContext";
 import { NotificacionProvider } from "context/NotificacionesContext";
 import { LookProvider } from "context/LookContext";
 import { CanjeProvider } from "context/CanjeContext";
 
+// Pages
 import Landing from "views/pages/Landing";
 import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
 
-const RootRedirect = () => {
-  const { user, isAuthenticated } = useAuth();
-
-  if (!isAuthenticated) {
-    return <Landing />;
-  }
-
-  return (
-    <Navigate
-      to={user?.rol === "barbero" ? "/admin/dashboard" : "/admin/index"}
-      replace
-    />
-  );
+// Wrapper por empresa (slug)
+const EmpresaWrapper = ({ children }) => {
+  const { slug } = useParams();
+  return <EmpresaProvider slug={slug}>{children}</EmpresaProvider>;
 };
 
-const root = ReactDOM.createRoot(document.getElementById("root"));
+// Solo envuelve Providers que necesitan token (admin)
+const AdminProviders = ({ children }) => (
+  <UsuarioProvider>
+    <ServiciosProvider>
+      <HorarioProvider>
+        <ReservaProvider>
+          <EstadisticasProvider>
+            <NotificacionProvider>
+              <LookProvider>
+                <CanjeProvider>{children}</CanjeProvider>
+              </LookProvider>
+            </NotificacionProvider>
+          </EstadisticasProvider>
+        </ReservaProvider>
+      </HorarioProvider>
+    </ServiciosProvider>
+  </UsuarioProvider>
+);
 
+const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <BrowserRouter>
       <AuthProvider>
-        <UsuarioProvider>
-          <ServiciosProvider>
-            <HorarioProvider>
-              <ReservaProvider>
-                <EstadisticasProvider>
-                  <NotificacionProvider>
-                    <LookProvider>
-                      <CanjeProvider>
-                        <Routes>
-                          {/* Landing pública */}
-                          <Route path="/" element={<RootRedirect />} />
-                          <Route path="/reservar" element={<ReservarHoraInvitado />} />
+        <Routes>
+          {/* =========================
+              LANDING / PÚBLICO
+          ========================= */}
+          <Route
+            path="/:slug"
+            element={
+              <EmpresaWrapper>
+                <Landing />
+              </EmpresaWrapper>
+            }
+          />
 
-                          {/* Auth */}
-                          <Route path="/auth/*" element={<AuthLayout />} />
+          {/* =========================
+              AUTH (LOGIN / REGISTER)
+          ========================= */}
+          <Route
+            path="/:slug/*"
+            element={
+              <EmpresaWrapper>
+                <AuthLayout />
+              </EmpresaWrapper>
+            }
+          />
 
-                          {/* Protegido */}
-                          <Route element={<ProtectedRoute />}>
-                            <Route
-                              path="/admin/*"
-                              element={<AdminLayout />}
-                            />
-                          </Route>
+          {/* =========================
+              RESERVA INVITADO
+          ========================= */}
+          <Route
+            path="/:slug/reservar"
+            element={
+              <EmpresaWrapper>
+                <ReservarHoraInvitado />
+              </EmpresaWrapper>
+            }
+          />
 
-                          {/* Fallback */}
-                          <Route
-                            path="*"
-                            element={<Navigate to="/" replace />}
-                          />
-                        </Routes>
-                      </CanjeProvider>
-                    </LookProvider>
-                  </NotificacionProvider>
-                </EstadisticasProvider>
-              </ReservaProvider>
-            </HorarioProvider>
-          </ServiciosProvider>
-        </UsuarioProvider>
+          {/* =========================
+              ADMIN PROTEGIDO
+          ========================= */}
+          <Route element={<ProtectedRoute />}>
+            <Route
+              path="/:slug/admin/*"
+              element={
+                <EmpresaWrapper>
+                  <AdminProviders>
+                    <AdminLayout />
+                  </AdminProviders>
+                </EmpresaWrapper>
+              }
+            />
+          </Route>
+
+          {/* =========================
+              FALLBACK
+          ========================= */}
+          <Route path="*" element={<Navigate to="/lasantabarberia" replace />} />
+        </Routes>
       </AuthProvider>
     </BrowserRouter>
   </React.StrictMode>

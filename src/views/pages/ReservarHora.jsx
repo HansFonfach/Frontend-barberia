@@ -1,5 +1,5 @@
 // src/views/admin/pages/ReservarHora.jsx
-import React from "react";
+import React, { useEffect } from "react";
 import { Container, Card, CardBody } from "reactstrap";
 import { Scissors } from "lucide-react";
 import UserHeader from "components/Headers/UserHeader.js";
@@ -16,10 +16,20 @@ import ResumenReserva from "../../components/reserva/ResumenReserva";
 // Context / hooks
 import { useServicios } from "context/ServiciosContext";
 import { useReservaCliente } from "hooks/useReservaCliente";
+import { useParams } from "react-router-dom";
 
 const ReservarHora = () => {
   const { user } = useAuth();
   const { serviciosBarberos, cargarServiciosBarbero } = useServicios();
+  const { slug } = useParams();
+
+  useEffect(() => {
+    if (!user?.empresa?.slug) return;
+
+    if (slug !== user.empresa.slug) {
+      window.location.replace(`/${user.empresa.slug}/reservar-hora`);
+    }
+  }, [slug, user?.empresa?.slug]);
 
   const {
     fecha,
@@ -136,9 +146,7 @@ const ReservarHora = () => {
               <h2 className="h3 font-weight-bold text-dark mb-1">
                 Reserva Tu Hora
               </h2>
-              <p className="text-muted mb-0">
-                Servicio → Barbero → Día → Hora
-              </p>
+              <p className="text-muted mb-0">Servicio → Barbero → Día → Hora</p>
             </div>
 
             <div className="row">
@@ -171,19 +179,18 @@ const ReservarHora = () => {
                   />
                 )}
 
-                {fecha && barbero && servicio && (
-                  <HorasDisponibles
-                    horasDisponibles={horasDisponibles}
-                    mensajeHoras={mensajeHoras}
-                    cargandoHoras={cargandoHoras}
-                    duracionSeleccionado={servicioSeleccionado?.duracion}
-                    hora={hora}
-                    onSeleccionarHora={setHora}
-                    horasDataCompleta={horasDataCompleta}
-                    fecha={fecha}
-                    barberoId={barbero}
-                  />
-                )}
+                <HorasDisponibles
+                  horasDisponibles={horasDisponibles}
+                  mensajeHoras={mensajeHoras}
+                  cargandoHoras={cargandoHoras}
+                  hora={hora}
+                  onSeleccionarHora={setHora}
+                  fecha={fecha}
+                  barberoId={barbero}
+                  duracionSeleccionado={servicioSeleccionado?.duracion}
+                  horasDataCompleta={horasDataCompleta}
+                  esInvitado={false} // 👈 Explícitamente false (o simplemente omitirlo)
+                />
               </div>
 
               <div className="col-lg-5 col-md-12 pl-lg-4">

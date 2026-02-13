@@ -15,6 +15,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { setupAxiosInterceptors } from "api/axiosPrivate";
 import Swal from "sweetalert2";
+import { getEmpresaById } from "api/empresa";
 
 export const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
@@ -22,7 +23,19 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const storedUser = localStorage.getItem("user");
-    return storedUser ? JSON.parse(storedUser) : null;
+
+    if (!storedUser || storedUser === "undefined") {
+      localStorage.removeItem("user");
+      return null;
+    }
+
+    try {
+      return JSON.parse(storedUser);
+    } catch (err) {
+      console.error("Error parseando user desde localStorage", err);
+      localStorage.removeItem("user");
+      return null;
+    }
   });
   const [isAuthenticated, setIsAuthenticated] = useState(!!user);
   const [loading, setLoading] = useState(true);
@@ -54,7 +67,7 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       setIsAuthenticated(false);
       setInitialCheckDone(true);
-      navigate("/login");
+      navigate("/");
     }
   };
 
@@ -63,10 +76,12 @@ export const AuthProvider = ({ children }) => {
   const verifySession = useCallback(async () => {
     try {
       const res = await verifyRequest();
-      setUser(res.data.usuario);
+
+      setUser(res.data); // 👈 USUARIO REAL
       setIsAuthenticated(true);
-      localStorage.setItem("user", JSON.stringify(res.data.usuario));
-      return res.data.usuario;
+      localStorage.setItem("user", JSON.stringify(res.data));
+
+      return res.data;
     } catch (err) {
       setUser(null);
       setIsAuthenticated(false);
@@ -74,7 +89,7 @@ export const AuthProvider = ({ children }) => {
       return null;
     } finally {
       setLoading(false);
-      setInitialCheckDone(true); // 🔑 evita mostrar alerta antes de tiempo
+      setInitialCheckDone(true);
     }
   }, []);
 

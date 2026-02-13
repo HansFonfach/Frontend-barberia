@@ -12,8 +12,9 @@
 // reactstrap components
 import { useAuth } from "context/AuthContext";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useRutValidator } from "../../hooks/useRutValidador";
+
 import {
   Button,
   Card,
@@ -37,6 +38,7 @@ const Register = () => {
   const [passwordMatch, setPasswordMatch] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const { slug } = useParams();
 
   const [form, setForm] = useState({
     rut: "",
@@ -72,7 +74,7 @@ const Register = () => {
 
     try {
       // 2️⃣ Registrar
-      await register({ ...form, rut });
+      await register({ ...form, rut, slug });
 
       // 3️⃣ Éxito
       Swal.fire({
@@ -82,7 +84,7 @@ const Register = () => {
         confirmButtonText: "Aceptar",
       });
 
-      navigate("/admin/index");
+      navigate(`/${slug}/admin/index`);
     } catch (err) {
       // 4️⃣ Error REAL del backend
       const message =

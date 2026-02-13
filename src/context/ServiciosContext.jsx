@@ -51,7 +51,7 @@ export const ServiciosProvider = ({ children }) => {
       const res = await getServiciosBarbero(barberoId); // axiosPrivate.get(...)
       const data = res.data || [];
       setServiciosBarberos((prev) => ({ ...prev, [barberoId]: data }));
-      
+
       return data;
     } catch (error) {
       console.error("❌ Error cargando servicios del barbero:", error);
@@ -64,9 +64,9 @@ export const ServiciosProvider = ({ children }) => {
   // Crear un nuevo servicio
   // ────────────────────────────────
   const crearServicio = useCallback(
-    async (nombre, precio, descripcion) => {
+    async (nombre, precio, descripcion, slug) => {
       try {
-        const res = await postCreateServicios({ nombre, precio, descripcion });
+        const res = await postCreateServicios({ nombre, precio, descripcion, slug });
         await getAllServicios();
         return res.data;
       } catch (err) {

@@ -2,7 +2,7 @@ import { axiosPrivate } from "./axiosPrivate";
 import { axiosPublic } from "./axiosPublic";
 
 export const getUsuarios = () => {
-  return axiosPublic.get("/usuarios");
+  return axiosPrivate.get("/usuarios");
 };
 
 export const putUsuario = (id, data) => {
@@ -49,4 +49,8 @@ export const postCrearBarbero = (data) => {
 
 export const updateEstadoUsuario = (id, estado) => {
   return axiosPrivate.patch(`/usuarios/${id}/estado`, { estado });
+};
+
+export const getBarberosPublico = (slug) => {
+  return axiosPublic.get(`/usuarios/barbero/${slug}/barberos`);
 };

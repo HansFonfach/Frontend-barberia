@@ -105,7 +105,7 @@ export const clienteRoutes = [
   },
   {
     path: "/barberos",
-    name: "Barberos",
+    name: "Profesionales",
     component: <BarberosPage />,
     icon: "ni ni-single-02 text-primary",
     layout: "/admin",

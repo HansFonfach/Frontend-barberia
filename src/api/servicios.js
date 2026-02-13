@@ -2,7 +2,7 @@ import { axiosPrivate } from "./axiosPrivate";
 import { axiosPublic } from "./axiosPublic";
 
 export const getServicios = () => {
-  return axiosPublic.get("/servicios");
+  return axiosPrivate.get("/servicios");
 };
 
 export const postCreateServicios = (data) => {
@@ -17,6 +17,11 @@ export const postDeleteServicios = (id) => {
   return axiosPrivate.delete(`/servicios/${id}`);
 };
 
-export const getServiciosBarbero = (barberoId) =>{
-  return axiosPublic.get(`/barberoServicio/barberos/${barberoId}/servicios`)
-}
+export const getServiciosBarbero = (barberoId) => {
+  return axiosPublic.get(`/barberoServicio/barberos/${barberoId}/servicios`);
+};
+
+export const getServiciosPublicos = (slug) => {
+  return axiosPublic.get(`servicios/${slug}/serviciosPublicos`);
+};
+

@@ -1,3 +1,4 @@
+// src/components/reserva/HorasDisponibles.jsx
 import React from "react";
 import {
   FormGroup,
@@ -24,9 +25,15 @@ const HorasDisponibles = ({
   duracionSeleccionado,
   fecha,
   barberoId,
+  esInvitado = false,
 }) => {
-  const { crearNotificacion } = useNotificacion();
-  const { user } = useAuth();
+  // ✅ Los hooks SIEMPRE se llaman, sin condiciones
+  const notificacionContext = useNotificacion();
+  const authContext = useAuth();
+  
+  // Luego usamos los valores condicionalmente
+  const crearNotificacion = !esInvitado ? notificacionContext?.crearNotificacion : null;
+  const user = !esInvitado ? authContext?.user : null;
 
   const duracionReal = Number(
     horasDataCompleta?.duracionServicio || duracionSeleccionado || 0
@@ -44,20 +51,47 @@ const HorasDisponibles = ({
   const handleNotify = async (e, h) => {
     e.stopPropagation();
 
-    await crearNotificacion({
-      fecha,
-      hora: h,
-      barberoId,
-      usuarioId: user.id,
-    });
+    if (esInvitado) {
+      Swal.fire({
+        icon: "info",
+        title: "Inicia sesión",
+        text: "Debes iniciar sesión para activar notificaciones",
+        timer: 2500,
+        showConfirmButton: false,
+      });
+      return;
+    }
 
-    Swal.fire({
-      icon: "success",
-      title: "Listo 👌",
-      text: `Te avisaremos si se libera la hora ${h}`,
-      timer: 2500,
-      showConfirmButton: false,
-    });
+    if (!crearNotificacion) {
+      console.error("Error: crearNotificacion no está disponible");
+      return;
+    }
+
+    try {
+      await crearNotificacion({
+        fecha,
+        hora: h,
+        barberoId,
+        usuarioId: user?.id,
+      });
+
+      Swal.fire({
+        icon: "success",
+        title: "Listo 👌",
+        text: `Te avisaremos si se libera la hora ${h}`,
+        timer: 2500,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Error al crear notificación:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo crear la notificación",
+        timer: 2500,
+        showConfirmButton: false,
+      });
+    }
   };
 
   return (
@@ -65,6 +99,11 @@ const HorasDisponibles = ({
       <Label className="font-weight-bold d-flex align-items-center mb-3">
         <Clock size={18} className="mr-2 text-primary" />
         <span style={{ fontSize: "1.1rem" }}>Horas disponibles</span>
+        {esInvitado && (
+          <Badge color="warning" pill className="ms-2 px-2" style={{ fontSize: "0.7rem" }}>
+            Invitado
+          </Badge>
+        )}
       </Label>
 
       {cargandoHoras && (
@@ -116,10 +155,15 @@ const HorasDisponibles = ({
                       {h}
                     </Button>
 
+                    {/* Campanita para horas NO disponibles - siempre visible pero con diferente comportamiento */}
                     {!isDisponible && (
                       <button
                         onClick={(e) => handleNotify(e, h)}
-                        title="Avísame si se libera"
+                        title={
+                          esInvitado 
+                            ? "Inicia sesión para activar notificaciones" 
+                            : "Avísame si se libera"
+                        }
                         style={{
                           position: "absolute",
                           top: "-5px",
@@ -136,6 +180,7 @@ const HorasDisponibles = ({
                           cursor: "pointer",
                           boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                           zIndex: 2,
+                          opacity: esInvitado ? 0.6 : 1,
                         }}
                       >
                         <Bell size={12} fill="#212529" color="#212529" />

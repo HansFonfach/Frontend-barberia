@@ -12,11 +12,9 @@ const AdminLayout = (props) => {
   const location = useLocation();
   const { user } = useAuth();
 
-  React.useEffect(() => {
-    document.documentElement.scrollTop = 0;
-    document.scrollingElement.scrollTop = 0;
-    mainContent.current.scrollTop = 0;
-  }, [location]);
+React.useEffect(() => {
+  window.scrollTo(0, 0);
+}, [location]);
 
   const routes = user?.rol === "barbero" ? barberoRoutes : clienteRoutes;
 
@@ -29,7 +27,6 @@ const AdminLayout = (props) => {
           innerLink: "/admin/index",
           imgSrc: require("../assets/img/brand/lasanta.png"),
           imgAlt: "Logo",
-          
         }}
       />
       <div className="main-content" ref={mainContent}>

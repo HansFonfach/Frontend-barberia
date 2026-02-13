@@ -4,6 +4,7 @@ import {
   Link,
   useNavigate,
 } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useState } from "react";
 import PropTypes from "prop-types";
 import {
@@ -21,8 +22,6 @@ import {
   NavLink,
   Navbar,
   Container,
-  Row,
-  Col,
   Media,
 } from "reactstrap";
 import { useAuth } from "context/AuthContext";
@@ -41,14 +40,22 @@ const Sidebar = ({ routes, logo, usuario }) => {
   const [collapseOpen, setCollapseOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
+  const { slug } = useParams();
 
   const toggleCollapse = () => setCollapseOpen(!collapseOpen);
   const closeCollapse = () => setCollapseOpen(false);
 
   const handleLogout = async () => {
+    const slug = user?.empresa?.slug;
+
     await signOut();
-    navigate("/auth/login");
+
+    if (slug) {
+      navigate(`/${slug}/login`);
+    } else {
+      navigate("/"); // fallback de seguridad
+    }
   };
 
   const activeRoute = (route) =>
@@ -77,12 +84,10 @@ const Sidebar = ({ routes, logo, usuario }) => {
           {grouped[sectionKey].map((r, idx) => (
             <NavItem key={idx}>
               <NavLink
-                to={r.layout + r.path}
+                to={`/${slug}${r.layout}${r.path}`} // ✅ Ruta correcta con slug
                 tag={NavLinkRRD}
                 onClick={closeCollapse}
-                className={`sidebar-link ${activeRoute(
-                  r.layout + r.path
-                )}`}
+                className={`sidebar-link ${activeRoute(`/${slug}${r.layout}${r.path}`)}`}
               >
                 {r.icon && typeof r.icon !== "string" ? (
                   r.icon
@@ -172,7 +177,7 @@ const Sidebar = ({ routes, logo, usuario }) => {
           </button>
 
           {/* LOGO */}
-          <Link to={logo?.innerLink || "/admin"}>
+          <Link to={`/${slug}${logo?.innerLink || "/admin"}`}>
             <img
               src={logo.imgSrc}
               alt={logo.imgAlt}
@@ -194,13 +199,11 @@ const Sidebar = ({ routes, logo, usuario }) => {
                 </Media>
               </DropdownToggle>
               <DropdownMenu right>
-                <DropdownItem header>
-                  Bienvenido {usuario?.nombre}
-                </DropdownItem>
-                <DropdownItem to="/admin/perfil" tag={Link}>
+                <DropdownItem header>Bienvenido {usuario?.nombre}</DropdownItem>
+                <DropdownItem to={`/${slug}/admin/perfil`} tag={Link}>
                   Perfil
                 </DropdownItem>
-                <DropdownItem to="/admin/cambiar-contrasena" tag={Link}>
+                <DropdownItem to={`/${slug}/admin/cambiar-contrasena`} tag={Link}>
                   Cambiar contraseña
                 </DropdownItem>
                 <DropdownItem onClick={handleLogout}>

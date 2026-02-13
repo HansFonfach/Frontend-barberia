@@ -40,8 +40,15 @@ const AdminNavbar = (props) => {
   const navigate = useNavigate(); // Hook para redirigir al usuario;
 
   const handleLogout = async () => {
-    await signOut(); // Llama a la función de logout
-    navigate("/auth/login"); // Redirige al login
+    const slug = user?.empresa?.slug;
+
+    await signOut();
+
+    if (slug) {
+      navigate(`/${slug}/login`);
+    } else {
+      navigate("/"); // fallback de seguridad
+    }
   };
 
   const generarColor = (nombre) => {

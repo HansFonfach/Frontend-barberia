@@ -1,25 +1,21 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useParams } from "react-router-dom";
 import { useAuth } from "context/AuthContext";
 
 export default function ProtectedRoute() {
+  const { slug } = useParams();
   const { isAuthenticated, loading, initialCheckDone } = useAuth();
 
-  // Mientras verifica sesión
   if (loading || !initialCheckDone) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
-        <div className="spinner-border text-warning" role="status">
-          <span className="visually-hidden">Cargando...</span>
-        </div>
+        <div className="spinner-border text-warning" />
       </div>
     );
   }
 
-  // Si no está autenticado
   if (!isAuthenticated) {
-    return <Navigate to="/auth/login" replace />;
+    return <Navigate to={`/${slug}/login`} replace />;
   }
 
-  // Si está autenticado
   return <Outlet />;
 }

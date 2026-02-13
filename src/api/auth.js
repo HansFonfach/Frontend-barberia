@@ -1,15 +1,15 @@
 import { axiosPrivate } from "./axiosPrivate";
 import { axiosPublic } from "./axiosPublic";
 
-export const loginRequest = (user) => {
-  return axiosPublic.post("/auth/login", user, { 
-    withCredentials: true 
+export const loginRequest = (user, slug) => {
+  return axiosPublic.post(`/auth/${slug}/login`, user, {
+    withCredentials: true,
   });
 };
 
-export const registerRequest = (user) => {
-  return axiosPublic.post("/auth/register", user, { 
-    withCredentials: true // ✅ AGREGAR esto
+export const registerRequest = (user, slug) => {
+  return axiosPublic.post(`/auth/${slug}/register`, user, {
+    withCredentials: true, // ✅ AGREGAR esto
   });
 };
 
@@ -18,8 +18,8 @@ export const forgotPasswordRequest = (email) => {
 };
 
 export const logoutRequest = () => {
-  return axiosPublic.post("/auth/logout", null, { 
-    withCredentials: true 
+  return axiosPublic.post("/auth/logout", null, {
+    withCredentials: true,
   });
 };
 
@@ -30,6 +30,5 @@ export const updateUserPasswordRequest = (id, currentPassword, newPassword) => {
   }); // ✅ axiosPrivate ya tiene withCredentials: true por defecto
 };
 
-export const verifyRequest = () => {
-  return axiosPrivate.get("/auth/verify"); // ✅ axiosPrivate ya tiene withCredentials: true por defecto
-};
+export const verifyRequest = () =>
+  axiosPrivate.get("/auth/me", { withCredentials: true });
