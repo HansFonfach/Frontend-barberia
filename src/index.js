@@ -1,6 +1,12 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import { BrowserRouter, Routes, Route, Navigate, useParams } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate,
+  useParams,
+} from "react-router-dom";
 
 // Estilos
 import "assets/plugins/nucleo/css/nucleo.css";
@@ -27,6 +33,7 @@ import { LookProvider } from "context/LookContext";
 import { CanjeProvider } from "context/CanjeContext";
 
 // Pages
+import Principal from "views/publico/principal";
 import Landing from "views/pages/Landing";
 import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
 
@@ -62,8 +69,15 @@ root.render(
       <AuthProvider>
         <Routes>
           {/* =========================
-              LANDING / PÚBLICO
-          ========================= */}
+          HOME GLOBAL (AgendaFonfach)
+          www.agendafonfach.cl/
+      ========================= */}
+          <Route path="/" element={<Principal />} />
+
+          {/* =========================
+          LANDING POR EMPRESA
+          www.agendafonfach.cl/lasantabarberia
+      ========================= */}
           <Route
             path="/:slug"
             element={
@@ -74,8 +88,8 @@ root.render(
           />
 
           {/* =========================
-              AUTH (LOGIN / REGISTER)
-          ========================= */}
+          AUTH POR EMPRESA
+      ========================= */}
           <Route
             path="/:slug/*"
             element={
@@ -86,8 +100,8 @@ root.render(
           />
 
           {/* =========================
-              RESERVA INVITADO
-          ========================= */}
+          RESERVA INVITADO
+      ========================= */}
           <Route
             path="/:slug/reservar"
             element={
@@ -98,8 +112,8 @@ root.render(
           />
 
           {/* =========================
-              ADMIN PROTEGIDO
-          ========================= */}
+          ADMIN PROTEGIDO
+      ========================= */}
           <Route element={<ProtectedRoute />}>
             <Route
               path="/:slug/admin/*"
@@ -114,11 +128,11 @@ root.render(
           </Route>
 
           {/* =========================
-              FALLBACK
-          ========================= */}
-          <Route path="*" element={<Navigate to="/lasantabarberia" replace />} />
+          FALLBACK
+      ========================= */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>
-  </React.StrictMode>
+  </React.StrictMode>,
 );

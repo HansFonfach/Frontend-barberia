@@ -1,4 +1,3 @@
-// src/views/LandingPage.jsx
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -12,655 +11,491 @@ import {
   Nav,
   NavItem,
   NavLink,
-  UncontrolledDropdown,
-  DropdownToggle,
-  DropdownMenu,
-  DropdownItem,
 } from "reactstrap";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "context/AuthContext";
+import { Link } from "react-router-dom";
 
 // Iconos
 import {
   FiCalendar,
-  FiClock,
-  FiUsers,
-  FiScissors,
-  FiCreditCard,
-  FiBell,
-  FiStar,
-  FiTrendingUp,
   FiCheckCircle,
   FiArrowRight,
+  FiInstagram,
   FiSmartphone,
-  FiShield,
-  FiAward,
-  FiMapPin,
-  FiMessageCircle,
-  FiPlay,
-  FiChevronRight,
-  FiBarChart2,
   FiZap,
-  FiLock,
+  FiClock,
   FiMail,
-  FiPhone,
+  FiFacebook,
+  FiGift,
+  FiStar,
+  FiUsers,
+  FiBell,
+  FiRefreshCw,
+  FiTrendingUp,
+  FiMessageCircle,
+  FiUserCheck,
+  FiUserX,
 } from "react-icons/fi";
 
 const LandingPage = () => {
-  const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 50);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const stats = [
-    { value: "10K+", label: "Reservas mensuales", icon: FiCalendar, color: "#4361ee" },
-    { value: "500+", label: "Barberías activas", icon: FiScissors, color: "#f72585" },
-    { value: "98%", label: "Clientes satisfechos", icon: FiStar, color: "#fb8500" },
-    { value: "24/7", label: "Disponibilidad", icon: FiClock, color: "#06d6a0" },
+  // DATOS REALES DE TUS NEGOCIOS (clientes que ya usan la agenda)
+  const clientes = [
+    {
+      _id: "698de476677550fcd3d2209c",
+      nombre: "La Santa Barbería",
+      tipo: "barbería",
+      imagen:
+        "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?auto=format&fit=crop&q=80&w=500",
+      rating: "5.0",
+      testimonio:
+        "Antes perdía 3 horas diarias con llamadas y WhatsApp. Con AgendaFonfach recuperé mi tiempo y mis clientes felices.",
+    },
+    {
+      _id: "698deb6b677550fcd3d22160",
+      nombre: "Herradura Barberia",
+      tipo: "barbería",
+      imagen:
+        "https://images.unsplash.com/photo-1621605815971-fbc98d665033?auto=format&fit=crop&q=80&w=500",
+      rating: "4.9",
+      testimonio:
+        "Mis clientes adoran el sistema de puntos. Ahora compiten por ser los más leales y yo no pierdo ni un minuto gestionando.",
+    },
   ];
 
+  // Características de TU AGENDA (lo que vendes)
   const features = [
     {
-      icon: FiCalendar,
-      title: "Reservas en línea",
-      description: "Tus clientes pueden reservar 24/7 desde cualquier dispositivo, sin necesidad de llamadas.",
+      icon: FiZap,
+      title: "Cero tiempo perdido",
+      desc: "Olvídate del WhatsApp y las llamadas. Todo se gestiona automático.",
       color: "#4361ee",
-      bgColor: "#e0e7ff",
+      detalle: "Recupera hasta 15 horas a la semana",
     },
     {
       icon: FiUsers,
-      title: "Gestión de barberos",
-      description: "Administra múltiples barberos, sus horarios y especialidades desde un solo lugar.",
+      title: "Clientes que vuelven",
+      desc: "Sistema de puntos y beneficios que fideliza como ningún otro.",
       color: "#f72585",
-      bgColor: "#ffe0f0",
-    },
-    {
-      icon: FiCreditCard,
-      title: "Pagos integrados",
-      description: "Acepta pagos con tarjeta, transferencias o pago en efectivo. Todo sincronizado.",
-      color: "#fb8500",
-      bgColor: "#fff3e0",
+      detalle: "Aumenta la lealtad de tus clientes",
     },
     {
       icon: FiBell,
-      title: "Recordatorios automáticos",
-      description: "Notificaciones por WhatsApp y email para reducir inasistencias.",
+      title: "Notificaciones inteligentes",
+      desc: "Te avisamos cuando se libera un horario que te interesa.",
       color: "#06d6a0",
-      bgColor: "#e0f7f0",
+      detalle: "Nunca más pierdas una hora",
     },
     {
-      icon: FiBarChart2,
-      title: "Reportes y estadísticas",
-      description: "Visualiza tus ingresos, ocupación y rendimiento en tiempo real.",
+      icon: FiRefreshCw,
+      title: "Lista de espera automática",
+      desc: "Si alguien cancela, notificamos al próximo en la lista.",
+      color: "#ff9e00",
+      detalle: "Tus horas siempre ocupadas",
+    },
+    {
+      icon: FiTrendingUp,
+      title: "Recordatorio inteligente",
+      desc: "Sabemos cuándo tu cliente necesita volver y le avisamos.",
       color: "#7209b7",
-      bgColor: "#f0e0ff",
+      detalle: "Basado en su historial de reservas",
     },
     {
-      icon: FiSmartphone,
-      title: "App para clientes",
-      description: "Tus clientes pueden gestionar sus reservas desde su celular.",
-      color: "#4cc9f0",
-      bgColor: "#e0f5ff",
-    },
-  ];
-
-  const pricingPlans = [
-    {
-      name: "Básico",
-      price: "$0",
-      period: "mes",
-      description: "Para empezar",
-      features: [
-        "Hasta 50 reservas/mes",
-        "1 barbero",
-        "Recordatorios básicos",
-        "Soporte email",
-      ],
-      buttonColor: "primary",
-      buttonText: "Comenzar gratis",
-      popular: false,
-    },
-    {
-      name: "Profesional",
-      price: "$29.990",
-      period: "mes",
-      description: "Para barberías en crecimiento",
-      features: [
-        "Reservas ilimitadas",
-        "Hasta 5 barberos",
-        "Recordatorios WhatsApp",
-        "Estadísticas avanzadas",
-        "Pagos integrados",
-        "Soporte prioritario",
-      ],
-      buttonColor: "success",
-      buttonText: "Probar 14 días gratis",
-      popular: true,
-    },
-    {
-      name: "Empresarial",
-      price: "$59.990",
-      period: "mes",
-      description: "Para múltiples sucursales",
-      features: [
-        "Todo lo del plan Profesional",
-        "Barberos ilimitados",
-        "Múltiples sucursales",
-        "API personalizada",
-        "Gerente dedicado",
-        "Capacitación incluida",
-      ],
-      buttonColor: "info",
-      buttonText: "Contactar ventas",
-      popular: false,
+      icon: FiGift,
+      title: "Programa de puntos",
+      desc: "Acumulan por cada visita y canjean por premios. Tú eliges qué dar.",
+      color: "#2ec4b6",
+      detalle: "Incrementa la frecuencia de visitas",
     },
   ];
 
-  const testimonials = [
+  // Funcionalidades para profesionales
+  const adminFeatures = [
     {
-      name: "Carlos Rodríguez",
-      role: "Dueño de 'La Elegancia'",
-      content: "Desde que uso AgendaFonfach, mis ingresos aumentaron un 40%. Mis clientes aman poder reservar online y yo amo no tener que contestar el teléfono todo el día.",
-      rating: 5,
-      avatar: "👨🏻",
-      color: "#4361ee",
+      icon: FiUserCheck,
+      title: "Gestión completa",
+      desc: "Administra usuarios, profesionales, horarios y canjes desde un panel intuitivo.",
     },
     {
-      name: "Miguel Ángel",
-      role: "Barbero independiente",
-      content: "La mejor inversión que he hecho para mi negocio. Los recordatorios por WhatsApp redujeron mis inasistencias a casi cero.",
-      rating: 5,
-      avatar: "👨🏽",
-      color: "#f72585",
+      icon: FiMessageCircle,
+      title: "Notificaciones multicanal",
+      desc: "WhatsApp, correo y notificaciones push. Todo automático.",
     },
     {
-      name: "Patricia Muñoz",
-      role: "Gerente de 'Studio P'",
-      content: "Poder gestionar 8 barberos desde una sola plataforma es increíble. El panel de control es súper intuitivo.",
-      rating: 5,
-      avatar: "👩🏻",
-      color: "#fb8500",
+      icon: FiUserX,
+      title: "Reserva como invitado o registrado",
+      desc: "Máxima flexibilidad: sin registro para los rápidos, con beneficios para los fieles.",
     },
   ];
 
-  const faqs = [
-    {
-      question: "¿Cómo empiezo a usar AgendaFonfach?",
-      answer: "Regístrate gratis, configura tus servicios y barberos, y comienza a recibir reservas en minutos. No necesitas tarjeta de crédito para empezar."
-    },
-    {
-      question: "¿Puedo probar antes de comprar?",
-      answer: "¡Claro! Ofrecemos 14 días gratis del plan Profesional, sin compromiso. Puedes cancelar cuando quieras."
-    },
-    {
-      question: "¿Qué pasa si tengo más de un local?",
-      answer: "Nuestro plan Empresarial te permite gestionar múltiples sucursales con un solo inicio de sesión. Cada local puede tener sus propios barberos y horarios."
-    },
-    {
-      question: "¿Los clientes necesitan crear una cuenta?",
-      answer: "No, pueden reservar ingresando solo su RUT y teléfono. Si lo prefieren, pueden crear una cuenta para ver su historial."
-    }
-  ];
-
-  const handleReservarClick = () => {
-    if (isAuthenticated && user?.rol === "cliente") {
-      navigate("/reservar-hora");
-    } else if (isAuthenticated && user?.rol === "barbero") {
-      navigate("/admin/mis-reservas");
-    } else {
-      navigate("/auth/login");
-    }
+  // PLAN ÚNICO
+  const plan = {
+    nombre: "Plan Único",
+    precio: "24.990",
+    periodo: "mes",
+    descripcion: "Todo lo que necesitas para nunca más perder una hora",
+    incluye: [
+      "Reservas ilimitadas",
+      "Sistema de puntos y canjes",
+      "Lista de espera automática",
+      "Notificaciones WhatsApp + Email",
+      "Recordatorios inteligentes de reposición",
+      "Panel de administración completo",
+      "Múltiples profesionales",
+      "Reserva como invitado o registrado",
+      "Sin comisiones por reserva",
+    ],
   };
 
   return (
-    <>
-      {/* Navbar más claro */}
+    <div style={{ backgroundColor: "#ffffff" }}>
+      {/* Navbar */}
       <Navbar
-        className={`navbar-top fixed-top px-0 px-md-4 ${
-          scrolled ? "navbar-scrolled bg-white shadow-sm" : "bg-transparent"
-        }`}
+        className={`fixed-top ${scrolled ? "bg-white shadow-sm py-2" : "bg-transparent py-3"}`}
         expand="md"
-        style={{
-          transition: "all 0.3s ease",
-        }}
+        style={{ transition: "all 0.3s ease" }}
       >
-        <Container fluid className="px-4">
-          <Navbar brand>
-            <Link
-              to="/"
-              className="navbar-brand font-weight-bold"
-              style={{ 
-                fontSize: "1.5rem",
-                color: scrolled ? "#4361ee" : "white",
-              }}
-            >
-              <FiScissors className="mr-2" />
-              Agenda<span style={{ color: "#f72585" }}>Fonfach</span>
-            </Link>
-          </Navbar>
-
-          <Nav className="ml-auto" navbar>
-            {isAuthenticated ? (
-              <>
-                <NavItem>
-                  <NavLink
-                    tag={Link}
-                    to={user?.rol === "admin" ? "/admin/dashboard" : "/dashboard"}
-                    style={{ color: scrolled ? "#4361ee" : "white" }}
-                  >
-                    Dashboard
-                  </NavLink>
-                </NavItem>
-                <NavItem>
-                  <NavLink
-                    tag={Link}
-                    to="/perfil"
-                    style={{ color: scrolled ? "#4361ee" : "white" }}
-                  >
-                    Mi Perfil
-                  </NavLink>
-                </NavItem>
-                <UncontrolledDropdown nav inNavbar>
-                  <DropdownToggle nav caret style={{ color: scrolled ? "#4361ee" : "white" }}>
-                    {user?.nombre || "Usuario"}
-                  </DropdownToggle>
-                  <DropdownMenu right>
-                    <DropdownItem tag={Link} to="/perfil">
-                      Perfil
-                    </DropdownItem>
-                    <DropdownItem divider />
-                    <DropdownItem tag={Link} to="/logout">
-                      Cerrar sesión
-                    </DropdownItem>
-                  </DropdownMenu>
-                </UncontrolledDropdown>
-              </>
-            ) : (
-              <>
-                <NavItem>
-                  <NavLink
-                    tag={Link}
-                    to="/auth/login"
-                    style={{ color: scrolled ? "#4361ee" : "white" }}
-                  >
-                    Iniciar sesión
-                  </NavLink>
-                </NavItem>
-                <NavItem>
-                  <Button
-                    color="primary"
-                    size="sm"
-                    className="ml-2"
-                    tag={Link}
-                    to="/auth/register"
-                    style={{
-                      background: scrolled ? "#4361ee" : "white",
-                      color: scrolled ? "white" : "#4361ee",
-                      border: "none"
-                    }}
-                  >
-                    Registrarse
-                  </Button>
-                </NavItem>
-              </>
-            )}
+        <Container>
+          <Link
+            to="/"
+            className="navbar-brand d-flex align-items-center font-weight-bold"
+            style={{ color: "#1a1a1a", fontSize: "1.4rem" }}
+          >
+            <FiCalendar className="mr-2" style={{ color: "#f72585" }} />
+            <span>
+              Agenda<span style={{ color: "#4361ee" }}>Fonfach</span>
+            </span>
+          </Link>
+          <Nav className="ml-auto align-items-center" navbar>
+            <NavItem className="d-none d-md-block">
+              <NavLink href="#funcionalidades" className="text-dark mr-4">
+                ¿Qué hace?
+              </NavLink>
+            </NavItem>
+            <NavItem className="d-none d-md-block">
+              <NavLink href="#clientes" className="text-dark mr-4">
+                Clientes felices
+              </NavLink>
+            </NavItem>
+            <NavItem className="d-none d-md-block">
+              <NavLink href="#plan" className="text-dark mr-4">
+                Plan
+              </NavLink>
+            </NavItem>
+            <NavItem>
+              <Button
+                color="primary"
+                pill
+                className="px-4"
+                style={{
+                  borderRadius: "50px",
+                  fontWeight: "600",
+                  background: "#4361ee",
+                  border: "none",
+                }}
+                onClick={() => (window.location.href = "/registro-negocio")}
+              >
+                Quiero probarlo
+              </Button>
+            </NavItem>
           </Nav>
         </Container>
       </Navbar>
 
-      {/* Hero Section - Más claro y vibrante */}
+      {/* Hero Section - Enfocado en vender la agenda */}
       <section
-        className="section-hero"
+        className="pt-9 pb-5"
         style={{
-          background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-          minHeight: "100vh",
-          paddingTop: "80px",
+          background: "linear-gradient(180deg, #f8faff 0%, #ffffff 100%)",
+          paddingTop: "150px",
         }}
       >
-        <Container className="pt-5">
-          <Row className="align-items-center min-vh-100">
-            <Col lg="6" className="text-white mb-5 mb-lg-0">
-              <Badge 
-                color="light" 
-                pill 
-                className="px-3 py-2 mb-4"
-                style={{ background: "rgba(255,255,255,0.2)", color: "white", border: "none" }}
+        <Container>
+          <Row className="align-items-center">
+            <Col lg="6" className="text-center text-lg-left mb-5">
+              <Badge
+                color="soft-primary"
+                className="mb-3 px-3 py-2"
+                style={{
+                  backgroundColor: "#e0e7ff",
+                  color: "#4361ee",
+                  borderRadius: "10px",
+                }}
               >
-                ⚡ La #1 en gestión de barberías
+                ⏰ Para profesionales que valoran su tiempo
               </Badge>
-              <h1 className="display-3 font-weight-bold mb-4">
-                La plataforma que
-                <span style={{ color: "#ffd166" }}> transforma </span>
-                tu barbería
+              <h1
+                className="display-3 font-weight-bold mb-4"
+                style={{ color: "#0f172a", lineHeight: "1.1" }}
+              >
+                Recupera <span style={{ color: "#4361ee" }}>15 horas</span>{" "}
+                <br />a la semana
               </h1>
-              <p className="lead mb-4" style={{ color: "rgba(255,255,255,0.9)" }}>
-                AgendaFonfach automatiza tus reservas, reduce las inasistencias y aumenta tus ingresos. Todo en un solo lugar, desde cualquier dispositivo.
+              <p
+                className="lead text-muted mb-5"
+                style={{ fontSize: "1.2rem" }}
+              >
+                Dile adiós al WhatsApp, las llamadas y los "te confirmo
+                después". AgendaFonfach automatiza tus reservas, fideliza
+                clientes y llena tus horas muertas.
               </p>
-              <div className="d-flex flex-wrap gap-3">
+              <div className="d-flex justify-content-center justify-content-lg-start">
                 <Button
-                  color="light"
                   size="lg"
-                  className="mr-3 mb-2"
-                  onClick={handleReservarClick}
-                  style={{ 
-                    background: "white", 
-                    color: "#667eea",
+                  className="mr-3 px-4 py-3 shadow-lg bg-primary"
+                  style={{
+                    background: "#00aeff",
                     border: "none",
-                    boxShadow: "0 4px 15px rgba(0,0,0,0.2)"
+                    borderRadius: "12px",
                   }}
+                  onClick={() => (window.location.href = "/registro-negocio")}
                 >
-                  {isAuthenticated ? "Ir a mi cuenta" : "Comenzar gratis"}
-                  <FiArrowRight className="ml-2" />
+                  Comenzar ahora <FiArrowRight className="ml-2" />
                 </Button>
                 <Button
-                  outline
-                  color="light"
                   size="lg"
-                  className="mb-2"
-                  style={{ border: "2px solid white", color: "white" }}
-                  onClick={() => {
-                    document.getElementById('features').scrollIntoView({ behavior: 'smooth' });
+                  outline
+                  className="px-4 py-3"
+                  style={{
+                    borderRadius: "12px",
+                    borderColor: "#ddd",
+                    color: "#1a1a1a",
                   }}
-                >
-                  <FiPlay className="mr-2" />
-                  Ver demo
-                </Button>
-              </div>
-              <div className="mt-5 d-flex align-items-center">
-                <div className="d-flex mr-4">
-                  {[1, 2, 3, 4].map((i) => (
-                    <div
-                      key={i}
-                      className="rounded-circle bg-white mr-2"
-                      style={{
-                        width: "40px",
-                        height: "40px",
-                        backgroundImage: `url(https://randomuser.me/api/portraits/men/${i}.jpg)`,
-                        backgroundSize: "cover",
-                        border: "2px solid white",
-                      }}
-                    />
-                  ))}
-                </div>
-                <div>
-                  <strong className="text-white d-block">+500 barberías</strong>
-                  <small style={{ color: "rgba(255,255,255,0.8)" }}>confían en nosotros</small>
-                </div>
-              </div>
-            </Col>
-            <Col lg="6" className="text-center">
-              <img
-                src="https://via.placeholder.com/600x400/ffffff/667eea?text=Dashboard+Preview"
-                alt="Dashboard"
-                className="img-fluid rounded-lg shadow-lg"
-                style={{ maxHeight: "500px", boxShadow: "0 20px 40px rgba(0,0,0,0.2)" }}
-              />
-            </Col>
-          </Row>
-        </Container>
-      </section>
-
-      {/* Stats Section - Más colorido */}
-      <section className="py-5" style={{ background: "#f8f9fa" }}>
-        <Container>
-          <Row>
-            {stats.map((stat, index) => (
-              <Col md="3" sm="6" key={index} className="mb-4 mb-md-0">
-                <div className="text-center">
-                  <div 
-                    className="rounded-circle d-inline-flex p-3 mb-3"
-                    style={{ background: stat.color + '20' }}
-                  >
-                    <stat.icon size={30} style={{ color: stat.color }} />
-                  </div>
-                  <h2 className="font-weight-bold mb-1" style={{ color: stat.color }}>
-                    {stat.value}
-                  </h2>
-                  <p className="text-muted mb-0">{stat.label}</p>
-                </div>
-              </Col>
-            ))}
-          </Row>
-        </Container>
-      </section>
-
-      {/* Features Section */}
-      <section id="features" className="py-7" style={{ background: "white" }}>
-        <Container>
-          <Row className="text-center mb-5">
-            <Col lg="8" className="mx-auto">
-              <Badge color="primary" pill className="px-3 py-2 mb-4" style={{ background: "#667eea" }}>
-                🚀 CARACTERÍSTICAS
-              </Badge>
-              <h2 className="display-4 font-weight-bold mb-3">
-                Todo lo que necesitas para
-                <span style={{ color: "#667eea" }}> crecer</span>
-              </h2>
-              <p className="lead text-muted">
-                Una plataforma completa que automatiza tu barbería y mejora la experiencia de tus clientes
-              </p>
-            </Col>
-          </Row>
-
-          <Row>
-            {features.map((feature, index) => (
-              <Col lg="4" md="6" key={index} className="mb-4">
-                <Card className="shadow-sm h-100 border-0 hover-scale">
-                  <CardBody className="p-4">
-                    <div
-                      className="rounded-circle d-inline-flex p-3 mb-3"
-                      style={{ backgroundColor: feature.bgColor }}
-                    >
-                      <feature.icon size={24} style={{ color: feature.color }} />
-                    </div>
-                    <h5 className="font-weight-bold mb-2">{feature.title}</h5>
-                    <p className="text-muted mb-0">{feature.description}</p>
-                  </CardBody>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </Container>
-      </section>
-
-      {/* How it works */}
-      <section className="py-7" style={{ background: "#f8f9fa" }}>
-        <Container>
-          <Row className="text-center mb-5">
-            <Col lg="8" className="mx-auto">
-              <Badge color="success" pill className="px-3 py-2 mb-4" style={{ background: "#06d6a0" }}>
-                ⚙️ CÓMO FUNCIONA
-              </Badge>
-              <h2 className="display-4 font-weight-bold mb-3">
-                Reserva en <span style={{ color: "#06d6a0" }}>3 simples pasos</span>
-              </h2>
-              <p className="lead text-muted">
-                Para tus clientes es súper fácil, para ti es automático
-              </p>
-            </Col>
-          </Row>
-
-          <Row>
-            {[
-              {
-                step: 1,
-                title: "Elige servicio y barbero",
-                description: "Tus clientes ven disponibilidad en tiempo real y eligen quién los atenderá",
-                icon: FiUsers,
-                color: "#4361ee",
-              },
-              {
-                step: 2,
-                title: "Selecciona día y hora",
-                description: "Solo las horas disponibles se muestran, evitando conflictos",
-                icon: FiCalendar,
-                color: "#f72585",
-              },
-              {
-                step: 3,
-                title: "Confirma y recibe recordatorios",
-                description: "Reserva confirmada al instante y recordatorios automáticos",
-                icon: FiCheckCircle,
-                color: "#06d6a0",
-              },
-            ].map((item) => (
-              <Col md="4" key={item.step}>
-                <div className="text-center px-4">
-                  <div className="position-relative mb-4">
-                    <div 
-                      className="rounded-circle text-white d-inline-flex p-4"
-                      style={{ background: `linear-gradient(135deg, ${item.color} 0%, ${item.color}dd 100%)` }}
-                    >
-                      <item.icon size={32} />
-                    </div>
-                    <div 
-                      className="position-absolute top-0 start-100 translate-middle badge rounded-pill"
-                      style={{ background: item.color }}
-                    >
-                      {item.step}
-                    </div>
-                  </div>
-                  <h5 className="font-weight-bold mb-2">{item.title}</h5>
-                  <p className="text-muted">{item.description}</p>
-                </div>
-              </Col>
-            ))}
-          </Row>
-        </Container>
-      </section>
-
-      {/* Pricing */}
-      <section className="py-7" style={{ background: "white" }}>
-        <Container>
-          <Row className="text-center mb-5">
-            <Col lg="8" className="mx-auto">
-              <Badge color="warning" pill className="px-3 py-2 mb-4" style={{ background: "#fb8500" }}>
-                💰 PRECIOS
-              </Badge>
-              <h2 className="display-4 font-weight-bold mb-3">
-                Planes para <span style={{ color: "#fb8500" }}>todos</span>
-              </h2>
-              <p className="lead text-muted">
-                Elige el plan que mejor se adapte a tu negocio. Cancela cuando quieras.
-              </p>
-            </Col>
-          </Row>
-
-          <Row>
-            {pricingPlans.map((plan, index) => (
-              <Col lg="4" md="6" key={index} className="mb-4">
-                <Card
-                  className={`shadow-sm h-100 border-0 ${plan.popular ? "popular-plan" : ""}`}
-                  style={
-                    plan.popular
-                      ? {
-                          transform: "scale(1.05)",
-                          border: "2px solid #fb8500",
-                          position: "relative",
-                        }
-                      : {}
+                  onClick={() =>
+                    document
+                      .getElementById("funcionalidades")
+                      .scrollIntoView({ behavior: "smooth" })
                   }
                 >
-                  {plan.popular && (
-                    <div
-                      className="position-absolute top-0 start-50 translate-middle"
-                      style={{ transform: "translate(-50%, -50%)" }}
-                    >
-                      <Badge color="warning" pill className="px-3 py-2" style={{ background: "#fb8500" }}>
-                        ⭐ MÁS POPULAR
-                      </Badge>
-                    </div>
-                  )}
+                  Ver cómo funciona
+                </Button>
+              </div>
+            </Col>
+            <Col lg="6" className="position-relative">
+              <div
+                className="rounded-custom shadow-2xl overflow-hidden"
+                style={{ borderRadius: "24px" }}
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800"
+                  alt="Dashboard AgendaFonfach"
+                  className="img-fluid"
+                />
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+
+      {/* Sección: El problema que resolvemos */}
+      <section className="py-6" style={{ background: "#f8f9fa" }}>
+        <Container>
+          <Row className="align-items-center">
+            <Col lg="6" className="mb-4 mb-lg-0">
+              <img
+                src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=800"
+                alt="Profesional estresado con el teléfono"
+                className="img-fluid rounded-lg shadow"
+                style={{ borderRadius: "20px" }}
+              />
+            </Col>
+            <Col lg="6">
+              <Badge
+                color="danger"
+                className="mb-3 px-3 py-2"
+                style={{
+                  backgroundColor: "#ffebee",
+                  color: "#c62828",
+                  borderRadius: "10px",
+                }}
+              >
+                ⚠️ El problema
+              </Badge>
+              <h2 className="font-weight-bold mb-4">¿Suena familiar?</h2>
+              <ul className="list-unstyled">
+                <li className="mb-3 d-flex align-items-center">
+                  <FiClock className="mr-3 text-danger" size={24} />
+                  <span className="text-muted">
+                    20 llamadas perdidas al día mientras atiendes
+                  </span>
+                </li>
+                <li className="mb-3 d-flex align-items-center">
+                  <FiMessageCircle className="mr-3 text-danger" size={24} />
+                  <span className="text-muted">
+                    50 mensajes de WhatsApp preguntando horarios
+                  </span>
+                </li>
+                <li className="mb-3 d-flex align-items-center">
+                  <FiUserX className="mr-3 text-danger" size={24} />
+                  <span className="text-muted">
+                    Clientes que no se acuerdan cuándo volver
+                  </span>
+                </li>
+                <li className="mb-3 d-flex align-items-center">
+                  <FiCalendar className="mr-3 text-danger" size={24} />
+                  <span className="text-muted">
+                    Horarios vacíos que podrían estar llenos
+                  </span>
+                </li>
+              </ul>
+              <p
+                className="h5 font-weight-bold mt-4"
+                style={{ color: "#4361ee" }}
+              >
+                Con AgendaFonfach, todo eso desaparece.
+              </p>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+
+      {/* Funcionalidades de la agenda */}
+      <section id="funcionalidades" className="py-7 bg-white">
+        <Container>
+          <div className="text-center mb-6">
+            <h2 className="display-4 font-weight-bold">
+              Tu nueva asistente 24/7
+            </h2>
+            <p className="text-muted">
+              Automatizamos todo para que tú solo te preocupes de atender bien
+            </p>
+          </div>
+
+          <Row>
+            {features.map((f, i) => (
+              <Col md="6" lg="4" key={i} className="mb-4">
+                <Card
+                  className="border-0 shadow-sm h-100 hover-lift"
+                  style={{ borderRadius: "20px" }}
+                >
                   <CardBody className="p-4">
-                    <h4 className="font-weight-bold mb-1">{plan.name}</h4>
-                    <p className="text-muted small">{plan.description}</p>
-                    <div className="mb-4">
-                      <span className="display-4 font-weight-bold" style={{ color: plan.popular ? "#fb8500" : "#4361ee" }}>
-                        {plan.price}
-                      </span>
-                      <span className="text-muted">/{plan.period}</span>
-                    </div>
-                    <ul className="list-unstyled mb-4">
-                      {plan.features.map((feature, i) => (
-                        <li key={i} className="mb-2">
-                          <FiCheckCircle className="text-success mr-2" size={18} />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      color={plan.buttonColor}
-                      block
-                      size="lg"
-                      tag={Link}
-                      to={plan.popular ? "/auth/register" : "/contacto"}
-                      style={{
-                        background: plan.popular ? "#fb8500" : plan.buttonColor === "primary" ? "#4361ee" : "#06d6a0",
-                        border: "none"
-                      }}
+                    <div
+                      className="mb-3 d-inline-block p-3 rounded-circle"
+                      style={{ background: `${f.color}10`, color: f.color }}
                     >
-                      {plan.buttonText}
-                    </Button>
+                      <f.icon size={30} />
+                    </div>
+                    <h4 className="font-weight-bold mb-2">{f.title}</h4>
+                    <p className="text-muted mb-2">{f.desc}</p>
+                    <small
+                      className="font-weight-bold"
+                      style={{ color: f.color }}
+                    >
+                      {f.detalle}
+                    </small>
                   </CardBody>
                 </Card>
+              </Col>
+            ))}
+          </Row>
+
+          {/* Funcionalidades de administración */}
+          <Row className="mt-5 pt-4">
+            <Col lg="12">
+              <h3 className="text-center font-weight-bold mb-5">
+                Todo el control en tus manos
+              </h3>
+            </Col>
+            {adminFeatures.map((f, i) => (
+              <Col md="4" key={i}>
+                <div className="text-center">
+                  <div
+                    className="mb-3 d-inline-block p-3"
+                    style={{ background: "#f0f0f0", borderRadius: "15px" }}
+                  >
+                    <f.icon size={30} color="#4361ee" />
+                  </div>
+                  <h5 className="font-weight-bold">{f.title}</h5>
+                  <p className="text-muted small">{f.desc}</p>
+                </div>
               </Col>
             ))}
           </Row>
         </Container>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-7" style={{ background: "#f8f9fa" }}>
+      {/* Clientes que ya usan la agenda (testimonios) */}
+      <section id="clientes" className="py-7" style={{ background: "#f8f9fa" }}>
         <Container>
-          <Row className="text-center mb-5">
-            <Col lg="8" className="mx-auto">
-              <Badge color="info" pill className="px-3 py-2 mb-4" style={{ background: "#4cc9f0" }}>
-                💬 TESTIMONIOS
-              </Badge>
-              <h2 className="display-4 font-weight-bold mb-3">
-                Lo que dicen <span style={{ color: "#4cc9f0" }}>nuestros clientes</span>
-              </h2>
-              <p className="lead text-muted">
-                Más de 500 barberías ya confían en nosotros
-              </p>
-            </Col>
-          </Row>
+          <div className="text-center mb-6">
+            <h2 className="display-4 font-weight-bold">
+              Ellos ya recuperaron su tiempo
+            </h2>
+            <p className="text-muted">Negocios que confían en AgendaFonfach</p>
+          </div>
 
-          <Row>
-            {testimonials.map((testimonial, index) => (
-              <Col lg="4" md="6" key={index} className="mb-4">
-                <Card className="shadow-sm h-100 border-0">
+          <Row className="justify-content-center">
+            {clientes.map((cliente) => (
+              <Col lg="5" md="6" key={cliente._id} className="mb-4">
+                <Card
+                  className="border-0 shadow h-100"
+                  style={{ borderRadius: "20px" }}
+                >
                   <CardBody className="p-4">
                     <div className="d-flex align-items-center mb-3">
                       <div
-                        className="rounded-circle text-white d-flex align-items-center justify-content-center mr-3"
-                        style={{ 
-                          width: "50px", 
-                          height: "50px", 
-                          fontSize: "24px",
-                          background: `linear-gradient(135deg, ${testimonial.color} 0%, ${testimonial.color}dd 100%)`
+                        style={{
+                          width: "60px",
+                          height: "60px",
+                          borderRadius: "15px",
+                          overflow: "hidden",
+                          marginRight: "15px",
                         }}
                       >
-                        {testimonial.avatar}
+                        <img
+                          src={cliente.imagen}
+                          alt={cliente.nombre}
+                          className="w-100 h-100"
+                          style={{ objectFit: "cover" }}
+                        />
                       </div>
                       <div>
-                        <h6 className="font-weight-bold mb-0">{testimonial.name}</h6>
-                        <small className="text-muted">{testimonial.role}</small>
+                        <h4 className="font-weight-bold mb-1">
+                          {cliente.nombre}
+                        </h4>
+                        <Badge
+                          color="light"
+                          style={{
+                            backgroundColor: "#e0e7ff",
+                            color: "#4361ee",
+                          }}
+                        >
+                          {cliente.tipo}
+                        </Badge>
                       </div>
                     </div>
+
                     <div className="mb-3">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <FiStar key={i} style={{ color: "#fb8500", fill: "#fb8500" }} size={18} />
+                      {[...Array(5)].map((_, i) => (
+                        <FiStar
+                          key={i}
+                          className="text-warning"
+                          fill="currentColor"
+                          style={{ display: "inline" }}
+                        />
                       ))}
                     </div>
-                    <p className="text-muted mb-0">"{testimonial.content}"</p>
+
+                    <p className="text-muted font-italic">
+                      "{cliente.testimonio}"
+                    </p>
+
+                    <hr />
+
+                    <div className="d-flex justify-content-between align-items-center">
+                      <small className="text-primary font-weight-bold">
+                        Cliente desde 2024
+                      </small>
+                      <FiCheckCircle color="#06d6a0" />
+                    </div>
                   </CardBody>
                 </Card>
               </Col>
@@ -669,201 +504,169 @@ const LandingPage = () => {
         </Container>
       </section>
 
-      {/* FAQ */}
-      <section className="py-7" style={{ background: "white" }}>
+      {/* Sección Plan Único */}
+      <section id="plan" className="py-7 bg-white">
         <Container>
-          <Row className="text-center mb-5">
-            <Col lg="8" className="mx-auto">
-              <Badge color="secondary" pill className="px-3 py-2 mb-4" style={{ background: "#7209b7" }}>
-                ❓ PREGUNTAS FRECUENTES
-              </Badge>
-              <h2 className="display-4 font-weight-bold mb-3">
-                Todo lo que <span style={{ color: "#7209b7" }}>necesitas saber</span>
-              </h2>
-              <p className="lead text-muted">
-                Respuestas a las dudas más comunes
-              </p>
-            </Col>
-          </Row>
+          <div className="text-center mb-6">
+            <h2 className="display-4 font-weight-bold">
+              Un plan, todo incluido
+            </h2>
+            <p className="text-muted">
+              Sin importar tu rubro, el precio es el mismo
+            </p>
+          </div>
 
-          <Row>
-            <Col lg="8" className="mx-auto">
-              {faqs.map((faq, index) => (
-                <Card key={index} className="shadow-sm mb-3 border-0">
-                  <CardBody>
-                    <h6 className="font-weight-bold mb-2">
-                      <FiChevronRight style={{ color: "#7209b7" }} className="mr-2" />
-                      {faq.question}
-                    </h6>
-                    <p className="text-muted mb-0 ml-4">{faq.answer}</p>
-                  </CardBody>
-                </Card>
-              ))}
+          <Row className="justify-content-center">
+            <Col lg="6" md="8">
+              <Card
+                className="border-0 shadow-lg"
+                style={{ borderRadius: "30px", overflow: "hidden" }}
+              >
+                <div
+                  className="p-4 text-center"
+                  style={{
+                    background:
+                      "linear-gradient(135deg, #4361ee 0%, #f72585 100%)",
+                  }}
+                >
+                  <Badge
+                    className="mb-3"
+                    style={{
+                      background: "rgba(255,255,255,0.2)",
+                      color: "white",
+                      border: "none",
+                    }}
+                  >
+                    PLAN ÚNICO
+                  </Badge>
+                  <h3 className="text-white mb-2">
+                    Para cualquier profesional
+                  </h3>
+                  <div className="d-flex align-items-center justify-content-center">
+                    <span
+                      className="text-white"
+                      style={{ fontSize: "3rem", fontWeight: "bold" }}
+                    >
+                      ${plan.precio}
+                    </span>
+                    <span className="text-white-50 ml-2">/{plan.periodo}</span>
+                  </div>
+                  <p className="text-white-50 mt-2 mb-0">
+                    Barberías, salones, spa, consultorios y más
+                  </p>
+                </div>
+
+                <CardBody className="p-4">
+                  <p className="text-center text-muted mb-4">
+                    {plan.descripcion}
+                  </p>
+
+                  <div className="mb-4">
+                    {plan.incluye.map((item, index) => (
+                      <div
+                        key={index}
+                        className="d-flex align-items-center mb-3"
+                      >
+                        <FiCheckCircle
+                          className="mr-3"
+                          style={{ color: "#06d6a0", fontSize: "1.2rem" }}
+                        />
+                        <span>{item}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Button
+                    block
+                    size="lg"
+                    style={{
+                      background: "#1a1a1a",
+                      border: "none",
+                      borderRadius: "15px",
+                      padding: "15px",
+                    }}
+                    onClick={() => (window.location.href = "/registro-negocio")}
+                  >
+                    Quiero recuperar mi tiempo <FiArrowRight className="ml-2" />
+                  </Button>
+
+                  <p className="text-center text-muted small mt-3">
+                    Sin permanencia. Prueba 7 días gratis.
+                  </p>
+                </CardBody>
+              </Card>
             </Col>
           </Row>
         </Container>
       </section>
 
-      {/* CTA - Más vibrante */}
-      <section className="py-7" style={{ 
-        background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-      }}>
+      {/* Footer */}
+      <footer
+        className="py-4"
+        style={{ borderTop: "1px solid #eee", background: "#f8f9fa" }}
+      >
         <Container>
           <Row className="align-items-center">
-            <Col lg="8" className="text-white mb-4 mb-lg-0">
-              <h2 className="display-4 font-weight-bold mb-3">
-                Comienza a transformar tu barbería hoy
-              </h2>
-              <p className="lead mb-0" style={{ color: "rgba(255,255,255,0.9)" }}>
-                Regístrate gratis y descubre por qué +500 barberías ya confían en nosotros
-              </p>
+            <Col md="6" className="text-center text-md-left mb-3 mb-md-0">
+              <div className="d-flex align-items-center justify-content-center justify-content-md-start">
+                <FiCalendar style={{ color: "#f72585", fontSize: "1.5rem" }} />
+                <span className="ml-2 font-weight-bold">AgendaFonfach</span>
+              </div>
             </Col>
-            <Col lg="4" className="text-lg-right">
-              <Button
-                color="light"
-                size="lg"
-                className="mr-3"
-                tag={Link}
-                to="/auth/register"
-                style={{ 
-                  background: "white", 
-                  color: "#667eea",
-                  border: "none",
-                  boxShadow: "0 4px 15px rgba(0,0,0,0.2)"
-                }}
-              >
-                Crear cuenta gratis
-                <FiArrowRight className="ml-2" />
-              </Button>
-            </Col>
-          </Row>
-        </Container>
-      </section>
 
-      {/* Footer - Más claro */}
-      <footer className="py-7" style={{ background: "#2d3748", color: "white" }}>
-        <Container>
-          <Row>
-            <Col lg="4" className="mb-5 mb-lg-0">
-              <h4 className="mb-4 font-weight-bold">
-                <FiScissors className="mr-2" />
-                Agenda<span style={{ color: "#f72585" }}>Fonfach</span>
-              </h4>
-              <p style={{ color: "rgba(255,255,255,0.7)" }} className="mb-4">
-                La plataforma #1 en gestión de reservas para barberías y peluquerías en Chile.
-              </p>
-              <div className="d-flex">
-                {[FiMessageCircle, FiMapPin, FiClock].map((Icon, i) => (
-                  <div
-                    key={i}
-                    className="rounded-circle p-2 mr-2"
-                    style={{ background: "rgba(255,255,255,0.1)" }}
-                  >
-                    <Icon size={18} className="text-white" />
-                  </div>
-                ))}
-              </div>
-            </Col>
-            <Col lg="2" md="6" className="mb-5 mb-lg-0">
-              <h6 className="text-white font-weight-bold mb-4">Producto</h6>
-              <ul className="list-unstyled">
-                <li className="mb-2">
-                  <Link to="/caracteristicas" style={{ color: "rgba(255,255,255,0.7)" }}>Características</Link>
-                </li>
-                <li className="mb-2">
-                  <Link to="/precios" style={{ color: "rgba(255,255,255,0.7)" }}>Precios</Link>
-                </li>
-                <li className="mb-2">
-                  <Link to="/demo" style={{ color: "rgba(255,255,255,0.7)" }}>Demo</Link>
-                </li>
-              </ul>
-            </Col>
-            <Col lg="2" md="6" className="mb-5 mb-lg-0">
-              <h6 className="text-white font-weight-bold mb-4">Compañía</h6>
-              <ul className="list-unstyled">
-                <li className="mb-2">
-                  <Link to="/nosotros" style={{ color: "rgba(255,255,255,0.7)" }}>Sobre nosotros</Link>
-                </li>
-                <li className="mb-2">
-                  <Link to="/blog" style={{ color: "rgba(255,255,255,0.7)" }}>Blog</Link>
-                </li>
-                <li className="mb-2">
-                  <Link to="/contacto" style={{ color: "rgba(255,255,255,0.7)" }}>Contacto</Link>
-                </li>
-              </ul>
-            </Col>
-            <Col lg="4" md="12">
-              <h6 className="text-white font-weight-bold mb-4">Newsletter</h6>
-              <p style={{ color: "rgba(255,255,255,0.7)" }} className="mb-3">
-                Suscríbete para recibir tips y novedades
-              </p>
-              <div className="d-flex">
-                <input
-                  type="email"
-                  className="form-control mr-2"
-                  placeholder="tu@email.com"
-                  style={{ 
-                    background: "rgba(255,255,255,0.1)", 
-                    border: "none",
-                    color: "white"
-                  }}
-                />
-                <Button color="primary" style={{ background: "#f72585", border: "none" }}>
-                  Enviar
-                </Button>
-              </div>
-            </Col>
-          </Row>
-          <hr style={{ background: "rgba(255,255,255,0.1)" }} className="my-5" />
-          <Row>
-            <Col md="6" className="text-center text-md-left">
-              <p style={{ color: "rgba(255,255,255,0.5)" }} className="mb-0">
-                © 2024 AgendaFonfach. Todos los derechos reservados.
-              </p>
-            </Col>
             <Col md="6" className="text-center text-md-right">
-              <Link to="/terminos" style={{ color: "rgba(255,255,255,0.5)" }} className="mr-3">Términos</Link>
-              <Link to="/privacidad" style={{ color: "rgba(255,255,255,0.5)" }}>Privacidad</Link>
+              <a
+                href="https://instagram.com/hans.fonfach"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mx-2"
+              >
+                <FiInstagram size={20} color="#4361ee" />
+              </a>
+              <a
+                href="https://wa.me/56975297584"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mx-2"
+              >
+                <FiSmartphone size={20} color="#25D366" />
+              </a>
             </Col>
           </Row>
+
+          <hr className="my-3" />
+
+          <div className="text-center">
+            <p className="text-muted small mb-0">
+              © 2026 AgendaFonfach - Creado por Hans Fonfach Rodriguez
+            </p>
+            <p className="text-muted small mt-2">
+              ⚡ $24.990 CLP fijos
+            </p>
+          </div>
         </Container>
       </footer>
 
       <style jsx>{`
-        .hover-scale {
-          transition: transform 0.3s ease;
+        .hover-lift {
+          transition: all 0.3s ease;
         }
-        .hover-scale:hover {
+        .hover-lift:hover {
           transform: translateY(-5px);
+          box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1) !important;
         }
-        .popular-plan {
-          transition: transform 0.3s ease;
+        .pt-9 {
+          padding-top: 8rem;
         }
-        .popular-plan:hover {
-          transform: scale(1.07);
+        .py-7 {
+          padding-top: 6rem;
+          padding-bottom: 6rem;
         }
-        .section-hero {
-          position: relative;
-          overflow: hidden;
-        }
-        .section-hero::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          left: 0;
-          background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,154.7C960,171,1056,181,1152,165.3C1248,149,1344,107,1392,85.3L1440,64L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"/></svg>');
-          background-repeat: no-repeat;
-          background-position: bottom;
-          background-size: cover;
-          opacity: 0.5;
-        }
-        .navbar-scrolled {
-          backdrop-filter: blur(10px);
+        .mb-6 {
+          margin-bottom: 4rem;
         }
       `}</style>
-    </>
+    </div>
   );
 };
 
