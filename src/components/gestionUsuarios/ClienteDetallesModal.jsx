@@ -1,172 +1,276 @@
-import React from "react";
+// components/gestionUsuarios/ClienteDetallesModal.jsx
+import React, { useEffect, useState } from "react";
 import {
   Modal,
+  ModalHeader,
   ModalBody,
   ModalFooter,
-  ModalHeader,
   Button,
   Row,
   Col,
   Badge,
   Card,
-  CardBody
+  CardBody,
+  ListGroup,
+  ListGroupItem,
 } from "reactstrap";
-
-import { FiMail, FiPhone, FiCalendar, FiCreditCard, FiTrash2 } from "react-icons/fi";
-import { MdOutlineSubscriptions, MdOutlinePerson } from "react-icons/md";
-import { FiXCircle } from "react-icons/fi";
+import {
+  FiUser,
+  FiMail,
+  FiPhone,
+  FiCalendar,
+  FiAward,
+  FiStar,
+  FiEdit,
+  FiTrash2,
+  FiX,
+  FiCheck,
+} from "react-icons/fi";
 
 const ClienteDetallesModal = ({
   isOpen,
   toggle,
   usuario,
+  onEditar,
   onSuscribir,
   onCancelarSuscripcion,
-  onEliminar
+  onEliminar,
+  fullscreen = false,
 }) => {
+  const [vistaMobile, setVistaMobile] = useState(false);
+
+  useEffect(() => {
+    setVistaMobile(window.innerWidth < 768 || fullscreen);
+  }, [fullscreen]);
+
   if (!usuario) return null;
 
-  const sus = usuario.suscripcion;
-  const susActiva = sus && sus.activa;
+  const tieneSuscripcion = usuario.suscripcion?.activa;
+  const suscripcionData = usuario.suscripcion;
+
+  const formatFecha = (fecha) => {
+    if (!fecha) return "No registrada";
+    return new Date(fecha).toLocaleDateString("es-CL", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const formatRUT = (rut) => {
+    if (!rut) return "No registrado";
+    return rut;
+  };
 
   return (
-    <Modal isOpen={isOpen} toggle={toggle} centered size="lg">
-      {/* Header elegante */}
-      <ModalHeader toggle={toggle} className="border-0 pb-0">
+    <Modal
+      isOpen={isOpen}
+      toggle={toggle}
+      className={vistaMobile ? "modal-fullscreen" : "modal-dialog-centered modal-lg"}
+      contentClassName={vistaMobile ? "h-100" : ""}
+    >
+      <ModalHeader
+        toggle={toggle}
+        className={vistaMobile ? "py-2 bg-gradient-primary text-white" : "bg-gradient-primary text-white"}
+      >
         <div className="d-flex align-items-center">
-          <div
-            className="rounded-circle d-flex align-items-center justify-content-center"
-            style={{
-              width: "52px",
-              height: "52px",
-              backgroundColor: "#f5f6fa",
-            }}
-          >
-            <MdOutlinePerson size={26} className="text-dark" />
+          <div className="avatar avatar-sm rounded-circle bg-white mr-2">
+            <FiUser size={vistaMobile ? 14 : 18} className="text-primary" />
           </div>
-
-          <div className="ml-3">
-            <h4 className="mb-0 font-weight-bold">
-              {usuario.nombre} {usuario.apellido}
-            </h4>
-            <small className="text-muted">Cliente registrado</small>
-          </div>
+          <span>Detalles del Cliente</span>
         </div>
       </ModalHeader>
 
-      <ModalBody className="pt-2">
+      <ModalBody className={vistaMobile ? "p-2" : ""}>
         <Row>
-          {/* Información Personal */}
-          <Col md="6">
-            <Card className="border-0 shadow-sm mb-3 rounded-4">
-              <CardBody>
-                <h6 className="mb-3 font-weight-bold text-dark d-flex align-items-center">
-                  <MdOutlinePerson className="mr-2" />
+          <Col xs="12" md="6" className={!vistaMobile ? "pr-2" : ""}>
+            <Card className="shadow-sm mb-3">
+              <CardBody className={vistaMobile ? "p-2" : ""}>
+                <h6 className="text-primary mb-3 d-flex align-items-center">
+                  <FiUser className="mr-2" size={vistaMobile ? 14 : 16} />
                   Información Personal
                 </h6>
-
-                <div className="mb-3">
-                  <small className="text-muted d-block">RUT</small>
-                  <p className="mb-0 font-weight-bold">{usuario.rut || "No especificado"}</p>
-                </div>
-
-                <div className="mb-3">
-                  <small className="text-muted d-block">Email</small>
-                  <p className="mb-0 d-flex align-items-center">
-                    <FiMail size={15} className="mr-2 text-dark" />
-                    {usuario.email}
-                  </p>
-                </div>
-
-                <div>
-                  <small className="text-muted d-block">Teléfono</small>
-                  <p className="mb-0 d-flex align-items-center">
-                    <FiPhone size={15} className="mr-2 text-dark" />
-                    {usuario.telefono || "No especificado"}
-                  </p>
-                </div>
+                
+                <ListGroup flush className={vistaMobile ? "small" : ""}>
+                  <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
+                    <span className="text-muted">Nombre:</span>
+                    <span className="font-weight-bold text-right">
+                      {usuario.nombre} {usuario.apellido}
+                    </span>
+                  </ListGroupItem>
+                  
+                  <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
+                    <span className="text-muted">RUT:</span>
+                    <span className="font-weight-bold">{formatRUT(usuario.rut)}</span>
+                  </ListGroupItem>
+                  
+                  <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
+                    <span className="text-muted d-flex align-items-center">
+                      <FiMail className="mr-1" size={12} /> Email:
+                    </span>
+                    <span className="font-weight-bold text-right small">
+                      {usuario.email || "No registrado"}
+                    </span>
+                  </ListGroupItem>
+                  
+                  <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
+                    <span className="text-muted d-flex align-items-center">
+                      <FiPhone className="mr-1" size={12} /> Teléfono:
+                    </span>
+                    <span className="font-weight-bold">{usuario.telefono || "No registrado"}</span>
+                  </ListGroupItem>
+                </ListGroup>
               </CardBody>
             </Card>
           </Col>
 
-          {/* Suscripción */}
-          <Col md="6">
-            <Card className="border-0 shadow-sm mb-3 rounded-4">
-              <CardBody>
-                <h6 className="mb-3 font-weight-bold text-dark d-flex align-items-center">
-                  <FiCreditCard className="mr-2" />
+          <Col xs="12" md="6" className={!vistaMobile ? "pl-2" : ""}>
+            <Card className="shadow-sm mb-3">
+              <CardBody className={vistaMobile ? "p-2" : ""}>
+                <h6 className="text-primary mb-3 d-flex align-items-center">
+                  <FiAward className="mr-2" size={vistaMobile ? 14 : 16} />
                   Estado de Suscripción
                 </h6>
 
-                <div className="d-flex align-items-center mb-3">
-                  <Badge
-                    pill
-                    className="px-3 py-2"
-                    color={susActiva ? "success" : "secondary"}
-                  >
-                    {susActiva ? "ACTIVA" : "INACTIVA"}
-                  </Badge>
-
-                  {susActiva && (
-                    <small className="text-muted ml-3 d-flex align-items-center">
-                      <FiCalendar size={14} className="mr-1" />
-                      Vence: {new Date(sus.fechaFin).toLocaleDateString()}
-                    </small>
+                <div className="text-center mb-3">
+                  {tieneSuscripcion ? (
+                    <Badge color="success" pill className="px-4 py-2">
+                      <FiCheck className="mr-1" size={12} />
+                      Suscripción Activa
+                    </Badge>
+                  ) : (
+                    <Badge color="secondary" pill className="px-4 py-2">
+                      <FiX className="mr-1" size={12} />
+                      Sin Suscripción
+                    </Badge>
                   )}
                 </div>
 
-                <div className="bg-success rounded p-3">
-                  <small className="text-white d-block">
-                    Registro: {new Date(usuario.createdAt).toLocaleDateString()}
-                  </small>
-                  <small className="text-white">
-                    Última actualización: {new Date(usuario.updatedAt).toLocaleDateString()}
-                  </small>
-                </div>
+                {tieneSuscripcion && suscripcionData && (
+                  <ListGroup flush className={vistaMobile ? "small" : ""}>
+                    <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
+                      <span className="text-muted">Cortes realizados:</span>
+                      <span className="font-weight-bold">
+                        {suscripcionData.cortesRealizados || 0}
+                      </span>
+                    </ListGroupItem>
+                    
+                    <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
+                      <span className="text-muted">Cortes restantes:</span>
+                      <span className="font-weight-bold text-success">
+                        {suscripcionData.cortesRestantes || 0}
+                      </span>
+                    </ListGroupItem>
+                    
+                    <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
+                      <span className="text-muted">Fecha inicio:</span>
+                      <span className="font-weight-bold">
+                        {formatFecha(suscripcionData.fechaInicio)}
+                      </span>
+                    </ListGroupItem>
+                    
+                    <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
+                      <span className="text-muted">Próximo vencimiento:</span>
+                      <span className="font-weight-bold">
+                        {formatFecha(suscripcionData.fechaExpiracion)}
+                      </span>
+                    </ListGroupItem>
+                  </ListGroup>
+                )}
+
+                {!tieneSuscripcion && (
+                  <div className="text-center py-3">
+                    <FiStar size={32} className="text-muted mb-2" />
+                    <p className="text-muted small mb-0">
+                      Este cliente no tiene una suscripción activa
+                    </p>
+                  </div>
+                )}
               </CardBody>
             </Card>
           </Col>
         </Row>
       </ModalBody>
 
-      {/* Footer moderno */}
-      <ModalFooter className="border-0 pt-0">
-        <div className="d-flex justify-content-between w-100">
+      <ModalFooter className={vistaMobile ? "p-2 flex-wrap" : ""}>
+        <div className="d-flex justify-content-between w-100 flex-wrap">
+          <div className="mb-2 mb-md-0">
+            <Button
+              color="warning"
+              size={vistaMobile ? "sm" : "md"}
+              className="mr-2"
+              onClick={onEditar}
+            >
+              <FiEdit size={vistaMobile ? 12 : 14} className="mr-1" />
+              {vistaMobile ? "Editar" : "Editar información"}
+            </Button>
 
-          {/* Botón de Suscripción */}
-          <div>
-            {susActiva ? (
+            {tieneSuscripcion ? (
               <Button
-                color="outline-warning"
+                color="secondary"
+                size={vistaMobile ? "sm" : "md"}
                 onClick={onCancelarSuscripcion}
-                className="d-flex align-items-center px-3"
               >
-                <FiXCircle className="mr-2" />
-                Cancelar Suscripción
+                <FiX size={vistaMobile ? 12 : 14} className="mr-1" />
+                {vistaMobile ? "Cancelar" : "Cancelar suscripción"}
               </Button>
             ) : (
               <Button
-                color="outline-success"
+                color="success"
+                size={vistaMobile ? "sm" : "md"}
                 onClick={onSuscribir}
-                className="d-flex align-items-center px-3"
               >
-                <MdOutlineSubscriptions className="mr-2" />
-                Activar Suscripción
+                <FiStar size={vistaMobile ? 12 : 14} className="mr-1" />
+                {vistaMobile ? "Suscribir" : "Activar suscripción"}
               </Button>
             )}
           </div>
 
-          {/* Botón eliminar */}
-          <Button
-            color="outline-danger"
-            onClick={onEliminar}
-            className="d-flex align-items-center px-3"
-          >
-            <FiTrash2 className="mr-2" />
-            Eliminar Cliente
-          </Button>
+          <div>
+            <Button
+              color="danger"
+              size={vistaMobile ? "sm" : "md"}
+              className="mr-2"
+              onClick={onEliminar}
+            >
+              <FiTrash2 size={vistaMobile ? 12 : 14} className="mr-1" />
+              {vistaMobile ? "Eliminar" : "Eliminar cliente"}
+            </Button>
+
+            <Button
+              color="secondary"
+              size={vistaMobile ? "sm" : "md"}
+              onClick={toggle}
+            >
+              <FiX size={vistaMobile ? 12 : 14} className="mr-1" />
+              Cerrar
+            </Button>
+          </div>
         </div>
       </ModalFooter>
+
+      <style jsx>{`
+        .modal-fullscreen {
+          max-width: 100%;
+          margin: 0;
+          height: 100vh;
+        }
+        
+        .modal-fullscreen .modal-content {
+          height: 100vh;
+          border-radius: 0;
+        }
+        
+        @media (max-width: 768px) {
+          .modal-content {
+            border-radius: 0.5rem;
+          }
+          
+          .list-group-item {
+            font-size: 0.9rem;
+          }
+        }
+      `}</style>
     </Modal>
   );
 };

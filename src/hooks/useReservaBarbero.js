@@ -98,7 +98,7 @@ export const useReservaBarbero = () => {
     ? barberos.filter((b) => {
         const serviciosB = serviciosBarberos[b._id] || [];
         return serviciosB.some(
-          (s) => String(s.servicioId) === String(servicio)
+          (s) => String(s.servicioId) === String(servicio),
         );
       })
     : [];
@@ -150,7 +150,7 @@ export const useReservaBarbero = () => {
         if (isMounted) {
           if (usuario && usuario._id) {
             console.log(
-              "✅ [EFECTO] Usuario ENCONTRADO, actualizando estado..."
+              "✅ [EFECTO] Usuario ENCONTRADO, actualizando estado...",
             );
             setUsuarioEncontrado(usuario);
             setErrorBusqueda("");
@@ -192,7 +192,7 @@ export const useReservaBarbero = () => {
   // --------------------------------------------------
   const isoDate = (d) =>
     `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-      d.getDate()
+      d.getDate(),
     ).padStart(2, "0")}`;
 
   const formatDayLabel = (d) =>
@@ -228,9 +228,9 @@ export const useReservaBarbero = () => {
             mensaje: !barberoId
               ? "Selecciona barbero"
               : !serviceId
-              ? "Selecciona servicio"
-              : "",
-          }))
+                ? "Selecciona servicio"
+                : "",
+          })),
         );
         return;
       }
@@ -238,37 +238,85 @@ export const useReservaBarbero = () => {
       setLoadingWeek(true);
       try {
         const dates = buildWeekDates(startDate);
-        const promises = dates.map((d) =>
-          getHorasDisponiblesBarbero(barberoId, isoDate(d), serviceId)
-            .then((res) => res)
-            .catch(() => ({ horasDisponibles: [] }))
-        );
+
+        const promises = dates.map((d) => {
+          const fechaIso = isoDate(d);
+          console.log(`🔍 Verificando disponibilidad para:`, {
+            barbero: barberoId,
+            fecha: fechaIso,
+            servicio: serviceId,
+          });
+
+          return getHorasDisponiblesBarbero(barberoId, fechaIso, serviceId)
+            .then((res) => {
+              console.log(`✅ Respuesta para ${fechaIso}:`, res);
+              return res;
+            })
+            .catch((err) => {
+              console.error(`❌ Error para ${fechaIso}:`, err);
+              return { horas: [] }; // 🔥 IMPORTANTE: debe ser { horas: [] } no { horasDisponibles: [] }
+            });
+        });
 
         const results = await Promise.all(promises);
+        console.log("📊 Resultados completos:", results);
 
         const newWeek = dates.map((d, idx) => {
           const res = results[idx];
-          const horas = res?.horasDisponibles || [];
+
+          // 🔥 CORREGIDO: La estructura correcta es { horas: [...] }
+          // donde cada hora tiene { hora: "09:00", estado: "disponible", ... }
+          const horas = res?.horas || [];
+
+          // Filtrar solo las horas disponibles
+          const horasDisponibles = horas.filter(
+            (h) => h.estado === "disponible",
+          );
+
+          const disponible = horasDisponibles.length > 0;
+
+          console.log(
+            `📅 Día ${isoDate(d)}: ${disponible ? "✅ Disponible" : "❌ No disponible"} (${horasDisponibles.length} horas disponibles de ${horas.length} total)`,
+          );
+
           return {
             date: d,
             label: formatDayLabel(d),
             iso: isoDate(d),
-            available: horas.length > 0,
-            horasDisponibles: horas,
-            mensaje: horas.length === 0 ? "No disponible" : "",
+
+            // 🔥 EXACTAMENTE IGUAL AL CLIENTE
+            available: horasDisponibles.length > 0,
+            horas: horas, // 👈 TODAS las horas con estado
+
+            mensaje:
+              horas.length === 0
+                ? "No disponible"
+                : horasDisponibles.length === 0
+                  ? "Sin horas libres"
+                  : "",
           };
         });
 
         setWeekDays(newWeek);
       } catch (err) {
-        console.error(err);
+        console.error("❌ Error en fetchWeekAvailability:", err);
+        const dates = buildWeekDates(startDate);
+        setWeekDays(
+          dates.map((d) => ({
+            date: d,
+            label: formatDayLabel(d),
+            iso: isoDate(d),
+            available: false,
+            horasDisponibles: [],
+            mensaje: "Error al verificar disponibilidad",
+          })),
+        );
       } finally {
         setLoadingWeek(false);
       }
     },
-    [buildWeekDates, getHorasDisponiblesBarbero]
+    [buildWeekDates, getHorasDisponiblesBarbero],
   );
-
   useEffect(() => {
     if (loadingServicios) return;
 
@@ -285,11 +333,11 @@ export const useReservaBarbero = () => {
           mensaje: !usuarioEncontrado
             ? "Ingresa RUT del cliente"
             : !servicio
-            ? "Selecciona servicio"
-            : !barbero
-            ? "Selecciona barbero"
-            : "Completa los pasos anteriores",
-        }))
+              ? "Selecciona servicio"
+              : !barbero
+                ? "Selecciona barbero"
+                : "Completa los pasos anteriores",
+        })),
       );
       return;
     }
@@ -345,7 +393,7 @@ export const useReservaBarbero = () => {
     const nuevaM = totalMinutos % 60;
     return `${String(nuevaH).padStart(2, "0")}:${String(nuevaM).padStart(
       2,
-      "0"
+      "0",
     )}`;
   };
 
@@ -357,10 +405,10 @@ export const useReservaBarbero = () => {
       const finM = totalMinutos % 60;
       return `${String(finH).padStart(2, "0")}:${String(finM).padStart(
         2,
-        "0"
+        "0",
       )}`;
     },
-    [duracionServicio]
+    [duracionServicio],
   );
   const handleReservar = async (e) => {
     if (e?.preventDefault) e.preventDefault();
@@ -369,7 +417,7 @@ export const useReservaBarbero = () => {
       Swal.fire(
         "Error",
         "Debes ingresar un RUT válido y encontrar al cliente",
-        "error"
+        "error",
       );
       return;
     }
@@ -392,8 +440,8 @@ export const useReservaBarbero = () => {
         html: `
         <div class="text-left">
           <p><strong>Cliente:</strong> ${usuarioEncontrado.nombre} ${
-          usuarioEncontrado.apellido
-        }</p>
+            usuarioEncontrado.apellido
+          }</p>
           <p><strong>RUT:</strong> ${usuarioEncontrado.rut}</p>
           <p><strong>Barbero:</strong> ${
             barberos.find((b) => b._id === barbero)?.nombre || "Barbero"

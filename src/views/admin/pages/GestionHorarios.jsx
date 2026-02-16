@@ -1,5 +1,5 @@
 // src/views/admin/pages/GestionHorarios.jsx
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Button,
   Card,
@@ -15,12 +15,7 @@ import {
   Spinner,
   Alert,
 } from "reactstrap";
-import {
-  PlusCircle,
-  Trash2,
-  RefreshCw,
-  Calendar,
-} from "lucide-react";
+import { PlusCircle, Trash2, RefreshCw, Calendar, Clock } from "lucide-react";
 
 import UserHeader from "components/Headers/UserHeader";
 import { useAuth } from "context/AuthContext";
@@ -31,214 +26,244 @@ const GestionHorarios = () => {
   const { user, isAuthenticated } = useAuth();
   const barbero = user?.id || user?._id;
 
-  const {
-    agregarHoraExtraDiaria,
-    cancelarHoraExtraDiaria,
-    toggleHoraPorDia,
-  } = useHorario();
+  const { agregarHoraExtraDiaria, cancelarHoraExtraDiaria, toggleHoraPorDia } =
+    useHorario();
 
   const [fechaSeleccionada, setFechaSeleccionada] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
   const [nuevaHora, setNuevaHora] = useState("");
   const [mensaje, setMensaje] = useState("");
+  const [mensajeError, setMensajeError] = useState("");
 
   const {
-    todasLasHoras,     // [{ hora: "09:00", disponible: true }]
-    horasExtra,        // [{ hora: "19:00", disponible: true }]
-    horasCanceladas,   // ["10:00", "11:00"]
+    todasLasHoras,
+    horasExtra,
+    horasCanceladas,
     cargando,
     error,
+    refetch,
   } = useGestionHorariosAdmin(barbero, fechaSeleccionada);
 
-  if (!isAuthenticated || !user) {
+  // Crear un Set de horas canceladas para búsqueda rápida
+  const horasCanceladasSet = useMemo(() => {
+    return new Set(horasCanceladas);
+  }, [horasCanceladas]);
+
+  // Crear un Set de horas extra para búsqueda rápida
+  const horasExtraSet = useMemo(() => {
+    return new Set(horasExtra.map(h => h.hora));
+  }, [horasExtra]);
+
+  const obtenerEstadoHora = (hora) => {
+    if (horasCanceladasSet.has(hora)) return "cancelada";
+    if (horasExtraSet.has(hora)) return "extra";
+    return "disponible";
+  };
+
+  const onToggleHora = async (hora) => {
+    try {
+      setMensajeError("");
+      await toggleHoraPorDia(hora, fechaSeleccionada, barbero);
+      setMensaje(`Hora ${hora} ${horasCanceladasSet.has(hora) ? 'reactivada' : 'cancelada'} correctamente`);
+      await refetch();
+    } catch (err) {
+      setMensajeError(`Error al actualizar hora ${hora}`);
+      console.error(err);
+    }
+  };
+
+  const onAgregarHoraExtra = async () => {
+    if (!nuevaHora) {
+      setMensajeError("Selecciona una hora");
+      return;
+    }
+
+    // Verificar si ya existe como hora extra
+    if (horasExtraSet.has(nuevaHora)) {
+      setMensajeError(`La hora ${nuevaHora} ya está agregada como extra`);
+      return;
+    }
+
+    try {
+      setMensajeError("");
+      await agregarHoraExtraDiaria(barbero, fechaSeleccionada, nuevaHora);
+      setNuevaHora("");
+      setMensaje(`Hora extra ${nuevaHora} agregada correctamente`);
+      await refetch();
+    } catch (err) {
+      setMensajeError(`Error al agregar hora extra ${nuevaHora}`);
+      console.error(err);
+    }
+  };
+
+  const onEliminarHoraExtra = async (hora) => {
+    try {
+      setMensajeError("");
+      await cancelarHoraExtraDiaria(barbero, fechaSeleccionada, hora);
+      setMensaje(`Hora extra ${hora} eliminada correctamente`);
+      await refetch();
+    } catch (err) {
+      setMensajeError(`Error al eliminar hora extra ${hora}`);
+      console.error(err);
+    }
+  };
+
+  if (!isAuthenticated) {
     return (
-      <Container className="mt-5 text-center">
-        <Spinner size="sm" className="me-2" />
-        Cargando usuario...
+      <Container className="mt--7 mb-5 text-center">
+        <Spinner />
       </Container>
     );
   }
 
-  // 🔹 Unificar horas base + extras (objetos)
-  const horariosDelDia = [...todasLasHoras, ...horasExtra].sort((a, b) =>
-    a.hora.localeCompare(b.hora)
-  );
-
-  // 🔹 Estado de cada hora
-  const obtenerEstadoHora = (bloque) => {
-    if (horasExtra.some((h) => h.hora === bloque.hora)) return "extra";
-    if (horasCanceladas.includes(bloque.hora)) return "cancelada";
-    return bloque.disponible ? "disponible" : "cancelada";
-  };
-
-  // 🔹 Toggle cancelar / reactivar
-  const onToggleHora = async (hora) => {
-    try {
-      await toggleHoraPorDia(hora, fechaSeleccionada, barbero);
-      setMensaje(`Hora ${hora} actualizada correctamente`);
-    } catch (err) {
-      console.error(err);
-      setMensaje("Error al actualizar la hora");
-    }
-  };
-
-  // 🔹 Agregar hora extra
-  const onAgregarHoraExtra = async () => {
-    if (!nuevaHora) return;
-
-    try {
-      await agregarHoraExtraDiaria(barbero, fechaSeleccionada, nuevaHora);
-      setNuevaHora("");
-      setMensaje(`Hora extra ${nuevaHora} agregada`);
-    } catch (err) {
-      console.error(err);
-      setMensaje("Error al agregar hora extra");
-    }
-  };
-
-  // 🔹 Eliminar hora extra
-  const onEliminarHoraExtra = async (hora) => {
-    try {
-      await cancelarHoraExtraDiaria(barbero, fechaSeleccionada, hora);
-      setMensaje(`Hora extra ${hora} eliminada`);
-    } catch (err) {
-      console.error(err);
-      setMensaje("Error al eliminar hora extra");
-    }
-  };
-
   return (
     <>
       <UserHeader />
-
       <Container className="mt--7 mb-5" style={{ maxWidth: "1000px" }}>
-        <Card className="shadow border-0">
+        <Card>
           <CardHeader className="bg-gradient-primary text-white d-flex align-items-center">
-            <Calendar className="me-2" />
-            <div>
-              <h3 className="mb-0">Gestión de Horarios</h3>
-              <small>Administración diaria del horario</small>
-            </div>
+            <Calendar className="me-2" size={20} />
+            <h5 className="mb-0">Gestión de Horarios</h5>
           </CardHeader>
 
           <CardBody>
-            {mensaje && <Alert color="info">{mensaje}</Alert>}
+            {mensaje && (
+              <Alert color="success" toggle={() => setMensaje("")}>
+                {mensaje}
+              </Alert>
+            )}
+            
+            {mensajeError && (
+              <Alert color="danger" toggle={() => setMensajeError("")}>
+                {mensajeError}
+              </Alert>
+            )}
+            
             {error && <Alert color="danger">{error}</Alert>}
 
-            {/* Fecha */}
             <FormGroup>
-              <Label>Seleccionar fecha</Label>
+              <Label for="fecha">Fecha</Label>
               <Input
+                id="fecha"
                 type="date"
                 value={fechaSeleccionada}
                 onChange={(e) => setFechaSeleccionada(e.target.value)}
               />
             </FormGroup>
 
-            {/* Tabla */}
             {cargando ? (
-              <div className="text-center py-4">
-                <Spinner color="primary" />
+              <div className="text-center p-5">
+                <Spinner />
               </div>
             ) : (
-              <div className="table-responsive mt-4">
-                <table className="table table-bordered text-center align-middle">
-                  <thead className="table-light">
-                    <tr>
-                      <th>Hora</th>
-                      <th>Estado</th>
-                      <th>Acciones</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {horariosDelDia.length === 0 && (
+              <>
+                {todasLasHoras.length === 0 ? (
+                  <Alert color="warning" className="mt-3">
+                    No hay horarios configurados para este día
+                  </Alert>
+                ) : (
+                  <table className="table table-bordered text-center mt-3">
+                    <thead className="bg-light">
                       <tr>
-                        <td colSpan="3" className="text-muted">
-                          No hay horarios configurados
-                        </td>
+                        <th>Hora</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                       </tr>
-                    )}
+                    </thead>
+                    <tbody>
+                      {todasLasHoras.map(({ hora }) => {
+                        const estado = obtenerEstadoHora(hora);
+                        const esExtra = estado === "extra";
 
-                    {horariosDelDia.map((bloque) => {
-                      const estado = obtenerEstadoHora(bloque);
+                        return (
+                          <tr key={hora}>
+                            <td className="fw-bold">{hora}</td>
+                            <td>
+                              {estado === "disponible" && (
+                                <Badge color="success" pill>Disponible</Badge>
+                              )}
+                              {estado === "cancelada" && (
+                                <Badge color="danger" pill>Cancelada</Badge>
+                              )}
+                              {estado === "extra" && (
+                                <Badge color="info" pill>Extra</Badge>
+                              )}
+                            </td>
+                            <td>
+                              {esExtra ? (
+                                <Button
+                                  size="sm"
+                                  color="warning"
+                                  onClick={() => onEliminarHoraExtra(hora)}
+                                  title="Eliminar hora extra"
+                                >
+                                  <Trash2 size={14} />
+                                </Button>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  color={estado === "cancelada" ? "success" : "danger"}
+                                  onClick={() => onToggleHora(hora)}
+                                  title={estado === "cancelada" ? "Reactivar hora" : "Cancelar hora"}
+                                >
+                                  <RefreshCw size={14} />
+                                </Button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                )}
 
-                      return (
-                        <tr key={bloque.hora}>
-                          <td className="fw-bold">{bloque.hora}</td>
+                {/* Sección para agregar horas extra */}
+                <Card className="mt-4 border-info">
+                  <CardBody>
+                    <h6 className="mb-3 text-info d-flex align-items-center">
+                      <Clock size={16} className="me-2" />
+                      Agregar Hora Extra
+                    </h6>
+                    <Row>
+                      <Col md="5">
+                        <Input
+                          type="time"
+                          value={nuevaHora}
+                          onChange={(e) => setNuevaHora(e.target.value)}
+                          placeholder="Seleccionar hora"
+                        />
+                      </Col>
+                      <Col md="7">
+                        <Button 
+                          onClick={onAgregarHoraExtra} 
+                          color="info"
+                          disabled={!nuevaHora}
+                        >
+                          <PlusCircle size={14} className="me-2" />
+                          Agregar Hora Extra
+                        </Button>
+                      </Col>
+                    </Row>
+                  </CardBody>
+                </Card>
 
-                          <td>
-                            {estado === "disponible" && (
-                              <Badge color="success">Disponible</Badge>
-                            )}
-                            {estado === "cancelada" && (
-                              <Badge color="danger">Cancelada</Badge>
-                            )}
-                            {estado === "extra" && (
-                              <Badge color="info">Extra</Badge>
-                            )}
-                          </td>
-
-                          <td>
-                            {estado === "extra" ? (
-                              <Button
-                                size="sm"
-                                color="warning"
-                                onClick={() =>
-                                  onEliminarHoraExtra(bloque.hora)
-                                }
-                              >
-                                <Trash2 size={16} className="me-1" />
-                                Eliminar
-                              </Button>
-                            ) : (
-                              <Button
-                                size="sm"
-                                color={
-                                  estado === "cancelada"
-                                    ? "secondary"
-                                    : "danger"
-                                }
-                                onClick={() =>
-                                  onToggleHora(bloque.hora)
-                                }
-                              >
-                                <RefreshCw size={16} className="me-1" />
-                                {estado === "cancelada"
-                                  ? "Reactivar"
-                                  : "Cancelar"}
-                              </Button>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            {/* Agregar hora extra */}
-            <Card className="mt-4 border-info">
-              <CardBody>
-                <h6 className="text-info">Agregar hora extra</h6>
-                <Row className="align-items-end">
-                  <Col md="4">
-                    <Input
-                      type="time"
-                      value={nuevaHora}
-                      onChange={(e) => setNuevaHora(e.target.value)}
-                    />
-                  </Col>
-                  <Col md="3">
-                    <Button color="info" onClick={onAgregarHoraExtra}>
-                      <PlusCircle size={16} className="me-1" />
-                      Agregar
-                    </Button>
+                {/* Leyenda de estados */}
+                <Row className="mt-4">
+                  <Col>
+                    <small className="text-muted me-3">
+                      <Badge color="success" pill className="me-1">●</Badge> Disponible
+                    </small>
+                    <small className="text-muted me-3">
+                      <Badge color="danger" pill className="me-1">●</Badge> Cancelada
+                    </small>
+                    <small className="text-muted">
+                      <Badge color="info" pill className="me-1">●</Badge> Extra
+                    </small>
                   </Col>
                 </Row>
-              </CardBody>
-            </Card>
+              </>
+            )}
           </CardBody>
         </Card>
       </Container>

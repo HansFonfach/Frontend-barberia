@@ -1,66 +1,96 @@
 // src/hooks/useGestionHorariosAdmin.js
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useHorario } from "context/HorarioContext";
 
 const asegurarArray = (v) => (Array.isArray(v) ? v : []);
 
-export const useGestionHorariosAdmin = (barbero, fecha) => {
-  const {
-    obtenerHorarioBasePorDia,
-    obtenerExcepcionesPorDia,
-  } = useHorario();
+const normalizarHora = (hora) =>
+  typeof hora === "string" ? hora.slice(0, 5) : null;
 
-  const [todasLasHoras, setTodasLasHoras] = useState([]);
-  const [horasExtra, setHorasExtra] = useState([]);
-  const [horasCanceladas, setHorasCanceladas] = useState([]);
+export const useGestionHorariosAdmin = (barbero, fecha) => {
+  const { obtenerHorarioBasePorDia, obtenerExcepcionesPorDia } = useHorario();
+
+  const [horasBase, setHorasBase] = useState([]);
+  const [excepciones, setExcepciones] = useState([]);
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const cargarHorarios = useCallback(async () => {
     if (!barbero || !fecha) return;
 
-    const cargarHorarios = async () => {
-      setCargando(true);
-      setError("");
+    setCargando(true);
+    setError("");
 
-      try {
-        // 1️⃣ Horario base
-        const base = await obtenerHorarioBasePorDia(barbero, fecha);
-        setTodasLasHoras(asegurarArray(base));
+    try {
+      // Horario base
+      const base = await obtenerHorarioBasePorDia(barbero, fecha);
+      const baseNormalizado = asegurarArray(base)
+        .map((h) => normalizarHora(h?.hora))
+        .filter(Boolean)
+        .map((hora) => ({ hora, origen: "base" }));
+      setHorasBase(baseNormalizado);
 
-        // 2️⃣ Excepciones
-        const res = await obtenerExcepcionesPorDia(barbero, fecha);
-        const excepciones = asegurarArray(res?.excepciones || res);
-
-        const extra = excepciones
-          .filter((e) => e?.tipo === "extra")
-          .map((e) => e.horaInicio);
-
-        const canceladas = excepciones
-          .filter((e) => e?.tipo === "bloqueo")
-          .map((e) => e.horaInicio);
-
-        setHorasExtra(extra);
-        setHorasCanceladas(canceladas);
-      } catch (err) {
-        console.error("❌ Error cargando horarios admin:", err);
-        setError("Error al cargar horarios del día");
-        setTodasLasHoras([]);
-        setHorasExtra([]);
-        setHorasCanceladas([]);
-      } finally {
-        setCargando(false);
-      }
-    };
-
-    cargarHorarios();
+      // Excepciones
+      const res = await obtenerExcepcionesPorDia(barbero, fecha);
+      const excepcionesData = asegurarArray(res?.excepciones || res)
+        .map((e) => ({
+          hora: normalizarHora(e.horaInicio || e.hora),
+          tipo: e.tipo,
+          id: e.id,
+          origen: "excepcion"
+        }))
+        .filter(e => e.hora);
+      setExcepciones(excepcionesData);
+    } catch (err) {
+      console.error("❌ Error cargando horarios admin:", err);
+      setError("Error al cargar horarios del día");
+      setHorasBase([]);
+      setExcepciones([]);
+    } finally {
+      setCargando(false);
+    }
   }, [barbero, fecha, obtenerHorarioBasePorDia, obtenerExcepcionesPorDia]);
 
+  useEffect(() => {
+    cargarHorarios();
+  }, [cargarHorarios]);
+
+  // Función para obtener todas las horas únicas (base + extras)
+  const obtenerTodasLasHoras = useCallback(() => {
+    // Horas del horario base
+    const horasBaseSet = new Set(horasBase.map(h => h.hora));
+    
+    // Horas extra que no están en el horario base
+    const horasExtras = excepciones
+      .filter(e => e.tipo === "extra")
+      .map(e => ({ hora: e.hora, origen: "extra" }));
+    
+    // Combinar y ordenar
+    return [...horasBase, ...horasExtras]
+      .sort((a, b) => a.hora.localeCompare(b.hora));
+  }, [horasBase, excepciones]);
+
+  // Función para obtener horas canceladas
+  const obtenerHorasCanceladas = useCallback(() => {
+    return excepciones
+      .filter(e => e.tipo === "bloqueo")
+      .map(e => e.hora);
+  }, [excepciones]);
+
+  // Función para obtener horas extra
+  const obtenerHorasExtra = useCallback(() => {
+    return excepciones
+      .filter(e => e.tipo === "extra")
+      .map(e => ({ hora: e.hora }));
+  }, [excepciones]);
+
   return {
-    todasLasHoras,
-    horasExtra,
-    horasCanceladas,
+    todasLasHoras: obtenerTodasLasHoras(),
+    horasExtra: obtenerHorasExtra(),
+    horasCanceladas: obtenerHorasCanceladas(),
+    excepciones,
     cargando,
     error,
+    refetch: cargarHorarios,
   };
 };
