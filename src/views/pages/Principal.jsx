@@ -15,7 +15,7 @@ import UserHeader from "components/Headers/UserHeader";
 import { useAuth } from "context/AuthContext";
 import { useEstadisticas } from "context/EstadisticasContext";
 import { useLook } from "context/LookContext";
-import { Sparkles, Calendar, Scissors, Star, Zap } from "lucide-react";
+import { Sparkles, Scissors, Star, Zap } from "lucide-react";
 import { useUsuario } from "context/usuariosContext";
 import { useParams } from "react-router-dom";
 
@@ -25,45 +25,71 @@ const UserDashboard = () => {
   const { estadoLookCliente } = useLook();
   const { getVerPuntos, puntos } = useUsuario();
   const { slug } = useParams();
-  const [data, setData] = useState(null);
-  const [look, setLook] = useState(null);
+
+  const [data, setData] = useState({ ultima: null, proxima: null });
+  const [look, setLook] = useState({
+    corte: { diasDesdeUltimo: 0, promedio: 0, mensaje: "Sin información" },
+    barba: { diasDesdeUltimo: 0, promedio: 0, mensaje: "Sin información" },
+  });
   const [loading, setLoading] = useState(true);
 
-  // ⭐ MOCK puntos
+  const meta = 900; // ⭐ Meta de puntos
 
-  const meta = 900;
-
+  // 🔹 Redirige si el slug de la URL no coincide con la empresa del usuario
   useEffect(() => {
     if (!user?.empresa?.slug) return;
-
     if (slug !== user.empresa.slug) {
       window.location.replace(`/${user.empresa.slug}/dashboard`);
     }
   }, [slug, user?.empresa?.slug]);
 
-console.log(user, user.data);
-
+  // 🔹 Cargar datos principales
   useEffect(() => {
-    if (!user?.id) return;
-
-    const cargar = async () => {
-      setLoading(true);
-
-      const [ultima, proxima, lookData] = await Promise.all([
-        ultimaReserva(),
-        proximaReserva(),
-        estadoLookCliente(),
-        getVerPuntos(), // solo dispara la carga
-      ]);
-
-      setData({ ultima, proxima });
-      setLook(lookData);
+    if (!user?.id) {
       setLoading(false);
+      return;
+    }
+
+    const cargarDatos = async () => {
+      setLoading(true);
+      try {
+        // 🔹 Llamadas a promesas separadas para evitar romper la destructuración
+        const [ultima, proxima, lookDataRaw] = await Promise.all([
+          ultimaReserva().catch(() => null),
+          proximaReserva().catch(() => null),
+          estadoLookCliente().catch(() => null),
+        ]);
+
+        // 🔹 Obtener puntos aparte
+        await getVerPuntos().catch(() => null);
+
+        // ⚡ Aseguramos que look tenga las claves necesarias
+        const lookData = {
+          corte: lookDataRaw?.corte || {
+            diasDesdeUltimo: 0,
+            promedio: 0,
+            mensaje: "Sin información",
+          },
+          barba: lookDataRaw?.barba || {
+            diasDesdeUltimo: 0,
+            promedio: 0,
+            mensaje: "Sin información",
+          },
+        };
+
+        setData({ ultima, proxima });
+        setLook(lookData);
+      } catch (error) {
+        console.error("Error cargando datos del dashboard:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
-    cargar();
+    cargarDatos();
   }, [user]);
 
+  // 🔹 Spinner mientras se carga auth o datos
   if (authLoading || loading) {
     return (
       <Container
@@ -79,7 +105,6 @@ console.log(user, user.data);
     <>
       <UserHeader />
 
-      {/* ===== Estilos + animación ===== */}
       <style>{`
         .card-hover {
           transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -106,7 +131,7 @@ console.log(user, user.data);
       `}</style>
 
       <Container fluid className="mt--7">
-        {/* ================= HERO ================= */}
+        {/* ===== HERO ===== */}
         <Row className="mb-5">
           <Col>
             <Card className="border-0 shadow-lg bg-gradient-success text-white card-hover hero-animate">
@@ -122,7 +147,7 @@ console.log(user, user.data);
           </Col>
         </Row>
 
-        {/* ================= ÚLTIMA VISITA ================= */}
+        {/* Última visita / Próxima cita */}
         <Row className="mb-5">
           <Col>
             <Card className="border-0 shadow card-hover">
@@ -179,65 +204,56 @@ console.log(user, user.data);
           </Col>
         </Row>
 
-        {/* ================= ESTADO DEL LOOK ================= */}
-        {look && (
-          <Row className="mb-5">
-            {["corte", "barba"].map((tipo) => {
-              const necesitaAtencion =
-                look[tipo].diasDesdeUltimo > look[tipo].promedio;
+        {/* Estado del look */}
+        <Row className="mb-5">
+          {["corte", "barba"].map((tipo) => {
+            const necesitaAtencion =
+              look[tipo].diasDesdeUltimo > look[tipo].promedio;
 
-              return (
-                <Col lg="6" key={tipo} className="mb-4">
-                  <Card className="border-0 shadow card-hover h-100">
-                    <CardBody className="p-4">
-                      <div className="d-flex align-items-center mb-3">
-                        <div
-                          className={`${
-                            necesitaAtencion ? "bg-warning" : "bg-success"
-                          } text-white rounded-circle p-3 mr-3`}
-                        >
-                          <Scissors size={20} />
-                        </div>
-                        <div>
-                          <h4 className="mb-0 text-capitalize">Tu {tipo}</h4>
-                          <small className="text-muted">Estado actual</small>
-                        </div>
-                      </div>
-
-                      <Row className="mb-3">
-                        <Col xs="6">
-                          <div className="border rounded p-3 text-center">
-                            <small className="text-muted d-block">
-                              Última vez
-                            </small>
-                            <strong>{look[tipo].diasDesdeUltimo} días</strong>
-                          </div>
-                        </Col>
-                        <Col xs="6">
-                          <div className="border rounded p-3 text-center">
-                            <small className="text-muted d-block">
-                              Frecuencia ideal
-                            </small>
-                            <strong>{look[tipo].promedio} días</strong>
-                          </div>
-                        </Col>
-                      </Row>
-
-                      <Alert
-                        color={necesitaAtencion ? "warning" : "success"}
-                        className="mb-0"
+            return (
+              <Col lg="6" key={tipo} className="mb-4">
+                <Card className="border-0 shadow card-hover h-100">
+                  <CardBody className="p-4">
+                    <div className="d-flex align-items-center mb-3">
+                      <div
+                        className={`${
+                          necesitaAtencion ? "bg-warning" : "bg-success"
+                        } text-white rounded-circle p-3 mr-3`}
                       >
-                        {look[tipo].mensaje}
-                      </Alert>
-                    </CardBody>
-                  </Card>
-                </Col>
-              );
-            })}
-          </Row>
-        )}
+                        <Scissors size={20} />
+                      </div>
+                      <div>
+                        <h4 className="mb-0 text-capitalize">Tu {tipo}</h4>
+                        <small className="text-muted">Estado actual</small>
+                      </div>
+                    </div>
 
-        {/* ================= PUNTOS ================= */}
+                    <Row className="mb-3">
+                      <Col xs="6">
+                        <div className="border rounded p-3 text-center">
+                          <small className="text-muted d-block">Última vez</small>
+                          <strong>{look[tipo].diasDesdeUltimo} días</strong>
+                        </div>
+                      </Col>
+                      <Col xs="6">
+                        <div className="border rounded p-3 text-center">
+                          <small className="text-muted d-block">Frecuencia ideal</small>
+                          <strong>{look[tipo].promedio} días</strong>
+                        </div>
+                      </Col>
+                    </Row>
+
+                    <Alert color={necesitaAtencion ? "warning" : "success"} className="mb-0">
+                      {look[tipo].mensaje}
+                    </Alert>
+                  </CardBody>
+                </Card>
+              </Col>
+            );
+          })}
+        </Row>
+
+        {/* Puntos */}
         <Row className="mb-5">
           <Col>
             <Card className="border-0 shadow card-hover">
@@ -267,33 +283,31 @@ console.log(user, user.data);
           </Col>
         </Row>
 
-        {/* ================= RECOMENDACIÓN ================= */}
-        {look && (
-          <Row className="mb-4">
-            <Col>
-              <Card className="border-0 bg-dark text-white shadow card-hover">
-                <CardBody className="p-4 d-flex">
-                  <Zap className="text-warning mr-3 mt-1" />
-                  <div>
-                    <h5 className="mb-2">Recomendación personalizada</h5>
-                    <p className="mb-0 opacity-90">
-                      Basado en tu historial, te recomendamos agendar tu próximo
-                      servicio pronto para mantener tu look siempre impecable.
-                    </p>
-                    <Button
-                      color="warning"
-                      size="sm"
-                      className="mt-3"
-                      href="/admin/reservar-hora"
-                    >
-                      Agendar ahora
-                    </Button>
-                  </div>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
-        )}
+        {/* Recomendación */}
+        <Row className="mb-4">
+          <Col>
+            <Card className="border-0 bg-dark text-white shadow card-hover">
+              <CardBody className="p-4 d-flex">
+                <Zap className="text-warning mr-3 mt-1" />
+                <div>
+                  <h5 className="mb-2">Recomendación personalizada</h5>
+                  <p className="mb-0 opacity-90">
+                    Basado en tu historial, te recomendamos agendar tu próximo
+                    servicio pronto para mantener tu look siempre impecable.
+                  </p>
+                  <Button
+                    color="warning"
+                    size="sm"
+                    className="mt-3"
+                    href="/admin/reservar-hora"
+                  >
+                    Agendar ahora
+                  </Button>
+                </div>
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
       </Container>
     </>
   );

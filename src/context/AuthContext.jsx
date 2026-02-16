@@ -107,17 +107,22 @@ export const AuthProvider = ({ children }) => {
   // LOGIN
   // 🔐 Login
   const signIn = async (credentials) => {
-    setLoading(true);
     try {
+      setLoading(true);
       const res = await loginRequest(credentials);
 
-      // 🚀 Aquí ya tienes el usuario
-      setUser(res.data.user);
-      setIsAuthenticated(true);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
-      setErrors(null);
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
 
-      return res.data.user;
+      const verifiedUser = await verifySession();
+
+      if (!verifiedUser) {
+        throw new Error("No se pudo verificar la sesión");
+      }
+
+      setErrors(null);
+      return verifiedUser;
     } catch (error) {
       setErrors(error.response?.data || "Error desconocido");
       throw error;
