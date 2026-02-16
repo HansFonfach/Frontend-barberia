@@ -11,6 +11,10 @@ import {
   Nav,
   NavItem,
   NavLink,
+  Form,
+  FormGroup,
+  Label,
+  Input,
 } from "reactstrap";
 import { Link } from "react-router-dom";
 
@@ -186,8 +190,8 @@ const LandingPage = () => {
               </NavLink>
             </NavItem>
             <NavItem className="d-none d-md-block">
-              <NavLink href="#plan" className="text-dark mr-4">
-                Plan
+              <NavLink href="#plan-contacto" className="text-dark mr-4">
+                Plan y Contacto
               </NavLink>
             </NavItem>
             <NavItem>
@@ -250,9 +254,9 @@ const LandingPage = () => {
               <div className="d-flex justify-content-center justify-content-lg-start">
                 <Button
                   size="lg"
-                  className="mr-3 px-4 py-3 shadow-lg bg-primary"
+                  className="mr-3 px-4 py-3 shadow-lg"
                   style={{
-                    background: "#00aeff",
+                    background: "#4361ee",
                     border: "none",
                     borderRadius: "12px",
                   }}
@@ -266,8 +270,8 @@ const LandingPage = () => {
                   className="px-4 py-3"
                   style={{
                     borderRadius: "12px",
-                    borderColor: "#ddd",
-                    color: "#1a1a1a",
+                    borderColor: "#4361ee",
+                    color: "#4361ee",
                   }}
                   onClick={() =>
                     document
@@ -295,14 +299,14 @@ const LandingPage = () => {
         </Container>
       </section>
 
-      {/* Sección: El problema que resolvemos */}
+      {/* Sección: El problema que resolvemos - IMAGEN CAMBIADA */}
       <section className="py-6" style={{ background: "#f8f9fa" }}>
         <Container>
           <Row className="align-items-center">
             <Col lg="6" className="mb-4 mb-lg-0">
               <img
-                src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=800"
-                alt="Profesional estresado con el teléfono"
+                src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800"
+                alt="Profesional trabajando con tablet"
                 className="img-fluid rounded-lg shadow"
                 style={{ borderRadius: "20px" }}
               />
@@ -504,8 +508,8 @@ const LandingPage = () => {
         </Container>
       </section>
 
-      {/* Sección Plan Único */}
-      <section id="plan" className="py-7 bg-white">
+      {/* SECCIÓN COMBINADA: PLAN Y CONTACTO */}
+      <section id="plan-contacto" className="py-7 bg-white">
         <Container>
           <div className="text-center mb-6">
             <h2 className="display-4 font-weight-bold">
@@ -517,90 +521,192 @@ const LandingPage = () => {
           </div>
 
           <Row className="justify-content-center">
-            <Col lg="6" md="8">
-              <Card
-                className="border-0 shadow-lg"
-                style={{ borderRadius: "30px", overflow: "hidden" }}
-              >
-                <div
-                  className="p-4 text-center"
-                  style={{
-                    background:
-                      "linear-gradient(135deg, #4361ee 0%, #f72585 100%)",
-                  }}
-                >
-                  <Badge
-                    className="mb-3"
-                    style={{
-                      background: "rgba(255,255,255,0.2)",
-                      color: "white",
-                      border: "none",
-                    }}
+            <Col lg="10">
+              <Row>
+                {/* Columna del Plan */}
+                <Col md="6">
+                  <Card
+                    className="border-0 shadow-lg h-100"
+                    style={{ borderRadius: "30px", overflow: "hidden" }}
                   >
-                    PLAN ÚNICO
-                  </Badge>
-                  <h3 className="text-white mb-2">
-                    Para cualquier profesional
-                  </h3>
-                  <div className="d-flex align-items-center justify-content-center">
-                    <span
-                      className="text-white"
-                      style={{ fontSize: "3rem", fontWeight: "bold" }}
+                    <div
+                      className="p-4 text-center"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #4361ee 0%, #f72585 100%)",
+                      }}
                     >
-                      ${plan.precio}
-                    </span>
-                    <span className="text-white-50 ml-2">/{plan.periodo}</span>
-                  </div>
-                  <p className="text-white-50 mt-2 mb-0">
-                    Barberías, salones, spa, consultorios y más
-                  </p>
-                </div>
-
-                <CardBody className="p-4">
-                  <p className="text-center text-muted mb-4">
-                    {plan.descripcion}
-                  </p>
-
-                  <div className="mb-4">
-                    {plan.incluye.map((item, index) => (
-                      <div
-                        key={index}
-                        className="d-flex align-items-center mb-3"
+                      <Badge
+                        className="mb-3"
+                        style={{
+                          background: "rgba(255,255,255,0.2)",
+                          color: "white",
+                          border: "none",
+                        }}
                       >
-                        <FiCheckCircle
-                          className="mr-3"
-                          style={{ color: "#06d6a0", fontSize: "1.2rem" }}
-                        />
-                        <span>{item}</span>
+                        PLAN ÚNICO
+                      </Badge>
+                      <h3 className="text-white mb-2">
+                        Para cualquier profesional
+                      </h3>
+                      <div className="d-flex align-items-center justify-content-center">
+                        <span
+                          className="text-white"
+                          style={{ fontSize: "3rem", fontWeight: "bold" }}
+                        >
+                          ${plan.precio}
+                        </span>
+                        <span className="text-white-50 ml-2">/{plan.periodo}</span>
                       </div>
-                    ))}
-                  </div>
+                      <p className="text-white-50 mt-2 mb-0">
+                        Barberías, salones, spa, consultorios y más
+                      </p>
+                    </div>
 
-                  <Button
-                    block
-                    size="lg"
-                    style={{
-                      background: "#1a1a1a",
-                      border: "none",
-                      borderRadius: "15px",
-                      padding: "15px",
-                    }}
-                    onClick={() => (window.location.href = "/registro-negocio")}
+                    <CardBody className="p-4">
+                      <p className="text-center text-muted mb-4">
+                        {plan.descripcion}
+                      </p>
+
+                      <div className="mb-4">
+                        {plan.incluye.map((item, index) => (
+                          <div
+                            key={index}
+                            className="d-flex align-items-center mb-3"
+                          >
+                            <FiCheckCircle
+                              className="mr-3"
+                              style={{ color: "#06d6a0", fontSize: "1.2rem" }}
+                            />
+                            <span>{item}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <Button
+                        block
+                        size="lg"
+                        style={{
+                          background: "#4361ee",
+                          border: "none",
+                          borderRadius: "15px",
+                          padding: "15px",
+                        }}
+                        onClick={() => (window.location.href = "/registro-negocio")}
+                      >
+                        Quiero recuperar mi tiempo <FiArrowRight className="ml-2" />
+                      </Button>
+
+                      <p className="text-center text-muted small mt-3">
+                        Sin permanencia. Prueba 7 días gratis.
+                      </p>
+                    </CardBody>
+                  </Card>
+                </Col>
+
+                {/* Columna de Contacto */}
+                <Col md="6">
+                  <Card
+                    className="border-0 shadow-lg h-100"
+                    style={{ borderRadius: "30px", overflow: "hidden" }}
                   >
-                    Quiero recuperar mi tiempo <FiArrowRight className="ml-2" />
-                  </Button>
+                    <CardBody className="p-4">
+                      <div className="text-center mb-4">
+                        <div
+                          className="d-inline-block p-3 rounded-circle mb-3"
+                          style={{ background: "#e0e7ff" }}
+                        >
+                          <FiMail size={30} color="#4361ee" />
+                        </div>
+                        <h3 className="font-weight-bold">¿Tienes dudas?</h3>
+                        <p className="text-muted">
+                          Contáctame directamente y te responderé a la brevedad
+                        </p>
+                      </div>
 
-                  <p className="text-center text-muted small mt-3">
-                    Sin permanencia. Prueba 7 días gratis.
-                  </p>
-                </CardBody>
-              </Card>
+                      {/* Datos de contacto */}
+                      <div className="mb-4 p-3" style={{ background: "#f8f9fa", borderRadius: "15px" }}>
+                        <h5 className="font-weight-bold mb-3">Hans Fonfach Rodriguez</h5>
+                        
+                        <div className="d-flex align-items-center mb-3">
+                          <FiInstagram className="mr-3" color="#4361ee" size={20} />
+                          <a
+                            href="https://instagram.com/hans.fonfach"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-dark"
+                            style={{ textDecoration: "none" }}
+                          >
+                            @hans.fonfach
+                          </a>
+                        </div>
+
+                        <div className="d-flex align-items-center mb-3">
+                          <FiSmartphone className="mr-3" color="#25D366" size={20} />
+                          <a
+                            href="https://wa.me/56975297584"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-dark"
+                            style={{ textDecoration: "none" }}
+                          >
+                            +56 9 7529 7584
+                          </a>
+                        </div>
+
+                        <div className="d-flex align-items-center">
+                          <FiMail className="mr-3" color="#f72585" size={20} />
+                          <span className="text-dark">hans@agendafonfach.cl</span>
+                        </div>
+                      </div>
+
+                      {/* Formulario simplificado */}
+                      <Form>
+                        <FormGroup>
+                          <Input
+                            type="text"
+                            placeholder="Tu nombre"
+                            style={{ borderRadius: "10px", marginBottom: "10px" }}
+                          />
+                        </FormGroup>
+                        <FormGroup>
+                          <Input
+                            type="email"
+                            placeholder="Tu email"
+                            style={{ borderRadius: "10px", marginBottom: "10px" }}
+                          />
+                        </FormGroup>
+                        <FormGroup>
+                          <Input
+                            type="textarea"
+                            placeholder="Tu mensaje..."
+                            rows="3"
+                            style={{ borderRadius: "10px", marginBottom: "15px" }}
+                          />
+                        </FormGroup>
+                        <Button
+                          block
+                          style={{
+                            background: "#f72585",
+                            border: "none",
+                            borderRadius: "10px",
+                            padding: "12px",
+                            fontWeight: "600",
+                          }}
+                        >
+                          Enviar mensaje <FiArrowRight className="ml-2" />
+                        </Button>
+                      </Form>
+                    </CardBody>
+                  </Card>
+                </Col>
+              </Row>
             </Col>
           </Row>
         </Container>
       </section>
 
-      {/* Footer */}
+      {/* Footer simplificado */}
       <footer
         className="py-4"
         style={{ borderTop: "1px solid #eee", background: "#f8f9fa" }}
@@ -641,7 +747,7 @@ const LandingPage = () => {
               © 2026 AgendaFonfach - Creado por Hans Fonfach Rodriguez
             </p>
             <p className="text-muted small mt-2">
-              ⚡ $24.990 CLP fijos
+              ⚡ $24.990 CLP fijos - Recupera 15 horas a la semana
             </p>
           </div>
         </Container>
