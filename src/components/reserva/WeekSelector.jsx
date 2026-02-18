@@ -14,6 +14,17 @@ const formatDayLabel = (d) =>
 
 const isoDate = (d) => d.toISOString().split("T")[0];
 
+// 👉 Fecha de hoy en formato YYYY-MM-DD (LOCAL, sin UTC)
+const todayISO = () => {
+  const now = new Date();
+  const local = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+  );
+  return local.toISOString().split("T")[0];
+};
+
 const WeekSelector = ({
   weekStart,
   weekDays,
@@ -55,7 +66,7 @@ const WeekSelector = ({
         <Label className="font-weight-bold">
           📅 Disponibilidad de la semana
         </Label>
-        <div className="d-flex justify-content-center py-4 bg-light rounded">
+        <div className="d-flex justify-content-center py-4 rounded">
           <Spinner size="sm" className="me-2" />
           Cargando disponibilidad...
         </div>
@@ -75,6 +86,8 @@ const WeekSelector = ({
       </FormGroup>
     );
   }
+
+  const hoyISO = todayISO();
 
   return (
     <FormGroup className="mb-4">
@@ -102,20 +115,20 @@ const WeekSelector = ({
         <div className="flex-grow-1 overflow-auto">
           <div style={{ display: "flex", gap: "10px" }}>
             {weekDays.map((d) => {
-              const isToday = isoDate(new Date()) === d.iso;
+              const isPast = d.iso < hoyISO;
+              const isToday = d.iso === hoyISO;
               const isSelected = d.iso === fecha;
 
               const horasDisponibles = (d.horas || []).filter(
                 (h) => h.estado === "disponible",
               );
 
-              /**
-               * NUEVA LÓGICA CORRECTA
-               */
               const diaHabilitado = d.horas && d.horas.length > 0;
               const diaTieneHoras = horasDisponibles.length > 0;
               const diaLleno = diaHabilitado && !diaTieneHoras;
-              const diaBloqueado = !diaHabilitado;
+
+              // 👉 bloqueo final
+              const diaBloqueado = isPast || !diaHabilitado;
 
               return (
                 <div
@@ -126,8 +139,8 @@ const WeekSelector = ({
                     minWidth: "85px",
                   }}
                 >
-                  {/* 🔔 Campanita SOLO para días NO habilitados */}
-                  {diaBloqueado && (
+                  {/* 🔔 Campanita SOLO si NO es pasado y NO habilitado */}
+                  {!isPast && !diaHabilitado && (
                     <div
                       onClick={(e) => {
                         e.stopPropagation();
@@ -152,15 +165,15 @@ const WeekSelector = ({
                   {/* TARJETA DÍA */}
                   <div
                     onClick={() => {
-                      if (diaHabilitado) {
+                      if (!diaBloqueado) {
                         onSelectDay(d.iso);
                       }
                     }}
                     style={{
                       padding: "12px 8px",
                       borderRadius: "12px",
-                      cursor: diaHabilitado ? "pointer" : "not-allowed",
-                      opacity: diaBloqueado ? 0.6 : 1,
+                      cursor: diaBloqueado ? "not-allowed" : "pointer",
+                      opacity: diaBloqueado ? 0.5 : 1,
                       backgroundColor: isSelected
                         ? "#09cf62"
                         : diaTieneHoras
@@ -195,7 +208,9 @@ const WeekSelector = ({
                     </div>
 
                     <div style={{ marginTop: "4px", fontSize: "11px" }}>
-                      {diaTieneHoras ? (
+                      {isPast ? (
+                        <span>Fecha pasada</span>
+                      ) : diaTieneHoras ? (
                         <strong>{horasDisponibles.length} hrs</strong>
                       ) : diaLleno ? (
                         <span>Sin horas</span>
@@ -204,7 +219,7 @@ const WeekSelector = ({
                       )}
                     </div>
 
-                    {isToday && (
+                    {isToday && !isPast && (
                       <div
                         style={{
                           fontSize: "10px",

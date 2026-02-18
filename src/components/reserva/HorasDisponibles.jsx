@@ -114,7 +114,7 @@ const HorasDisponibles = ({
       )}
 
       {!cargandoHoras && horasDisponibles.length === 0 && (
-        <Alert color="light" className="text-center border-dashed">
+        <Alert color="success" className="text-center border-dashed">
           {mensajeHoras || "No hay horarios disponibles para esta fecha."}
         </Alert>
       )}

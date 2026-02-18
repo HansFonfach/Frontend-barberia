@@ -273,7 +273,7 @@ export const useReservaCliente = () => {
         user.id, // 👤 usuarioId
       );
 
-      Swal.fire("Reserva creada", "Tu hora fue agendada", "success");
+      Swal.fire("Reserva creada", "Tu hora fue agendada, te enviaremos un correo confirmando tu reserva.", "success");
       setHora("");
       navigate("/admin/administrar-reservas");
     } catch (error) {

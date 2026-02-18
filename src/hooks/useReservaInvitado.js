@@ -428,7 +428,7 @@ export const useReservaInvitado = (slug) => {
         email: invitado.email, // ← Sacar del objeto invitado
         telefono: invitado.telefono, // ← Sacar del objeto invitado
       });
-      Swal.fire("Reserva creada", "Tu hora fue agendada", "success");
+      Swal.fire("Reserva creada", "Tu hora fue agendada, te enviaremos un correo confirmando tu reserva.", "success");
 
       // Resetear formulario después de reservar exitosamente
       setServicio("");
