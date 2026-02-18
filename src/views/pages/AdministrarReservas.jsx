@@ -41,6 +41,7 @@ import UserHeader from "components/Headers/UserHeader.js";
 import { useAuth } from "context/AuthContext";
 import { useReserva } from "context/ReservaContext";
 import Swal from "sweetalert2";
+import { getReservasByUserId } from "api/reservas";
 
 const MisReservas = () => {
   const [reservas, setReservas] = useState([]);
@@ -90,16 +91,12 @@ const MisReservas = () => {
   const fetchReservas = async () => {
     try {
       setCargando(true);
-      const res = await axios.get(
-        `${process.env.REACT_APP_API_URL}/reservas/${userId}`,
-        {
-          withCredentials: true,
-        }
-      );
+      const res = await getReservasByUserId(userId);
+      console.log("Respuesta:", res); // ← agrega esto
       const data = Array.isArray(res.data.reservas) ? res.data.reservas : [];
       setReservas(data);
     } catch (error) {
-      console.error("Error al obtener reservas:", error);
+      console.error("Error completo:", error.response); // ← y esto
       setReservas([]);
       mostrarAlerta("danger", "Error al cargar las reservas");
     } finally {
@@ -115,7 +112,7 @@ const MisReservas = () => {
     setAlerta({ mostrar: true, tipo, mensaje });
     setTimeout(
       () => setAlerta({ mostrar: false, tipo: "", mensaje: "" }),
-      4000
+      4000,
     );
   };
 
@@ -292,10 +289,10 @@ const MisReservas = () => {
                     reserva.estado === "confirmada"
                       ? "#28a745"
                       : reserva.estado === "pendiente"
-                      ? "#ffc107"
-                      : reserva.estado === "completada"
-                      ? "#17a2b8"
-                      : "#6c757d"
+                        ? "#ffc107"
+                        : reserva.estado === "completada"
+                          ? "#17a2b8"
+                          : "#6c757d"
                   }`,
                 }}
               >
@@ -372,8 +369,8 @@ const MisReservas = () => {
                         {reserva.estado === "completada"
                           ? "✅ Completada"
                           : reserva.estado === "cancelada"
-                          ? "❌ Cancelada"
-                          : "📅 Finalizada"}
+                            ? "❌ Cancelada"
+                            : "📅 Finalizada"}
                       </small>
                     </div>
                   )}
