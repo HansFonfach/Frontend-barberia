@@ -13,6 +13,7 @@ import {
   Col,
 } from "reactstrap";
 import { Info } from "lucide-react";
+import { FaPhone } from "react-icons/fa";
 import { useParams } from "react-router-dom";
 
 import StepIndicator from "components/reserva/StepIndicator";
@@ -25,6 +26,7 @@ import ResumenReserva from "components/reserva/ResumenReserva";
 import { useReservaInvitado } from "hooks/useReservaInvitado";
 import AuthFooter from "components/Footers/AuthFooter";
 import logo from "assets/img/logo4.png";
+import { useRutValidator } from "hooks/useRutValidador";
 
 const ReservarHoraInvitado = () => {
   const { slug } = useParams();
@@ -58,14 +60,21 @@ const ReservarHoraInvitado = () => {
     reservarComoInvitado,
   } = useReservaInvitado(slug);
 
+  const {
+    rut: rutInvitado,
+    handleRutChange,
+    error: rutError,
+  } = useRutValidator();
+
   const [modalInvitado, setModalInvitado] = useState(false);
   const toggleModalInvitado = () => setModalInvitado(!modalInvitado);
 
   const invitadoValido =
     invitado.nombre &&
     invitado.apellido &&
-    invitado.rut &&
-    invitado.telefono &&
+    rutInvitado &&
+    !rutError &&
+    invitado.telefono?.length === 8 &&
     invitado.email;
 
   const servicioSeleccionado = useMemo(() => {
@@ -124,7 +133,8 @@ const ReservarHoraInvitado = () => {
                 Reserva tu hora
               </h1>
               <p className="lead text-light mb-5">
-                Sin cuenta, sin complicaciones. Completa los pasos y asegura tu cita.
+                Sin cuenta, sin complicaciones. Completa los pasos y asegura tu
+                cita.
               </p>
             </Col>
           </Row>
@@ -234,12 +244,22 @@ const ReservarHoraInvitado = () => {
             Datos del cliente
           </ModalHeader>
           <ModalBody>
+            {/* RUT */}
             <Input
-              className="mb-2"
-              placeholder="RUT"
-              value={invitado.rut}
-              onChange={(e) => setInvitado({ ...invitado, rut: e.target.value })}
+              className={`mb-2 ${rutError ? "is-invalid" : ""}`}
+              placeholder="Ingrese RUT sin puntos ni guión"
+              value={rutInvitado}
+              maxLength={12}
+              onChange={(e) => {
+                handleRutChange(e);
+                setInvitado({ ...invitado, rut: e.target.value });
+              }}
             />
+            {rutError && (
+              <div className="invalid-feedback d-block mb-2">{rutError}</div>
+            )}
+
+            {/* Nombre */}
             <Input
               className="mb-2"
               placeholder="Nombre"
@@ -248,6 +268,8 @@ const ReservarHoraInvitado = () => {
                 setInvitado({ ...invitado, nombre: e.target.value })
               }
             />
+
+            {/* Apellido */}
             <Input
               className="mb-2"
               placeholder="Apellido"
@@ -256,14 +278,78 @@ const ReservarHoraInvitado = () => {
                 setInvitado({ ...invitado, apellido: e.target.value })
               }
             />
-            <Input
-              className="mb-2"
-              placeholder="Teléfono"
-              value={invitado.telefono}
-              onChange={(e) =>
-                setInvitado({ ...invitado, telefono: e.target.value })
-              }
-            />
+
+            {/* Teléfono */}
+            <div className="mb-2">
+              <div
+                className="d-flex align-items-center rounded input-group-alternative"
+                style={{
+                  border: "1px solid #cad1d7",
+                  backgroundColor: "#fff",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                {/* Prefijo */}
+                <div
+                  className="d-flex align-items-center px-3 py-2"
+                  style={{
+                    backgroundColor: "#f7fafc",
+                    borderRight: "1px solid #cad1d7",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <FaPhone size={13} className="text-success me-2" />
+                  <span
+                    className="text-muted fw-bold"
+                    style={{ fontSize: "0.85rem" }}
+                  >
+                    +569
+                  </span>
+                </div>
+
+                {/* Input estilo Argon */}
+                <input
+                  placeholder="Ingrese teléfono"
+                  type="text"
+                  value={invitado.telefono}
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/\D/g, "");
+                    if (value.length > 8) value = value.slice(0, 8);
+                    setInvitado({ ...invitado, telefono: value });
+                  }}
+                  className="form-control"
+                  style={{
+                    border: "none",
+                    boxShadow: "none",
+                    backgroundColor: "transparent",
+                    padding: "0.65rem 0.75rem",
+                    fontSize: "0.875rem",
+                  }}
+                />
+
+                {/* Indicador */}
+                {invitado.telefono && (
+                  <div className="px-2">
+                    {invitado.telefono.length === 8 ? (
+                      <span className="text-success fw-bold">✓</span>
+                    ) : (
+                      <span className="text-muted small">
+                        {invitado.telefono.length}/8
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Error */}
+              {invitado.telefono && invitado.telefono.length !== 8 && (
+                <small className="text-danger ms-1">
+                  El teléfono debe tener 8 dígitos
+                </small>
+              )}
+            </div>
+
+            {/* Email */}
             <Input
               className="mb-3"
               placeholder="Email"
@@ -288,8 +374,6 @@ const ReservarHoraInvitado = () => {
           </ModalBody>
         </Modal>
       </Container>
-
- 
 
       <AuthFooter />
     </div>
