@@ -31,11 +31,10 @@ const UserDashboard = () => {
     corte: { diasDesdeUltimo: 0, promedio: 0, mensaje: "Sin información" },
     barba: { diasDesdeUltimo: 0, promedio: 0, mensaje: "Sin información" },
   });
-  const [loading, setLoading] = useState(true);
 
-  const meta = 900; // ⭐ Meta de puntos
+  const meta = 900;
 
-  // 🔹 Redirige si el slug de la URL no coincide con la empresa del usuario
+  // 🔹 Redirección segura por slug
   useEffect(() => {
     if (!user?.empresa?.slug) return;
     if (slug !== user.empresa.slug) {
@@ -43,54 +42,35 @@ const UserDashboard = () => {
     }
   }, [slug, user?.empresa?.slug]);
 
-  // 🔹 Cargar datos principales
+  // 🔹 Carga de datos SOLO cuando hay user.id
   useEffect(() => {
-    if (!user?.id) {
-      setLoading(false);
-      return;
-    }
+    if (!user?.id) return;
 
     const cargarDatos = async () => {
-      setLoading(true);
       try {
-        // 🔹 Llamadas a promesas separadas para evitar romper la destructuración
         const [ultima, proxima, lookDataRaw] = await Promise.all([
           ultimaReserva().catch(() => null),
           proximaReserva().catch(() => null),
           estadoLookCliente().catch(() => null),
         ]);
 
-        // 🔹 Obtener puntos aparte
         await getVerPuntos().catch(() => null);
 
-        // ⚡ Aseguramos que look tenga las claves necesarias
-        const lookData = {
-          corte: lookDataRaw?.corte || {
-            diasDesdeUltimo: 0,
-            promedio: 0,
-            mensaje: "Sin información",
-          },
-          barba: lookDataRaw?.barba || {
-            diasDesdeUltimo: 0,
-            promedio: 0,
-            mensaje: "Sin información",
-          },
-        };
-
         setData({ ultima, proxima });
-        setLook(lookData);
-      } catch (error) {
-        console.error("Error cargando datos del dashboard:", error);
-      } finally {
-        setLoading(false);
+        setLook({
+          corte: lookDataRaw?.corte || look.corte,
+          barba: lookDataRaw?.barba || look.barba,
+        });
+      } catch (e) {
+        console.error(e);
       }
     };
 
     cargarDatos();
-  }, [user]);
+  }, [user?.id]);
 
-  // 🔹 Spinner mientras se carga auth o datos
-  if (authLoading || loading) {
+  // 🔄 Spinner global (solo auth)
+  if (authLoading || !user) {
     return (
       <Container
         fluid
@@ -100,7 +80,6 @@ const UserDashboard = () => {
       </Container>
     );
   }
-
   return (
     <>
       <UserHeader />
@@ -231,19 +210,26 @@ const UserDashboard = () => {
                     <Row className="mb-3">
                       <Col xs="6">
                         <div className="border rounded p-3 text-center">
-                          <small className="text-muted d-block">Última vez</small>
+                          <small className="text-muted d-block">
+                            Última vez
+                          </small>
                           <strong>{look[tipo].diasDesdeUltimo} días</strong>
                         </div>
                       </Col>
                       <Col xs="6">
                         <div className="border rounded p-3 text-center">
-                          <small className="text-muted d-block">Frecuencia ideal</small>
+                          <small className="text-muted d-block">
+                            Frecuencia ideal
+                          </small>
                           <strong>{look[tipo].promedio} días</strong>
                         </div>
                       </Col>
                     </Row>
 
-                    <Alert color={necesitaAtencion ? "warning" : "success"} className="mb-0">
+                    <Alert
+                      color={necesitaAtencion ? "warning" : "success"}
+                      className="mb-0"
+                    >
                       {look[tipo].mensaje}
                     </Alert>
                   </CardBody>

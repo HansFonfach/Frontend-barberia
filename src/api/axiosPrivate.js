@@ -7,21 +7,27 @@ export const axiosPrivate = axios.create({
 });
 
 export const setupAxiosInterceptors = (signOut) => {
-  let isAlertOpen = false; // 🔒 evita múltiples alertas
+  let isAlertOpen = false;
+
+  // ✅ NUEVO: adjuntar token en cada request
+  axiosPrivate.interceptors.request.use((config) => {
+    const token =
+      localStorage.getItem("token") || sessionStorage.getItem("token");
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+  });
 
   axiosPrivate.interceptors.response.use(
     (response) => response,
     async (error) => {
-      // ⛔ Si no hay respuesta (error de red, backend caído, etc.)
-      if (!error.response) {
-        return Promise.reject(error);
-      }
+      if (!error.response) return Promise.reject(error);
 
       const { status } = error.response;
 
       if (status === 401 && !isAlertOpen) {
         isAlertOpen = true;
-
         try {
           await Swal.fire({
             icon: "warning",
@@ -33,7 +39,7 @@ export const setupAxiosInterceptors = (signOut) => {
           });
         } finally {
           isAlertOpen = false;
-          signOut(); // 🔥 logout seguro
+          signOut();
         }
       }
 

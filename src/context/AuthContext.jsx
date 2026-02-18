@@ -106,30 +106,34 @@ export const AuthProvider = ({ children }) => {
 
   // LOGIN
   // 🔐 Login
-  const signIn = async (credentials) => {
-    try {
-      setLoading(true);
-      const res = await loginRequest(credentials);
+const signIn = async (credentials) => {
+  try {
+    setLoading(true);
+    const res = await loginRequest(credentials);
 
-      if (res.data.token) {
-        localStorage.setItem("token", res.data.token);
-      }
-
-      const verifiedUser = await verifySession();
-
-      if (!verifiedUser) {
-        throw new Error("No se pudo verificar la sesión");
-      }
-
-      setErrors(null);
-      return verifiedUser;
-    } catch (error) {
-      setErrors(error.response?.data || "Error desconocido");
-      throw error;
-    } finally {
-      setLoading(false);
+    if (res.data.token) {
+      localStorage.setItem("token", res.data.token);
+      sessionStorage.setItem("token", res.data.token); // ✅ fallback
     }
-  };
+
+    // ✅ Pequeño delay para que el token esté disponible antes del verify
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    const verifiedUser = await verifySession();
+
+    if (!verifiedUser) {
+      throw new Error("No se pudo verificar la sesión");
+    }
+
+    setErrors(null);
+    return verifiedUser;
+  } catch (error) {
+    setErrors(error.response?.data || "Error desconocido");
+    throw error;
+  } finally {
+    setLoading(false);
+  }
+};
 
   // REGISTER
   const register = async (data) => {
