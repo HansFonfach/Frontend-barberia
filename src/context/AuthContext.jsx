@@ -15,15 +15,27 @@ import {
 import { useNavigate } from "react-router-dom";
 import { setupAxiosInterceptors } from "api/axiosPrivate";
 import Swal from "sweetalert2";
+import { getEmpresaById } from "api/empresa";
 
 export const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
-    // Solo leer al inicio, después solo usamos el estado
-    const stored = localStorage.getItem("user");
-    return stored ? JSON.parse(stored) : null;
+    const storedUser = localStorage.getItem("user");
+
+    if (!storedUser || storedUser === "undefined") {
+      localStorage.removeItem("user");
+      return null;
+    }
+
+    try {
+      return JSON.parse(storedUser);
+    } catch (err) {
+      console.error("Error parseando user desde localStorage", err);
+      localStorage.removeItem("user");
+      return null;
+    }
   });
   const [isAuthenticated, setIsAuthenticated] = useState(!!user);
   const [loading, setLoading] = useState(true);
@@ -31,6 +43,15 @@ export const AuthProvider = ({ children }) => {
   const [initialCheckDone, setInitialCheckDone] = useState(false);
   const navigate = useNavigate();
 
+  // Guardar token en localStorage y sessionStorage como fallback
+  const saveToken = (token) => {
+    if (token) {
+      localStorage.setItem("token", token);
+      sessionStorage.setItem("token", token);
+    }
+  };
+
+  // Cerrar sesión
   const signOut = async () => {
     try {
       await fetch(`${process.env.REACT_APP_API_URL}/auth/logout`, {
@@ -42,6 +63,7 @@ export const AuthProvider = ({ children }) => {
     } finally {
       localStorage.removeItem("user");
       localStorage.removeItem("token");
+      sessionStorage.removeItem("token");
       setUser(null);
       setIsAuthenticated(false);
       setInitialCheckDone(true);
@@ -49,28 +71,21 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // 🔍 Verificar sesión - MÁS ROBUSTO
+  // Función para verificar sesión que se puede llamar desde fuera
+  // 🔍 Verificar sesión (se ejecuta al iniciar)
   const verifySession = useCallback(async () => {
-    // Si no hay token en localStorage, no intentar verificar
-    if (!localStorage.getItem("token")) {
-      setLoading(false);
-      setInitialCheckDone(true);
-      return null;
-    }
-
     try {
       const res = await verifyRequest();
-      setUser(res.data);
+
+      setUser(res.data); // 👈 USUARIO REAL
       setIsAuthenticated(true);
-      // Actualizar localStorage con datos frescos
       localStorage.setItem("user", JSON.stringify(res.data));
+
       return res.data;
     } catch (err) {
-      console.log("Error verificando sesión:", err);
-      localStorage.removeItem("user");
-      localStorage.removeItem("token");
       setUser(null);
       setIsAuthenticated(false);
+      localStorage.removeItem("user");
       return null;
     } finally {
       setLoading(false);
@@ -78,27 +93,36 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // 🚀 Check inicial
   useEffect(() => {
-    verifySession();
+    const token = localStorage.getItem("token");
+    if (token) {
+      verifySession();
+    } else {
+      setLoading(false);
+      setInitialCheckDone(true); // marca como verificado aunque no haya token
+    }
   }, [verifySession]);
 
-  // 🔐 Login - USAR TOKEN DE RESPUESTA
+  // LOGIN
+  // 🔐 Login
   const signIn = async (credentials) => {
     try {
       setLoading(true);
       const res = await loginRequest(credentials);
 
-      const { user: userData, token } = res.data;
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
 
-      // Guardar token y usuario
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(userData));
+      const verifiedUser = await verifySession();
 
-      setUser(userData);
-      setIsAuthenticated(true);
+      if (!verifiedUser) {
+        throw new Error("No se pudo verificar la sesión");
+      }
+
       setErrors(null);
-
-      return userData;
+      return verifiedUser;
     } catch (error) {
       setErrors(error.response?.data || "Error desconocido");
       throw error;
@@ -113,18 +137,26 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       const res = await registerRequest(data);
 
-      const { user: userData, token } = res.data;
+      if (res.data.token) saveToken(res.data.token);
 
-      localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(userData));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
-      setUser(userData);
-      setIsAuthenticated(true);
-      setErrors(null);
+      const verifiedUser = await verifySession();
 
-      return res.data;
+      if (verifiedUser) {
+        localStorage.setItem("user", JSON.stringify(verifiedUser));
+        setUser(verifiedUser);
+        setIsAuthenticated(true);
+        setErrors(null);
+      }
+
+      return { ...res.data, user: verifiedUser };
     } catch (error) {
-      const msg = error.response?.data?.message || "Error desconocido";
+      const msg =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Error desconocido";
+
       setErrors(msg);
       throw error;
     } finally {

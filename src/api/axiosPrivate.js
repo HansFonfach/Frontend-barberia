@@ -3,37 +3,22 @@ import Swal from "sweetalert2";
 
 export const axiosPrivate = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
-  withCredentials: true, // Importante para cookies
-  headers: {
-    "Content-Type": "application/json",
-  },
+  withCredentials: true,
 });
 
-// Interceptor para agregar token a cada petición
-axiosPrivate.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
 export const setupAxiosInterceptors = (signOut) => {
-  let isAlertOpen = false;
+  let isAlertOpen = false; // 🔒 evita múltiples alertas
 
   axiosPrivate.interceptors.response.use(
     (response) => response,
     async (error) => {
+      // ⛔ Si no hay respuesta (error de red, backend caído, etc.)
       if (!error.response) {
         return Promise.reject(error);
       }
 
       const { status } = error.response;
 
-      // 401 = No autorizado
       if (status === 401 && !isAlertOpen) {
         isAlertOpen = true;
 
@@ -44,12 +29,11 @@ export const setupAxiosInterceptors = (signOut) => {
             text: "Tu sesión ha caducado. Inicia sesión nuevamente.",
             confirmButtonText: "Aceptar",
             allowOutsideClick: false,
+            allowEscapeKey: false,
           });
         } finally {
           isAlertOpen = false;
-          localStorage.removeItem("token");
-          localStorage.removeItem("user");
-          signOut();
+          signOut(); // 🔥 logout seguro
         }
       }
 
