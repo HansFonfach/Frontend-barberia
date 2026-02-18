@@ -236,13 +236,7 @@ const LandingPage = () => {
               >
                 ⏰ Para profesionales que valoran su tiempo
               </Badge>
-              <h1
-                className="display-3 font-weight-bold mb-4"
-                style={{ color: "#0f172a", lineHeight: "1.1" }}
-              >
-                Recupera <span style={{ color: "#4361ee" }}>15 horas</span>{" "}
-                <br />a la semana
-              </h1>
+            
               <p
                 className="lead text-muted mb-5"
                 style={{ fontSize: "1.2rem" }}
@@ -254,7 +248,7 @@ const LandingPage = () => {
               <div className="d-flex justify-content-center justify-content-lg-start">
                 <Button
                   size="lg"
-                  className="mr-3 px-4 py-3 shadow-lg"
+                  className="mr-3 px-4 py-3 shadow-lg text-white"
                   style={{
                     background: "#4361ee",
                     border: "none",
@@ -656,7 +650,7 @@ const LandingPage = () => {
 
                         <div className="d-flex align-items-center">
                           <FiMail className="mr-3" color="#f72585" size={20} />
-                          <span className="text-dark">hans@agendafonfach.cl</span>
+                          <span className="text-dark">contacto@agendafonfach.cl</span>
                         </div>
                       </div>
 
