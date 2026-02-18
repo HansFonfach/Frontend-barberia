@@ -25,8 +25,14 @@ export const setupAxiosInterceptors = (signOut) => {
       if (!error.response) return Promise.reject(error);
 
       const { status } = error.response;
+      const url = error.config?.url || "";
 
-      if (status === 401 && !isAlertOpen) {
+      // ✅ Solo cerrar sesión si el 401 viene de /auth/me o rutas de sesión
+      // No cerrar por cualquier 401 (puede ser un recurso sin permiso)
+      const esRutaDeAuth =
+        url.includes("/auth/me") || url.includes("/auth/verify");
+
+      if (status === 401 && !isAlertOpen && esRutaDeAuth) {
         isAlertOpen = true;
         try {
           await Swal.fire({
@@ -44,6 +50,6 @@ export const setupAxiosInterceptors = (signOut) => {
       }
 
       return Promise.reject(error);
-    }
+    },
   );
 };
