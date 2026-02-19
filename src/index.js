@@ -36,6 +36,7 @@ import { CanjeProvider } from "context/CanjeContext";
 import Principal from "views/publico/principal";
 import Landing from "views/pages/Landing";
 import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
+import CancelarInvitado from "views/invitados/pages/CancelarInvitado";
 
 // Wrapper por empresa (slug)
 const EmpresaWrapper = ({ children }) => {
@@ -107,6 +108,14 @@ root.render(
             element={
               <EmpresaWrapper>
                 <ReservarHoraInvitado />
+              </EmpresaWrapper>
+            }
+          />
+          <Route
+            path="/:slug/cancelar-reserva-invitado"
+            element={
+              <EmpresaWrapper>
+                <CancelarInvitado />
               </EmpresaWrapper>
             }
           />

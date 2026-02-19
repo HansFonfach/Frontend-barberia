@@ -27,10 +27,8 @@ const UserDashboard = () => {
   const { slug } = useParams();
 
   const [data, setData] = useState({ ultima: null, proxima: null });
-  const [look, setLook] = useState({
-    corte: { diasDesdeUltimo: 0, promedio: 0, mensaje: "Sin información" },
-    barba: { diasDesdeUltimo: 0, promedio: 0, mensaje: "Sin información" },
-  });
+  const [look, setLook] = useState(null);
+  const [loadingDatos, setLoadingDatos] = useState(true);
 
   const meta = 900;
 
@@ -57,12 +55,11 @@ const UserDashboard = () => {
         await getVerPuntos().catch(() => null);
 
         setData({ ultima, proxima });
-        setLook({
-          corte: lookDataRaw?.corte || look.corte,
-          barba: lookDataRaw?.barba || look.barba,
-        });
+        setLook(lookDataRaw || null); // ✅ directo, sin fallback que tape el 0
       } catch (e) {
         console.error(e);
+      } finally {
+        setLoadingDatos(false); // ✅ siempre se ejecuta, corta el spinner
       }
     };
 
@@ -70,7 +67,7 @@ const UserDashboard = () => {
   }, [user?.id]);
 
   // 🔄 Spinner global (solo auth)
-  if (authLoading || !user) {
+  if (authLoading || !user || loadingDatos) {
     return (
       <Container
         fluid
@@ -213,7 +210,11 @@ const UserDashboard = () => {
                           <small className="text-muted d-block">
                             Última vez
                           </small>
-                          <strong>{look[tipo].diasDesdeUltimo} días</strong>
+                          <strong>
+                            {look[tipo].diasDesdeUltimo !== null
+                              ? `${look[tipo].diasDesdeUltimo} días`
+                              : "Sin datos"}
+                          </strong>
                         </div>
                       </Col>
                       <Col xs="6">
@@ -221,7 +222,12 @@ const UserDashboard = () => {
                           <small className="text-muted d-block">
                             Frecuencia ideal
                           </small>
-                          <strong>{look[tipo].promedio} días</strong>
+                          <strong>
+                            {look[tipo].promedio !== null &&
+                            look[tipo].promedio !== 0
+                              ? `${look[tipo].promedio} días`
+                              : "Sin datos"}
+                          </strong>
                         </div>
                       </Col>
                     </Row>

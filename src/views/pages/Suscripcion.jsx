@@ -147,9 +147,7 @@ const SubscriptionPage = () => {
                             {b.icon}
                           </div>
                           <div>
-                            <h6 className="font-weight-bold mb-1">
-                              {b.title}
-                            </h6>
+                            <h6 className="font-weight-bold mb-1">{b.title}</h6>
                             <p className="text-muted small mb-0">
                               {b.description}
                             </p>
@@ -180,7 +178,7 @@ const SubscriptionPage = () => {
                             <button
                               className="btn bg-yellow btn-lg font-weight-bold px-5 py-3"
                               onClick={startPayment}
-                              disabled={loading}
+                              disabled={true} //loading
                             >
                               {loading ? (
                                 <>
@@ -190,6 +188,9 @@ const SubscriptionPage = () => {
                                 "💳 Suscribirme ahora"
                               )}
                             </button>
+                            <p className="text-yellow small mt-3 mb-0">
+                              LAS SUSCRIPCIONES AÚN NO ESTÁN PERMITIDAS
+                            </p>
 
                             <p className="text-white-50 small mt-3 mb-0">
                               Membresía exclusiva · Uso personal · No

@@ -6,12 +6,11 @@ export const axiosPrivate = axios.create({
   withCredentials: true,
 });
 
-let isAlertOpen = false;
 let isLoggingOut = false;
-let firstAuthCheck = true;
 
 export const setupAxiosInterceptors = (signOut) => {
-  // 🟢 REQUEST: adjuntar token SI existe
+  // REQUEST → adjuntar token
+  console.log("✅ Interceptores registrados"); // ¿Aparece esto en consola?
   axiosPrivate.interceptors.request.use(
     (config) => {
       const token =
@@ -26,29 +25,20 @@ export const setupAxiosInterceptors = (signOut) => {
     (error) => Promise.reject(error),
   );
 
-  // 🔴 RESPONSE: manejar 401 con tolerancia
+  // RESPONSE → manejar sesión expirada
   axiosPrivate.interceptors.response.use(
     (response) => response,
     async (error) => {
+      console.log("❌ Error interceptado:", error.response?.status);
       if (!error.response) return Promise.reject(error);
 
       const { status } = error.response;
-      const url = error.config?.url || "";
 
-      const esRutaAuth =
-        url.includes("/auth/me") ||
-        url.includes("/auth/verify") ||
-        url.includes("/auth/profile");
+      const token =
+        localStorage.getItem("token") || sessionStorage.getItem("token");
 
-      // ⚠️ Primer 401 tras F5 → lo ignoramos
-      if (status === 401 && esRutaAuth && firstAuthCheck) {
-        firstAuthCheck = false;
-        return Promise.reject(error);
-      }
-
-      // 🔒 Logout real
-      if (status === 401 && esRutaAuth && !isAlertOpen && !isLoggingOut) {
-        isAlertOpen = true;
+      // 🔒 Token vencido → logout
+      if (status === 401 && token && !isLoggingOut) {
         isLoggingOut = true;
 
         try {
@@ -61,8 +51,8 @@ export const setupAxiosInterceptors = (signOut) => {
             allowEscapeKey: false,
           });
         } finally {
-          isAlertOpen = false;
           signOut();
+          isLoggingOut = false;
         }
       }
 
