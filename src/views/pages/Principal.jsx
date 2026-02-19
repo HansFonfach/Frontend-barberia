@@ -275,31 +275,8 @@ const UserDashboard = () => {
           </Col>
         </Row>
 
-        {/* Recomendación */}
-        <Row className="mb-4">
-          <Col>
-            <Card className="border-0 bg-dark text-white shadow card-hover">
-              <CardBody className="p-4 d-flex">
-                <Zap className="text-warning mr-3 mt-1" />
-                <div>
-                  <h5 className="mb-2">Recomendación personalizada</h5>
-                  <p className="mb-0 opacity-90">
-                    Basado en tu historial, te recomendamos agendar tu próximo
-                    servicio pronto para mantener tu look siempre impecable.
-                  </p>
-                  <Button
-                    color="warning"
-                    size="sm"
-                    className="mt-3"
-                    href="/admin/reservar-hora"
-                  >
-                    Agendar ahora
-                  </Button>
-                </div>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>
+    
+
       </Container>
     </>
   );
