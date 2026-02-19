@@ -770,7 +770,7 @@ const LandingPage = () => {
                         >
                           <FiMail size={30} color="#4361ee" />
                         </div>
-                        <h3 className="font-weight-bold">¿Tienes dudas?</h3>
+                        <h3 className="font-weight-bold">¿Te interesa o tienes dudas?</h3>
                         <p className="text-muted">
                           Contáctame directamente y te responderé a la brevedad
                         </p>
@@ -852,7 +852,7 @@ const LandingPage = () => {
                         <FormGroup>
                           <Input
                             type="textarea"
-                            placeholder="¿En qué puedo ayudarte?"
+                            placeholder="Escribe tu mensaje..."
                             rows="3"
                             style={{
                               borderRadius: "10px",
