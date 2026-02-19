@@ -96,6 +96,7 @@ const CancelarInvitado = () => {
           <Nav className="ml-auto" navbar>
             <NavItem>
               <Button
+              className="text-white"
                 size="sm"
                 style={{
                   background: "#4361ee",
@@ -105,7 +106,7 @@ const CancelarInvitado = () => {
                 }}
                 onClick={() => (window.location.href = "/")}
               >
-               <p className="text-white">Quiero probarlo</p> 
+              Quiero probarlo
               </Button>
             </NavItem>
           </Nav>
