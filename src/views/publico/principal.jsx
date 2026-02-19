@@ -738,7 +738,7 @@ const LandingPage = () => {
 
           <div className="text-center">
             <p className="text-muted small mb-0">
-              © 2026 AgendaFonfach - Creado por Hans Fonfach Rodriguez
+              © 2026 AgendaFonfach - Creado por Hans Fonfach.
             </p>
             <p className="text-muted small mt-2">
               ⚡ $24.990 CLP fijos - Recupera 15 horas a la semana

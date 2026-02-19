@@ -103,9 +103,9 @@ const CancelarInvitado = () => {
                   borderRadius: "50px",
                   fontWeight: "600",
                 }}
-                onClick={() => (window.location.href = "/registro-negocio")}
+                onClick={() => (window.location.href = "/")}
               >
-                Quiero probarlo
+               <p className="text-white">Quiero probarlo</p> 
               </Button>
             </NavItem>
           </Nav>
@@ -222,7 +222,7 @@ const CancelarInvitado = () => {
           </div>
 
           <p className="text-center text-muted small mb-0">
-            © 2026 AgendaFonfach - Creado por Hans Fonfach Rodriguez
+            © 2026 AgendaFonfach - Creado por Hans Fonfach.
           </p>
         </Container>
       </footer>
