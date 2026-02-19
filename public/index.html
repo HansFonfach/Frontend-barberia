@@ -20,104 +20,97 @@
 
 <!DOCTYPE html>
 <html lang="en" class="perfect-scrollbar-off nav-open">
-  <head>
-    <meta charset="utf-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover"
-    />
-    <meta name="theme-color" content="#000000" />
-    
-    <!-- 🟢 NUEVAS META ETIQUETAS PARA MÓVILES -->
-    <meta http-equiv="ScreenOrientation" content="autoRotate:disabled">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="format-detection" content="telephone=no">
-    
-    <!-- 🟢 PARA COOKIES EN SAFARI / IOS -->
-    <meta name="apple-mobile-web-app-title" content="Agenda Fonfach">
-    
-    <!--
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+
+  <!-- 🟢 NUEVAS META ETIQUETAS PARA MÓVILES -->
+  <meta http-equiv="ScreenOrientation" content="autoRotate:disabled">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- 🟢 PARA COOKIES EN SAFARI / IOS -->
+  <meta name="apple-mobile-web-app-title" content="Agenda Fonfach">
+
+  <!--
       manifest.json provides metadata used when your web app is added to the
       homescreen on Android. See https://developers.google.com/web/fundamentals/engage-and-retain/web-app-manifest/
     -->
-    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" />
-    <link
-      rel="apple-touch-icon"
-      sizes="76x76"
-      href="%PUBLIC_URL%/apple-icon.png"
-    />
-    
-    <!-- Fonts -->
-    <link
-      href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700"
-      rel="stylesheet"
-    />
-    
-    <title>Agenda Fonfach</title>
-    
-    <!-- 🟢 SCRIPT PARA DETECTAR NAVEGADORES PROBLEMÁTICOS -->
-    <script>
-      // Detectar si es un navegador problemático (iOS WebView, navegadores nativos)
-      (function() {
-        // Guardar información del navegador para debug
-        const browserInfo = {
-          userAgent: navigator.userAgent,
-          platform: navigator.platform,
-          vendor: navigator.vendor,
-          language: navigator.language,
-          cookieEnabled: navigator.cookieEnabled,
-          onLine: navigator.onLine
-        };
-        
-        console.log('Información del navegador:', browserInfo);
-        
-        // Detectar iOS WebView (Instagram, Facebook, etc.)
-        const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(navigator.userAgent);
-        
-        // Detectar Android WebView
-        const isAndroidWebView = /wv/.test(navigator.userAgent) || /Android.*Version\/\d+\.\d+/.test(navigator.userAgent);
-        
-        // Detectar Safari en iOS
-        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-        
-        // Guardar en sessionStorage para que React lo use
-        sessionStorage.setItem('browserInfo', JSON.stringify(browserInfo));
-        sessionStorage.setItem('isIOSWebView', isIOSWebView);
-        sessionStorage.setItem('isAndroidWebView', isAndroidWebView);
-        sessionStorage.setItem('isSafari', isSafari);
-        
-        // Forzar manejo especial de cookies en WebViews
-        if (isIOSWebView || isAndroidWebView) {
-          console.log('🔴 WebView detectado, aplicando configuraciones especiales');
-          document.cookie = 'webview=true; path=/; SameSite=None; Secure';
-        }
-        
-        // Para iOS Safari, asegurar que las cookies funcionen
-        if (isSafari && !isIOSWebView) {
-          console.log('🍎 Safari detectado');
-          // Safari a veces necesita un toque de usuario para las cookies
-          document.addEventListener('touchstart', function() {
-            // Esto ayuda a activar las cookies en Safari
-          }, { once: true });
-        }
-      })();
-    </script>
-    
-    <!-- 🟢 POLÍTICA DE COOKIES PARA NAVEGADORES -->
-    <script>
-      // Forzar configuración de cookies para todos los navegadores
-      (function() {
-        // Intentar setear una cookie de prueba
-        document.cookie = "testcookie=1; path=/; SameSite=Lax; max-age=10";
-        
-        // Verificar si las cookies están habilitadas
-        if (navigator.cookieEnabled === false) {
-          console.warn('⚠️ Las cookies están deshabilitadas');
-          // Mostrar mensaje al usuario
-          const warningDiv = document.createElement('div');
-          warningDiv.style.cssText = `
+  <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+  <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="76x76" href="%PUBLIC_URL%/apple-icon.png" />
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📅</text></svg>">
+<title>AgendaFonfach - Reservas online</title>
+
+  <!-- 🟢 SCRIPT PARA DETECTAR NAVEGADORES PROBLEMÁTICOS -->
+  <script>
+    // Detectar si es un navegador problemático (iOS WebView, navegadores nativos)
+    (function () {
+      // Guardar información del navegador para debug
+      const browserInfo = {
+        userAgent: navigator.userAgent,
+        platform: navigator.platform,
+        vendor: navigator.vendor,
+        language: navigator.language,
+        cookieEnabled: navigator.cookieEnabled,
+        onLine: navigator.onLine
+      };
+
+      console.log('Información del navegador:', browserInfo);
+
+      // Detectar iOS WebView (Instagram, Facebook, etc.)
+      const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(navigator.userAgent);
+
+      // Detectar Android WebView
+      const isAndroidWebView = /wv/.test(navigator.userAgent) || /Android.*Version\/\d+\.\d+/.test(navigator.userAgent);
+
+      // Detectar Safari en iOS
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+
+      // Guardar en sessionStorage para que React lo use
+      sessionStorage.setItem('browserInfo', JSON.stringify(browserInfo));
+      sessionStorage.setItem('isIOSWebView', isIOSWebView);
+      sessionStorage.setItem('isAndroidWebView', isAndroidWebView);
+      sessionStorage.setItem('isSafari', isSafari);
+
+      // Forzar manejo especial de cookies en WebViews
+      if (isIOSWebView || isAndroidWebView) {
+        console.log('🔴 WebView detectado, aplicando configuraciones especiales');
+        document.cookie = 'webview=true; path=/; SameSite=None; Secure';
+      }
+
+      // Para iOS Safari, asegurar que las cookies funcionen
+      if (isSafari && !isIOSWebView) {
+        console.log('🍎 Safari detectado');
+        // Safari a veces necesita un toque de usuario para las cookies
+        document.addEventListener('touchstart', function () {
+          // Esto ayuda a activar las cookies en Safari
+        }, { once: true });
+      }
+    })();
+  </script>
+
+  <!-- 🟢 POLÍTICA DE COOKIES PARA NAVEGADORES -->
+  <script>
+    // Forzar configuración de cookies para todos los navegadores
+    (function () {
+      // Intentar setear una cookie de prueba
+      document.cookie = "testcookie=1; path=/; SameSite=Lax; max-age=10";
+
+      // Verificar si las cookies están habilitadas
+      if (navigator.cookieEnabled === false) {
+        console.warn('⚠️ Las cookies están deshabilitadas');
+        // Mostrar mensaje al usuario
+        const warningDiv = document.createElement('div');
+        warningDiv.style.cssText = `
             position: fixed;
             top: 0;
             left: 0;
@@ -129,18 +122,19 @@
             z-index: 9999;
             font-family: Arial, sans-serif;
           `;
-          warningDiv.textContent = 'Por favor, habilita las cookies para usar la aplicación';
-          document.body.appendChild(warningDiv);
-        }
-      })();
-    </script>
-    
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE"></script>
-  </head>
-  <body>
-    <noscript> You need to enable JavaScript to run this app. </noscript>
-    <div id="root"></div>
-    <!--
+        warningDiv.textContent = 'Por favor, habilita las cookies para usar la aplicación';
+        document.body.appendChild(warningDiv);
+      }
+    })();
+  </script>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY_HERE"></script>
+</head>
+
+<body>
+  <noscript> You need to enable JavaScript to run this app. </noscript>
+  <div id="root"></div>
+  <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
 
@@ -150,5 +144,6 @@
       To begin the development, run `npm start` or `yarn start`.
       To create a production bundle, use `npm run build` or `yarn build`.
     -->
-  </body>
+</body>
+
 </html>
