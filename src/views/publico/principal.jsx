@@ -216,20 +216,7 @@ const LandingPage = () => {
               </NavLink>
             </NavItem>
             <NavItem>
-              <Button
-                color="primary"
-                pill
-                className="px-4"
-                style={{
-                  borderRadius: "50px",
-                  fontWeight: "600",
-                  background: "#4361ee",
-                  border: "none",
-                }}
-                onClick={() => (window.location.href = "/registro-negocio")}
-              >
-                Quiero probarlo
-              </Button>
+        
             </NavItem>
           </Nav>
         </Container>
@@ -760,22 +747,7 @@ const LandingPage = () => {
                         ))}
                       </div>
 
-                      <Button
-                        block
-                        size="lg"
-                        style={{
-                          background: "#4361ee",
-                          border: "none",
-                          borderRadius: "15px",
-                          padding: "15px",
-                        }}
-                        onClick={() =>
-                          (window.location.href = "/registro-negocio")
-                        }
-                      >
-                        Quiero recuperar mi tiempo{" "}
-                        <FiArrowRight className="ml-2" />
-                      </Button>
+                      
 
                       <p className="text-center text-muted small mt-3">
                         <FiShield className="mr-1" /> Sin permanencia. 7 días gratis.
