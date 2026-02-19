@@ -41,6 +41,7 @@ import {
   FiThumbsUp,
   FiShield,
 } from "react-icons/fi";
+import { FaWhatsapp } from "react-icons/fa";
 
 const LandingPage = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -53,6 +54,13 @@ const LandingPage = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const WHATSAPP_NUMBER = "56975297584";
+  const MESSAGE = encodeURIComponent(
+    "Hola, estoy interesado en probar la agenda para mi negocio",
+  );
+
+  const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${MESSAGE}`;
 
   // Cliente real
   const clienteReal = {
@@ -71,9 +79,7 @@ const LandingPage = () => {
   };
 
   // Testimonios simulados (basados en problemas reales)
-  const testimoniosSimulados = [
-  
-  ];
+  const testimoniosSimulados = [];
 
   // Características de TU AGENDA (lo que vendes)
   const features = [
@@ -83,7 +89,7 @@ const LandingPage = () => {
       desc: "Olvídate del WhatsApp y las llamadas. Todo se gestiona automático.",
       color: "#4361ee",
       detalle: "Recupera hasta 15 horas a la semana",
-      stats: "+40% productividad"
+      stats: "+40% productividad",
     },
     {
       icon: FiUsers,
@@ -91,7 +97,7 @@ const LandingPage = () => {
       desc: "Sistema de puntos y beneficios que fideliza como ningún otro.",
       color: "#f72585",
       detalle: "Aumenta la lealtad de tus clientes",
-      stats: "+60% recompra"
+      stats: "+60% recompra",
     },
     {
       icon: FiBell,
@@ -99,7 +105,7 @@ const LandingPage = () => {
       desc: "Te avisamos cuando se libera un horario que te interesa.",
       color: "#06d6a0",
       detalle: "Nunca más pierdas una hora",
-      stats: "0 horas vacías"
+      stats: "0 horas vacías",
     },
     {
       icon: FiRefreshCw,
@@ -107,7 +113,7 @@ const LandingPage = () => {
       desc: "Si alguien cancela, notificamos al próximo en la lista.",
       color: "#ff9e00",
       detalle: "Tus horas siempre ocupadas",
-      stats: "100% ocupación"
+      stats: "100% ocupación",
     },
     {
       icon: FiTrendingUp,
@@ -115,7 +121,7 @@ const LandingPage = () => {
       desc: "Sabemos cuándo tu cliente necesita volver y le avisamos.",
       color: "#7209b7",
       detalle: "Basado en su historial de reservas",
-      stats: "+35% visitas"
+      stats: "+35% visitas",
     },
     {
       icon: FiGift,
@@ -123,7 +129,7 @@ const LandingPage = () => {
       desc: "Acumulan por cada visita y canjean por premios. Tú eliges qué dar.",
       color: "#2ec4b6",
       detalle: "Incrementa la frecuencia de visitas",
-      stats: "2x frecuencia"
+      stats: "2x frecuencia",
     },
   ];
 
@@ -133,19 +139,19 @@ const LandingPage = () => {
       icon: FiUserCheck,
       title: "Gestión completa",
       desc: "Administra usuarios, profesionales, horarios y canjes desde un panel intuitivo.",
-      color: "#4361ee"
+      color: "#4361ee",
     },
     {
       icon: FiMessageCircle,
       title: "Notificaciones multicanal",
       desc: "WhatsApp, correo y notificaciones push. Todo automático.",
-      color: "#f72585"
+      color: "#f72585",
     },
     {
       icon: FiUserX,
       title: "Reserva como invitado o registrado",
       desc: "Máxima flexibilidad: sin registro para los rápidos, con beneficios para los fieles.",
-      color: "#06d6a0"
+      color: "#06d6a0",
     },
   ];
 
@@ -216,7 +222,21 @@ const LandingPage = () => {
               </NavLink>
             </NavItem>
             <NavItem>
-        
+              <Button
+                pill
+                className="px-4 d-flex align-items-center gap-2"
+                style={{
+                  borderRadius: "50px",
+                  fontWeight: "600",
+                  background: "#25D366",
+                  border: "none",
+                  color: "white",
+                }}
+                onClick={() => window.open(WHATSAPP_URL, "_blank")}
+              >
+                <FaWhatsapp size={20} />
+                Quiero probarlo
+              </Button>
             </NavItem>
           </Nav>
         </Container>
@@ -236,10 +256,11 @@ const LandingPage = () => {
               <Badge
                 className="mb-3 px-3 py-2"
                 style={{
-                  background: "linear-gradient(135deg, #4361ee 0%, #f72585 100%)",
+                  background:
+                    "linear-gradient(135deg, #4361ee 0%, #f72585 100%)",
                   color: "white",
                   borderRadius: "50px",
-                  border: "none"
+                  border: "none",
                 }}
               >
                 ⚡ Lanzamiento - Precio especial
@@ -254,22 +275,38 @@ const LandingPage = () => {
                 className="lead text-muted mb-5"
                 style={{ fontSize: "1.2rem" }}
               >
-                Dile adiós al WhatsApp, las llamadas y los "te confirmo después". 
-                AgendaFonfach automatiza tus reservas, fideliza clientes y llena tus horas muertas.
+                Dile adiós al WhatsApp, las llamadas y los "te confirmo
+                después". AgendaFonfach automatiza tus reservas, fideliza
+                clientes y llena tus horas muertas.
               </p>
 
               {/* Stats rápidas */}
               <Row className="mb-5">
                 <Col xs={4} className="text-center">
-                  <h3 className="font-weight-bold mb-0" style={{ color: "#4361ee" }}>15h</h3>
+                  <h3
+                    className="font-weight-bold mb-0"
+                    style={{ color: "#4361ee" }}
+                  >
+                    15h
+                  </h3>
                   <small className="text-muted">semanales recuperadas</small>
                 </Col>
                 <Col xs={4} className="text-center">
-                  <h3 className="font-weight-bold mb-0" style={{ color: "#f72585" }}>+40%</h3>
+                  <h3
+                    className="font-weight-bold mb-0"
+                    style={{ color: "#f72585" }}
+                  >
+                    +40%
+                  </h3>
                   <small className="text-muted">más reservas</small>
                 </Col>
                 <Col xs={4} className="text-center">
-                  <h3 className="font-weight-bold mb-0" style={{ color: "#06d6a0" }}>0%</h3>
+                  <h3
+                    className="font-weight-bold mb-0"
+                    style={{ color: "#06d6a0" }}
+                  >
+                    0%
+                  </h3>
                   <small className="text-muted">comisión por reserva</small>
                 </Col>
               </Row>
@@ -331,7 +368,7 @@ const LandingPage = () => {
               style={{
                 background: "#e0e7ff",
                 color: "#4361ee",
-                borderRadius: "50px"
+                borderRadius: "50px",
               }}
             >
               📋 Para todo tipo de negocios
@@ -351,7 +388,9 @@ const LandingPage = () => {
                   <span style={{ fontSize: "2rem" }}>{rubro.icon}</span>
                   <h6 className="mt-2 mb-1">{rubro.nombre}</h6>
                   {rubro.count > 0 && (
-                    <Badge color="success" pill>Ya en uso</Badge>
+                    <Badge color="success" pill>
+                      Ya en uso
+                    </Badge>
                   )}
                 </div>
               </Col>
@@ -438,7 +477,7 @@ const LandingPage = () => {
               style={{
                 background: "#e0e7ff",
                 color: "#4361ee",
-                borderRadius: "50px"
+                borderRadius: "50px",
               }}
             >
               🚀 Funcionalidades
@@ -470,7 +509,7 @@ const LandingPage = () => {
                         style={{
                           background: `${f.color}20`,
                           color: f.color,
-                          border: "none"
+                          border: "none",
                         }}
                       >
                         {f.stats}
@@ -493,7 +532,11 @@ const LandingPage = () => {
       </section>
 
       {/* Testimonios - Combinando real y simulados */}
-      <section id="testimonios" className="py-7" style={{ background: "#f8f9fa" }}>
+      <section
+        id="testimonios"
+        className="py-7"
+        style={{ background: "#f8f9fa" }}
+      >
         <Container>
           <div className="text-center mb-6">
             <Badge
@@ -501,7 +544,7 @@ const LandingPage = () => {
               style={{
                 background: "linear-gradient(135deg, #4361ee 0%, #f72585 100%)",
                 color: "white",
-                borderRadius: "50px"
+                borderRadius: "50px",
               }}
             >
               ⭐ Resultados que hablan
@@ -539,14 +582,16 @@ const LandingPage = () => {
                             background: "#4361ee",
                             color: "white",
                             borderRadius: "50px",
-                            padding: "8px 16px"
+                            padding: "8px 16px",
                           }}
                         >
                           ⭐ Cliente real
                         </Badge>
-                        <h4 className="font-weight-bold mb-0">{clienteReal.nombre}</h4>
+                        <h4 className="font-weight-bold mb-0">
+                          {clienteReal.nombre}
+                        </h4>
                       </div>
-                      
+
                       <div className="d-flex mb-4">
                         {[...Array(5)].map((_, i) => (
                           <FiStar
@@ -568,15 +613,21 @@ const LandingPage = () => {
                           <strong>{clienteReal.dueño}</strong>
                         </Col>
                         <Col xs={6} md={3} className="mb-3">
-                          <small className="text-muted d-block">Trayectoria</small>
+                          <small className="text-muted d-block">
+                            Trayectoria
+                          </small>
                           <strong>{clienteReal.años} años</strong>
                         </Col>
                         <Col xs={6} md={3} className="mb-3">
-                          <small className="text-muted d-block">Profesionales</small>
+                          <small className="text-muted d-block">
+                            Profesionales
+                          </small>
                           <strong>{clienteReal.profesionales}</strong>
                         </Col>
                         <Col xs={6} md={3} className="mb-3">
-                          <small className="text-muted d-block">Reservas/mes</small>
+                          <small className="text-muted d-block">
+                            Reservas/mes
+                          </small>
                           <strong>+{clienteReal.reservasMes}</strong>
                         </Col>
                       </Row>
@@ -614,8 +665,12 @@ const LandingPage = () => {
                         height="50"
                       />
                       <div>
-                        <h5 className="font-weight-bold mb-0">{testimonio.nombre}</h5>
-                        <small className="text-muted">{testimonio.negocio}</small>
+                        <h5 className="font-weight-bold mb-0">
+                          {testimonio.nombre}
+                        </h5>
+                        <small className="text-muted">
+                          {testimonio.negocio}
+                        </small>
                       </div>
                     </div>
 
@@ -624,7 +679,7 @@ const LandingPage = () => {
                       style={{
                         background: "#e0e7ff",
                         color: "#4361ee",
-                        borderRadius: "50px"
+                        borderRadius: "50px",
                       }}
                     >
                       {testimonio.tipo}
@@ -671,7 +726,7 @@ const LandingPage = () => {
               style={{
                 background: "linear-gradient(135deg, #4361ee 0%, #f72585 100%)",
                 color: "white",
-                borderRadius: "50px"
+                borderRadius: "50px",
               }}
             >
               💎 Precio único
@@ -707,7 +762,7 @@ const LandingPage = () => {
                           color: "white",
                           border: "none",
                           borderRadius: "50px",
-                          padding: "8px 16px"
+                          padding: "8px 16px",
                         }}
                       >
                         PLAN ÚNICO
@@ -747,10 +802,9 @@ const LandingPage = () => {
                         ))}
                       </div>
 
-                      
-
                       <p className="text-center text-muted small mt-3">
-                        <FiShield className="mr-1" /> Sin permanencia. 7 días gratis.
+                        <FiShield className="mr-1" /> Sin permanencia. 7 días
+                        gratis.
                       </p>
                     </CardBody>
                   </Card>
@@ -770,7 +824,9 @@ const LandingPage = () => {
                         >
                           <FiMail size={30} color="#4361ee" />
                         </div>
-                        <h3 className="font-weight-bold">¿Te interesa o tienes dudas?</h3>
+                        <h3 className="font-weight-bold">
+                          ¿Te interesa o tienes dudas?
+                        </h3>
                         <p className="text-muted">
                           Contáctame directamente y te responderé a la brevedad
                         </p>
