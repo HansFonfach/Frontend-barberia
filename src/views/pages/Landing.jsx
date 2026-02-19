@@ -193,7 +193,7 @@ const Landing = () => {
             >
               <iframe
                 title="Ubicación Google Maps"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3434.7!2d-71.2!3d-30.6!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMzDCsDM2JzAwLjAiUyA3McKwMTInMDAuMCJX!5e0!3m2!1ses-419!2scl!4v1630000000000!5m2!1ses-419!2scl"
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3433.996283409724!2d-71.21091002356448!3d-30.60586805754018!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x968e4aa4308038c1%3A0xcf06f111438566c2!2sPortales%20310%2C%20Ovalle%2C%20Coquimbo!5e0!3m2!1ses-419!2scl!4v1771523875801!5m2!1ses-419!2scl"
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
@@ -215,13 +215,6 @@ const Landing = () => {
                 No pierdas tiempo esperando. Asegura tu lugar con tu barbero
                 favorito.
               </p>
-              <Button
-                color="primary"
-                size="lg"
-                onClick={() => navigate("/reservar")}
-              >
-                Reservar mi cita ahora
-              </Button>
             </Col>
           </Row>
         </Container>
