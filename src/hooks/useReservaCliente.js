@@ -143,71 +143,70 @@ export const useReservaCliente = () => {
   // ────────────────────────────────
   // CARGAR DISPONIBILIDAD SEMANAL
   // ────────────────────────────────
- const fetchWeekAvailability = useCallback(
-  async (barberoId, serviceId, startDate) => {
-    const dates = buildWeekDates(startDate);
+  const fetchWeekAvailability = useCallback(
+    async (barberoId, serviceId, startDate) => {
+      const dates = buildWeekDates(startDate);
 
-    // ⛔ Sin barbero o servicio → semana bloqueada
-    if (!barberoId || !serviceId) {
-      setWeekDays(
-        dates.map((d) => ({
-          date: d,
-          label: formatDayLabel(d),
-          iso: isoDate(d),
-          available: false,
-          horas: [],
-          mensaje: "Selecciona servicio y barbero",
-        }))
-      );
-      return;
-    }
-
-    setLoadingWeek(true);
-
-    try {
-      const results = await Promise.all(
-        dates.map((d) =>
-          getHorasDisponiblesBarbero(barberoId, isoDate(d), serviceId).catch(
-            () => ({ horas: [] })
-          )
-        )
-      );
-
-      setWeekDays(
-        dates.map((d, idx) => {
-          const horas = results[idx]?.horas || [];
-
-          const horasDisponibles = horas.filter(
-            (h) => h.estado === "disponible"
-          );
-
-          return {
+      // ⛔ Sin barbero o servicio → semana bloqueada
+      if (!barberoId || !serviceId) {
+        setWeekDays(
+          dates.map((d) => ({
             date: d,
             label: formatDayLabel(d),
             iso: isoDate(d),
+            available: false,
+            horas: [],
+            mensaje: "Selecciona servicio y barbero",
+          })),
+        );
+        return;
+      }
 
-            // ✅ día habilitado si hay horas libres
-            available: horasDisponibles.length > 0,
+      setLoadingWeek(true);
 
-            // 🔥 guardamos TODAS las horas con estado
-            horas,
+      try {
+        const results = await Promise.all(
+          dates.map((d) =>
+            getHorasDisponiblesBarbero(barberoId, isoDate(d), serviceId).catch(
+              () => ({ horas: [] }),
+            ),
+          ),
+        );
 
-            mensaje:
-              horas.length === 0
-                ? "No disponible"
-                : horasDisponibles.length === 0
-                ? "Sin horas libres"
-                : "",
-          };
-        })
-      );
-    } finally {
-      setLoadingWeek(false);
-    }
-  },
-  [buildWeekDates, getHorasDisponiblesBarbero]
-);
+        setWeekDays(
+          dates.map((d, idx) => {
+            const horas = results[idx]?.horas || [];
 
+            const horasDisponibles = horas.filter(
+              (h) => h.estado === "disponible",
+            );
+
+            return {
+              date: d,
+              label: formatDayLabel(d),
+              iso: isoDate(d),
+
+              // ✅ día habilitado si hay horas libres
+              available: horasDisponibles.length > 0,
+
+              // 🔥 guardamos TODAS las horas con estado
+              horas,
+
+              mensaje:
+                horas.length === 0
+                  ? "No disponible"
+                  : horasDisponibles.length === 0
+                    ? "Sin horas libres"
+                    : "",
+            };
+          }),
+        );
+      } finally {
+        setLoadingWeek(false);
+      }
+    },
+    [buildWeekDates, getHorasDisponiblesBarbero],
+  );
 
   useEffect(() => {
     if (!servicio || !barbero) return;
@@ -273,9 +272,15 @@ export const useReservaCliente = () => {
         user.id, // 👤 usuarioId
       );
 
-      Swal.fire("Reserva creada", "Tu hora fue agendada, te enviaremos un correo confirmando tu reserva.", "success");
-      setHora("");
-      navigate("/admin/administrar-reservas");
+      const result = await Swal.fire(
+        "Reserva creada",
+        "Tu hora fue agendada, te enviaremos un correo confirmando tu reserva.",
+        "success",
+      );
+      if (result.isConfirmed || result.isDismissed) {
+        setHora("");
+        navigate(`/${user.empresa.slug}/admin/administrar-reservas`);
+      }
     } catch (error) {
       Swal.fire(
         "Error",
