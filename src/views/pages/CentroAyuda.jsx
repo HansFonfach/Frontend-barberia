@@ -7,7 +7,7 @@ import {
   CardBody,
   CardHeader,
   Collapse,
-  Button
+  Button,
 } from "reactstrap";
 import UserHeader from "components/Headers/UserHeader.js";
 import { useState } from "react";
@@ -17,7 +17,7 @@ import {
   XCircle,
   RefreshCcw,
   User,
-  MessageCircle
+  MessageCircle,
 } from "lucide-react";
 
 const CentroAyuda = () => {
@@ -31,33 +31,53 @@ const CentroAyuda = () => {
     {
       icon: <Clock size={22} />,
       title: "¿Cómo reservo una hora?",
-      text:
-        "Ingresa a la sección 'Reservar Hora', selecciona un día disponible y luego elige una hora libre. Confirma y listo."
+      text: "Ingresa a la sección 'Reservar Hora', selecciona un día disponible y luego elige una hora libre. Confirma y listo.",
     },
     {
       icon: <XCircle size={22} />,
       title: "¿Cómo cancelo una reserva?",
-      text:
-        "Anda a 'Mis Reservas'. Ahí verás tus reservas activas. Presiona el botón Cancelar y confirma la acción."
+      text: "Anda a 'Mis Reservas'. Ahí verás tus reservas activas. Presiona el botón Cancelar y confirma la acción.",
     },
     {
       icon: <RefreshCcw size={22} />,
       title: "¿Puedo reagendar una hora?",
-      text:
-        "Sí. Cancela tu reserva actual y vuelve a seleccionar un nuevo horario disponible."
+      text: "Sí. Cancela tu reserva actual y vuelve a seleccionar un nuevo horario disponible.",
     },
     {
       icon: <User size={22} />,
       title: "¿Cómo edito mi perfil?",
-      text:
-        "En el menú superior, entra a tu Perfil. Ahí podrás actualizar tus datos personales y contraseña."
-    }
+      text: "En el menú superior, entra a tu Perfil. Ahí podrás actualizar tus datos personales y contraseña.",
+    },
+    {
+      icon: <HelpCircle size={22} />,
+      title: "¿Cómo gano puntos?",
+      text: "Ganas puntos automáticamente cuando cumples una reserva y asistes a tu hora. También obtienes puntos al suscribirte al sistema. Los puntos se acreditan sin que tengas que hacer nada.",
+    },
+    {
+      icon: <HelpCircle size={22} />,
+      title: "¿Cuándo se suman los puntos?",
+      text: "Los puntos por reserva se suman solo cuando la cita se cumple correctamente. Si cancelas o no asistes, no se otorgan puntos.",
+    },
+    {
+      icon: <HelpCircle size={22} />,
+      title: "¿Pierdo puntos si cancelo?",
+      text: "Si cancelas con anticipación, no pierdes puntos. Si no asistes sin cancelar, el sistema puede descontar puntos según las reglas del negocio.",
+    },
+    {
+      icon: <HelpCircle size={22} />,
+      title: "¿Para qué sirven los puntos?",
+      text: "Los puntos se pueden canjear por beneficios definidos por el negocio, como descuentos, servicios gratis u otros premios.",
+    },
+    {
+      icon: <User size={22} />,
+      title: "¿Puedo reservar sin crear una cuenta?",
+      text: "Sí. Puedes reservar como invitado usando tus datos básicos. Sin embargo, solo los usuarios registrados acumulan puntos y beneficios.",
+    },
   ];
 
   return (
     <>
       <UserHeader /> {/* Mantiene tu estilo actual */}
-
       <Container className="mt--7" fluid>
         <Row className="justify-content-center">
           <Col lg="8">
@@ -99,10 +119,7 @@ const CentroAyuda = () => {
                       Escríbenos y te responderemos lo antes posible.
                     </p>
 
-                    <Button
-                      color="primary"
-                      href="mailto:soporte@tusistema.cl"
-                    >
+                    <Button color="primary" href="mailto:soporte@tusistema.cl">
                       Contactar soporte
                     </Button>
                   </CardBody>

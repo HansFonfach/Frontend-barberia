@@ -57,10 +57,7 @@ const Auth = () => {
                 <Col lg="5" md="6">
                   <h1 className="text-white">¡Bienvenido!</h1>
                   <p className="text-lead text-light">
-                    Reserva tu hora en
-                    <span className="text-white d-block">
-                      {empresa?.nombre}
-                    </span>
+                   
                   </p>
                 </Col>
               </Row>

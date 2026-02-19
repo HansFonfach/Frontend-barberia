@@ -18,7 +18,7 @@ import {
 } from "reactstrap";
 import { useNavigate } from "react-router-dom";
 
-import logo from "assets/img/logo4.png"; // ✅ ruta más segura dentro de src/assets
+import logo from "assets/img/brand/lasanta.png"; // ✅ ruta más segura dentro de src/assets
 import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
 

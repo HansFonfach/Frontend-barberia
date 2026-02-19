@@ -45,6 +45,7 @@ const Perfil = () => {
   const { user } = useAuth();
   const iniciales = getIniciales(user?.nombre, user?.apellido);
   const colorFondo = generarColor(user?.nombre);
+  console.log(user);
 
   return (
     <>

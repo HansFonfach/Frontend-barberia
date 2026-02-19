@@ -77,6 +77,11 @@ const AdminNavbar = (props) => {
 
   const iniciales = getIniciales(user?.nombre, user?.apellido);
   const colorFondo = generarColor(user?.nombre);
+  const slug = user?.empresa?.slug;
+  const perfilPath = slug ? `/${slug}/admin/perfil` : "/admin/perfil";
+  const cambiarPassPath = slug
+    ? `/${slug}/admin/cambiar-contrasena`
+    : "/admin/cambiar-contrasena";
 
   return (
     <>
@@ -130,14 +135,14 @@ const AdminNavbar = (props) => {
                 <DropdownItem className="noti-title" header tag="div">
                   <h6 className="text-overflow m-0">Bienvenido</h6>
                 </DropdownItem>
-                <DropdownItem to="/admin/perfil" tag={Link}>
+                <DropdownItem to={perfilPath} tag={Link}>
                   <i className="ni ni-single-02" />
                   <span>Mi perfil</span>
                 </DropdownItem>
-                <DropdownItem to="/admin/cambiar-contrasena" tag={Link}>
-                  <i className="ni ni-settings-gear-65" />
-                  <span>Cambiar contraseña</span>
-                </DropdownItem>
+                <DropdownItem to={cambiarPassPath} tag={Link}>
+  <i className="ni ni-settings-gear-65" />
+  <span>Cambiar contraseña</span>
+</DropdownItem>
 
                 <DropdownItem divider />
                 <DropdownItem href="" onClick={handleLogout}>

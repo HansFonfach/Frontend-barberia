@@ -27,9 +27,11 @@ import {
   InputGroup,
   Row,
   Col,
+  CardHeader,
 } from "reactstrap";
 import Swal from "sweetalert2";
 import { FaPhone } from "react-icons/fa";
+import logo from "assets/img/brand/lasanta.png"; // ✅ ruta más segura dentro de src/assets
 
 const Register = () => {
   const { register } = useAuth();
@@ -126,6 +128,22 @@ const Register = () => {
     <>
       <Col lg="6" md="8">
         <Card className="bg-secondary shadow border-0">
+          <CardHeader className="bg-transparent pb-1 text-center">
+            <img
+              src={logo}
+              alt="Logo"
+              style={{
+                width: "150px",
+                height: "auto",
+                transition: "transform 0.3s ease",
+              }}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.transform = "scale(1.05)")
+              }
+              onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
+              draggable="false"
+            />
+          </CardHeader>
           <CardBody className="px-lg-5 py-lg-5">
             <div className="text-center text-muted mb-4">
               <small>REGISTRATE</small>
