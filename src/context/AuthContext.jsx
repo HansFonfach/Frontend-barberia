@@ -17,7 +17,7 @@ import {
   updateUserPasswordRequest,
 } from "api/auth";
 
-import { setupAxiosInterceptors } from "api/axiosPrivate";
+import { initAxiosInterceptors } from "api/axiosPrivate";
 
 export const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
@@ -60,10 +60,8 @@ export const AuthProvider = ({ children }) => {
 
   // 🟢 Registrar interceptores UNA SOLA VEZ
   useEffect(() => {
-    if (interceptorsReady.current) return;
-    setupAxiosInterceptors(signOut);
-    interceptorsReady.current = true;
-  }, [signOut]);
+    initAxiosInterceptors(() => signOut);
+  }, []);
 
   // 🔍 Verificación de sesión (NO hace logout)
   const verifySession = useCallback(async () => {
@@ -118,9 +116,7 @@ export const AuthProvider = ({ children }) => {
       setErrors(null);
       return verifiedUser;
     } catch (error) {
-      setErrors(
-        error.response?.data?.message || "Error al iniciar sesión",
-      );
+      setErrors(error.response?.data?.message || "Error al iniciar sesión");
       throw error;
     } finally {
       setLoading(false);
@@ -146,9 +142,7 @@ export const AuthProvider = ({ children }) => {
       setErrors(null);
       return verifiedUser;
     } catch (error) {
-      setErrors(
-        error.response?.data?.message || "Error al registrarse",
-      );
+      setErrors(error.response?.data?.message || "Error al registrarse");
       throw error;
     } finally {
       setLoading(false);
