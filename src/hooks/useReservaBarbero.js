@@ -123,7 +123,7 @@ export const useReservaBarbero = () => {
   useEffect(() => {
     // Solo buscar si hay un RUT limpio válido
     if (!cleanRut || cleanRut.length < 3) {
-      console.log("⏸️ No buscar: RUT muy corto o vacío");
+     
       setUsuarioEncontrado(null);
       setErrorBusqueda("");
       setBuscandoUsuario(false);
@@ -141,21 +141,19 @@ export const useReservaBarbero = () => {
       setErrorBusqueda("");
 
       try {
-        console.log(`🔍 [EFECTO] Buscando usuario con: "${cleanRut}"`);
+      
 
         const usuario = await getUserByRut(cleanRut);
 
-        console.log(`📦 [EFECTO] Resultado recibido:`, usuario);
+       
 
         if (isMounted) {
           if (usuario && usuario._id) {
-            console.log(
-              "✅ [EFECTO] Usuario ENCONTRADO, actualizando estado...",
-            );
+           
             setUsuarioEncontrado(usuario);
             setErrorBusqueda("");
           } else {
-            console.log("❌ [EFECTO] Usuario NO encontrado");
+           
             setErrorBusqueda("Usuario no encontrado");
             setUsuarioEncontrado(null);
           }
@@ -168,7 +166,7 @@ export const useReservaBarbero = () => {
         }
       } finally {
         if (isMounted) {
-          console.log("🏁 [EFECTO] Finalizando búsqueda");
+         
           setBuscandoUsuario(false);
         }
       }
@@ -181,7 +179,7 @@ export const useReservaBarbero = () => {
     timeoutId = setTimeout(buscarUsuario, 800);
 
     return () => {
-      console.log("🧹 [EFECTO] Limpiando efecto");
+     
       isMounted = false;
       if (timeoutId) clearTimeout(timeoutId);
     };
@@ -241,15 +239,11 @@ export const useReservaBarbero = () => {
 
         const promises = dates.map((d) => {
           const fechaIso = isoDate(d);
-          console.log(`🔍 Verificando disponibilidad para:`, {
-            barbero: barberoId,
-            fecha: fechaIso,
-            servicio: serviceId,
-          });
+        
 
           return getHorasDisponiblesBarbero(barberoId, fechaIso, serviceId)
             .then((res) => {
-              console.log(`✅ Respuesta para ${fechaIso}:`, res);
+             
               return res;
             })
             .catch((err) => {
@@ -259,7 +253,7 @@ export const useReservaBarbero = () => {
         });
 
         const results = await Promise.all(promises);
-        console.log("📊 Resultados completos:", results);
+       
 
         const newWeek = dates.map((d, idx) => {
           const res = results[idx];
@@ -275,9 +269,7 @@ export const useReservaBarbero = () => {
 
           const disponible = horasDisponibles.length > 0;
 
-          console.log(
-            `📅 Día ${isoDate(d)}: ${disponible ? "✅ Disponible" : "❌ No disponible"} (${horasDisponibles.length} horas disponibles de ${horas.length} total)`,
-          );
+     
 
           return {
             date: d,

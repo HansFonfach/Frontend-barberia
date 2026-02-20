@@ -14,6 +14,7 @@ import {
 } from "reactstrap";
 import UserHeader from "components/Headers/UserHeader.js";
 import { useReserva } from "context/ReservaContext";
+import Swal from "sweetalert2";
 
 const GestionReservas = () => {
   const {
@@ -22,12 +23,13 @@ const GestionReservas = () => {
     loading,
     error,
     cancelarReserva,
+    marcarReservaNoAsistida,
   } = useReserva();
 
   const [modal, setModal] = useState(false);
   const [reservaSeleccionada, setReservaSeleccionada] = useState(null);
   const [filtroFecha, setFiltroFecha] = useState(
-    new Date().toISOString().split("T")[0]
+    new Date().toISOString().split("T")[0],
   );
   const [vistaMobile, setVistaMobile] = useState(false);
 
@@ -37,8 +39,8 @@ const GestionReservas = () => {
       setVistaMobile(window.innerWidth < 768);
     };
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   const toggle = () => setModal(!modal);
@@ -59,16 +61,59 @@ const GestionReservas = () => {
 
   const handleCancelar = async () => {
     if (!reservaSeleccionada) return;
-    if (window.confirm("¿Estás seguro de que deseas cancelar esta reserva?")) {
-      await cancelarReserva(reservaSeleccionada._id);
-      setModal(false);
-      getReservasPorFechaBarbero(filtroFecha); // refrescar tabla
-    }
+
+    const { value: motivo, isConfirmed } = await Swal.fire({
+      title: "¿Cancelar reserva?",
+      html: "Esta acción no se puede revertir.",
+      icon: "warning",
+      input: "textarea",
+      inputLabel: "Motivo de cancelación",
+      inputPlaceholder: "Escribe el motivo aquí...",
+      inputAttributes: { rows: 3 },
+      inputValidator: (value) => {
+        if (!value || value.trim() === "") {
+          return "Debes ingresar un motivo";
+        }
+      },
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Sí, cancelar reserva",
+      cancelButtonText: "Volver",
+    });
+
+    if (!isConfirmed) return;
+
+    await cancelarReserva(reservaSeleccionada._id, motivo);
+    setModal(false);
+    getReservasPorFechaBarbero(filtroFecha);
+
+    Swal.fire({
+      title: "Reserva cancelada",
+      text: "La reserva fue cancelada correctamente, notificaremos al cliente con el motivo de cancelación.",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false,
+    });
   };
 
-  const handleNoAsistio = (reserva) => {
-    // lógica para marcar no asistencia
-    console.log("Marcando como no asistió:", reserva);
+  const handleNoAsistio = async () => {
+    if (!reservaSeleccionada) return;
+
+    const res = await marcarReservaNoAsistida(reservaSeleccionada._id);
+
+    if (!res) return;
+
+    setModal(false);
+    getReservasPorFechaBarbero(filtroFecha);
+
+    Swal.fire({
+      title: "Reserva actualizada",
+      text: "La reserva fue marcada como NO ASISTIÓ",
+      icon: "success",
+      timer: 2000,
+      showConfirmButton: false,
+    });
   };
 
   // Renderizado para móvil (tarjetas en lugar de tabla)
@@ -80,7 +125,7 @@ const GestionReservas = () => {
             {/* Header con cliente y estado */}
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div className="d-flex align-items-center">
-                <span className="mr-2" style={{ fontSize: '1.2rem' }}>
+                <span className="mr-2" style={{ fontSize: "1.2rem" }}>
                   {reserva.suscripcion ? "⭐" : "🧔🏻‍♂️"}
                 </span>
                 <strong className="text-dark">
@@ -88,7 +133,11 @@ const GestionReservas = () => {
                 </strong>
               </div>
               <Badge
-                color={getEstado(reserva.fecha) === "Pendiente" ? "primary" : "success"}
+                color={
+                  getEstado(reserva.fecha) === "Pendiente"
+                    ? "primary"
+                    : "success"
+                }
                 pill
               >
                 {getEstado(reserva.fecha)}
@@ -106,7 +155,7 @@ const GestionReservas = () => {
                   {reserva.servicio?.nombre}
                 </small>
               </div>
-              
+
               <div className="d-flex flex-wrap mb-1">
                 <small className="text-muted w-50">
                   <i className="ni ni-watch-time mr-1"></i>
@@ -128,10 +177,16 @@ const GestionReservas = () => {
                   </small>
                   <small className="w-50 text-right">
                     <Badge
-                      color={reserva.suscripcion.posicion > reserva.suscripcion.limite ? "danger" : "success"}
+                      color={
+                        reserva.suscripcion.posicion >
+                        reserva.suscripcion.limite
+                          ? "danger"
+                          : "success"
+                      }
                       pill
                     >
-                      {reserva.suscripcion.posicion}/{reserva.suscripcion.limite}
+                      {reserva.suscripcion.posicion}/
+                      {reserva.suscripcion.limite}
                     </Badge>
                   </small>
                 </div>
@@ -149,7 +204,7 @@ const GestionReservas = () => {
                 <i className="ni ni-zoom-split-in mr-1"></i>
                 Ver
               </Button>
-              
+
               {getEstado(reserva.fecha) === "Pendiente" && (
                 <Button
                   color="danger"
@@ -204,7 +259,9 @@ const GestionReservas = () => {
                     {reserva.suscripcion.posicion}/{reserva.suscripcion.limite}
                   </Badge>
                 ) : (
-                  <Badge color="secondary" pill>-</Badge>
+                  <Badge color="secondary" pill>
+                    -
+                  </Badge>
                 )}
               </td>
               <td className="text-nowrap">
@@ -215,7 +272,11 @@ const GestionReservas = () => {
               </td>
               <td>
                 <Badge
-                  color={getEstado(reserva.fecha) === "Pendiente" ? "primary" : "success"}
+                  color={
+                    getEstado(reserva.fecha) === "Pendiente"
+                      ? "primary"
+                      : "success"
+                  }
                   pill
                 >
                   {getEstado(reserva.fecha)}
@@ -285,11 +346,18 @@ const GestionReservas = () => {
                   </div>
                 ) : reservas.length === 0 ? (
                   <div className="text-center py-5">
-                    <i className="ni ni-calendar-grid-58 text-muted" style={{ fontSize: '3rem' }}></i>
-                    <p className="mt-3 text-muted">No hay reservas para esta fecha</p>
+                    <i
+                      className="ni ni-calendar-grid-58 text-muted"
+                      style={{ fontSize: "3rem" }}
+                    ></i>
+                    <p className="mt-3 text-muted">
+                      No hay reservas para esta fecha
+                    </p>
                   </div>
+                ) : vistaMobile ? (
+                  renderMobileView()
                 ) : (
-                  vistaMobile ? renderMobileView() : renderDesktopView()
+                  renderDesktopView()
                 )}
               </CardBody>
             </Card>
@@ -301,7 +369,7 @@ const GestionReservas = () => {
       <Modal
         isOpen={modal}
         toggle={toggle}
-        className={`modal-dialog-centered ${vistaMobile ? 'modal-sm' : 'modal-lg'}`}
+        className={`modal-dialog-centered ${vistaMobile ? "modal-sm" : "modal-lg"}`}
       >
         {reservaSeleccionada && (
           <div className="modal-content">
@@ -321,7 +389,7 @@ const GestionReservas = () => {
 
             <div className="modal-body">
               <Row>
-                <Col xs="12" md="6" className={!vistaMobile ? 'pr-md-2' : ''}>
+                <Col xs="12" md="6" className={!vistaMobile ? "pr-md-2" : ""}>
                   <Card className="card-profile shadow-sm mb-3">
                     <CardHeader className="bg-white border-0">
                       <div className="d-flex align-items-center">
@@ -344,7 +412,7 @@ const GestionReservas = () => {
                       </div>
                     </CardHeader>
                     <CardBody>
-                      <div className={vistaMobile ? '' : 'pl-md-4'}>
+                      <div className={vistaMobile ? "" : "pl-md-4"}>
                         <p className="mb-2 d-flex flex-wrap">
                           <strong className="text-muted mr-2">
                             <i className="ni ni-mobile-button mr-1"></i>
@@ -360,11 +428,17 @@ const GestionReservas = () => {
                             Tipo:
                           </strong>
                           <Badge
-                            color={reservaSeleccionada.suscripcion ? "success" : "info"}
+                            color={
+                              reservaSeleccionada.suscripcion
+                                ? "success"
+                                : "info"
+                            }
                             className="ml-auto"
                             pill
                           >
-                            {reservaSeleccionada.suscripcion ? "Suscriptor" : "Regular"}
+                            {reservaSeleccionada.suscripcion
+                              ? "Suscriptor"
+                              : "Regular"}
                           </Badge>
                         </p>
                       </div>
@@ -372,7 +446,7 @@ const GestionReservas = () => {
                   </Card>
                 </Col>
 
-                <Col xs="12" md="6" className={!vistaMobile ? 'pl-md-2' : ''}>
+                <Col xs="12" md="6" className={!vistaMobile ? "pl-md-2" : ""}>
                   <Card className="shadow-sm">
                     <CardHeader className="bg-white border-0">
                       <h6 className="mb-0">
@@ -381,7 +455,7 @@ const GestionReservas = () => {
                       </h6>
                     </CardHeader>
                     <CardBody>
-                      <div className={vistaMobile ? '' : 'pl-md-4'}>
+                      <div className={vistaMobile ? "" : "pl-md-4"}>
                         <p className="mb-2 d-flex flex-wrap">
                           <strong className="text-muted mr-2">
                             <i className="ni ni-scissors mr-1"></i>
@@ -397,7 +471,9 @@ const GestionReservas = () => {
                             Hora:
                           </strong>
                           <span className="ml-auto font-weight-bold">
-                            {new Date(reservaSeleccionada.fecha).toLocaleTimeString([], {
+                            {new Date(
+                              reservaSeleccionada.fecha,
+                            ).toLocaleTimeString([], {
                               hour: "2-digit",
                               minute: "2-digit",
                             })}
@@ -409,7 +485,9 @@ const GestionReservas = () => {
                             Fecha:
                           </strong>
                           <span className="ml-auto font-weight-bold">
-                            {new Date(reservaSeleccionada.fecha).toLocaleDateString()}
+                            {new Date(
+                              reservaSeleccionada.fecha,
+                            ).toLocaleDateString()}
                           </span>
                         </p>
                         <p className="mb-0 d-flex flex-wrap">
@@ -418,7 +496,12 @@ const GestionReservas = () => {
                             Estado:
                           </strong>
                           <Badge
-                            color={getEstado(reservaSeleccionada.fecha) === "Pendiente" ? "primary" : "info"}
+                            color={
+                              getEstado(reservaSeleccionada.fecha) ===
+                              "Pendiente"
+                                ? "primary"
+                                : "info"
+                            }
                             className="ml-auto"
                             pill
                           >
@@ -440,10 +523,7 @@ const GestionReservas = () => {
                     size={vistaMobile ? "sm" : "md"}
                     className="mr-2 mb-2 mb-sm-0 flex-fill"
                     onClick={() => {
-                      if (window.confirm("¿Marcar como NO ASISTIÓ?")) {
-                        handleNoAsistio(reservaSeleccionada);
-                        setModal(false);
-                      }
+                      handleNoAsistio(reservaSeleccionada);
                     }}
                   >
                     <i className="ni ni-user-run mr-1"></i>
@@ -466,7 +546,9 @@ const GestionReservas = () => {
                   size={vistaMobile ? "sm" : "md"}
                   className="mr-2 mb-2 mb-sm-0 flex-fill"
                   onClick={() => {
-                    if (window.confirm("¿Marcar como NO ASISTIÓ (retroactivo)?")) {
+                    if (
+                      window.confirm("¿Marcar como NO ASISTIÓ (retroactivo)?")
+                    ) {
                       handleNoAsistio(reservaSeleccionada);
                       setModal(false);
                     }
@@ -477,8 +559,8 @@ const GestionReservas = () => {
                 </Button>
               )}
 
-              <Button 
-                color="secondary" 
+              <Button
+                color="secondary"
                 size={vistaMobile ? "sm" : "md"}
                 className="flex-fill"
                 onClick={toggle}
@@ -499,11 +581,11 @@ const GestionReservas = () => {
             overflow-y: auto;
             padding-right: 5px;
           }
-          
+
           .reservas-mobile::-webkit-scrollbar {
             width: 4px;
           }
-          
+
           .reservas-mobile::-webkit-scrollbar-thumb {
             background-color: #888;
             border-radius: 4px;

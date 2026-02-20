@@ -92,7 +92,7 @@ const MisReservas = () => {
     try {
       setCargando(true);
       const res = await getReservasByUserId(userId);
-      console.log("Respuesta:", res); // ← agrega esto
+
       const data = Array.isArray(res.data.reservas) ? res.data.reservas : [];
       setReservas(data);
     } catch (error) {
@@ -127,6 +127,7 @@ const MisReservas = () => {
 
     if (reserva.estado === "cancelada") return "cancelada";
     if (reserva.estado === "completada") return "completada";
+    if (reserva.estado === "no_asistio") return "no_asistio";
 
     // Si la fecha y hora ya pasó pero no está marcada como completada
     if (fechaReserva < ahora) return "finalizada";
@@ -140,6 +141,7 @@ const MisReservas = () => {
       pendiente: "info",
       finalizada: "success",
       cancelada: "warning",
+      no_asistio: "danger",
     };
     return colores[estado] || "success";
   };
@@ -148,12 +150,13 @@ const MisReservas = () => {
     const estados = {
       confirmada: "Confirmada",
       pendiente: "Pendiente",
-      finalizada: "Completada",
+      finalizada: "Finalizada",
+      completada: "Completada",
       cancelada: "Cancelada",
+      no_asistio: "No asistió",
     };
     return estados[estado] || estado;
   };
-
   const formatFecha = (isoString) => {
     const date = new Date(isoString);
     return date.toLocaleDateString("es-CL", {
@@ -174,23 +177,16 @@ const MisReservas = () => {
 
   const esPasada = (fecha) => new Date(fecha) < new Date();
 
-  const reservasFuturas = reservas.filter((r) => {
-    const estado = getEstadoCalculado(r);
-    return (
-      estado !== "completada" &&
-      estado !== "cancelada" &&
-      estado !== "finalizada"
-    );
-  });
-
-  const reservasHistorial = reservas.filter((r) => {
-    const estado = getEstadoCalculado(r);
-    return (
-      estado === "completada" ||
-      estado === "cancelada" ||
-      estado === "finalizada"
-    );
-  });
+  const reservasFuturas = reservas.filter(
+    (r) => r.estado === "pendiente" || r.estado === "confirmada",
+  );
+  const reservasHistorial = reservas.filter(
+    (r) =>
+      r.estado === "cancelada" ||
+      r.estado === "completada" ||
+      r.estado === "no_asistio" ||
+      getEstadoCalculado(r) === "finalizada",
+  );
 
   const reservasActivas =
     tabActiva === "futuras" ? reservasFuturas : reservasHistorial;

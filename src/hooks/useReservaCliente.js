@@ -257,9 +257,7 @@ export const useReservaCliente = () => {
       return;
     }
 
-    console.log("DEBUG RESERVA", {
-      user,
-    });
+  
 
     setReservando(true);
 

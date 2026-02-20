@@ -7,6 +7,7 @@ import {
   getReservasDiariasByBarberId,
   getReservasActivas,
   getResevasPorFecha,
+  postMarcarReservaNoAsistida,
 } from "../api/reservas";
 
 const ReservaContext = createContext();
@@ -53,13 +54,11 @@ export const ReservaProvider = ({ children }) => {
   };
 
   const postReservarHora = async (fecha, barbero, hora, servicio, usuario) => {
-    console.log(barbero, fecha, hora, servicio, usuario);
     if (!barbero || !fecha || !usuario || !servicio || !hora) {
       console.warn("Faltan datos para reservar la hora");
       setError("Faltan datos para reservar la hora");
       return null;
     }
-
 
     setLoading(true);
     setError(null);
@@ -98,7 +97,7 @@ export const ReservaProvider = ({ children }) => {
     }
   };
 
-  const cancelarReserva = async (idReserva) => {
+  const cancelarReserva = async (idReserva, motivo) => {
     if (!idReserva) {
       console.warn("No se ha podido cancelar su reserva. Intenta nuevamente");
       setError("No se ha podido cancelar su reserva. Intenta nuevamente.");
@@ -107,11 +106,31 @@ export const ReservaProvider = ({ children }) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await postCancelarReserva(idReserva);
+      const res = await postCancelarReserva(idReserva, motivo);
       return res.data;
     } catch (err) {
       console.error("Error al cancelar la hora", err);
       setError("No se pudo cancelar la hora. Intenta nuevamente.");
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const marcarReservaNoAsistida = async (idReserva) => {
+    if (!idReserva) {
+      console.warn("No se ha podido cancelar su reserva. Intenta nuevamente");
+      setError("No se ha podido cancelar su reserva. Intenta nuevamente.");
+      return null;
+    }
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await postMarcarReservaNoAsistida(idReserva);
+      return res.data;
+    } catch (err) {
+      console.error("Error al actualizar estado", err);
+      setError("No se pudo actualizar el estado de la reserva");
       return null;
     } finally {
       setLoading(false);
@@ -147,6 +166,7 @@ export const ReservaProvider = ({ children }) => {
         getReservasDiaByBarber,
         reservasActivas,
         getReservasPorFechaBarbero,
+        marcarReservaNoAsistida
       }}
     >
       {children}

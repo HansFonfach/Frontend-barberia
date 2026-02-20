@@ -188,10 +188,7 @@ export const useReservaInvitado = (slug) => {
       }
 
       if (!barberoId || !serviceId) {
-        console.log("⛔ No se puede cargar semana - falta:", {
-          barberoId,
-          serviceId,
-        });
+      
         const emptyDays = dates.map((d) => ({
           date: d,
           label: formatDayLabel(d),
@@ -205,12 +202,6 @@ export const useReservaInvitado = (slug) => {
         setWeekDays(emptyDays);
         return;
       }
-
-      console.log("✅ Cargando semana para:", {
-        barberoId,
-        serviceId,
-        startDate,
-      });
 
       fetchingWeekRef.current = true;
       setLoadingWeek(true);
@@ -266,7 +257,7 @@ export const useReservaInvitado = (slug) => {
           };
         });
 
-        console.log("📅 Días de semana actualizados:", newWeekDays);
+     
         setWeekDays(newWeekDays);
 
         // Guardar referencia de lo que cargamos
@@ -296,11 +287,11 @@ export const useReservaInvitado = (slug) => {
   // EFECTO PARA CARGAR SEMANA - VERSIÓN CONTROLADA
   // ────────────────────────────────
   useEffect(() => {
-    console.log("🔄 Efecto semana - verificando:", { servicio, barbero });
+ 
 
     // Mostrar días vacíos si falta algún dato
     if (!servicio || !barbero) {
-      console.log("⏳ Esperando selección completa...");
+     
       const dates = buildWeekDates(weekStart);
       const emptyDays = dates.map((d) => ({
         date: d,
@@ -349,7 +340,7 @@ export const useReservaInvitado = (slug) => {
   // HANDLERS DE SELECCIÓN
   // ────────────────────────────────
   const handleSeleccionarServicio = (id) => {
-    console.log("📌 Servicio seleccionado:", id);
+ 
     setServicio(id);
     setBarbero("");
     setFecha("");
@@ -367,7 +358,7 @@ export const useReservaInvitado = (slug) => {
   };
 
   const handleSeleccionarBarbero = (id) => {
-    console.log("👤 Barbero seleccionado:", id, "con servicio:", servicio);
+   
     setBarbero(id);
     setFecha("");
     setHora("");
@@ -384,7 +375,7 @@ export const useReservaInvitado = (slug) => {
   };
 
   const handleSelectDay = (iso) => {
-    console.log("📅 Día seleccionado:", iso);
+  
     setFecha(iso);
     setHora("");
   };

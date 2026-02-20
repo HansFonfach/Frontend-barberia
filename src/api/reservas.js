@@ -18,8 +18,14 @@ export const getReservasDiariasByBarberId = () => {
   return axiosPrivate.get("/reservas/barbero");
 };
 
-export const postCancelarReserva = async (reservaId) => {
-  return axiosPrivate.delete(`/reservas/${reservaId}`);
+export const postCancelarReserva = async (reservaId, motivo) => {
+  return axiosPrivate.delete(`/reservas/${reservaId}`, {
+    data: { motivo },
+  });
+};
+
+export const postMarcarReservaNoAsistida = async (reservaId) => {
+  return axiosPrivate.patch(`/reservas/${reservaId}/no-asistio`);
 };
 
 export const getReservasActivas = async (userId) => {

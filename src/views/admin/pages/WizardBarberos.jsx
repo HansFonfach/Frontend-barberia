@@ -82,7 +82,7 @@ const GestionHorariosBase = () => {
           await eliminarHorarioDia(barberoSeleccionado, Number(diaSemana));
         }
       }
-      console.log(eliminarHorarioDia);
+    
 
       Swal.fire("Éxito", "Horarios guardados correctamente", "success");
     } catch (error) {
