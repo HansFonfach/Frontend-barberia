@@ -18,6 +18,7 @@ import {
 } from "api/auth";
 
 import { initAxiosInterceptors } from "api/axiosPrivate";
+import { putUpdatePerfilUsuario } from "api/usuarios";
 
 export const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
@@ -165,6 +166,18 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
+  const actualizarPerfil = async (data) => {
+    try {
+      const res = await putUpdatePerfilUsuario(data);
+
+      setUser(res.data.usuario);
+      localStorage.setItem("user", JSON.stringify(res.data.usuario));
+
+      return res.data.usuario;
+    } catch (error) {
+      throw error;
+    }
+  };
   return (
     <AuthContext.Provider
       value={{
@@ -179,6 +192,7 @@ export const AuthProvider = ({ children }) => {
         forgotPassword,
         updatePassword,
         verifySession,
+        actualizarPerfil
       }}
     >
       {children}

@@ -1,5 +1,11 @@
 // context/UsuarioContext.jsx
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { getUsuarios } from "api/usuarios";
 import { useAuth } from "context/AuthContext"; // Importar useAuth
 import { putUsuario } from "api/usuarios";
@@ -13,6 +19,8 @@ import { postAsignarServiciosAlBarbero } from "api/usuarios";
 import { postCrearBarbero } from "api/usuarios";
 import { updateInactivarUsuario } from "api/usuarios";
 import { updateEstadoUsuario } from "api/usuarios";
+import { id } from "date-fns/locale";
+import { putUpdatePerfilUsuario } from "api/usuarios";
 
 const UsuarioContext = createContext();
 
@@ -36,20 +44,20 @@ export const UsuarioProvider = ({ children }) => {
   const { isAuthenticated, user } = useAuth(); // Usar el contexto de auth
 
   // dentro de UsuarioProvider
-  const getAllUsers = async () => {
+  // ✅ Así debe quedar
+  const getAllUsers = useCallback(async () => {
     try {
       setCargando(true);
       const res = await getTodosLosUsuarios();
-      setUsuarios(res.data.usuarios); // ✅ accedemos al array real
+      setUsuarios(res.data.usuarios);
       setBarberos(res.data.usuarios.filter((u) => u.rol === "barbero"));
       setErrors(null);
     } catch (error) {
-      console.error("Error al obtener los usuarios:", error);
       setErrors(error.response?.data || error.message);
     } finally {
       setCargando(false);
     }
-  };
+  }, []); // sin dependencias
 
   const getBarberosDisponibles = async () => {
     try {
@@ -189,8 +197,6 @@ export const UsuarioProvider = ({ children }) => {
     try {
       setCargando(true);
       const res = await getVerMisPuntos();
-
-      console.log("🟢 Puntos desde backend:", res.data.puntos);
 
       setPuntos(res.data.puntos);
       setErrors(null);

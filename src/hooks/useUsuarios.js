@@ -33,7 +33,8 @@ export const useUsuarios = (rolFiltro) => {
     if (isAuthenticated && user) {
       getAllUsers();
     }
-  }, [isAuthenticated, user, getAllUsers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user]); // ✅ sin getAllUsers
 
   // Buscar (memoizado)
   const usuariosBuscados = useMemo(() => {

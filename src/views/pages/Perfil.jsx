@@ -13,6 +13,9 @@ import {
 } from "reactstrap";
 import UserHeader from "components/Headers/UserHeader.js";
 import { useAuth } from "context/AuthContext";
+import { useEffect, useState } from "react";
+import Swal from "sweetalert2";
+import { useUsuario } from "context/usuariosContext";
 
 // 🔹 Función para generar color aleatorio suave (para el fondo del avatar)
 const generarColor = (nombre) => {
@@ -40,9 +43,41 @@ const getIniciales = (nombre = "", apellido = "") => {
 };
 
 const Perfil = () => {
-  const { user } = useAuth();
+  const { user, actualizarPerfil} = useAuth();
   const iniciales = getIniciales(user?.nombre, user?.apellido);
   const colorFondo = generarColor(user?.nombre);
+  const [formData, setFormData] = useState({
+    nombre: "",
+    apellido: "",
+    telefono: "",
+  });
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        nombre: user.nombre || "",
+        apellido: user.apellido || "",
+        telefono: user.telefono || "",
+      });
+    }
+  }, [user]);
+
+  const handleSubmit = async () => {
+    try {
+      await actualizarPerfil(formData);
+      Swal.fire("Listo", "Perfil actualizado correctamente", "success");
+    } catch (err) {
+      Swal.fire("Error", err.response?.data?.message || "Error", "error");
+    }
+  };
 
   return (
     <>
@@ -110,7 +145,9 @@ const Perfil = () => {
                           <Input
                             className="form-control-alternative"
                             type="text"
-                            value={user?.nombre || ""}
+                            name="nombre"
+                            value={formData.nombre}
+                            onChange={handleChange}
                             required
                           />
                         </FormGroup>
@@ -122,7 +159,9 @@ const Perfil = () => {
                           <Input
                             className="form-control-alternative"
                             type="text"
-                            value={user?.apellido || ""}
+                            name="apellido"
+                            value={formData.apellido}
+                            onChange={handleChange}
                             required
                           />
                         </FormGroup>
@@ -150,7 +189,9 @@ const Perfil = () => {
                           <Input
                             className="form-control-alternative"
                             type="text"
-                            value={user?.telefono || "No registrado"}
+                            name="telefono"
+                            value={formData.telefono}
+                            onChange={handleChange}
                             required
                           />
                         </FormGroup>
@@ -161,7 +202,7 @@ const Perfil = () => {
                   <hr className="my-4" />
 
                   <div className="text-center">
-                    <Button color="info" className="px-4">
+                    <Button color="info" onClick={handleSubmit}>
                       Guardar cambios
                     </Button>
                   </div>

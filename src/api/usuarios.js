@@ -9,8 +9,10 @@ export const putUsuario = (id, data) => {
   return axiosPrivate.put(`/usuarios/${id}`, data);
 };
 
+export const putUpdatePerfilUsuario = (data) =>
+  axiosPrivate.put("/usuarios/actualizarPerfil", data);
+
 export const getUsuarioByRut = (rut) => {
- 
   return axiosPrivate.get(`/usuarios/rut/${rut}`);
 };
 export const postSubscribeUserById = (_id) => {

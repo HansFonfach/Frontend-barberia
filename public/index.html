@@ -64,7 +64,6 @@
         onLine: navigator.onLine
       };
 
-      console.log('Información del navegador:', browserInfo);
 
       // Detectar iOS WebView (Instagram, Facebook, etc.)
       const isIOSWebView = /(iPhone|iPod|iPad).*AppleWebKit(?!.*Safari)/i.test(navigator.userAgent);
@@ -83,13 +82,13 @@
 
       // Forzar manejo especial de cookies en WebViews
       if (isIOSWebView || isAndroidWebView) {
-        console.log('🔴 WebView detectado, aplicando configuraciones especiales');
+     
         document.cookie = 'webview=true; path=/; SameSite=None; Secure';
       }
 
       // Para iOS Safari, asegurar que las cookies funcionen
       if (isSafari && !isIOSWebView) {
-        console.log('🍎 Safari detectado');
+       
         // Safari a veces necesita un toque de usuario para las cookies
         document.addEventListener('touchstart', function () {
           // Esto ayuda a activar las cookies en Safari
