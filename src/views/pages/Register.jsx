@@ -214,7 +214,7 @@ const Register = () => {
                 </InputGroupAddon>
 
                 <Input
-                  placeholder="75345678"
+                  placeholder="Telefono"
                   type="number"
                   name="telefono"
                   value={form.telefono}
@@ -225,6 +225,7 @@ const Register = () => {
                   }}
                   minLength={8}
                   maxLength={8}
+                  required
                 />
               </InputGroup>
 
