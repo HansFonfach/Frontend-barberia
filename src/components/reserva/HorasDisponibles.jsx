@@ -78,7 +78,7 @@ const HorasDisponibles = ({
       Swal.fire({
         icon: "success",
         title: "Listo 👌",
-        text: `Te avisaremos si se libera la hora ${h}`,
+        text: `Te avisaremos mediante WhatsApp si se libera la hora ${h}`,
         timer: 2500,
         showConfirmButton: false,
       });
