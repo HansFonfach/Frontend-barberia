@@ -13,25 +13,45 @@ import UserHeader from "components/Headers/UserHeader";
 import { useUsuarios } from "hooks/useUsuarios";
 import { FaStar } from "react-icons/fa";
 
+import barberoDefault from "assets/img/barberos/ale.jpg";
+
 /* Avatar con iniciales */
-const AvatarIniciales = ({ nombre, apellido }) => {
+const AvatarBarbero = ({ nombre, apellido, foto }) => {
   const iniciales = `${nombre?.[0] || ""}${apellido?.[0] || ""}`.toUpperCase();
 
   return (
     <div
-      className="d-flex align-items-center justify-content-center mx-auto"
+      className="mx-auto d-flex align-items-center justify-content-center"
       style={{
         width: 90,
         height: 90,
         borderRadius: "50%",
+        overflow: "hidden",
         background: "linear-gradient(135deg,#111,#444)",
-        color: "#fff",
-        fontSize: 32,
-        fontWeight: "bold",
         boxShadow: "0 4px 10px rgba(0,0,0,.25)",
       }}
     >
-      {iniciales}
+      {foto ? (
+        <img
+          src={foto}
+          alt={`${nombre} ${apellido}`}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <span
+          style={{
+            color: "#fff",
+            fontSize: 32,
+            fontWeight: "bold",
+          }}
+        >
+          {iniciales}
+        </span>
+      )}
     </div>
   );
 };
@@ -75,14 +95,17 @@ const PresentarBarberos = () => {
                             <Card
                               onClick={() => setBarberoSeleccionado(b)}
                               className={`mb-4 cursor-pointer transition-all ${
-                                activo ? "shadow-lg border-primary" : "shadow-sm"
+                                activo
+                                  ? "shadow-lg border-primary"
+                                  : "shadow-sm"
                               }`}
                               style={{ cursor: "pointer" }}
                             >
                               <CardBody className="text-center py-4">
-                                <AvatarIniciales
+                                <AvatarBarbero
                                   nombre={b.nombre}
                                   apellido={b.apellido}
+                                  foto={barberoDefault}
                                 />
 
                                 <h5 className="font-weight-bold mt-3 mb-1">
@@ -115,9 +138,10 @@ const PresentarBarberos = () => {
                         style={{ top: 90 }}
                       >
                         <CardBody className="text-center py-4">
-                          <AvatarIniciales
+                          <AvatarBarbero
                             nombre={barberoSeleccionado.nombre}
                             apellido={barberoSeleccionado.apellido}
+                            foto={barberoDefault}
                           />
 
                           <h3 className="font-weight-bold mt-3">
@@ -132,7 +156,9 @@ const PresentarBarberos = () => {
 
                           <div className="d-flex justify-content-center align-items-center mb-3">
                             <FaStar className="text-warning mr-2" />
-                            <strong>{barberoSeleccionado.rating || "5.0"}</strong>
+                            <strong>
+                              {barberoSeleccionado.rating || "5.0"}
+                            </strong>
                           </div>
 
                           <hr />
