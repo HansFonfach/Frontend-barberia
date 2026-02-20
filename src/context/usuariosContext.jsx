@@ -64,7 +64,7 @@ export const UsuarioProvider = ({ children }) => {
   const updateUser = async (id, data) => {
     try {
       const res = await putUsuario(id, data);
-      console.log(res.data.message); // "Usuario actualizado correctamente"
+
       setErrors(null);
     } catch (error) {
       console.error("Error al actualizar al usuario", error);
@@ -117,32 +117,16 @@ export const UsuarioProvider = ({ children }) => {
   // En la función getUserByRut del contexto
   const getUserByRut = async (rut) => {
     try {
-      console.log("🚀 [CONTEXTO] Iniciando búsqueda para RUT:", rut);
-
       const res = await getUsuarioByRut(rut);
-      console.log("📡 [CONTEXTO] Respuesta HTTP recibida:", {
-        status: res.status,
-        statusText: res.statusText,
-        headers: res.headers,
-      });
 
       // EXTRA IMPORTANTE: Verifica la estructura exacta
-      console.log(
-        "📊 [CONTEXTO] Datos crudos:",
-        JSON.stringify(res.data, null, 2),
-      );
 
       // Verifica diferentes estructuras posibles
       if (res.data && res.data._id) {
-        console.log("✅ [CONTEXTO] Estructura OK - tiene _id");
         return res.data;
       } else if (res.data && res.data.id) {
-        console.log("✅ [CONTEXTO] Estructura OK - tiene id");
         return { ...res.data, _id: res.data.id }; // Normalizar
       } else if (res.data && typeof res.data === "object") {
-        console.log(
-          "⚠️ [CONTEXTO] Estructura inesperada, devolviendo tal cual",
-        );
         return res.data;
       } else {
         console.warn("❌ [CONTEXTO] Respuesta vacía o inválida");
@@ -241,14 +225,14 @@ export const UsuarioProvider = ({ children }) => {
     }
   };
 
-const cambiarEstadoUsuario = async (id, estado) => {
-  try {
-    await updateEstadoUsuario(id, estado);
-    await getAllUsers();
-  } catch (error) {
-    throw error;
-  }
-};
+  const cambiarEstadoUsuario = async (id, estado) => {
+    try {
+      await updateEstadoUsuario(id, estado);
+      await getAllUsers();
+    } catch (error) {
+      throw error;
+    }
+  };
 
   return (
     <UsuarioContext.Provider
@@ -271,7 +255,7 @@ const cambiarEstadoUsuario = async (id, estado) => {
         getSuscripcionActiva,
         getVerPuntos,
         asignarServiciosAlBarbero,
-        cambiarEstadoUsuario
+        cambiarEstadoUsuario,
       }}
     >
       {children}

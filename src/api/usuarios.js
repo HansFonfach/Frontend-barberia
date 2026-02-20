@@ -10,7 +10,7 @@ export const putUsuario = (id, data) => {
 };
 
 export const getUsuarioByRut = (rut) => {
-  console.log(`📡 API: GET /usuarios/rut/${rut} en puerto 4000`);
+ 
   return axiosPrivate.get(`/usuarios/rut/${rut}`);
 };
 export const postSubscribeUserById = (_id) => {

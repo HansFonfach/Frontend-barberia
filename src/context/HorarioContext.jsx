@@ -25,7 +25,7 @@ export const HorarioProvider = ({ children }) => {
   const getHorasDisponiblesBarbero = async (barberoId, fecha, servicioId) => {
     try {
       const result = await getHorasDisponibles(barberoId, fecha, servicioId);
-      console.log(result);
+     
 
       return result; // objeto completo del backend
     } catch (err) {
@@ -65,12 +65,10 @@ export const HorarioProvider = ({ children }) => {
   };
 
   const obtenerHorarioBasePorDia = async (barbero, fecha) => {
-    console.log("🌐 Request horarios base:", { barbero, fecha });
 
     try {
       const result = await getHorarioBasePorDia(barbero, fecha);
-      console.log("✅ Resultado completo:", result);
-
+   
       // Asegurar que devolvemos un array
       if (result && result.bloques) {
         return result.bloques; // Esto debería ser un array

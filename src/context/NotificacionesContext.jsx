@@ -29,7 +29,7 @@ export const NotificacionProvider = ({ children }) => {
       };
 
       const res = await postCrearNotificacion(payload);
-      console.log("✅ Estoy en el context:", res.data);
+    
       return res.data;
     } catch (error) {
       console.error(
