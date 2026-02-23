@@ -70,9 +70,14 @@ export const publicRoutes = [
     component: <ReservarHoraInvitado />,
     invisible: true,
   },
-   {
+  {
     path: "/cancelar-reserva-invitado",
     component: <CancelarInvitado />,
+    invisible: true,
+  },
+  {
+    path: "/verificar-cuenta",
+    component: <VerificarCuenta />,
     invisible: true,
   },
 ];

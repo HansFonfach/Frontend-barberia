@@ -120,6 +120,15 @@ root.render(
             }
           />
 
+          <Route
+            path="/:slug/verificar-cuenta"
+            element={
+              <EmpresaWrapper>
+                <VerificarCuenta />
+              </EmpresaWrapper>
+            }
+          />
+
           {/* =========================
           ADMIN PROTEGIDO
       ========================= */}
