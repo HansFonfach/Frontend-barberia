@@ -34,7 +34,7 @@ import { FaPhone } from "react-icons/fa";
 import logo from "assets/img/brand/lasanta.png"; // ✅ ruta más segura dentro de src/assets
 
 const Register = () => {
-  const { register } = useAuth();
+  const { verifySession, register } = useAuth();
   const navigate = useNavigate();
   const { rut, handleRutChange, error } = useRutValidator();
   const [passwordMatch, setPasswordMatch] = useState(null);
@@ -55,7 +55,6 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 1️⃣ Validaciones frontend primero
     if (error) {
       Swal.fire({
         icon: "error",
@@ -75,10 +74,34 @@ const Register = () => {
     }
 
     try {
-      // 2️⃣ Registrar
-      await register({ ...form, rut, slug });
+      const result = await register({ ...form, rut, slug });
 
-      // 3️⃣ Éxito
+      if (result?.requiresVerification) {
+        Swal.fire({
+          title: "Revisa tu correo 📧",
+          text: "Te enviamos un enlace al correo con el que hiciste tu reserva. Tienes 1 hora para activar tu cuenta.",
+          icon: "info",
+          confirmButtonText: "Entendido",
+        });
+        return;
+      }
+
+      // registro normal
+      Swal.fire({
+        title: "Registro exitoso 🎉",
+        text: "¡Tu cuenta fue creada correctamente!",
+        icon: "success",
+        confirmButtonText: "Aceptar",
+      });
+      navigate(`/${slug}/admin/index`);
+
+      // ✅ Registro normal
+      if (result?.data?.token) {
+        localStorage.setItem("token", result.data.token);
+        sessionStorage.setItem("token", result.data.token);
+      }
+      await verifySession();
+
       Swal.fire({
         title: "Registro exitoso 🎉",
         text: "¡Tu cuenta fue creada correctamente!",
@@ -88,7 +111,6 @@ const Register = () => {
 
       navigate(`/${slug}/admin/index`);
     } catch (err) {
-      // 4️⃣ Error REAL del backend
       const message =
         err.response?.data?.message ||
         err.response?.data?.error ||
@@ -101,7 +123,6 @@ const Register = () => {
       });
     }
   };
-
   const handleChange = (e) => {
     setForm({
       ...form,

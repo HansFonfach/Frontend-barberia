@@ -130,18 +130,22 @@ export const AuthProvider = ({ children }) => {
       setLoading(true);
       const res = await registerRequest(data);
 
+      // ✅ Si requiere verificación, retornamos eso directo sin loguear
+      if (res.data?.requiresVerification) {
+        return { requiresVerification: true };
+      }
+
       if (res.data?.token) {
         localStorage.setItem("token", res.data.token);
         sessionStorage.setItem("token", res.data.token);
       }
 
       await new Promise((r) => setTimeout(r, 100));
-
       const verifiedUser = await verifySession();
       if (!verifiedUser) throw new Error("Registro incompleto");
 
       setErrors(null);
-      return verifiedUser;
+      return { requiresVerification: false, verifiedUser };
     } catch (error) {
       setErrors(error.response?.data?.message || "Error al registrarse");
       throw error;
@@ -192,7 +196,7 @@ export const AuthProvider = ({ children }) => {
         forgotPassword,
         updatePassword,
         verifySession,
-        actualizarPerfil
+        actualizarPerfil,
       }}
     >
       {children}
