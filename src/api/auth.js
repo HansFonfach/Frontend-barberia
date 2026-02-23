@@ -32,3 +32,7 @@ export const updateUserPasswordRequest = (id, currentPassword, newPassword) => {
 
 export const verifyRequest = () =>
   axiosPrivate.get("/auth/me", { withCredentials: true });
+
+export const verifyClaim = (token) => {
+  return axiosPublic.get(`/auth/verify-claim?token=${token}`);
+};
