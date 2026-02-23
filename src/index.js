@@ -37,6 +37,7 @@ import Principal from "views/publico/principal";
 import Landing from "views/pages/Landing";
 import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
 import CancelarInvitado from "views/invitados/pages/CancelarInvitado";
+import VerificarCuenta from "views/publico/VerificarCuenta";
 
 // Wrapper por empresa (slug)
 const EmpresaWrapper = ({ children }) => {
