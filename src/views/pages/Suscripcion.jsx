@@ -15,6 +15,7 @@ import Swal from "sweetalert2";
 const SubscriptionPage = () => {
   const [loading, setLoading] = useState(false);
   const [suscripcionData, setSuscripcionData] = useState(null);
+  const [copiado, setCopiado] = useState(null);
 
   const benefits = [
     {
@@ -54,6 +55,21 @@ const SubscriptionPage = () => {
         "Suscripción intransferible, diseñada para clientes frecuentes.",
     },
   ];
+
+  const datosCuenta = [
+    { label: "Nombre", value: "Josefina Tuma" },
+    { label: "RUT", value: "19.889.487-7" },
+    { label: "Banco", value: "Banco de Chile" },
+    { label: "Tipo de cuenta", value: "Cuenta Vista" },
+    { label: "N° de cuenta", value: "00-020-37221-08" },
+    { label: "Correo", value: "josefina.tuma.nortes@gmail.com" },
+  ];
+
+  const copiar = (value, label) => {
+    navigator.clipboard.writeText(value);
+    setCopiado(label);
+    setTimeout(() => setCopiado(null), 2000);
+  };
 
   const startPayment = async () => {
     try {
@@ -158,6 +174,89 @@ const SubscriptionPage = () => {
                   ))}
                 </Row>
 
+                {/* DATOS DE TRANSFERENCIA */}
+                <Row className="mb-4">
+                  <Col>
+                    <Card className="border-0 shadow-sm">
+                      <CardBody>
+                        <div className="d-flex align-items-center mb-3">
+                          <span style={{ fontSize: "1.4rem" }} className="mr-2">
+                            🏦
+                          </span>
+                          <div>
+                            <h5 className="font-weight-bold mb-0">
+                              Paga por transferencia
+                            </h5>
+                            <p className="text-muted small mb-0">
+                              Envía el comprobante al WhatsApp del local para
+                              activar tu membresía
+                            </p>
+                          </div>
+                        </div>
+
+                        <div
+                          style={{
+                            background: "#f8f9fa",
+                            borderRadius: "12px",
+                            overflow: "hidden",
+                            border: "1px solid #e9ecef",
+                          }}
+                        >
+                          {datosCuenta.map(({ label, value }) => (
+                            <div
+                              key={label}
+                              className="d-flex justify-content-between align-items-center px-3 py-2"
+                              style={{ borderBottom: "1px solid #e9ecef" }}
+                            >
+                              <small className="text-muted">{label}</small>
+                              <div className="d-flex align-items-center">
+                                <span
+                                  className="font-weight-bold mr-2"
+                                  style={{ fontSize: "13px" }}
+                                >
+                                  {value}
+                                </span>
+                                <button
+                                  onClick={() => copiar(value, label)}
+                                  style={{
+                                    background:
+                                      copiado === label ? "#28a745" : "#e9ecef",
+                                    border: "none",
+                                    borderRadius: "6px",
+                                    padding: "2px 8px",
+                                    fontSize: "11px",
+                                    cursor: "pointer",
+                                    color:
+                                      copiado === label ? "#fff" : "#495057",
+                                    transition: "all 0.2s ease",
+                                    whiteSpace: "nowrap",
+                                  }}
+                                >
+                                  {copiado === label ? "✓ Copiado" : "Copiar"}
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        <p className="text-muted small mt-3 mb-0 text-center">
+                          💬 Una vez realizada la transferencia, envía el
+                          comprobante a WhatsApp:{" "}
+                          <a
+                            href="https://wa.me/56996817505"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="font-weight-bold text-success"
+                          >
+                            +569 96817505
+                          </a>{" "}
+                          para activar tu suscripción
+                        </p>
+                      </CardBody>
+                    </Card>
+                  </Col>
+                </Row>
+
                 {/* CTA */}
                 <Row>
                   <Col>
@@ -178,7 +277,7 @@ const SubscriptionPage = () => {
                             <button
                               className="btn bg-yellow btn-lg font-weight-bold px-5 py-3"
                               onClick={startPayment}
-                              disabled={true} //loading
+                              disabled={true}
                             >
                               {loading ? (
                                 <>

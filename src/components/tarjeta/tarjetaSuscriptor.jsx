@@ -88,7 +88,7 @@ const TarjetaSuscriptor = ({ cliente, suscripcion }) => {
           <span className="termino-item">Válida con identificación</span>
         </div>
         <div className="contacto">
-          <span className="contacto-texto">www.lasantabarberia.cl</span>
+          <span className="contacto-texto">www.agendafonfach.cl/lasantabarberia</span>
         </div>
       </div>
     </div>
