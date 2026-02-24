@@ -26,6 +26,7 @@ export const useReservaCliente = () => {
   const [servicio, setServicio] = useState("");
   const [pasoActual, setPasoActual] = useState(1);
   const [reservando, setReservando] = useState(false);
+  const [diasPermitidos, setDiasPermitidos] = useState(15);
 
   // ────────────────────────────────
   // SEMANA
@@ -173,6 +174,11 @@ export const useReservaCliente = () => {
           ),
         );
 
+        // ✅ Leer diasPermitidos ANTES del setWeekDays, fuera del map
+        const dp =
+          results.find((r) => r?.diasPermitidos != null)?.diasPermitidos ?? 15;
+        setDiasPermitidos(dp);
+
         setWeekDays(
           dates.map((d, idx) => {
             const horas = results[idx]?.horas || [];
@@ -185,13 +191,8 @@ export const useReservaCliente = () => {
               date: d,
               label: formatDayLabel(d),
               iso: isoDate(d),
-
-              // ✅ día habilitado si hay horas libres
               available: horasDisponibles.length > 0,
-
-              // 🔥 guardamos TODAS las horas con estado
               horas,
-
               mensaje:
                 horas.length === 0
                   ? "No disponible"
@@ -228,8 +229,17 @@ export const useReservaCliente = () => {
   };
 
   const nextWeek = () => {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const limiteDate = new Date(hoy);
+    limiteDate.setDate(hoy.getDate() + diasPermitidos); // ✅ usa el estado
+
     const d = new Date(weekStart);
     d.setDate(d.getDate() + 7);
+
+    if (d > limiteDate) return;
+
     setWeekStart(d);
   };
 
@@ -257,17 +267,15 @@ export const useReservaCliente = () => {
       return;
     }
 
-  
-
     setReservando(true);
 
     try {
       await postReservarHora(
-        fecha, // 📅 fecha
-        barbero, // ✂️ barberoId
-        hora, // ⏰ hora
-        servicio, // 🧾 servicioId
-        user.id, // 👤 usuarioId
+        fecha,
+        barbero,
+        hora,
+        servicio,
+        user.id,
       );
 
       const result = await Swal.fire(
@@ -289,6 +297,7 @@ export const useReservaCliente = () => {
       setReservando(false);
     }
   };
+
   // ────────────────────────────────
   // API PÚBLICA
   // ────────────────────────────────
@@ -318,6 +327,7 @@ export const useReservaCliente = () => {
     cargandoHoras,
     horasDataCompleta,
     duracionServicio,
+    diasPermitidos,
 
     handleSelectDay,
     prevWeek,

@@ -15,7 +15,10 @@ import {
   User,
   CreditCard,
   Zap,
+  TrendingUp,
 } from "lucide-react";
+
+const formatPesos = (valor) => `$${(valor || 0).toLocaleString("es-CL")}`;
 
 const AdminDashboard = () => {
   const {
@@ -25,7 +28,7 @@ const AdminDashboard = () => {
     proximoCliente,
   } = useEstadisticas();
 
-  const [infoIngresos, setInfoIngresos] = useState({});
+  const [infoIngresos, setInfoIngresos] = useState(null);
   const [proxCliente, setProxCliente] = useState({});
   const [suscripcionesActivas, setSuscripcionesActivas] = useState({});
   const [reservasHoy, setReservasHoy] = useState({});
@@ -146,23 +149,90 @@ const AdminDashboard = () => {
     {
       label: "Reservas Hoy",
       value: reservasHoy.total,
-      icon: <Calendar size={20} />, // 📅 más intuitivo para reservas
-      change: "+3",
+      icon: <Calendar size={20} />,
     },
     {
       label: "Suscripciones Activas",
       value: suscripcionesActivas.total,
-      icon: <Users size={20} />, // 👥 está bien para suscriptores
-      change: "+1",
-    },
-
-    {
-      label: "Ingreso del mes",
-      value: `$${infoIngresos.ingresoTotal}`,
-      icon: <CreditCard size={20} />, // 💳 o BarChart3 si quieres gráfico
-      change: "+12%",
+      icon: <Users size={20} />,
     },
   ];
+
+  // Card especial de ingresos
+  const renderCardIngresos = () => (
+    <Card
+      className="shadow-sm border-0 h-100"
+      style={{
+        borderRadius: "16px",
+        transition: "transform 0.25s ease",
+      }}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.transform = "translateY(-5px)")
+      }
+      onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+    >
+      <CardBody className="p-4">
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <div>
+            <h6 className="text-uppercase text-muted mb-1">Ingreso del mes</h6>
+            <h3 className="font-weight-bold mb-0">
+              {infoIngresos ? formatPesos(infoIngresos.ingresoTotal) : "—"}
+            </h3>
+          </div>
+          <div className="bg-light rounded-circle p-3 shadow-sm">
+            <CreditCard size={20} />
+          </div>
+        </div>
+
+        {/* Desglose */}
+        {infoIngresos?.detalle && (
+          <div
+            style={{
+              borderTop: "1px solid #f0f0f0",
+              paddingTop: "10px",
+              marginTop: "4px",
+            }}
+          >
+            {/* Reservas completadas */}
+            <div className="d-flex justify-content-between align-items-center mb-1">
+              <small className="text-muted d-flex align-items-center">
+                ✂️ Reservas cobradas
+              </small>
+              <small className="font-weight-bold text-success">
+                {formatPesos(infoIngresos.detalle.ingresoReservas)}
+              </small>
+            </div>
+
+            {/* Suscripciones */}
+            <div className="d-flex justify-content-between align-items-center mb-1">
+              <small className="text-muted d-flex align-items-center">
+                ⭐ Suscripciones ({infoIngresos.detalle.suscripcionesNuevas})
+              </small>
+              <small className="font-weight-bold text-primary">
+                {formatPesos(infoIngresos.detalle.ingresoSuscripciones)}
+              </small>
+            </div>
+
+            {/* Posible ingreso */}
+            <div
+              className="d-flex justify-content-between align-items-center mt-2 pt-2"
+              style={{ borderTop: "1px dashed #e0e0e0" }}
+            >
+              <small className="text-muted d-flex align-items-center">
+                <TrendingUp size={12} className="mr-1 text-warning" />
+                Posible ingreso
+              </small>
+              <small className="font-weight-bold text-warning">
+                {formatPesos(infoIngresos.detalle.posibleIngreso)}
+              </small>
+            </div>
+          </div>
+        )}
+
+        {!infoIngresos && <small className="text-muted">Cargando...</small>}
+      </CardBody>
+    </Card>
+  );
 
   return (
     <>
@@ -195,13 +265,19 @@ const AdminDashboard = () => {
             </Card>
           </Col>
         </Row>
+        
 
         {/* Stats */}
-        <Row className="mb-5">
+        <Row className="mb-5" style={{ alignItems: "flex-start" }}>
+           {/* Card especial de ingresos */}
+          <Col lg="3" md="6" className="mb-4">
+            {renderCardIngresos()}
+          </Col>
+          {/* Cards normales */}
           {stats.map((stat, index) => (
             <Col lg="3" md="6" className="mb-4" key={index}>
               <Card
-                className="shadow-sm border-0 h-100 hover-zoom"
+                className="shadow-sm border-0 h-100"
                 style={{
                   borderRadius: "16px",
                   transition: "transform 0.25s ease",
@@ -213,15 +289,18 @@ const AdminDashboard = () => {
                   (e.currentTarget.style.transform = "translateY(0)")
                 }
               >
+                
                 <CardBody className="p-4">
                   <div className="d-flex align-items-center justify-content-between">
                     <div>
                       <h6 className="text-uppercase text-muted mb-1">
                         {stat.label}
                       </h6>
-                      <h3 className="font-weight-bold mb-0">{stat.value}</h3>
+                      <h3 className="font-weight-bold mb-0">
+                        {stat.value ?? "—"}
+                      </h3>
 
-                      {stat.extra && stat.extra.fecha && stat.extra.hora && (
+                      {stat.extra?.fecha && stat.extra?.hora && (
                         <div className="mt-1">
                           <small className="d-block text-muted">
                             📅 {stat.extra.fecha} &nbsp; 🕒 {stat.extra.hora}
@@ -237,6 +316,8 @@ const AdminDashboard = () => {
               </Card>
             </Col>
           ))}
+
+         
         </Row>
 
         {/* Menú Principal */}

@@ -33,11 +33,8 @@ const GestionReservas = () => {
   );
   const [vistaMobile, setVistaMobile] = useState(false);
 
-  // Detectar si es móvil
   useEffect(() => {
-    const checkMobile = () => {
-      setVistaMobile(window.innerWidth < 768);
-    };
+    const checkMobile = () => setVistaMobile(window.innerWidth < 768);
     checkMobile();
     window.addEventListener("resize", checkMobile);
     return () => window.removeEventListener("resize", checkMobile);
@@ -45,15 +42,30 @@ const GestionReservas = () => {
 
   const toggle = () => setModal(!modal);
 
-  // Traer reservas cada vez que cambie la fecha
   useEffect(() => {
     if (filtroFecha) getReservasPorFechaBarbero(filtroFecha);
   }, [filtroFecha]);
 
-  const getEstado = (fecha) => {
-    return new Date(fecha) >= new Date() ? "Pendiente" : "Terminada";
+  /* =============================
+     HELPERS DE ESTADO
+  ============================== */
+  const getEstado = (reserva) => {
+    if (reserva.estado === "no_asistio") return "No asistió";
+    if (reserva.estado === "cancelada") return "Cancelada";
+    return new Date(reserva.fecha) >= new Date() ? "Pendiente" : "Terminada";
   };
 
+  const getColorEstado = (reserva) => {
+    if (reserva.estado === "no_asistio") return "danger";
+    if (reserva.estado === "cancelada") return "dark";
+    return new Date(reserva.fecha) >= new Date() ? "primary" : "success";
+  };
+
+  const esPendiente = (reserva) => reserva.estado === "pendiente" || reserva.estado === "confirmada";
+
+  /* =============================
+     HANDLERS
+  ============================== */
   const handleVerResumen = (reserva) => {
     setReservaSeleccionada(reserva);
     setModal(true);
@@ -71,9 +83,7 @@ const GestionReservas = () => {
       inputPlaceholder: "Escribe el motivo aquí...",
       inputAttributes: { rows: 3 },
       inputValidator: (value) => {
-        if (!value || value.trim() === "") {
-          return "Debes ingresar un motivo";
-        }
+        if (!value || value.trim() === "") return "Debes ingresar un motivo";
       },
       showCancelButton: true,
       confirmButtonColor: "#d33",
@@ -101,7 +111,6 @@ const GestionReservas = () => {
     if (!reservaSeleccionada) return;
 
     const res = await marcarReservaNoAsistida(reservaSeleccionada._id);
-
     if (!res) return;
 
     setModal(false);
@@ -116,13 +125,14 @@ const GestionReservas = () => {
     });
   };
 
-  // Renderizado para móvil (tarjetas en lugar de tabla)
+  /* =============================
+     VISTA MOBILE
+  ============================== */
   const renderMobileView = () => (
     <div className="reservas-mobile">
       {reservas.map((reserva) => (
         <Card key={reserva._id} className="mb-3 shadow-sm">
           <CardBody className="p-3">
-            {/* Header con cliente y estado */}
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div className="d-flex align-items-center">
                 <span className="mr-2" style={{ fontSize: "1.2rem" }}>
@@ -132,24 +142,15 @@ const GestionReservas = () => {
                   {reserva.cliente?.nombre} {reserva.cliente?.apellido}
                 </strong>
               </div>
-              <Badge
-                color={
-                  getEstado(reserva.fecha) === "Pendiente"
-                    ? "primary"
-                    : "success"
-                }
-                pill
-              >
-                {getEstado(reserva.fecha)}
+              <Badge color={getColorEstado(reserva)} pill>
+                {getEstado(reserva)}
               </Badge>
             </div>
 
-            {/* Detalles del servicio */}
             <div className="pl-4 mb-3">
               <div className="d-flex flex-wrap mb-1">
                 <small className="text-muted w-50">
-                  <i className="ni ni-scissors mr-1"></i>
-                  Servicio:
+                  <i className="ni ni-scissors mr-1"></i>Servicio:
                 </small>
                 <small className="w-50 text-right font-weight-bold">
                   {reserva.servicio?.nombre}
@@ -158,8 +159,7 @@ const GestionReservas = () => {
 
               <div className="d-flex flex-wrap mb-1">
                 <small className="text-muted w-50">
-                  <i className="ni ni-watch-time mr-1"></i>
-                  Hora:
+                  <i className="ni ni-watch-time mr-1"></i>Hora:
                 </small>
                 <small className="w-50 text-right font-weight-bold">
                   {new Date(reserva.fecha).toLocaleTimeString([], {
@@ -172,28 +172,25 @@ const GestionReservas = () => {
               {reserva.suscripcion && (
                 <div className="d-flex flex-wrap mb-1">
                   <small className="text-muted w-50">
-                    <i className="ni ni-tag mr-1"></i>
-                    Suscripción:
+                    <i className="ni ni-tag mr-1"></i>Suscripción:
                   </small>
                   <small className="w-50 text-right">
                     <Badge
                       color={
-                        reserva.suscripcion.posicion >
-                        reserva.suscripcion.limite
+                        reserva.suscripcion.posicion > reserva.suscripcion.limite
                           ? "danger"
                           : "success"
                       }
                       pill
                     >
-                      {reserva.suscripcion.posicion}/
-                      {reserva.suscripcion.limite}
+                      {reserva.suscripcion.posicion}/{reserva.suscripcion.limite}
+                      {reserva.suscripcion.esDobleServicio && " ×2"}
                     </Badge>
                   </small>
                 </div>
               )}
             </div>
 
-            {/* Acciones */}
             <div className="d-flex justify-content-end border-top pt-2">
               <Button
                 color="info"
@@ -201,18 +198,16 @@ const GestionReservas = () => {
                 className="mr-2"
                 onClick={() => handleVerResumen(reserva)}
               >
-                <i className="ni ni-zoom-split-in mr-1"></i>
-                Ver
+                <i className="ni ni-zoom-split-in mr-1"></i>Ver
               </Button>
 
-              {getEstado(reserva.fecha) === "Pendiente" && (
+              {esPendiente(reserva) && (
                 <Button
                   color="danger"
                   size="sm"
                   onClick={() => handleVerResumen(reserva)}
                 >
-                  <i className="ni ni-fat-remove mr-1"></i>
-                  Cancelar
+                  <i className="ni ni-fat-remove mr-1"></i>Cancelar
                 </Button>
               )}
             </div>
@@ -222,7 +217,9 @@ const GestionReservas = () => {
     </div>
   );
 
-  // Renderizado para desktop (tabla)
+  /* =============================
+     VISTA DESKTOP
+  ============================== */
   const renderDesktopView = () => (
     <div className="table-responsive">
       <Table className="align-items-center table-flush" responsive>
@@ -257,11 +254,10 @@ const GestionReservas = () => {
                     pill
                   >
                     {reserva.suscripcion.posicion}/{reserva.suscripcion.limite}
+                    {reserva.suscripcion.esDobleServicio && " ×2"}
                   </Badge>
                 ) : (
-                  <Badge color="secondary" pill>
-                    -
-                  </Badge>
+                  <Badge color="secondary" pill>-</Badge>
                 )}
               </td>
               <td className="text-nowrap">
@@ -271,15 +267,8 @@ const GestionReservas = () => {
                 })}
               </td>
               <td>
-                <Badge
-                  color={
-                    getEstado(reserva.fecha) === "Pendiente"
-                      ? "primary"
-                      : "success"
-                  }
-                  pill
-                >
-                  {getEstado(reserva.fecha)}
+                <Badge color={getColorEstado(reserva)} pill>
+                  {getEstado(reserva)}
                 </Badge>
               </td>
               <td>
@@ -291,7 +280,7 @@ const GestionReservas = () => {
                 >
                   Ver
                 </Button>
-                {getEstado(reserva.fecha) === "Pendiente" && (
+                {esPendiente(reserva) && (
                   <Button
                     color="danger"
                     size="sm"
@@ -308,6 +297,9 @@ const GestionReservas = () => {
     </div>
   );
 
+  /* =============================
+     RENDER
+  ============================== */
   return (
     <>
       <UserHeader />
@@ -365,7 +357,9 @@ const GestionReservas = () => {
         </Row>
       </Container>
 
-      {/* Modal resumen de reserva - Mejorado para móvil */}
+      {/* =============================
+          MODAL DETALLE RESERVA
+      ============================== */}
       <Modal
         isOpen={modal}
         toggle={toggle}
@@ -378,11 +372,7 @@ const GestionReservas = () => {
                 <i className="ni ni-single-copy-04 mr-2"></i>
                 Detalles de la Reserva
               </h5>
-              <button
-                type="button"
-                className="close text-white"
-                onClick={toggle}
-              >
+              <button type="button" className="close text-white" onClick={toggle}>
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
@@ -404,44 +394,32 @@ const GestionReservas = () => {
                             {reservaSeleccionada.cliente?.apellido}
                           </h5>
                           <p className="text-sm text-muted mb-0">
-                            {reservaSeleccionada.suscripcion
-                              ? "Suscriptor"
-                              : "Cliente Regular"}
+                            {reservaSeleccionada.suscripcion ? "Suscriptor" : "Cliente Regular"}
                           </p>
                         </div>
                       </div>
                     </CardHeader>
                     <CardBody>
-                      <div className={vistaMobile ? "" : "pl-md-4"}>
-                        <p className="mb-2 d-flex flex-wrap">
-                          <strong className="text-muted mr-2">
-                            <i className="ni ni-mobile-button mr-1"></i>
-                            Teléfono:
-                          </strong>
-                          <span className="ml-auto font-weight-bold">
-                            {reservaSeleccionada.cliente?.telefono}
-                          </span>
-                        </p>
-                        <p className="mb-0 d-flex flex-wrap">
-                          <strong className="text-muted mr-2">
-                            <i className="ni ni-tag mr-1"></i>
-                            Tipo:
-                          </strong>
-                          <Badge
-                            color={
-                              reservaSeleccionada.suscripcion
-                                ? "success"
-                                : "info"
-                            }
-                            className="ml-auto"
-                            pill
-                          >
-                            {reservaSeleccionada.suscripcion
-                              ? "Suscriptor"
-                              : "Regular"}
-                          </Badge>
-                        </p>
-                      </div>
+                      <p className="mb-2 d-flex flex-wrap">
+                        <strong className="text-muted mr-2">
+                          <i className="ni ni-mobile-button mr-1"></i>Teléfono:
+                        </strong>
+                        <span className="ml-auto font-weight-bold">
+                          {reservaSeleccionada.cliente?.telefono}
+                        </span>
+                      </p>
+                      <p className="mb-0 d-flex flex-wrap">
+                        <strong className="text-muted mr-2">
+                          <i className="ni ni-tag mr-1"></i>Tipo:
+                        </strong>
+                        <Badge
+                          color={reservaSeleccionada.suscripcion ? "success" : "info"}
+                          className="ml-auto"
+                          pill
+                        >
+                          {reservaSeleccionada.suscripcion ? "Suscriptor" : "Regular"}
+                        </Badge>
+                      </p>
                     </CardBody>
                   </Card>
                 </Col>
@@ -455,60 +433,45 @@ const GestionReservas = () => {
                       </h6>
                     </CardHeader>
                     <CardBody>
-                      <div className={vistaMobile ? "" : "pl-md-4"}>
-                        <p className="mb-2 d-flex flex-wrap">
-                          <strong className="text-muted mr-2">
-                            <i className="ni ni-scissors mr-1"></i>
-                            Servicio:
-                          </strong>
-                          <span className="ml-auto font-weight-bold text-right">
-                            {reservaSeleccionada.servicio?.nombre}
-                          </span>
-                        </p>
-                        <p className="mb-2 d-flex flex-wrap">
-                          <strong className="text-muted mr-2">
-                            <i className="ni ni-watch-time mr-1"></i>
-                            Hora:
-                          </strong>
-                          <span className="ml-auto font-weight-bold">
-                            {new Date(
-                              reservaSeleccionada.fecha,
-                            ).toLocaleTimeString([], {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
-                          </span>
-                        </p>
-                        <p className="mb-2 d-flex flex-wrap">
-                          <strong className="text-muted mr-2">
-                            <i className="ni ni-calendar-grid-58 mr-1"></i>
-                            Fecha:
-                          </strong>
-                          <span className="ml-auto font-weight-bold">
-                            {new Date(
-                              reservaSeleccionada.fecha,
-                            ).toLocaleDateString()}
-                          </span>
-                        </p>
-                        <p className="mb-0 d-flex flex-wrap">
-                          <strong className="text-muted mr-2">
-                            <i className="ni ni-check-bold mr-1"></i>
-                            Estado:
-                          </strong>
-                          <Badge
-                            color={
-                              getEstado(reservaSeleccionada.fecha) ===
-                              "Pendiente"
-                                ? "primary"
-                                : "info"
-                            }
-                            className="ml-auto"
-                            pill
-                          >
-                            {getEstado(reservaSeleccionada.fecha)}
-                          </Badge>
-                        </p>
-                      </div>
+                      <p className="mb-2 d-flex flex-wrap">
+                        <strong className="text-muted mr-2">
+                          <i className="ni ni-scissors mr-1"></i>Servicio:
+                        </strong>
+                        <span className="ml-auto font-weight-bold text-right">
+                          {reservaSeleccionada.servicio?.nombre}
+                        </span>
+                      </p>
+                      <p className="mb-2 d-flex flex-wrap">
+                        <strong className="text-muted mr-2">
+                          <i className="ni ni-watch-time mr-1"></i>Hora:
+                        </strong>
+                        <span className="ml-auto font-weight-bold">
+                          {new Date(reservaSeleccionada.fecha).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </p>
+                      <p className="mb-2 d-flex flex-wrap">
+                        <strong className="text-muted mr-2">
+                          <i className="ni ni-calendar-grid-58 mr-1"></i>Fecha:
+                        </strong>
+                        <span className="ml-auto font-weight-bold">
+                          {new Date(reservaSeleccionada.fecha).toLocaleDateString()}
+                        </span>
+                      </p>
+                      <p className="mb-0 d-flex flex-wrap">
+                        <strong className="text-muted mr-2">
+                          <i className="ni ni-check-bold mr-1"></i>Estado:
+                        </strong>
+                        <Badge
+                          color={getColorEstado(reservaSeleccionada)}
+                          className="ml-auto"
+                          pill
+                        >
+                          {getEstado(reservaSeleccionada)}
+                        </Badge>
+                      </p>
                     </CardBody>
                   </Card>
                 </Col>
@@ -516,20 +479,17 @@ const GestionReservas = () => {
             </div>
 
             <div className="modal-footer flex-wrap">
-              {getEstado(reservaSeleccionada.fecha) === "Pendiente" ? (
+              {esPendiente(reservaSeleccionada) ? (
                 <>
                   <Button
                     color="warning"
                     size={vistaMobile ? "sm" : "md"}
                     className="mr-2 mb-2 mb-sm-0 flex-fill"
-                    onClick={() => {
-                      handleNoAsistio(reservaSeleccionada);
-                    }}
+                    onClick={handleNoAsistio}
                   >
                     <i className="ni ni-user-run mr-1"></i>
                     No asistió
                   </Button>
-
                   <Button
                     color="danger"
                     size={vistaMobile ? "sm" : "md"}
@@ -540,18 +500,23 @@ const GestionReservas = () => {
                     Cancelar
                   </Button>
                 </>
-              ) : (
+              ) : reservaSeleccionada.estado !== "no_asistio" && (
                 <Button
                   color="warning"
                   size={vistaMobile ? "sm" : "md"}
                   className="mr-2 mb-2 mb-sm-0 flex-fill"
-                  onClick={() => {
-                    if (
-                      window.confirm("¿Marcar como NO ASISTIÓ (retroactivo)?")
-                    ) {
-                      handleNoAsistio(reservaSeleccionada);
-                      setModal(false);
-                    }
+                  onClick={async () => {
+                    const confirm = await Swal.fire({
+                      title: "¿Marcar como No Asistió?",
+                      text: "Esta acción es retroactiva.",
+                      icon: "warning",
+                      showCancelButton: true,
+                      confirmButtonColor: "#f5a623",
+                      cancelButtonColor: "#3085d6",
+                      confirmButtonText: "Sí, marcar",
+                      cancelButtonText: "Cancelar",
+                    });
+                    if (confirm.isConfirmed) handleNoAsistio();
                   }}
                 >
                   <i className="ni ni-user-run mr-1"></i>
@@ -573,7 +538,6 @@ const GestionReservas = () => {
         )}
       </Modal>
 
-      {/* Estilos personalizados para móvil */}
       <style jsx>{`
         @media (max-width: 768px) {
           .reservas-mobile {
@@ -581,11 +545,9 @@ const GestionReservas = () => {
             overflow-y: auto;
             padding-right: 5px;
           }
-
           .reservas-mobile::-webkit-scrollbar {
             width: 4px;
           }
-
           .reservas-mobile::-webkit-scrollbar-thumb {
             background-color: #888;
             border-radius: 4px;

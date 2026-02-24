@@ -18,7 +18,6 @@ import {
   FiUser,
   FiMail,
   FiPhone,
-  FiCalendar,
   FiAward,
   FiStar,
   FiEdit,
@@ -40,7 +39,10 @@ const ClienteDetallesModal = ({
   const [vistaMobile, setVistaMobile] = useState(false);
 
   useEffect(() => {
-    setVistaMobile(window.innerWidth < 768 || fullscreen);
+    const check = () => setVistaMobile(window.innerWidth < 768 || fullscreen);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
   }, [fullscreen]);
 
   if (!usuario) return null;
@@ -57,11 +59,6 @@ const ClienteDetallesModal = ({
     });
   };
 
-  const formatRUT = (rut) => {
-    if (!rut) return "No registrado";
-    return rut;
-  };
-
   return (
     <Modal
       isOpen={isOpen}
@@ -69,120 +66,137 @@ const ClienteDetallesModal = ({
       className={vistaMobile ? "modal-fullscreen" : "modal-dialog-centered modal-lg"}
       contentClassName={vistaMobile ? "h-100" : ""}
     >
+      {/* HEADER */}
       <ModalHeader
         toggle={toggle}
-        className={vistaMobile ? "py-2 bg-gradient-primary text-white" : "bg-gradient-primary text-white"}
+        className="bg-gradient-primary text-white"
+        style={{ padding: vistaMobile ? "10px 14px" : "16px 24px" }}
       >
         <div className="d-flex align-items-center">
-          <div className="avatar avatar-sm rounded-circle bg-white mr-2">
-            <FiUser size={vistaMobile ? 14 : 18} className="text-primary" />
+          <div
+            style={{
+              width: vistaMobile ? 28 : 36,
+              height: vistaMobile ? 28 : 36,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginRight: 10,
+              flexShrink: 0,
+            }}
+          >
+            <FiUser size={vistaMobile ? 14 : 18} color="#fff" />
           </div>
-          <span>Detalles del Cliente</span>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: vistaMobile ? "14px" : "16px", color: "#fff" }}>
+              {usuario.nombre} {usuario.apellido}
+            </div>
+            <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.75)" }}>
+              {usuario.email || "Sin email"}
+            </div>
+          </div>
         </div>
       </ModalHeader>
 
-      <ModalBody className={vistaMobile ? "p-2" : ""}>
+      {/* BODY */}
+      <ModalBody style={{ padding: vistaMobile ? "10px" : "20px", overflowY: "auto" }}>
         <Row>
-          <Col xs="12" md="6" className={!vistaMobile ? "pr-2" : ""}>
-            <Card className="shadow-sm mb-3">
-              <CardBody className={vistaMobile ? "p-2" : ""}>
-                <h6 className="text-primary mb-3 d-flex align-items-center">
-                  <FiUser className="mr-2" size={vistaMobile ? 14 : 16} />
+          {/* INFO PERSONAL */}
+          <Col xs="12" md="6" className="mb-3">
+            <Card className="shadow-sm h-100">
+              <CardBody style={{ padding: vistaMobile ? "10px 12px" : "16px" }}>
+                <h6
+                  className="text-primary mb-2 d-flex align-items-center"
+                  style={{ fontSize: vistaMobile ? "12px" : "14px" }}
+                >
+                  <FiUser className="mr-1" size={13} />
                   Información Personal
                 </h6>
-                
-                <ListGroup flush className={vistaMobile ? "small" : ""}>
-                  <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
-                    <span className="text-muted">Nombre:</span>
-                    <span className="font-weight-bold text-right">
-                      {usuario.nombre} {usuario.apellido}
-                    </span>
-                  </ListGroupItem>
-                  
-                  <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
-                    <span className="text-muted">RUT:</span>
-                    <span className="font-weight-bold">{formatRUT(usuario.rut)}</span>
-                  </ListGroupItem>
-                  
-                  <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
-                    <span className="text-muted d-flex align-items-center">
-                      <FiMail className="mr-1" size={12} /> Email:
-                    </span>
-                    <span className="font-weight-bold text-right small">
-                      {usuario.email || "No registrado"}
-                    </span>
-                  </ListGroupItem>
-                  
-                  <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
-                    <span className="text-muted d-flex align-items-center">
-                      <FiPhone className="mr-1" size={12} /> Teléfono:
-                    </span>
-                    <span className="font-weight-bold">{usuario.telefono || "No registrado"}</span>
-                  </ListGroupItem>
+
+                <ListGroup flush>
+                  {[
+                    { label: "RUT", value: usuario.rut || "No registrado" },
+                    { label: "Teléfono", value: usuario.telefono || "No registrado", icon: <FiPhone size={11} className="mr-1" /> },
+                    { label: "Email", value: usuario.email || "No registrado", icon: <FiMail size={11} className="mr-1" />, small: true },
+                  ].map(({ label, value, icon, small }) => (
+                    <ListGroupItem
+                      key={label}
+                      className="d-flex justify-content-between align-items-center px-0 border-0"
+                      style={{ padding: "5px 0", fontSize: vistaMobile ? "12px" : "13px" }}
+                    >
+                      <span className="text-muted d-flex align-items-center">
+                        {icon}{label}:
+                      </span>
+                      <span
+                        className="font-weight-bold text-right ml-2"
+                        style={{
+                          fontSize: small && vistaMobile ? "11px" : undefined,
+                          maxWidth: "55%",
+                          wordBreak: "break-word",
+                          textAlign: "right",
+                        }}
+                      >
+                        {value}
+                      </span>
+                    </ListGroupItem>
+                  ))}
                 </ListGroup>
               </CardBody>
             </Card>
           </Col>
 
-          <Col xs="12" md="6" className={!vistaMobile ? "pl-2" : ""}>
-            <Card className="shadow-sm mb-3">
-              <CardBody className={vistaMobile ? "p-2" : ""}>
-                <h6 className="text-primary mb-3 d-flex align-items-center">
-                  <FiAward className="mr-2" size={vistaMobile ? 14 : 16} />
-                  Estado de Suscripción
+          {/* SUSCRIPCIÓN */}
+          <Col xs="12" md="6" className="mb-3">
+            <Card className="shadow-sm h-100">
+              <CardBody style={{ padding: vistaMobile ? "10px 12px" : "16px" }}>
+                <h6
+                  className="text-primary mb-2 d-flex align-items-center"
+                  style={{ fontSize: vistaMobile ? "12px" : "14px" }}
+                >
+                  <FiAward className="mr-1" size={13} />
+                  Suscripción
                 </h6>
 
-                <div className="text-center mb-3">
+                <div className="text-center mb-2">
                   {tieneSuscripcion ? (
-                    <Badge color="success" pill className="px-4 py-2">
-                      <FiCheck className="mr-1" size={12} />
-                      Suscripción Activa
+                    <Badge color="success" pill style={{ padding: "6px 14px", fontSize: "12px" }}>
+                      <FiCheck className="mr-1" size={11} />
+                      Activa
                     </Badge>
                   ) : (
-                    <Badge color="secondary" pill className="px-4 py-2">
-                      <FiX className="mr-1" size={12} />
-                      Sin Suscripción
+                    <Badge color="secondary" pill style={{ padding: "6px 14px", fontSize: "12px" }}>
+                      <FiX className="mr-1" size={11} />
+                      Sin suscripción
                     </Badge>
                   )}
                 </div>
 
-                {tieneSuscripcion && suscripcionData && (
-                  <ListGroup flush className={vistaMobile ? "small" : ""}>
-                    <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
-                      <span className="text-muted">Cortes realizados:</span>
-                      <span className="font-weight-bold">
-                        {suscripcionData.cortesRealizados || 0}
-                      </span>
-                    </ListGroupItem>
-                    
-                    <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
-                      <span className="text-muted">Cortes restantes:</span>
-                      <span className="font-weight-bold text-success">
-                        {suscripcionData.cortesRestantes || 0}
-                      </span>
-                    </ListGroupItem>
-                    
-                    <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
-                      <span className="text-muted">Fecha inicio:</span>
-                      <span className="font-weight-bold">
-                        {formatFecha(suscripcionData.fechaInicio)}
-                      </span>
-                    </ListGroupItem>
-                    
-                    <ListGroupItem className="d-flex justify-content-between px-0 py-2 border-0">
-                      <span className="text-muted">Próximo vencimiento:</span>
-                      <span className="font-weight-bold">
-                        {formatFecha(suscripcionData.fechaExpiracion)}
-                      </span>
-                    </ListGroupItem>
+                {tieneSuscripcion && suscripcionData ? (
+                  <ListGroup flush>
+                    {[
+                      { label: "Cortes realizados", value: suscripcionData.cortesRealizados || 0 },
+                      { label: "Cortes restantes", value: suscripcionData.cortesRestantes || 0, green: true },
+                      { label: "Inicio", value: formatFecha(suscripcionData.fechaInicio) },
+                      { label: "Vencimiento", value: formatFecha(suscripcionData.fechaExpiracion) },
+                    ].map(({ label, value, green }) => (
+                      <ListGroupItem
+                        key={label}
+                        className="d-flex justify-content-between align-items-center px-0 border-0"
+                        style={{ padding: "5px 0", fontSize: vistaMobile ? "12px" : "13px" }}
+                      >
+                        <span className="text-muted">{label}:</span>
+                        <span className={`font-weight-bold ${green ? "text-success" : ""}`}>
+                          {value}
+                        </span>
+                      </ListGroupItem>
+                    ))}
                   </ListGroup>
-                )}
-
-                {!tieneSuscripcion && (
-                  <div className="text-center py-3">
-                    <FiStar size={32} className="text-muted mb-2" />
-                    <p className="text-muted small mb-0">
-                      Este cliente no tiene una suscripción activa
+                ) : (
+                  <div className="text-center py-2">
+                    <FiStar size={28} className="text-muted mb-1" />
+                    <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
+                      Sin suscripción activa
                     </p>
                   </div>
                 )}
@@ -192,61 +206,62 @@ const ClienteDetallesModal = ({
         </Row>
       </ModalBody>
 
-      <ModalFooter className={vistaMobile ? "p-2 flex-wrap" : ""}>
-        <div className="d-flex justify-content-between w-100 flex-wrap">
-          <div className="mb-2 mb-md-0">
-            <Button
-              color="warning"
-              size={vistaMobile ? "sm" : "md"}
-              className="mr-2"
-              onClick={onEditar}
-            >
-              <FiEdit size={vistaMobile ? 12 : 14} className="mr-1" />
-              {vistaMobile ? "Editar" : "Editar información"}
+      {/* FOOTER */}
+      <ModalFooter style={{ padding: vistaMobile ? "8px 10px" : "12px 24px" }}>
+        {vistaMobile ? (
+          // Mobile: grid 2x2 de botones compactos
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", width: "100%" }}>
+            <Button color="warning" size="sm" onClick={onEditar} block>
+              <FiEdit size={12} className="mr-1" /> Editar
             </Button>
 
             {tieneSuscripcion ? (
-              <Button
-                color="secondary"
-                size={vistaMobile ? "sm" : "md"}
-                onClick={onCancelarSuscripcion}
-              >
-                <FiX size={vistaMobile ? 12 : 14} className="mr-1" />
-                {vistaMobile ? "Cancelar" : "Cancelar suscripción"}
+              <Button color="secondary" size="sm" onClick={onCancelarSuscripcion} block>
+                <FiX size={12} className="mr-1" /> Cancelar sus.
               </Button>
             ) : (
-              <Button
-                color="success"
-                size={vistaMobile ? "sm" : "md"}
-                onClick={onSuscribir}
-              >
-                <FiStar size={vistaMobile ? 12 : 14} className="mr-1" />
-                {vistaMobile ? "Suscribir" : "Activar suscripción"}
+              <Button color="success" size="sm" onClick={onSuscribir} block>
+                <FiStar size={12} className="mr-1" /> Suscribir
               </Button>
             )}
-          </div>
 
-          <div>
-            <Button
-              color="danger"
-              size={vistaMobile ? "sm" : "md"}
-              className="mr-2"
-              onClick={onEliminar}
-            >
-              <FiTrash2 size={vistaMobile ? 12 : 14} className="mr-1" />
-              {vistaMobile ? "Eliminar" : "Eliminar cliente"}
+            <Button color="danger" size="sm" onClick={onEliminar} block>
+              <FiTrash2 size={12} className="mr-1" /> Eliminar
             </Button>
 
-            <Button
-              color="secondary"
-              size={vistaMobile ? "sm" : "md"}
-              onClick={toggle}
-            >
-              <FiX size={vistaMobile ? 12 : 14} className="mr-1" />
-              Cerrar
+            <Button color="light" size="sm" onClick={toggle} block>
+              <FiX size={12} className="mr-1" /> Cerrar
             </Button>
           </div>
-        </div>
+        ) : (
+          // Desktop: layout original
+          <div className="d-flex justify-content-between w-100">
+            <div>
+              <Button color="warning" className="mr-2" onClick={onEditar}>
+                <FiEdit size={14} className="mr-1" /> Editar información
+              </Button>
+
+              {tieneSuscripcion ? (
+                <Button color="secondary" onClick={onCancelarSuscripcion}>
+                  <FiX size={14} className="mr-1" /> Cancelar suscripción
+                </Button>
+              ) : (
+                <Button color="success" onClick={onSuscribir}>
+                  <FiStar size={14} className="mr-1" /> Activar suscripción
+                </Button>
+              )}
+            </div>
+
+            <div>
+              <Button color="danger" className="mr-2" onClick={onEliminar}>
+                <FiTrash2 size={14} className="mr-1" /> Eliminar cliente
+              </Button>
+              <Button color="secondary" onClick={toggle}>
+                <FiX size={14} className="mr-1" /> Cerrar
+              </Button>
+            </div>
+          </div>
+        )}
       </ModalFooter>
 
       <style jsx>{`
@@ -255,20 +270,15 @@ const ClienteDetallesModal = ({
           margin: 0;
           height: 100vh;
         }
-        
         .modal-fullscreen .modal-content {
           height: 100vh;
           border-radius: 0;
+          display: flex;
+          flex-direction: column;
         }
-        
-        @media (max-width: 768px) {
-          .modal-content {
-            border-radius: 0.5rem;
-          }
-          
-          .list-group-item {
-            font-size: 0.9rem;
-          }
+        .modal-fullscreen .modal-body {
+          flex: 1;
+          overflow-y: auto;
         }
       `}</style>
     </Modal>
