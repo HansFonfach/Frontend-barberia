@@ -126,12 +126,11 @@ export const AuthProvider = ({ children }) => {
   };
 
   // 📝 REGISTER
-  const register = async (data) => {
+  const register = async (data, slug) => {
     try {
       setLoading(true);
-      const res = await registerRequest(data);
+      const res = await registerRequest(data, slug);
 
-      // ✅ Si requiere verificación, retornamos eso directo sin loguear
       if (res.data?.requiresVerification) {
         return { requiresVerification: true };
       }
@@ -141,12 +140,8 @@ export const AuthProvider = ({ children }) => {
         sessionStorage.setItem("token", res.data.token);
       }
 
-      await new Promise((r) => setTimeout(r, 100));
-      const verifiedUser = await verifySession();
-      if (!verifiedUser) throw new Error("Registro incompleto");
-
-      setErrors(null);
-      return { requiresVerification: false, verifiedUser };
+      await verifySession();
+      return { requiresVerification: false };
     } catch (error) {
       setErrors(error.response?.data?.message || "Error al registrarse");
       throw error;

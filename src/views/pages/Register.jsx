@@ -74,7 +74,7 @@ const Register = () => {
     }
 
     try {
-      const result = await register({ ...form, rut, slug });
+     const result = await register({ ...form, rut }, slug);
 
       if (result?.requiresVerification) {
         Swal.fire({
