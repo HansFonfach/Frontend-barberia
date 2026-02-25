@@ -1,5 +1,5 @@
 // src/views/invitados/pages/ReservaInvitado.jsx
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Container,
   Card,
@@ -65,6 +65,10 @@ const ReservarHoraInvitado = () => {
     handleRutChange,
     error: rutError,
   } = useRutValidator();
+
+  useEffect(() => {
+    setInvitado((prev) => ({ ...prev, rut: rutInvitado }));
+  }, [rutInvitado]);
 
   const [modalInvitado, setModalInvitado] = useState(false);
   const toggleModalInvitado = () => setModalInvitado(!modalInvitado);
@@ -250,10 +254,7 @@ const ReservarHoraInvitado = () => {
               placeholder="Ingrese RUT sin puntos ni guión"
               value={rutInvitado}
               maxLength={12}
-              onChange={(e) => {
-                handleRutChange(e);
-                setInvitado({ ...invitado, rut: e.target.value });
-              }}
+              onChange={handleRutChange} // ← ya no necesitas setInvitado aquí
             />
             {rutError && (
               <div className="invalid-feedback d-block mb-2">{rutError}</div>

@@ -16,6 +16,7 @@ import Register from "views/pages/Register";
 
 import { useAuth } from "context/AuthContext";
 import { useEmpresa } from "context/EmpresaContext";
+import ForgotPassword from "views/publico/ForgotPassword";
 
 const Auth = () => {
   const mainContent = React.useRef(null);
@@ -80,6 +81,7 @@ const Auth = () => {
             <Routes>
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
+              <Route path="recuperar-contrasena" element={<ForgotPassword />} />
               <Route
                 path="*"
                 element={<Navigate to={`/${slug}/login`} replace />}

@@ -66,6 +66,8 @@ const Login = () => {
     });
   };
 
+  console.log("AUTH LAYOUT ACTIVO");
+
   return (
     <>
       <Col lg="5" md="7">
@@ -165,7 +167,8 @@ const Login = () => {
         </Card>
         <Row className="mt-3">
           <Col xs="6">
-            <Link to={`/${slug}/forgot-password`} className="text-white">
+            <Link to={`/${slug}/recuperar-contrasena`} className="text-white">
+              {" "}
               Olvidé mi contraseña
             </Link>
           </Col>

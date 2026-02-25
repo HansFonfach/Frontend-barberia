@@ -127,8 +127,8 @@ export const AuthProvider = ({ children }) => {
   // 📝 REGISTER
   const register = async (data) => {
     try {
-      const { slug, ...userData } = data; // ← extraes el slug
-      const res = await registerRequest(userData, slug); // ← lo pasas separado
+      setLoading(true);
+      const res = await registerRequest(data);
 
       // ✅ Si requiere verificación, retornamos eso directo sin loguear
       if (res.data?.requiresVerification) {
@@ -155,8 +155,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   // 🔁 RECUPERAR PASSWORD
-  const forgotPassword = async (email) => {
-    const res = await forgotPasswordRequest(email);
+  const forgotPassword = async (email, slug) => {
+    const res = await forgotPasswordRequest(email, slug);
     return res.data;
   };
 

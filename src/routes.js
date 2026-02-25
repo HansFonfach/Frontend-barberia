@@ -15,7 +15,7 @@ import GestionServicios from "views/admin/pages/GestionServicios";
 import GestionHorariosBarbero from "views/admin/pages/GestionHorarios";
 import GestionClientes from "views/admin/pages/GestionClientes";
 import ReservasDiarias from "views/admin/pages/ReservasDiarias";
-import ForgotPassword from "views/pages/ForgotPassword";
+import ForgotPassword from "views/publico/ForgotPassword";
 import Estadisticas from "views/admin/pages/Estadisticas";
 import BarberosPage from "views/pages/PresentarBarberos";
 import CentroAyuda from "views/pages/CentroAyuda";
@@ -50,7 +50,7 @@ export const publicRoutes = [
     invisible: true,
   },
   {
-    path: "/forgot-password",
+    path: "/recuperar-contrasena",
     component: <ForgotPassword />,
     layout: "/auth",
     invisible: true,

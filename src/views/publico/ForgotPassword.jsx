@@ -13,15 +13,17 @@ import {
   Row,
   Col,
 } from "reactstrap";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import logo from "assets/img/logo4.png";
+import logo from "assets/img/brand/lasanta.png"; // ✅ ruta más segura dentro de src/assets
 import { useAuth } from "context/AuthContext";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
   const { forgotPassword } = useAuth();
+  const {slug} = useParams();
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,14 +37,14 @@ const ForgotPassword = () => {
     }
 
     try {
-      await forgotPassword({ email });
+      await forgotPassword({ email, slug });
 
       Swal.fire({
         icon: "success",
         title: "Correo enviado",
         text: "Te hemos enviado un enlace para restablecer tu contraseña.",
         confirmButtonText: "Aceptar",
-      }).then(() => navigate("/auth/login"));
+      }).then(() => navigate(`${slug}/login`));
     } catch (error) {
       Swal.fire({
         icon: "error",
@@ -109,7 +111,7 @@ const ForgotPassword = () => {
 
         <Row className="mt-3">
           <Col xs="12" className="text-center">
-            <Link to="/auth/login" className="text-white">
+              <Link to={`/${slug}/login`} className="text-white">
               Volver al inicio de sesión
             </Link>
           </Col>
