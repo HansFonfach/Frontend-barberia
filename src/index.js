@@ -38,7 +38,7 @@ import Landing from "views/pages/Landing";
 import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
 import CancelarInvitado from "views/invitados/pages/CancelarInvitado";
 import VerificarCuenta from "views/publico/VerificarCuenta";
-import ForgotPassword from "views/publico/ForgotPassword";
+
 
 // Wrapper por empresa (slug)
 const EmpresaWrapper = ({ children }) => {
@@ -130,7 +130,7 @@ root.render(
               </EmpresaWrapper>
             }
           />
-      
+       
 
           {/* =========================
           ADMIN PROTEGIDO

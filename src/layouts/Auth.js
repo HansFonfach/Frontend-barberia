@@ -17,6 +17,7 @@ import Register from "views/pages/Register";
 import { useAuth } from "context/AuthContext";
 import { useEmpresa } from "context/EmpresaContext";
 import ForgotPassword from "views/publico/ForgotPassword";
+import ReiniciarContraseña from "views/publico/ReiniciarContraseña";
 
 const Auth = () => {
   const mainContent = React.useRef(null);
@@ -57,9 +58,7 @@ const Auth = () => {
               <Row className="justify-content-center">
                 <Col lg="5" md="6">
                   <h1 className="text-white">¡Bienvenido!</h1>
-                  <p className="text-lead text-light">
-                   
-                  </p>
+                  <p className="text-lead text-light"></p>
                 </Col>
               </Row>
             </div>
@@ -82,6 +81,10 @@ const Auth = () => {
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
               <Route path="recuperar-contrasena" element={<ForgotPassword />} />
+              <Route
+                path="reiniciar-contrasena/:token"
+                element={<ReiniciarContraseña />}
+              />
               <Route
                 path="*"
                 element={<Navigate to={`/${slug}/login`} replace />}

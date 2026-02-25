@@ -19,6 +19,7 @@ import {
 
 import { initAxiosInterceptors } from "api/axiosPrivate";
 import { putUpdatePerfilUsuario } from "api/usuarios";
+import { resetPasswordRequest } from "api/auth";
 
 export const AuthContext = createContext();
 export const useAuth = () => useContext(AuthContext);
@@ -170,6 +171,11 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   };
 
+  const resetPassword = async (token, newPassword) => {
+    const res = await resetPasswordRequest(token, newPassword);
+    return res.data;
+  };
+
   const actualizarPerfil = async (data) => {
     try {
       const res = await putUpdatePerfilUsuario(data);
@@ -195,6 +201,7 @@ export const AuthProvider = ({ children }) => {
         register,
         forgotPassword,
         updatePassword,
+        resetPassword,
         verifySession,
         actualizarPerfil,
       }}

@@ -30,6 +30,10 @@ export const updateUserPasswordRequest = (id, currentPassword, newPassword) => {
   }); // ✅ axiosPrivate ya tiene withCredentials: true por defecto
 };
 
+export const resetPasswordRequest = (token, newPassword) => {
+  return axiosPublic.post(`/auth/reset-password/${token}`, { newPassword });
+};
+
 export const verifyRequest = () =>
   axiosPrivate.get("/auth/me", { withCredentials: true });
 

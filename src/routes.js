@@ -21,7 +21,7 @@ import BarberosPage from "views/pages/PresentarBarberos";
 import CentroAyuda from "views/pages/CentroAyuda";
 import Politicas from "views/pages/Politicas";
 import CambiarContrasena from "views/pages/CambiarContraseña";
-import ReiniciarContraseña from "views/pages/ReiniciarContraseña";
+import ReiniciarContraseña from "views/publico/ReiniciarContraseña";
 import PresentarServicios from "views/pages/PresentarServicios";
 import Contacto from "views/pages/Contacto";
 import SuscripcionResultado from "views/pages/SuscripcionResultado";

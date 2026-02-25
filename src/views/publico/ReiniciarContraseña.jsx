@@ -17,11 +17,12 @@ import {
 import Swal from "sweetalert2";
 
 import logo from "assets/img/logo4.png";
-import axios from "axios";
+import { useAuth } from "context/AuthContext";
 
 const ResetPassword = () => {
-  const { token } = useParams(); // 👈 obtenemos el token desde la URL
   const navigate = useNavigate();
+  const { token, slug } = useParams();
+const { resetPassword } = useAuth();
 
   const [form, setForm] = useState({
     password: "",
@@ -47,18 +48,15 @@ const ResetPassword = () => {
     }
 
     try {
-      const res = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URL}/api/auth/change-password/${token}`,
-        { password: form.password }
-      );
+      const res = await resetPassword(token, form.password);
 
       Swal.fire({
         title: "Contraseña actualizada",
-        text: res.data.message || "Tu contraseña fue actualizada con éxito.",
+        text: res.message || "Tu contraseña fue actualizada con éxito.",
         icon: "success",
       });
 
-      navigate("/auth/login");
+      navigate(`/${slug}/login`);
     } catch (error) {
       Swal.fire({
         title: "Error",
@@ -148,7 +146,7 @@ const ResetPassword = () => {
             href="#pablo"
             onClick={(e) => e.preventDefault()}
           >
-            <Link to="/auth/login" className="text-white">
+            <Link to={`${slug}/login`} className="text-white">
               {" "}
               Volver
             </Link>
