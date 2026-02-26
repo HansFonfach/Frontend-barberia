@@ -6,7 +6,7 @@ import { Check } from "lucide-react";
 const StepIndicator = ({ pasoActual }) => {
   const pasos = [
 
-    { numero: 1, label: "Servicio & Barbero" },
+    { numero: 1, label: "Servicio & Profesional" },
     { numero: 2, label: "Día" },
     { numero: 3, label: "Hora" },
     { numero: 4, label: "Confirmar" }

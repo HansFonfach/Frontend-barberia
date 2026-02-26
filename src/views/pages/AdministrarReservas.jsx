@@ -42,6 +42,7 @@ import { useAuth } from "context/AuthContext";
 import { useReserva } from "context/ReservaContext";
 import Swal from "sweetalert2";
 import { getReservasByUserId } from "api/reservas";
+import { useEmpresa } from "context/EmpresaContext";
 
 const MisReservas = () => {
   const [reservas, setReservas] = useState([]);
@@ -60,6 +61,7 @@ const MisReservas = () => {
 
   const { user } = useAuth();
   const { cancelarReserva } = useReserva();
+   const { empresa, loading } = useEmpresa();
 
   const userId = user.id;
 
@@ -335,7 +337,7 @@ const MisReservas = () => {
                   <div className="mb-4">
                     <div className="d-flex align-items-center mb-1">
                       <User size={16} className="text-primary mr-2" />
-                      <small className="text-muted">Barbero:</small>
+                      <small className="text-muted">{empresa.profesional}</small>
                     </div>
                     <h6 className="font-weight-bold text-dark mb-0">
                       {reserva.barbero?.nombre || "Barbero no asignado"}

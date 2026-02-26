@@ -1,4 +1,5 @@
 // hooks/useHorasDisponibles.js
+import { useEmpresa } from "context/EmpresaContext";
 import { useState, useEffect } from "react";
 
 export const useHorasDisponibles = (barbero, fecha, servicioId, getHorasFn) => {
@@ -6,12 +7,13 @@ export const useHorasDisponibles = (barbero, fecha, servicioId, getHorasFn) => {
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
   const [dataCompleta, setDataCompleta] = useState(null);
+  const { empresa, loading } = useEmpresa();
 
   useEffect(() => {
     // 1. Validaciones básicas
     if (!barbero) {
       setHoras([]);
-      setMensaje("Selecciona un barbero");
+      setMensaje("Selecciona un profesional");
       setDataCompleta(null);
       return;
     }
@@ -39,7 +41,7 @@ export const useHorasDisponibles = (barbero, fecha, servicioId, getHorasFn) => {
 
         const horasRespuesta = res.horas || [];
         const hayDisponibles = horasRespuesta.some(
-          (h) => h.estado === "disponible"
+          (h) => h.estado === "disponible",
         );
 
         setHoras(horasRespuesta);
@@ -55,9 +57,7 @@ export const useHorasDisponibles = (barbero, fecha, servicioId, getHorasFn) => {
       } catch (err) {
         console.error("❌ Error API:", err);
         setHoras([]);
-        setMensaje(
-          err.response?.data?.message || "Error al obtener horarios"
-        );
+        setMensaje(err.response?.data?.message || "Error al obtener horarios");
         setDataCompleta(null);
       } finally {
         setCargando(false);

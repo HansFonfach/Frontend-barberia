@@ -16,14 +16,14 @@ const BarberoSelector = ({
       {loading && (
         <div className="py-3 text-center">
           <Spinner size="sm" color="primary" className="mr-2" />
-          <span className="text-muted">Cargando barberos...</span>
+          <span className="text-muted">Cargando profesionales...</span>
         </div>
       )}
 
       {/* ❌ SIN BARBEROS (solo cuando NO está cargando) */}
       {!loading && barberos.length === 0 && (
         <p className="text-warning mb-0">
-          No hay barberos disponibles
+          No hay profesionales disponibles
         </p>
       )}
 

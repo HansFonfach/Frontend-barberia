@@ -1,32 +1,44 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { Container, Row, Col, Button, Card, CardBody, Badge } from "reactstrap";
+import { useNavigate, useParams } from "react-router-dom";
+import { Container, Row, Col, Button, Badge } from "reactstrap";
+
 import { useEmpresa } from "context/EmpresaContext";
-import { useParams } from "react-router-dom";
+import { useLandingData } from "hooks/useLandingData";
 
 import AuthFooter from "components/Footers/AuthFooter";
-import { MdLocationOn, MdPhone, MdAccessTime } from "react-icons/md";
-import {
-  FaWhatsapp,
-  FaCut,
-  FaUserFriends,
-  FaCalendarCheck,
-} from "react-icons/fa";
+import ServiciosSection from "components/landing/ServiciosSection";
+import ProfesionalesSection from "components/landing/ProfesionalesSection";
+
+import { MdLocationOn, MdAccessTime } from "react-icons/md";
+import { FaWhatsapp, FaCalendarCheck } from "react-icons/fa";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+
 import logo from "assets/img/logo4.png";
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { slug } = useParams();
 
   const { empresa, loading } = useEmpresa();
-  const { slug } = useParams();
-  if (loading) return <div>Cargando...</div>;
-  if (!empresa) return <div>Empresa no encontrada</div>;
+  const {
+    servicios,
+    profesionales,
+    loading: loadingLanding,
+  } = useLandingData(slug);
+
+  if (loading || loadingLanding) {
+    return <div className="text-center py-6">Cargando...</div>;
+  }
+
+  if (!empresa) {
+    return <div className="text-center py-6">Empresa no encontrada</div>;
+  }
 
   return (
     <div className="bg-white">
-      {/* SECCIÓN HERO - Estilo Moderno Oscuro */}
-      <div
-        className="position-relative bg-darker py-7 py-lg-8"
+      {/* ================= HERO ================= */}
+      <section
+        className="py-7 py-lg-8 position-relative"
         style={{
           background: "linear-gradient(150deg, #172b4d 0%, #1a174d 100%)",
           minHeight: "70vh",
@@ -39,39 +51,30 @@ const Landing = () => {
             <Col lg="8">
               <img
                 src={logo}
-                alt="La Santa Barbería"
-                className="img-fluid mb-4 floating"
-                style={{
-                  width: "150px",
-                  filter: "drop-shadow(0px 10px 15px rgba(0,0,0,0.3))",
-                }}
+                alt={empresa.nombre}
+                className="img-fluid mb-4"
+                style={{ width: 150 }}
               />
-              <h1 className="display-2 text-white font-weight-bold mb-2">
+
+              <h1 className="display-2 text-white font-weight-bold mb-3">
                 {empresa.nombre}
               </h1>
-              <p className="lead text-light mb-5">
-                Elevando tu estilo con precisión. Reserva tu hora en segundos,
-                sin esperas.
-              </p>
 
-              <div className="d-flex justify-content-center gap-3">
+              <p className="lead text-light mb-5">{empresa.descripcion}</p>
+
+              <div className="d-flex justify-content-center gap-3 flex-wrap">
                 <Button
-                  className="btn-icon btn-3 px-5"
                   color="primary"
-                  type="button"
                   size="lg"
                   onClick={() => navigate(`/${slug}/reservar`)}
                 >
-                  <span className="btn-inner--icon">
-                    <FaCalendarCheck />
-                  </span>
-                  <span className="btn-inner--text ml-2">
-                    Reservar como invitado
-                  </span>
+                  <FaCalendarCheck className="mr-2" />
+                  Reservar hora
                 </Button>
+
                 <Button
-                  className="btn-neutral btn-icon px-4"
                   outline
+                  color="light"
                   size="lg"
                   onClick={() => navigate(`/${slug}/login`)}
                 >
@@ -81,144 +84,148 @@ const Landing = () => {
             </Col>
           </Row>
         </Container>
+      </section>
 
-        {/* Separador curvo moderno */}
-        <div className="separator separator-bottom separator-skew zindex-100">
-          <svg
-            x="0"
-            y="0"
-            viewBox="0 0 2560 100"
-            preserveAspectRatio="none"
-            version="1.1"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <polygon
-              className="fill-white"
-              points="2560 0 2560 100 0 100"
-            ></polygon>
-          </svg>
-        </div>
-      </div>
+      {/* ================= SERVICIOS ================= */}
+      <ServiciosSection
+        servicios={servicios}
+        onReservar={() => navigate(`/${slug}/reservar`)}
+      />
 
-      {/* SECCIÓN SERVICIOS RÁPIDOS */}
-      <Container className="mt--6 position-relative zindex-100">
-        <Row className="justify-content-center">
-          {[
-            {
-              title: "Servicios",
-              desc: "Cortes y barba premium",
-              icon: <FaCut size={30} />,
-              color: "text-primary",
-            },
-            {
-              title: "Profesionales",
-              desc: "Expertos a tu elección",
-              icon: <FaUserFriends size={30} />,
-              color: "text-info",
-            },
-            {
-              title: "Horarios",
-              desc: "Tú eliges el momento",
-              icon: <MdAccessTime size={30} />,
-              color: "text-success",
-            },
-          ].map((item, idx) => (
-            <Col lg="4" key={idx} className="mb-4">
-              <Card className="shadow-lg border-0 text-center hover-lift">
-                <CardBody className="py-5">
-                  <div className={`${item.color} mb-3`}>{item.icon}</div>
-                  <h5 className="h4 text-uppercase font-weight-bold">
-                    {item.title}
-                  </h5>
-                  <p className="description mt-3 text-muted">{item.desc}</p>
-                </CardBody>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </Container>
+      {/* ================= PROFESIONALES ================= */}
+      <ProfesionalesSection profesionales={profesionales} />
 
-      {/* INFO DE CONTACTO Y UBICACIÓN */}
-      <Container className="py-6">
-        <Row className="align-items-center">
-          <Col md="6" className="mb-5 mb-md-0">
-            <div className="pr-md-5">
-              <Badge color="primary" pill className="mb-3 text-uppercase">
+      {/* ================= CONTACTO ================= */}
+      <section className="bg-secondary py-6">
+        {" "}
+        {/* El fondo está en la section */}
+        <Container className="py-6 ">
+          <Row className="align-items-start">
+            {/* ===== INFO ===== */}
+            <Col md="6" className="mb-5 mb-md-0">
+              <Badge color="primary" pill className="mb-3">
                 Ubicación & Contacto
               </Badge>
-              <h2 className="display-4 font-weight-bold mb-4">
-                Visítanos en Ovalle
-              </h2>
 
-              <div className="d-flex align-items-start mb-3">
-                <MdLocationOn className="text-primary mt-1 mr-3" size={24} />
+              <h2 className="display-4 font-weight-bold mb-4">Contáctanos</h2>
+
+              {/* Dirección */}
+              <div className="d-flex mb-3">
+                <MdLocationOn size={24} className="text-primary mr-3 mt-1" />
                 <div>
                   <h6 className="mb-0">Dirección</h6>
-                  <p className="text-muted">{empresa.direccion}</p>
-                </div>
-              </div>
-
-              <div className="d-flex align-items-start mb-3">
-                <MdAccessTime className="text-primary mt-1 mr-3" size={24} />
-                <div>
-                  <h6 className="mb-0">Horarios de Atención</h6>
-                  <p className="text-muted">
-                    Lunes a Viernes: 08:00 – 19:00 <br />
-                    <small className="font-italic">
-                      Sábados: Exclusivo suscritos
-                    </small>
+                  <p className="text-muted mb-0">
+                    {empresa.direccion || "No disponible"}
                   </p>
                 </div>
               </div>
 
-              <Button
-                color="success"
-                className="btn-icon mt-3"
-                onClick={() =>
-                  window.open(`https://wa.me/${empresa.telefono}`, "_blank")
-                }
-              >
-                <span className="btn-inner--icon">
-                  <FaWhatsapp size={18} />
-                </span>
-                <span className="btn-inner--text ml-2">Consultas WhatsApp</span>
-              </Button>
-            </div>
-          </Col>
+              {/* Horarios */}
+              <div className="d-flex mb-4">
+                <MdAccessTime size={24} className="text-primary mr-3 mt-1" />
+                <div>
+                  <h6 className="mb-0">Horarios</h6>
+                  <p className="text-muted mb-0">
+                    {empresa.horarios || "No disponible"}
+                  </p>
+                </div>
+              </div>
 
-          <Col md="6">
-            <div
-              className="rounded shadow-xl overflow-hidden"
-              style={{ height: "350px" }}
-            >
-              <iframe
-                title="Ubicación Google Maps"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3433.996283409724!2d-71.21091002356448!3d-30.60586805754018!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x968e4aa4308038c1%3A0xcf06f111438566c2!2sPortales%20310%2C%20Ovalle%2C%20Coquimbo!5e0!3m2!1ses-419!2scl!4v1771523875801!5m2!1ses-419!2scl"
-                width="100%"
-                height="100%"
-                style={{ border: 0 }}
-                allowFullScreen=""
-                loading="lazy"
-              />
-            </div>
-          </Col>
-        </Row>
-      </Container>
+              {/* Redes */}
+              <h6 className="mb-3">Síguenos</h6>
 
-      {/* FOOTER */}
-      <section className="py-5 bg-secondary">
-        <Container>
-          <Row className="text-center justify-content-center">
-            <Col lg="8">
-              <h3 className="display-4 mb-2">¿Listo para un cambio?</h3>
-              <p className="lead text-muted mb-4">
-                No pierdas tiempo esperando. Asegura tu lugar con tu barbero
-                favorito.
-              </p>
+              <div className="d-flex gap-3 mb-4 align-items-center">
+                {empresa.redes.instagram && (
+                  <i
+                    className="fab fa-instagram fs-4 text-primary cursor-pointer"
+                    onClick={() =>
+                      window.open(empresa.redes.instagram, "_blank")
+                    }
+                    title="Instagram"
+                    role="button"
+                  />
+                )}
+
+                {empresa.redes.facebook && (
+                  <i
+                    className="fab fa-facebook fs-4 ml-2 text-primary cursor-pointer"
+                    onClick={() =>
+                      window.open(empresa.redes.facebook, "_blank")
+                    }
+                    title="Facebook"
+                    role="button"
+                  />
+                )}
+
+                {empresa.redes.tiktok && (
+                  <i
+                    className="fab fa-tiktok fs-4   ml-2 text-primary cursor-pointer"
+                    onClick={() => window.open(empresa.redes.tiktok, "_blank")}
+                    title="TikTok"
+                    role="button"
+                  />
+                )}
+              </div>
+
+              {/* WhatsApp */}
+              {empresa.telefono && (
+                <Button
+                  color="success"
+                  onClick={() => {
+                    const telefonoLimpio = empresa.telefono.replace(/\D/g, "");
+                    window.open(`https://wa.me/${telefonoLimpio}`, "_blank");
+                  }}
+                >
+                  <FaWhatsapp className="mr-2" />
+                  Escríbenos por WhatsApp
+                </Button>
+              )}
+            </Col>
+
+            {/* ===== FORMULARIO ===== */}
+            <Col md="6" >
+              <div className="p-4 rounded shadow-sm bg-secondary">
+                <h5 className="mb-4 font-weight-bold">Envíanos un mensaje</h5>
+
+                <form>
+                  <div className="mb-3">
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="Nombre"
+                      required
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <input
+                      type="email"
+                      className="form-control"
+                      placeholder="Correo electrónico"
+                      required
+                    />
+                  </div>
+
+                  <div className="mb-3">
+                    <textarea
+                      className="form-control"
+                      rows="4"
+                      placeholder="Mensaje"
+                      required
+                    />
+                  </div>
+
+                  <Button color="primary" block>
+                    Enviar mensaje
+                  </Button>
+                </form>
+              </div>
             </Col>
           </Row>
         </Container>
       </section>
+
+      {/* ================= CTA FINAL ================= */}
 
       <AuthFooter />
     </div>

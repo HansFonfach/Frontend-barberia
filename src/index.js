@@ -39,12 +39,12 @@ import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
 import CancelarInvitado from "views/invitados/pages/CancelarInvitado";
 import VerificarCuenta from "views/publico/VerificarCuenta";
 
-
 // Wrapper por empresa (slug)
 const EmpresaWrapper = ({ children }) => {
   const { slug } = useParams();
   return <EmpresaProvider slug={slug}>{children}</EmpresaProvider>;
 };
+
 
 // Solo envuelve Providers que necesitan token (admin)
 const AdminProviders = ({ children }) => (
@@ -85,7 +85,9 @@ root.render(
             path="/:slug"
             element={
               <EmpresaWrapper>
-                <Landing />
+               
+                  <Landing />
+            
               </EmpresaWrapper>
             }
           />
@@ -130,7 +132,6 @@ root.render(
               </EmpresaWrapper>
             }
           />
-       
 
           {/* =========================
           ADMIN PROTEGIDO

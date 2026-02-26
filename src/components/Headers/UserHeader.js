@@ -18,13 +18,12 @@
 
 // reactstrap components
 import { useAuth } from "context/AuthContext";
+import { useEmpresa } from "context/EmpresaContext";
 import { Button, Container, Row, Col } from "reactstrap";
 
 const UserHeader = () => {
-
-  const {user} = useAuth();
-
-
+  const { empresa, loading } = useEmpresa();
+  if (loading || !empresa) return null;
 
   return (
     <>
@@ -46,9 +45,9 @@ const UserHeader = () => {
             <Col lg="7" md="10">
               <h1 className="display-2 text-white"> ¡BIENVENIDO!</h1>
               <p className="text-white mt-0 mb-5">
-              Gestiona tus reservas, suscríbete a nuestros servicios y aprovecha al máximo tu experiencia con La Santa Barbería.
+                Gestiona tus reservas, suscríbete a nuestros servicios y
+                aprovecha al máximo tu experiencia con {empresa.nombre}.
               </p>
-             
             </Col>
           </Row>
         </Container>

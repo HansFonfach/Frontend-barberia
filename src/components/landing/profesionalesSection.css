@@ -1,0 +1,152 @@
+.social-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #5e72e4;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.social-icon:hover {
+  transform: scale(1.1);
+  opacity: 0.9;
+}
+
+.barber-circle-container {
+  display: inline-block;
+}
+
+.barber-circle {
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 4px solid #000;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.barber-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.barber-name {
+  font-size: 2.8rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  margin-bottom: 1rem;
+}
+
+.barber-name span {
+  display: block;
+  font-weight: 300;
+  color: #666;
+  font-size: 2.2rem;
+}
+
+.badge-experience {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #000 !important;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.barber-stats {
+  display: flex;
+  gap: 2.5rem;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #000;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 0.9rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: 500;
+}
+
+.barber-description {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: #555;
+  max-width: 500px;
+}
+
+.specialties {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.specialty-tag {
+  padding: 8px 16px;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 50px;
+  font-size: 0.9rem;
+  color: #333333;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.specialty-tag:hover {
+  background: #000;
+  color: white;
+  border-color: #000;
+}
+
+.btn-reserve {
+  background: #000;
+  border: none;
+  border-radius: 50px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 12px 30px;
+  transition: all 0.2s ease;
+}
+
+.btn-reserve:hover {
+  background: #333;
+}
+
+@media (max-width: 768px) {
+  .barber-circle {
+    width: 220px;
+    height: 220px;
+  }
+
+  .barber-name {
+    font-size: 2.2rem;
+  }
+
+  .barber-name span {
+    font-size: 1.8rem;
+  }
+
+  .barber-stats {
+    gap: 1.5rem;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+  }
+}
