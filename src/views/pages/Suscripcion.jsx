@@ -258,69 +258,6 @@ const SubscriptionPage = () => {
                 </Row>
 
                 {/* CTA */}
-                <Row>
-                  <Col>
-                    <Card className="bg-gradient-success text-white border-0 shadow-lg">
-                      <CardBody className="text-center py-5">
-                        {!suscripcionData ? (
-                          <>
-                            <h3 className="font-weight-bold mb-3">
-                              Asegura tu cupo mensual
-                            </h3>
-
-                            <p className="mb-4">
-                              Limitamos la cantidad de suscriptores para
-                              garantizar horarios preferentes y atención
-                              personalizada.
-                            </p>
-
-                            <button
-                              className="btn bg-yellow btn-lg font-weight-bold px-5 py-3"
-                              onClick={startPayment}
-                              disabled={true}
-                            >
-                              {loading ? (
-                                <>
-                                  <Spinner size="sm" /> Procesando...
-                                </>
-                              ) : (
-                                "💳 Suscribirme ahora"
-                              )}
-                            </button>
-                            <p className="text-yellow small mt-3 mb-0">
-                              LAS SUSCRIPCIONES AÚN NO ESTÁN PERMITIDAS
-                            </p>
-
-                            <p className="text-white-50 small mt-3 mb-0">
-                              Membresía exclusiva · Uso personal · No
-                              transferible
-                            </p>
-                          </>
-                        ) : (
-                          <>
-                            <h4 className="font-weight-bold mb-3">
-                              Suscripción iniciada
-                            </h4>
-                            <p className="mb-2">
-                              Serás redirigido a Transbank para completar el
-                              pago.
-                            </p>
-                            <p className="mb-0">
-                              Transacción:{" "}
-                              <strong>{suscripcionData.buyOrder}</strong>
-                            </p>
-                            <p className="mb-0">
-                              Monto:{" "}
-                              <strong>
-                                ${suscripcionData.monto.toLocaleString()}
-                              </strong>
-                            </p>
-                          </>
-                        )}
-                      </CardBody>
-                    </Card>
-                  </Col>
-                </Row>
               </CardBody>
             </Card>
           </Col>
