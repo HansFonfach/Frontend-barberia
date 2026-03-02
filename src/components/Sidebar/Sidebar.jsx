@@ -186,26 +186,37 @@ const Sidebar = ({ routes, logo, usuario }) => {
           </Link>
 
           {/* USUARIO MOBILE */}
+          {/* USUARIO MOBILE */}
           <Nav className="align-items-center d-md-none">
             <UncontrolledDropdown nav>
               <DropdownToggle nav>
                 <Media className="align-items-center">
-                  <span className="avatar avatar-sm rounded-circle">
-                    <img
-                      alt="avatar"
-                      src={require("../../assets/img/theme/team-1-800x800.jpg")}
-                    />
+                  <span className="avatar avatar-sm rounded-circle d-flex align-items-center justify-content-center bg-primary text-white fw-bold">
+                    {usuario?.nombre && usuario?.apellido
+                      ? `${usuario.nombre[0]}${usuario.apellido[0]}`.toUpperCase()
+                      : user?.nombre
+                        ? user.nombre.substring(0, 2).toUpperCase()
+                        : "U"}
                   </span>
                 </Media>
               </DropdownToggle>
+
               <DropdownMenu right>
-                <DropdownItem header>Bienvenido {usuario?.nombre}</DropdownItem>
+                <DropdownItem header className="text-dark fw-bold">
+                  Bienvenido {usuario?.nombre || user?.nombre}
+                </DropdownItem>
+
                 <DropdownItem to={`/${slug}/admin/perfil`} tag={Link}>
                   Perfil
                 </DropdownItem>
-                <DropdownItem to={`/${slug}/admin/cambiar-contrasena`} tag={Link}>
+
+                <DropdownItem
+                  to={`/${slug}/admin/cambiar-contrasena`}
+                  tag={Link}
+                >
                   Cambiar contraseña
                 </DropdownItem>
+
                 <DropdownItem onClick={handleLogout}>
                   Cerrar sesión
                 </DropdownItem>
