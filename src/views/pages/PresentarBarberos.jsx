@@ -69,7 +69,7 @@ const PresentarBarberos = () => {
           <Col lg="11">
             <Card className="shadow border-0">
               <CardHeader className="bg-white text-center py-4">
-                <h2 className="font-weight-bold mb-2">Nuestros Barberos</h2>
+                <h2 className="font-weight-bold mb-2">Nuestros Profesionales</h2>
 
                 <p className="text-muted mb-0">
                   Profesionales dedicados a entregarte la mejor experiencia
@@ -83,7 +83,7 @@ const PresentarBarberos = () => {
                     <Row>
                       {barberos.length === 0 && (
                         <Col className="text-center text-muted py-5">
-                          No hay barberos disponibles
+                          No hay profesionales disponibles
                         </Col>
                       )}
 
@@ -113,7 +113,7 @@ const PresentarBarberos = () => {
                                 </h5>
 
                                 <Badge color="light" className="mb-2">
-                                  {b.especialidad || "Barbero Profesional"}
+                                  {b.especialidad || "Profesional"}
                                 </Badge>
 
                                 <div className="d-flex justify-content-center align-items-center">

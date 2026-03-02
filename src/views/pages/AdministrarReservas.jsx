@@ -410,7 +410,7 @@ const MisReservas = () => {
                       <Scissors size={32} className="text-white" />
                     </div>
                     <h1 className="h3 font-weight-bold text-dark mb-2">
-                      Mis Reservas 💈
+                      Mis Reservas 
                     </h1>
                     <p className="text-muted mb-0">
                       Gestiona y revisa el historial de tus citas fácilmente
@@ -560,7 +560,7 @@ const MisReservas = () => {
                             </strong>
                           </div>
                           <div className="d-flex justify-content-between py-1 border-bottom">
-                            <span className="text-muted">💈 Barbero:</span>
+                            <span className="text-muted">Profesional:</span>
                             <strong>
                               <strong>
                                 {reservaSeleccionada?.barbero?.nombre ||

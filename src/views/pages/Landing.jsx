@@ -278,37 +278,7 @@ const Landing = () => {
           backgroundColor: "#FFFFFF",
         }}
       >
-        <Container>
-          <Row className="justify-content-center text-center mb-5">
-            <Col lg="6">
-              <Badge
-                pill
-                style={{
-                  backgroundColor: theme.primaryLight,
-                  color: theme.primary,
-                  padding: "8px 16px",
-                  fontSize: "0.85rem",
-                  marginBottom: "1rem",
-                }}
-              >
-                Nuestros servicios
-              </Badge>
-              <h2
-                style={{
-                  fontWeight: 700,
-                  fontSize: "2.5rem",
-                  marginBottom: "1rem",
-                  color: theme.textDark,
-                }}
-              >
-                Descubre lo que ofrecemos
-              </h2>
-              <p style={{ color: theme.textMuted }}>
-                Tratamientos personalizados y de alta calidad para cuidar de ti
-              </p>
-            </Col>
-          </Row>
-        </Container>
+  
         <ServiciosSection
           servicios={servicios}
           onReservar={() => navigate(`/${slug}/reservar`)}

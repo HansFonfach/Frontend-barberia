@@ -144,7 +144,7 @@ const CancelarInvitado = () => {
                   }}
                 >
                   <p className="mb-1">
-                    <strong>💈 Barbero:</strong> {reserva.barbero}
+                    <strong>Profesional:</strong> {reserva.barbero}
                   </p>
                   <p className="mb-1">
                     <strong>✂️ Servicio:</strong> {reserva.servicio}

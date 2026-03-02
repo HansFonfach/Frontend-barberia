@@ -10,7 +10,7 @@ const BarberoSelector = ({
 }) => {
   return (
     <FormGroup className="mb-3">
-      <Label className="font-weight-bold">💈 Barbero</Label>
+      <Label className="font-weight-bold"> Profesional</Label>
 
       {/* 🔄 LOADING */}
       {loading && (

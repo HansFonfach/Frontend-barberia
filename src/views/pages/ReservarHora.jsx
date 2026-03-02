@@ -146,7 +146,7 @@ const ReservarHora = () => {
               <h2 className="h3 font-weight-bold text-dark mb-1">
                 Reserva Tu Hora
               </h2>
-              <p className="text-muted mb-0">Servicio → Barbero → Día → Hora</p>
+              <p className="text-muted mb-0">Servicio → Profesional → Día → Hora</p>
             </div>
 
             <div className="row">
