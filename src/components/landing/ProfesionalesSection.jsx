@@ -14,11 +14,7 @@ const ProfesionalesSection = ({ profesionales }) => {
     <>
       <section className="py-7 ">
         <Container>
-          <SectionTitle
-            badge="Tus Profesionales"
-            title="Conoce a tu Profesional"
-            subtitle="Arte, precisión y estilo personalizado"
-          />
+       
 
           <Row className="align-items-center g-5 mt-4 justify-content-center">
             {/* Imagen circular del barbero */}

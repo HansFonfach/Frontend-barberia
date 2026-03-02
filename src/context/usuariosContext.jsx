@@ -17,10 +17,8 @@ import { getSubActiva } from "api/usuarios";
 import { getVerMisPuntos } from "api/usuarios";
 import { postAsignarServiciosAlBarbero } from "api/usuarios";
 import { postCrearBarbero } from "api/usuarios";
-import { updateInactivarUsuario } from "api/usuarios";
 import { updateEstadoUsuario } from "api/usuarios";
-import { id } from "date-fns/locale";
-import { putUpdatePerfilUsuario } from "api/usuarios";
+
 
 const UsuarioContext = createContext();
 

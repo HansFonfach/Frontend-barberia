@@ -33,7 +33,8 @@ const AdminDashboard = () => {
   const [proxCliente, setProxCliente] = useState({});
   const [suscripcionesActivas, setSuscripcionesActivas] = useState({});
   const [reservasHoy, setReservasHoy] = useState({});
-  const {empresa} = useEmpresa();
+  const { empresa } = useEmpresa();
+  const esLumiBeauty = empresa?.slug === "lumicabeauty";
 
   useEffect(() => {
     const cargarDatosDashBoard = async () => {
@@ -243,18 +244,31 @@ const AdminDashboard = () => {
         {/* Encabezado */}
         <Row className="mb-6">
           <Col xl="12">
-            <Card className="shadow-lg border-0 bg-gradient-primary text-white overflow-hidden">
+            <Card
+              className={`shadow-lg border-0 text-white overflow-hidden ${
+                esLumiBeauty ? "" : "bg-gradient-primary"
+              }`}
+              style={
+                esLumiBeauty
+                  ? {
+                      background:
+                        "linear-gradient(135deg, #ff4da6 0%, #ff85c1 100%)",
+                    }
+                  : {}
+              }
+            >
               <CardBody className="p-5">
                 <Row className="align-items-center">
                   <Col lg="8">
                     <div className="d-flex align-items-center mb-3">
                       <Crown size={32} className="mr-3 text-warning" />
-                      <h1 className="display-4 font-weight-bold mb-0">
+
+                      <h1 className="display-4 text-white font-weight-bold mb-0">
                         Panel Administración
                       </h1>
                     </div>
                     <p className="lead mb-0 opacity-75">
-                      Gestión completa de  {empresa?.nombre || "—"}
+                      Gestión completa de {empresa?.nombre || "—"}
                     </p>
                   </Col>
                   <Col lg="4" className="text-lg-right">
@@ -267,11 +281,10 @@ const AdminDashboard = () => {
             </Card>
           </Col>
         </Row>
-        
 
         {/* Stats */}
         <Row className="mb-5" style={{ alignItems: "flex-start" }}>
-           {/* Card especial de ingresos */}
+          {/* Card especial de ingresos */}
           <Col lg="3" md="6" className="mb-4">
             {renderCardIngresos()}
           </Col>
@@ -291,7 +304,6 @@ const AdminDashboard = () => {
                   (e.currentTarget.style.transform = "translateY(0)")
                 }
               >
-                
                 <CardBody className="p-4">
                   <div className="d-flex align-items-center justify-content-between">
                     <div>
@@ -318,8 +330,6 @@ const AdminDashboard = () => {
               </Card>
             </Col>
           ))}
-
-         
         </Row>
 
         {/* Menú Principal */}
