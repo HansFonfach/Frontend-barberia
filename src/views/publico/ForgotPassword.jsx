@@ -15,7 +15,7 @@ import {
 } from "reactstrap";
 import { useNavigate, Link, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
-import logo from "assets/img/brand/lasanta.png"; // ✅ ruta más segura dentro de src/assets
+import logo from "assets/img/brand/lasanta.png";
 import { useAuth } from "context/AuthContext";
 import { useEmpresa } from "context/EmpresaContext";
 
@@ -24,7 +24,20 @@ const ForgotPassword = () => {
   const navigate = useNavigate();
   const { forgotPassword } = useAuth();
   const { slug } = useParams();
-  const {empresa} = useEmpresa();
+  const { empresa } = useEmpresa();
+
+  // Determinar si es Lumica
+  const isLumica = slug === "lumicabeauty";
+
+  // Colores para Lumica
+  const lumicaTheme = {
+    primary: "#FF5DA1",
+    primaryLight: "#FFE4F0",
+    primaryDark: "#E64D8F",
+    textLight: "#FFFFFF",
+    textDark: "#2D3748",
+    textMuted: "#718096",
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,8 +73,23 @@ const ForgotPassword = () => {
   return (
     <>
       <Col lg="5" md="7">
-        <Card className="bg-secondary shadow border-0">
-          <CardHeader className="bg-transparent pb-1 text-center">
+        {/* Card condicional - mantiene bg-secondary para no-lumica */}
+        <Card
+          className={isLumica ? "shadow border-0" : "bg-secondary shadow border-0"}
+          style={{
+            backgroundColor: isLumica ? "#FFFFFF" : undefined,
+          }}
+        >
+          <CardHeader
+            className={isLumica ? "text-center" : "bg-transparent pb-1 text-center"}
+            style={{
+              backgroundColor: isLumica ? "#FFFFFF" : undefined,
+              borderBottom: isLumica
+                ? `1px solid ${lumicaTheme.primaryLight}`
+                : "none",
+              paddingTop: isLumica ? "2rem" : undefined,
+            }}
+          >
             <img
               src={empresa?.logo || logo}
               alt="Logo"
@@ -79,8 +107,13 @@ const ForgotPassword = () => {
           </CardHeader>
 
           <CardBody className="px-lg-5 py-lg-5">
-            <div className="text-center text-muted mb-4">
-              <small>RECUPERA TU CONTRASEÑA</small>
+            <div className="text-center mb-4">
+              <small
+                className={isLumica ? "" : "text-muted"}
+                style={{ color: isLumica ? lumicaTheme.textMuted : undefined }}
+              >
+                RECUPERA TU CONTRASEÑA
+              </small>
             </div>
 
             <Form role="form" onSubmit={handleSubmit}>
@@ -102,7 +135,16 @@ const ForgotPassword = () => {
               </FormGroup>
 
               <div className="text-center">
-                <Button className="my-4" color="primary" type="submit">
+                <Button
+                  className="my-4"
+                  color={isLumica ? undefined : "primary"}
+                  style={{
+                    backgroundColor: isLumica ? lumicaTheme.primary : undefined,
+                    borderColor: isLumica ? lumicaTheme.primary : undefined,
+                    color: "#FFFFFF",
+                  }}
+                  type="submit"
+                >
                   Enviar enlace de recuperación
                 </Button>
               </div>
@@ -112,7 +154,11 @@ const ForgotPassword = () => {
 
         <Row className="mt-3">
           <Col xs="12" className="text-center">
-            <Link to={`/${slug}/login`} className="text-white">
+            <Link
+              to={`/${slug}/login`}
+              className={isLumica ? "" : "text-white"}
+              style={{ color: isLumica ? lumicaTheme.primary : undefined }}
+            >
               Volver al inicio de sesión
             </Link>
           </Col>

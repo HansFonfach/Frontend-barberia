@@ -18,7 +18,7 @@ import {
 } from "reactstrap";
 import { useNavigate } from "react-router-dom";
 
-import logo from "assets/img/brand/lasanta.png"; // ✅ ruta más segura dentro de src/assets
+import logo from "assets/img/brand/lasanta.png";
 import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
 import { useEmpresa } from "context/EmpresaContext";
@@ -35,6 +35,19 @@ const Login = () => {
 
   const navigate = useNavigate();
 
+  // Determinar si es Lumica
+  const isLumica = slug === "lumicabeauty";
+
+  // Colores para Lumica
+  const lumicaTheme = {
+    primary: "#FF5DA1",
+    primaryLight: "#FFE4F0",
+    primaryDark: "#E64D8F",
+    textLight: "#FFFFFF",
+    textDark: "#2D3748",
+    textMuted: "#718096",
+  };
+
   useEffect(() => {
     if (isAuthenticated) {
       navigate(`/${slug}/admin`);
@@ -49,7 +62,6 @@ const Login = () => {
         ...form,
         slug,
       });
-      // Si login exitoso, el useEffect redirige automáticamente
     } catch (error) {
       Swal.fire({
         title: "Error de login",
@@ -68,13 +80,26 @@ const Login = () => {
     });
   };
 
-  console.log("AUTH LAYOUT ACTIVO");
-
   return (
     <>
       <Col lg="5" md="7">
-        <Card className="bg-secondary shadow border-0">
-          <CardHeader className="bg-transparent pb-1 text-center">
+        {/* Card condicional - mantiene bg-secondary para no-lumica */}
+        <Card
+          className={isLumica ? "shadow border-0" : "bg-secondary shadow border-0"}
+          style={{
+            backgroundColor: isLumica ? "#FFFFFF" : undefined,
+          }}
+        >
+          <CardHeader
+            className={isLumica ? "text-center" : "bg-transparent pb-1 text-center"}
+            style={{
+              backgroundColor: isLumica ? "#FFFFFF" : undefined,
+              borderBottom: isLumica
+                ? `1px solid ${lumicaTheme.primaryLight}`
+                : "none",
+              paddingTop: isLumica ? "2rem" : undefined,
+            }}
+          >
             <img
               src={empresa?.logo || logo}
               alt="Logo"
@@ -92,8 +117,13 @@ const Login = () => {
           </CardHeader>
 
           <CardBody className="px-lg-5 py-lg-5">
-            <div className="text-center text-muted mb-4">
-              <small>INICIA SESIÓN CON TUS CREDENCIALES</small>
+            <div className="text-center mb-4">
+              <small
+                className={isLumica ? "" : "text-muted"}
+                style={{ color: isLumica ? lumicaTheme.textMuted : undefined }}
+              >
+                INICIA SESIÓN CON TUS CREDENCIALES
+              </small>
             </div>
             <Form role="form" onSubmit={handleSubmit}>
               <FormGroup className="mb-3">
@@ -133,18 +163,32 @@ const Login = () => {
               <div className="custom-control custom-control-alternative custom-checkbox">
                 <input
                   className="custom-control-input"
-                  id=" customCheckLogin"
+                  id="customCheckLogin"
                   type="checkbox"
                 />
                 <label
                   className="custom-control-label"
-                  htmlFor=" customCheckLogin"
+                  htmlFor="customCheckLogin"
                 >
-                  <span className="text-muted">Recordarme</span>
+                  <span
+                    className={isLumica ? "" : "text-muted"}
+                    style={{ color: isLumica ? lumicaTheme.textMuted : undefined }}
+                  >
+                    Recordarme
+                  </span>
                 </label>
               </div>
               <div className="text-center">
-                <Button className="my-4" color="primary" type="submit">
+                <Button
+                  className="my-4"
+                  color={isLumica ? undefined : "primary"}
+                  style={{
+                    backgroundColor: isLumica ? lumicaTheme.primary : undefined,
+                    borderColor: isLumica ? lumicaTheme.primary : undefined,
+                    color: "#FFFFFF",
+                  }}
+                  type="submit"
+                >
                   Iniciar Sesión
                 </Button>
                 <Button
@@ -169,14 +213,21 @@ const Login = () => {
         </Card>
         <Row className="mt-3">
           <Col xs="6">
-            <Link to={`/${slug}/recuperar-contrasena`} className="text-white">
-              {" "}
+            <Link
+              to={`/${slug}/recuperar-contrasena`}
+              className={isLumica ? "" : "text-white"}
+              style={{ color: isLumica ? lumicaTheme.primary : undefined }}
+            >
               Olvidé mi contraseña
             </Link>
           </Col>
 
           <Col className="text-right" xs="6">
-            <Link to={`/${slug}/register`} className="text-white">
+            <Link
+              to={`/${slug}/register`}
+              className={isLumica ? "" : "text-white"}
+              style={{ color: isLumica ? lumicaTheme.primary : undefined }}
+            >
               Registrarme
             </Link>
           </Col>

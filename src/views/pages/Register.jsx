@@ -31,7 +31,7 @@ import {
 } from "reactstrap";
 import Swal from "sweetalert2";
 import { FaPhone } from "react-icons/fa";
-import logo from "assets/img/brand/lasanta.png"; // ✅ ruta más segura dentro de src/assets
+import logo from "assets/img/brand/lasanta.png";
 import { useEmpresa } from "context/EmpresaContext";
 
 const Register = () => {
@@ -42,7 +42,20 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { slug } = useParams();
-  const {empresa} = useEmpresa();
+  const { empresa } = useEmpresa();
+
+  // Determinar si es Lumica
+  const isLumica = slug === "lumicabeauty";
+
+  // Colores para Lumica
+  const lumicaTheme = {
+    primary: "#FF5DA1",
+    primaryLight: "#FFE4F0",
+    primaryDark: "#E64D8F",
+    textLight: "#FFFFFF",
+    textDark: "#2D3748",
+    textMuted: "#718096",
+  };
 
   const [form, setForm] = useState({
     rut: "",
@@ -76,7 +89,7 @@ const Register = () => {
     }
 
     try {
-     const result = await register({ ...form, rut }, slug);
+      const result = await register({ ...form, rut }, slug);
 
       if (result?.requiresVerification) {
         Swal.fire({
@@ -125,6 +138,7 @@ const Register = () => {
       });
     }
   };
+
   const handleChange = (e) => {
     setForm({
       ...form,
@@ -150,9 +164,24 @@ const Register = () => {
   return (
     <>
       <Col lg="6" md="8">
-        <Card className="bg-secondary shadow border-0">
-          <CardHeader className="bg-transparent pb-1 text-center">
-              <img
+        {/* Card condicional - mantiene bg-secondary para no-lumica */}
+        <Card
+          className={isLumica ? "shadow border-0" : "bg-secondary shadow border-0"}
+          style={{
+            backgroundColor: isLumica ? "#FFFFFF" : undefined,
+          }}
+        >
+          <CardHeader
+            className={isLumica ? "text-center" : "bg-transparent pb-1 text-center"}
+            style={{
+              backgroundColor: isLumica ? "#FFFFFF" : undefined,
+              borderBottom: isLumica
+                ? `1px solid ${lumicaTheme.primaryLight}`
+                : "none",
+              paddingTop: isLumica ? "2rem" : undefined,
+            }}
+          >
+            <img
               src={empresa?.logo || logo}
               alt="Logo"
               style={{
@@ -168,8 +197,13 @@ const Register = () => {
             />
           </CardHeader>
           <CardBody className="px-lg-5 py-lg-5">
-            <div className="text-center text-muted mb-4">
-              <small>REGISTRATE</small>
+            <div className="text-center mb-4">
+              <small
+                className={isLumica ? "" : "text-muted"}
+                style={{ color: isLumica ? lumicaTheme.textMuted : undefined }}
+              >
+                REGISTRATE
+              </small>
             </div>
             <Form role="form" onSubmit={handleSubmit}>
               <FormGroup>
@@ -242,7 +276,7 @@ const Register = () => {
                   name="telefono"
                   value={form.telefono}
                   onChange={(e) => {
-                    let value = e.target.value.replace(/\D/g, ""); // solo números
+                    let value = e.target.value.replace(/\D/g, "");
                     if (value.length > 8) value = value.slice(0, 8);
                     setForm({ ...form, telefono: value });
                   }}
@@ -290,13 +324,14 @@ const Register = () => {
                     <Button
                       type="button"
                       color="link"
-                      className="text-dark"
-                      onClick={togglePasswordVisibility}
+                      className={isLumica ? "" : "text-dark"}
                       style={{
                         border: "none",
                         background: "transparent",
                         padding: "0.75rem 1rem",
+                        color: isLumica ? lumicaTheme.primary : undefined,
                       }}
+                      onClick={togglePasswordVisibility}
                     >
                       <i
                         className={`ni ${
@@ -335,13 +370,14 @@ const Register = () => {
                     <Button
                       type="button"
                       color="link"
-                      className="text-dark"
-                      onClick={toggleConfirmPasswordVisibility}
+                      className={isLumica ? "" : "text-dark"}
                       style={{
                         border: "none",
                         background: "transparent",
                         padding: "0.75rem 1rem",
+                        color: isLumica ? lumicaTheme.primary : undefined,
                       }}
+                      onClick={toggleConfirmPasswordVisibility}
                     >
                       <i
                         className={`ni ${
@@ -364,7 +400,16 @@ const Register = () => {
               </FormGroup>
 
               <div className="text-center">
-                <Button className="mt-4" color="primary" type="submit">
+                <Button
+                  className="mt-4"
+                  color={isLumica ? undefined : "primary"}
+                  style={{
+                    backgroundColor: isLumica ? lumicaTheme.primary : undefined,
+                    borderColor: isLumica ? lumicaTheme.primary : undefined,
+                    color: "#FFFFFF",
+                  }}
+                  type="submit"
+                >
                   Crear cuenta
                 </Button>
               </div>

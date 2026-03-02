@@ -27,16 +27,44 @@ const Auth = () => {
   const { isAuthenticated, user } = useAuth();
   const { empresa } = useEmpresa();
 
+  const isLumica = slug === "lumicabeauty";
+
+  const theme = isLumica
+    ? {
+        primary: "#FF5DA1",
+        primaryLight: "#FFE4F0",
+        primaryDark: "#E64D8F",
+        heroBg: "linear-gradient(135deg, #FF5DA1 0%, #E64D8F 100%)",
+        fillColor: "#FFFFFF",
+        headerClass: null,
+      }
+    : {
+        primary: "#5e72e4",
+        primaryLight: "#eaecfe",
+        primaryDark: "#324cdd",
+        heroBg: null,
+        fillColor: null,
+        headerClass: "bg-gradient-info",
+      };
+
   React.useEffect(() => {
-    document.body.classList.add("bg-default");
-    return () => document.body.classList.remove("bg-default");
-  }, []);
+    if (isLumica) {
+      document.body.classList.remove("bg-default");
+      document.body.style.backgroundColor = "#FFF5FA";
+    } else {
+      document.body.classList.add("bg-default");
+      document.body.style.backgroundColor = "";
+    }
+    return () => {
+      document.body.classList.remove("bg-default");
+      document.body.style.backgroundColor = "";
+    };
+  }, [isLumica]);
 
   React.useEffect(() => {
     window.scrollTo(0, 0);
   }, [location]);
 
-  // ✅ Redirige manteniendo slug
   if (isAuthenticated) {
     return (
       <Navigate
@@ -52,13 +80,20 @@ const Auth = () => {
         <AuthNavbar />
 
         {/* HEADER */}
-        <div className="header bg-gradient-info py-7 py-lg-8">
+        <div
+          className={!isLumica ? "header bg-gradient-info py-7 py-lg-8" : "header py-7 py-lg-8"}
+          style={isLumica ? { background: theme.heroBg } : {}}
+        >
           <Container>
             <div className="header-body text-center mb-7">
               <Row className="justify-content-center">
                 <Col lg="5" md="6">
                   <h1 className="text-white">¡Bienvenido!</h1>
-                  <p className="text-lead text-light"></p>
+                  {isLumica && (
+                    <p className="text-white" style={{ opacity: 0.9 }}>
+                      ✨ {empresa?.nombre || "Lumica Beauty"}
+                    </p>
+                  )}
                 </Col>
               </Row>
             </div>
@@ -67,7 +102,8 @@ const Auth = () => {
           <div className="separator separator-bottom separator-skew zindex-100">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2560 100">
               <polygon
-                className="fill-default"
+                style={isLumica ? { fill: "#FFF5FA" } : {}}
+                className={!isLumica ? "fill-default" : ""}
                 points="2560 0 2560 100 0 100"
               />
             </svg>

@@ -27,9 +27,24 @@ import { useReservaInvitado } from "hooks/useReservaInvitado";
 import AuthFooter from "components/Footers/AuthFooter";
 import logo from "assets/img/logo4.png";
 import { useRutValidator } from "hooks/useRutValidador";
+import { useEmpresa } from "context/EmpresaContext";
 
 const ReservarHoraInvitado = () => {
   const { slug } = useParams();
+  const { empresa } = useEmpresa();
+
+  // Determinar si es Lumica
+  const isLumica = slug === "lumicabeauty";
+
+  // Tema solo para el banner de Lumica
+  const lumicaTheme = {
+    primary: "#FF5DA1",
+    primaryLight: "#FFE4F0",
+    primaryDark: "#E64D8F",
+    heroBg: "linear-gradient(135deg, #FFFFFF 0%, #FFF5FA 100%)",
+    textDark: "#2D3748",
+    textMuted: "#718096",
+  };
 
   const {
     servicios,
@@ -103,19 +118,21 @@ const ReservarHoraInvitado = () => {
   if (loadingServicios) {
     return (
       <Container className="mt-7 py-5 text-center">
-        <div className="spinner-border text-success mb-3" />
+        <div className="spinner-border text-success mb-3" role="status" />
         <h5>Cargando disponibilidad</h5>
       </Container>
     );
   }
 
   return (
-    <div className="bg-white">
-      {/* HERO - Estilo moderno oscuro */}
+    <div style={{ backgroundColor: "#FFFFFF", overflowX: "hidden" }}>
+      {/* ================= BANNER SUPERIOR (SOLO ESTO CAMBIA) ================= */}
       <div
-        className="position-relative bg-darker py-7 py-lg-8"
+        className="position-relative py-7 py-lg-8"
         style={{
-          background: "linear-gradient(150deg, #172b4d 0%, #1a174d 100%)",
+          background: isLumica
+            ? lumicaTheme.heroBg
+            : "linear-gradient(150deg, #172b4d 0%, #1a174d 100%)",
           minHeight: "40vh",
           display: "flex",
           alignItems: "center",
@@ -124,19 +141,68 @@ const ReservarHoraInvitado = () => {
         <Container>
           <Row className="justify-content-center text-center">
             <Col lg="8">
-              <img
-                src={logo}
-                alt="Logo"
-                className="img-fluid mb-4 floating"
+              {/* Glow efecto para Lumica (solo en el banner) */}
+
+              {/* Si no es Lumica, mostrar logo sin glow */}
+              {!isLumica && (
+                <img
+                  src={empresa?.logo || logo}
+                  alt={empresa?.nombre || "Logo"}
+                  className="img-fluid mb-4 floating"
+                  style={{
+                    width: "150px",
+                    filter: "drop-shadow(0px 10px 15px rgba(0,0,0,0.3))",
+                  }}
+                />
+              )}
+
+              {/* Badge - con color dinámico según la empresa */}
+              <div
                 style={{
-                  width: "150px",
-                  filter: "drop-shadow(0px 10px 15px rgba(0,0,0,0.3))",
+                  display: "inline-block",
+                  backgroundColor: isLumica
+                    ? lumicaTheme.primaryLight
+                    : "rgba(255,255,255,0.2)",
+                  color: isLumica ? lumicaTheme.primary : "#ffffff",
+                  padding: "8px 20px",
+                  borderRadius: "50px",
+                  fontSize: "0.95rem",
+                  marginBottom: "1.5rem",
+                  fontWeight: 500,
+                  border: isLumica
+                    ? `1px solid ${lumicaTheme.primary}30`
+                    : "1px solid rgba(255,255,255,0.1)",
+                  backdropFilter: isLumica ? "none" : "blur(10px)",
                 }}
-              />
-              <h1 className="display-2 text-white font-weight-bold mb-2">
+              >
+                ✨ {empresa?.nombre || "Bienvenido"}
+              </div>
+
+              {/* Título principal */}
+              <h1
+                className="display-2 font-weight-bold mb-2"
+                style={{
+                  color: isLumica ? lumicaTheme.textDark : "#ffffff",
+                  fontSize: "clamp(2.5rem, 6vw, 4rem)",
+                  textShadow: isLumica ? "none" : "0 2px 10px rgba(0,0,0,0.2)",
+                }}
+              >
                 Reserva tu hora
               </h1>
-              <p className="lead text-light mb-5">
+
+              {/* Descripción */}
+              <p
+                className="lead"
+                style={{
+                  color: isLumica
+                    ? lumicaTheme.textMuted
+                    : "rgba(255,255,255,0.9)",
+                  fontSize: "1.25rem",
+                  maxWidth: "600px",
+                  marginLeft: "auto",
+                  marginRight: "auto",
+                }}
+              >
                 Sin cuenta, sin complicaciones. Completa los pasos y asegura tu
                 cita.
               </p>
@@ -145,9 +211,9 @@ const ReservarHoraInvitado = () => {
         </Container>
       </div>
 
-      {/* Contenido principal */}
+      {/* ===== TODO LO DEMÁS SIGUE IGUAL ===== */}
       <Container className="mt-5 mb-5" style={{ maxWidth: "1200px" }}>
-        {/* PROGRESO */}
+        {/* PROGRESO - MANTIENE COLOR ORIGINAL */}
         <div className="mb-4">
           <div className="d-flex justify-content-between">
             <span className="small text-muted">Progreso</span>
@@ -242,7 +308,7 @@ const ReservarHoraInvitado = () => {
           </CardBody>
         </Card>
 
-        {/* MODAL INVITADO */}
+        {/* MODAL INVITADO - IGUAL QUE ANTES */}
         <Modal isOpen={modalInvitado} toggle={toggleModalInvitado} centered>
           <ModalHeader toggle={toggleModalInvitado}>
             Datos del cliente
@@ -254,7 +320,7 @@ const ReservarHoraInvitado = () => {
               placeholder="Ingrese RUT sin puntos ni guión"
               value={rutInvitado}
               maxLength={12}
-              onChange={handleRutChange} // ← ya no necesitas setInvitado aquí
+              onChange={handleRutChange}
             />
             {rutError && (
               <div className="invalid-feedback d-block mb-2">{rutError}</div>
