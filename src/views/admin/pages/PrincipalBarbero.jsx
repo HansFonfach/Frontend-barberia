@@ -17,6 +17,7 @@ import {
   Zap,
   TrendingUp,
 } from "lucide-react";
+import { useEmpresa } from "context/EmpresaContext";
 
 const formatPesos = (valor) => `$${(valor || 0).toLocaleString("es-CL")}`;
 
@@ -32,6 +33,7 @@ const AdminDashboard = () => {
   const [proxCliente, setProxCliente] = useState({});
   const [suscripcionesActivas, setSuscripcionesActivas] = useState({});
   const [reservasHoy, setReservasHoy] = useState({});
+  const {empresa} = useEmpresa();
 
   useEffect(() => {
     const cargarDatosDashBoard = async () => {
@@ -252,7 +254,7 @@ const AdminDashboard = () => {
                       </h1>
                     </div>
                     <p className="lead mb-0 opacity-75">
-                      Gestión completa de La Santa Barbería
+                      Gestión completa de  {empresa?.nombre || "—"}
                     </p>
                   </Col>
                   <Col lg="4" className="text-lg-right">

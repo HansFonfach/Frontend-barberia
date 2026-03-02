@@ -50,10 +50,20 @@ const Landing = () => {
           <Row className="justify-content-center text-center">
             <Col lg="8">
               <img
-                src={logo}
-                alt={empresa.nombre}
-                className="img-fluid mb-4"
-                style={{ width: 150 }}
+                src={empresa?.logo || logo}
+                alt="Logo"
+                style={{
+                  width: "150px",
+                  height: "auto",
+                  transition: "transform 0.3s ease",
+                }}
+                onMouseOver={(e) =>
+                  (e.currentTarget.style.transform = "scale(1.05)")
+                }
+                onMouseOut={(e) =>
+                  (e.currentTarget.style.transform = "scale(1)")
+                }
+                draggable="false"
               />
 
               <h1 className="display-2 text-white font-weight-bold mb-3">
@@ -145,26 +155,6 @@ const Landing = () => {
                     role="button"
                   />
                 )}
-
-                {empresa.redes.facebook && (
-                  <i
-                    className="fab fa-facebook fs-4 ml-2 text-primary cursor-pointer"
-                    onClick={() =>
-                      window.open(empresa.redes.facebook, "_blank")
-                    }
-                    title="Facebook"
-                    role="button"
-                  />
-                )}
-
-                {empresa.redes.tiktok && (
-                  <i
-                    className="fab fa-tiktok fs-4   ml-2 text-primary cursor-pointer"
-                    onClick={() => window.open(empresa.redes.tiktok, "_blank")}
-                    title="TikTok"
-                    role="button"
-                  />
-                )}
               </div>
 
               {/* WhatsApp */}
@@ -183,7 +173,7 @@ const Landing = () => {
             </Col>
 
             {/* ===== FORMULARIO ===== */}
-            <Col md="6" >
+            <Col md="6">
               <div className="p-4 rounded shadow-sm bg-secondary">
                 <h5 className="mb-4 font-weight-bold">Envíanos un mensaje</h5>
 

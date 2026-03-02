@@ -32,6 +32,7 @@ import {
 import Swal from "sweetalert2";
 import { FaPhone } from "react-icons/fa";
 import logo from "assets/img/brand/lasanta.png"; // ✅ ruta más segura dentro de src/assets
+import { useEmpresa } from "context/EmpresaContext";
 
 const Register = () => {
   const { verifySession, register } = useAuth();
@@ -41,6 +42,7 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { slug } = useParams();
+  const {empresa} = useEmpresa();
 
   const [form, setForm] = useState({
     rut: "",
@@ -150,8 +152,8 @@ const Register = () => {
       <Col lg="6" md="8">
         <Card className="bg-secondary shadow border-0">
           <CardHeader className="bg-transparent pb-1 text-center">
-            <img
-              src={logo}
+              <img
+              src={empresa?.logo || logo}
               alt="Logo"
               style={{
                 width: "150px",

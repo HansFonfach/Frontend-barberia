@@ -21,6 +21,7 @@ import { useNavigate } from "react-router-dom";
 import logo from "assets/img/brand/lasanta.png"; // ✅ ruta más segura dentro de src/assets
 import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
+import { useEmpresa } from "context/EmpresaContext";
 
 const Login = () => {
   const [form, setForm] = useState({
@@ -30,6 +31,7 @@ const Login = () => {
 
   const { signIn, isAuthenticated } = useAuth();
   const { slug } = useParams();
+  const { empresa } = useEmpresa();
 
   const navigate = useNavigate();
 
@@ -74,7 +76,7 @@ const Login = () => {
         <Card className="bg-secondary shadow border-0">
           <CardHeader className="bg-transparent pb-1 text-center">
             <img
-              src={logo}
+              src={empresa?.logo || logo}
               alt="Logo"
               style={{
                 width: "150px",

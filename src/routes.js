@@ -220,8 +220,8 @@ export const barberoRoutes = [
     section: "gestion",
   },
   {
-    path: "/gestion-barberos",
-    name: "Barberos",
+    path: "/gestion-profesionales",
+    name: "Profesionales",
     icon: "fas fa-user-tie text-primary",
     component: <CrearBarberoCompleto />,
     layout: "/admin",

@@ -163,7 +163,7 @@ const GestionBarberos = () => {
               <CardHeader className="bg-white border-0">
                 <Row className="align-items-center">
                   <Col xs="8">
-                    <h3 className="mb-0">Gestión de Barberos</h3>
+                    <h3 className="mb-0">Gestión de profesionales</h3>
                   </Col>
                   <Col xs="4" className="text-right">
                     <Button color="primary" onClick={toggleCrear} size="sm">
@@ -178,7 +178,7 @@ const GestionBarberos = () => {
                 <SearchBar
                   busqueda={busqueda}
                   onBusquedaChange={setBusqueda}
-                  placeholder="Buscar barberos..."
+                  placeholder="Buscar profesional..."
                   totalResultados={usuarios.length}
                 />
 
@@ -275,7 +275,7 @@ const GestionBarberos = () => {
       />
 
       <Modal isOpen={modalCrear} toggle={toggleCrear} centered size="lg">
-        <ModalHeader toggle={toggleCrear}>Crear Barbero</ModalHeader>
+        <ModalHeader toggle={toggleCrear}>Crear Profesional</ModalHeader>
         <ModalBody>
           <Form>
             <Row>

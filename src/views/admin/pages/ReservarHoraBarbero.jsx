@@ -183,7 +183,7 @@ const ReservarHoraBarbero = () => {
               </div>
               <h2 className="h3 mb-1">Reserva de Hora para Cliente</h2>
               <p className="text-muted mb-0">
-                RUT del Cliente → Servicio → Barbero → Día → Hora
+                RUT del Cliente → Servicio → Profesional → Día → Hora
               </p>
             </div>
 

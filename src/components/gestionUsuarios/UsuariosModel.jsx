@@ -38,7 +38,7 @@ const UsuarioModal = ({
       <div className="modal-header">
         <h6 className="modal-title">
           <FiEdit2 className="text-primary mr-2" />
-          Editar {tipoUsuario.charAt(0).toUpperCase() + tipoUsuario.slice(1)}
+          Editar 
         </h6>
         <button type="button" className="close" onClick={toggle}>
           <span aria-hidden={true}>×</span>

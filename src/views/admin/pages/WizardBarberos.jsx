@@ -58,7 +58,7 @@ const GestionHorariosBase = () => {
 
   const guardarHorario = async () => {
     if (!barberoSeleccionado) {
-      Swal.fire("Atención", "Debes seleccionar un barbero", "warning");
+      Swal.fire("Atención", "Debes seleccionar un profesional", "warning");
       return;
     }
 
@@ -152,7 +152,7 @@ const GestionHorariosBase = () => {
                         value={barberoSeleccionado}
                         onChange={(e) => setBarberoSeleccionado(e.target.value)}
                       >
-                        <option value="">Seleccionar Barbero...</option>
+                        <option value="">Seleccionar profesional...</option>
                         {barberos.map((b) => (
                           <option key={b._id} value={b._id}>
                             {b.nombre} {b.apellido}
@@ -169,7 +169,7 @@ const GestionHorariosBase = () => {
                   <div className="text-center py-5">
                     <Clock size={48} className="text-muted mb-3 opacity-5" />
                     <h4 className="text-muted italic">
-                      Selecciona un barbero para editar su jornada
+                      Selecciona un profesional para editar su jornada
                     </h4>
                   </div>
                 ) : (

@@ -2,6 +2,7 @@
 import React from "react";
 import { Card, CardBody, Button, Spinner, Badge } from "reactstrap";
 import { Zap, MapPin } from "lucide-react";
+import { useEmpresa } from "context/EmpresaContext";
 
 const ResumenReserva = ({
   usuarioEncontrado,
@@ -19,6 +20,7 @@ const ResumenReserva = ({
   const nombreServicio = servicioSeleccionado?.nombre || "—";
   const duracionServicio = servicioSeleccionado?.duracion;
   const precioServicio = servicioSeleccionado?.precio;
+  const { empresa } = useEmpresa();
 
   return (
     <>
@@ -41,14 +43,12 @@ const ResumenReserva = ({
             <div className="d-flex justify-content-between border-bottom py-1">
               <span>✂️ Servicio:</span>
               <strong>
-                {duracionServicio
-                  ? `${nombreServicio} `
-                  : nombreServicio}
+                {duracionServicio ? `${nombreServicio} ` : nombreServicio}
               </strong>
             </div>
 
             <div className="d-flex justify-content-between border-bottom py-1">
-              <span>👨‍💼 Barbero:</span>
+              <span>👨‍💼 Profesional:</span>
               <strong>
                 {barberoSeleccionado
                   ? `${barberoSeleccionado.nombre} ${barberoSeleccionado.apellido}`
@@ -96,21 +96,21 @@ const ResumenReserva = ({
           )}
         </Button>
 
-        {mostrarInfo && (
+        {mostrarInfo && empresa && (
           <Card className="border-success mt-1">
             <CardBody className="text-center">
               <MapPin size={40} className="text-success mb-2" />
               <h5 className="font-weight-bold text-success">
-                La Santa Barbería 💈
+                {empresa?.nombre || "—"}
               </h5>
               <p className="small text-muted mb-2">
-                🕒 Lunes a Viernes 8:00 - 19:00 hrs
+                🕒 {empresa?.horarios || "—"}
                 <br />
                 ⭐ Sábado atención solo suscritos
                 <br />
-                📍 Calle Diego Portales #310
+                📍 {empresa?.direccion || "—"}
                 <br />
-                📞 +56 9 9681 7505
+                📞 {empresa?.telefono || "—"}
               </p>
               <Badge
                 color="success"

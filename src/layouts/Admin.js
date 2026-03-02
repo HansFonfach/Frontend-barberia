@@ -6,15 +6,17 @@ import AdminFooter from "components/Footers/AdminFooter.js";
 import Sidebar from "components/Sidebar/Sidebar.jsx";
 import { useAuth } from "context/AuthContext";
 import { clienteRoutes, barberoRoutes } from "./../routes";
+import { useEmpresa } from "context/EmpresaContext";
 
 const AdminLayout = (props) => {
   const mainContent = React.useRef(null);
   const location = useLocation();
   const { user } = useAuth();
+  const { empresa } = useEmpresa();
 
-React.useEffect(() => {
-  window.scrollTo(0, 0);
-}, [location]);
+  React.useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location]);
 
   const routes = user?.rol === "barbero" ? barberoRoutes : clienteRoutes;
 
@@ -25,7 +27,9 @@ React.useEffect(() => {
         routes={routes}
         logo={{
           innerLink: "/admin/index",
-          imgSrc: require("../assets/img/brand/lasanta.png"),
+          imgSrc: empresa?.logo
+            ? empresa.logo
+            : require("../assets/img/brand/logolumica.png"),
           imgAlt: "Logo",
         }}
       />

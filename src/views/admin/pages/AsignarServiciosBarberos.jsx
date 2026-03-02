@@ -80,7 +80,7 @@ const AsignarServiciosBarbero = () => {
   // ────────────────────────────────
   const guardar = async () => {
     if (!barberoId) {
-      return Swal.fire("Atención", "Selecciona un barbero", "warning");
+      return Swal.fire("Atención", "Selecciona un profesional", "warning");
     }
 
     try {
@@ -147,7 +147,7 @@ const AsignarServiciosBarbero = () => {
                 {/* HEADER */}
                 <div className="mb-4">
                   <h2 className={isMobile ? "h4 mb-2" : "mb-1"}>
-                    Asignar Servicios a Barbero
+                    Asignar Servicios a profesionales
                   </h2>
                   <p className="text-muted mb-3">
                     Activa, edita o desactiva servicios sin borrarlos
@@ -158,7 +158,7 @@ const AsignarServiciosBarbero = () => {
                       {/* SELECT BARBERO */}
                       <FormGroup>
                         <Label className="font-weight-bold">
-                          Seleccionar Barbero
+                          Seleccionar Profesional
                         </Label>
                         <Input
                           type="select"
