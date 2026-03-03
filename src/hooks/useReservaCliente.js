@@ -28,6 +28,8 @@ export const useReservaCliente = () => {
   const [reservando, setReservando] = useState(false);
   const [diasPermitidos, setDiasPermitidos] = useState(15);
 
+  const [suscripcion, setSuscripcion] = useState(null);
+
   // ────────────────────────────────
   // SEMANA
   // ────────────────────────────────
@@ -46,7 +48,7 @@ export const useReservaCliente = () => {
     loadingServicios,
   } = useContext(ServiciosContext);
 
-  const { barberos } = useUsuario();
+  const { barberos, getSuscripcionActiva } = useUsuario();
   const { postReservarHora } = useReserva();
   const { getHorasDisponiblesBarbero } = useHorario();
 
@@ -64,6 +66,26 @@ export const useReservaCliente = () => {
 
     return svc?.duracion || 60;
   })();
+
+  const calcularServiciosReserva = (duracion) => {
+    return duracion >= 120 ? 2 : 1;
+  };
+
+  const serviciosReserva = servicio
+    ? calcularServiciosReserva(duracionServicio)
+    : 0;
+
+  const serviciosRestantes = suscripcion
+    ? Math.max(0, suscripcion.serviciosTotales - suscripcion.serviciosUsados)
+    : 0;
+
+  const excedente = suscripcion
+    ? Math.max(0, serviciosReserva - serviciosRestantes)
+    : 0;
+
+  const nuevosUsados = suscripcion
+    ? suscripcion.serviciosUsados + serviciosReserva
+    : 0;
 
   // ────────────────────────────────
   // HORAS DISPONIBLES
@@ -100,6 +122,17 @@ export const useReservaCliente = () => {
         });
       })
     : [];
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const cargarSuscripcion = async () => {
+      const sus = await getSuscripcionActiva().catch(() => null);
+      setSuscripcion(sus);
+    };
+
+    cargarSuscripcion();
+  }, [user?.id]);
 
   // ────────────────────────────────
   // CARGAR SERVICIOS POR BARBERO
@@ -270,13 +303,7 @@ export const useReservaCliente = () => {
     setReservando(true);
 
     try {
-      await postReservarHora(
-        fecha,
-        barbero,
-        hora,
-        servicio,
-        user.id,
-      );
+      await postReservarHora(fecha, barbero, hora, servicio, user.id);
 
       const result = await Swal.fire(
         "Reserva creada",
@@ -335,5 +362,11 @@ export const useReservaCliente = () => {
     handleReservar,
     handleSeleccionarServicio,
     handleSeleccionarBarbero,
+
+    suscripcion,
+    serviciosReserva,
+    serviciosRestantes,
+    excedente,
+    nuevosUsados,
   };
 };

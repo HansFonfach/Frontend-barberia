@@ -23,8 +23,10 @@ const UserDashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { ultimaReserva, proximaReserva } = useEstadisticas();
   const { estadoLookCliente } = useLook();
-  const { getVerPuntos, puntos } = useUsuario();
+  const { getVerPuntos, puntos, getSuscripcionActiva } = useUsuario();
   const { slug } = useParams();
+
+  const [suscripcion, setSuscripcion] = useState(null);
 
   const [data, setData] = useState({ ultima: null, proxima: null });
   const [look, setLook] = useState(null);
@@ -52,6 +54,11 @@ const UserDashboard = () => {
           estadoLookCliente().catch(() => null),
         ]);
 
+        // ✅ Fuera del Promise.all para poder ver el log
+        const sus = await getSuscripcionActiva().catch(() => null);
+        console.log("suscripcion:", sus);
+        setSuscripcion(sus);
+
         await getVerPuntos().catch(() => null);
 
         setData({ ultima, proxima });
@@ -65,6 +72,19 @@ const UserDashboard = () => {
 
     cargarDatos();
   }, [user?.id]);
+
+  const diasRestantes = suscripcion
+    ? Math.max(
+        0,
+        Math.ceil(
+          (new Date(suscripcion.fechaFin) - new Date()) / (1000 * 60 * 60 * 24),
+        ),
+      )
+    : null;
+
+  const serviciosRestantes = suscripcion
+    ? Math.max(0, suscripcion.serviciosTotales - suscripcion.serviciosUsados)
+    : null;
 
   // 🔄 Spinner global (solo auth)
   if (authLoading || !user || loadingDatos) {
@@ -122,64 +142,97 @@ const UserDashboard = () => {
             </Card>
           </Col>
         </Row>
-
         {/* Última visita / Próxima cita */}
         <Row className="mb-5">
-          <Col>
-            <Card className="border-0 shadow card-hover">
-              <CardBody className="p-4 d-flex justify-content-between align-items-center">
-                <div>
-                  <small className="text-muted text-uppercase">
-                    Próxima cita
-                  </small>
-                  {data.proxima ? (
-                    <>
-                      <h3 className="font-weight-bold mb-1">{data.proxima}</h3>
-                      <small className="text-muted">
-                        Tu próxima cita está confirmada
+          {/* Próxima cita */}
+          <Col lg="6" md="6" className="mb-4">
+            <Card
+              className="shadow-sm border-0 h-100"
+              style={{
+                borderRadius: "16px",
+                transition: "transform 0.25s ease",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "translateY(-5px)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.transform = "translateY(0)")
+              }
+            >
+              <CardBody className="p-4">
+                <div className="d-flex align-items-center justify-content-between">
+                  <div>
+                    <h6 className="text-uppercase text-muted mb-1">
+                      📅 Próxima cita
+                    </h6>
+                    <h3 className="font-weight-bold mb-0">
+                      {data.proxima
+                        ? `${data.proxima.fecha} · ${data.proxima.hora}`
+                        : "—"}
+                    </h3>
+
+                    {data.proxima ? (
+                      <small className="d-block text-muted mt-1"></small>
+                    ) : (
+                      <small className="d-block text-muted mt-1">
+                        No tienes reservas agendadas
                       </small>
-                    </>
-                  ) : (
-                    <Alert color="info" className="mb-0 mt-2">
-                      Aún no tienes una cita agendada
-                    </Alert>
-                  )}
-                </div>
-                <div className="bg-light rounded-circle p-3 d-none d-md-flex">
-                  <Scissors />
+                    )}
+                  </div>
+
+                  <div className="bg-light rounded-circle p-3 shadow-sm">
+                    <Scissors size={22} />
+                  </div>
                 </div>
               </CardBody>
             </Card>
           </Col>
 
-          <Col>
-            <Card className="border-0 shadow card-hover">
-              <CardBody className="p-4 d-flex justify-content-between align-items-center">
-                <div>
-                  <small className="text-muted text-uppercase">
-                    Última visita
-                  </small>
-                  {data.ultima ? (
-                    <>
-                      <h3 className="font-weight-bold mb-1">{data.ultima}</h3>
-                      <small className="text-muted">
-                        Mantener una frecuencia regular mejora tu look
+          {/* Última visita */}
+          <Col lg="6" md="6" className="mb-4">
+            <Card
+              className="shadow-sm border-0 h-100"
+              style={{
+                borderRadius: "16px",
+                transition: "transform 0.25s ease",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.transform = "translateY(-5px)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.transform = "translateY(0)")
+              }
+            >
+              <CardBody className="p-4">
+                <div className="d-flex align-items-center justify-content-between">
+                  <div>
+                    <h6 className="text-uppercase text-muted mb-1">
+                      📅 Última visita
+                    </h6>
+
+                    <h3 className="font-weight-bold mb-0">
+                      {data.ultima
+                        ? `${data.ultima.fecha} · ${data.ultima.hora}`
+                        : "—"}
+                    </h3>
+
+                    {data.ultima ? (
+                      <small className="d-block text-muted mt-1"></small>
+                    ) : (
+                      <small className="d-block text-muted mt-1">
+                        Aún no tienes visitas registradas
                       </small>
-                    </>
-                  ) : (
-                    <Alert color="info" className="mb-0 mt-2">
-                      Aún no tienes visitas registradas
-                    </Alert>
-                  )}
-                </div>
-                <div className="bg-light rounded-circle p-3 d-none d-md-flex">
-                  <Scissors />
+                    )}
+                  </div>
+
+                  <div className="bg-light rounded-circle p-3 shadow-sm">
+                    <Scissors size={22} />
+                  </div>
                 </div>
               </CardBody>
             </Card>
           </Col>
         </Row>
-
         {/* Estado del look */}
         <Row className="mb-5">
           {["corte", "barba"].map((tipo) => {
@@ -244,7 +297,7 @@ const UserDashboard = () => {
             );
           })}
         </Row>
-
+        {/* Puntos */}
         {/* Puntos */}
         <Row className="mb-5">
           <Col>
@@ -259,13 +312,11 @@ const UserDashboard = () => {
                     {puntos} pts
                   </Badge>
                 </div>
-
                 <Progress
                   value={(puntos / meta) * 100}
                   style={{ height: 10 }}
                   className="mb-2"
                 />
-
                 <small className="text-muted">
                   Te faltan <strong>{meta - puntos}</strong> puntos para tu
                   próximo beneficio
@@ -273,10 +324,65 @@ const UserDashboard = () => {
               </CardBody>
             </Card>
           </Col>
-        </Row>
-
-    
-
+        </Row>{" "}
+        {/* ✅ Cierra el Row de puntos AQUÍ */}
+        {/* Suscripción */}
+        {suscripcion && (
+          <Row className="mb-5">
+            <Col>
+              <Card className="border-0 shadow card-hover">
+                <CardBody className="p-4">
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div className="d-flex align-items-center">
+                      <Zap className="text-success mr-2" size={24} />
+                      <h4 className="mb-0">Tu suscripción</h4>
+                    </div>
+                    <Badge color="success" pill>
+                      Activa
+                    </Badge>
+                  </div>
+                  <Row>
+                    <Col xs="6">
+                      <div className="border rounded p-3 text-center">
+                        <small className="text-muted d-block">
+                          Días restantes
+                        </small>
+                        <strong className="h3">{diasRestantes}</strong>
+                      </div>
+                    </Col>
+                    <Col xs="6">
+                      <div className="border rounded p-3 text-center">
+                        <small className="text-muted d-block">
+                          Servicios disponibles
+                        </small>
+                        <strong className="h3">
+                          {suscripcion.serviciosUsados}/
+                          {suscripcion.serviciosTotales}
+                        </strong>
+                      </div>
+                    </Col>
+                  </Row>
+                  <Progress
+                    value={Math.min(
+                      (suscripcion.serviciosUsados /
+                        suscripcion.serviciosTotales) *
+                        100,
+                      100,
+                    )}
+                    color={serviciosRestantes === 0 ? "danger" : "success"}
+                    style={{ height: 8 }}
+                    className="mt-3 mb-2"
+                  />
+                  <small className="text-muted">
+                    {suscripcion.serviciosUsados < suscripcion.serviciosTotales
+                      ? `Te quedan ${suscripcion.serviciosTotales - suscripcion.serviciosUsados} servicio${suscripcion.serviciosTotales - suscripcion.serviciosUsados !== 1 ? "s" : ""} gratis`
+                      : "Ya superaste los servicios incluidos en tu plan"}
+                  </small>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+        )}
       </Container>
     </>
   );

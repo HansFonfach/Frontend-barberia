@@ -59,6 +59,12 @@ const ReservarHora = () => {
     handleSeleccionarServicio,
     handleSeleccionarBarbero,
     setHora,
+
+    suscripcion,
+    serviciosReserva,
+    serviciosRestantes,
+    excedente,
+    nuevosUsados,
   } = useReservaCliente();
 
   // ────────────────────────────────
@@ -146,7 +152,9 @@ const ReservarHora = () => {
               <h2 className="h3 font-weight-bold text-dark mb-1">
                 Reserva Tu Hora
               </h2>
-              <p className="text-muted mb-0">Servicio → Profesional → Día → Hora</p>
+              <p className="text-muted mb-0">
+                Servicio → Profesional → Día → Hora
+              </p>
             </div>
 
             <div className="row">
@@ -215,6 +223,11 @@ const ReservarHora = () => {
                       !reservando
                     )
                   }
+                  suscripcion={suscripcion}
+                  serviciosReserva={serviciosReserva}
+                  serviciosRestantes={serviciosRestantes}
+                  excedente={excedente}
+                  nuevosUsados={nuevosUsados}
                   mostrarInfo={!hora}
                 />
               </div>

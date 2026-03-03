@@ -16,11 +16,22 @@ const ResumenReserva = ({
   onReservar,
   habilitado,
   mostrarInfo,
+
+  // 🔥 NUEVO
+  suscripcion,
+  serviciosReserva,
+  serviciosRestantes,
+  excedente,
 }) => {
   const nombreServicio = servicioSeleccionado?.nombre || "—";
   const duracionServicio = servicioSeleccionado?.duracion;
   const precioServicio = servicioSeleccionado?.precio;
   const { empresa } = useEmpresa();
+
+  const serviciosLuegoReserva = Math.max(
+    0,
+    serviciosRestantes - serviciosReserva
+  );
 
   return (
     <>
@@ -43,7 +54,9 @@ const ResumenReserva = ({
             <div className="d-flex justify-content-between border-bottom py-1">
               <span>✂️ Servicio:</span>
               <strong>
-                {duracionServicio ? `${nombreServicio} ` : nombreServicio}
+                {duracionServicio
+                  ? `${nombreServicio} (${duracionServicio} min)`
+                  : nombreServicio}
               </strong>
             </div>
 
@@ -75,12 +88,41 @@ const ResumenReserva = ({
               </strong>
             </div>
           </div>
+
+          {/* 🔥 IMPACTO SUSCRIPCIÓN */}
+          {suscripcion && hora && serviciosReserva > 0 && (
+            <div
+              className={`alert mt-3 ${
+                excedente > 0 ? "alert-warning" : "alert-success"
+              }`}
+            >
+              {excedente === 0 ? (
+                <>
+                  Esta reserva consume{" "}
+                  <strong>{serviciosReserva}</strong>{" "}
+                  servicio{serviciosReserva > 1 ? "s" : ""}. Te quedarán{" "}
+                  <strong>{serviciosLuegoReserva}</strong>{" "}
+                  disponible
+                  {serviciosLuegoReserva !== 1 ? "s" : ""}.
+                </>
+              ) : (
+                <>
+                  Esta reserva consume{" "}
+                  <strong>{serviciosReserva}</strong>{" "}
+                  servicio{serviciosReserva > 1 ? "s" : ""}. Excedes tu plan en{" "}
+                  <strong>{excedente}</strong>{" "}
+                  servicio{excedente > 1 ? "s" : ""}, que se cobrará a valor
+                  normal.
+                </>
+              )}
+            </div>
+          )}
         </CardBody>
       </Card>
 
       <div className="d-grid gap-2">
         <Button
-          color="success"
+          color={excedente > 0 ? "warning" : "success"}
           size="lg"
           className="font-weight-bold"
           onClick={onReservar}

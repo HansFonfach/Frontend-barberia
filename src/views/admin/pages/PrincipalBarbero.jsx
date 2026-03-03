@@ -30,27 +30,69 @@ const AdminDashboard = () => {
   } = useEstadisticas();
 
   const [infoIngresos, setInfoIngresos] = useState(null);
-  const [proxCliente, setProxCliente] = useState({});
-  const [suscripcionesActivas, setSuscripcionesActivas] = useState({});
-  const [reservasHoy, setReservasHoy] = useState({});
+  const [proxCliente, setProxCliente] = useState(null);
+  const [suscripcionesActivas, setSuscripcionesActivas] = useState(null);
+  const [reservasHoy, setReservasHoy] = useState(null);
+  const [cargandoStats, setCargandoStats] = useState({
+    ingresos: true,
+    proximoCliente: true,
+    suscripciones: true,
+    reservas: true
+  });
+
   const { empresa } = useEmpresa();
   const esLumiBeauty = empresa?.slug === "lumicabeauty";
 
   useEffect(() => {
     const cargarDatosDashBoard = async () => {
+      setCargandoStats({
+        ingresos: true,
+        proximoCliente: true,
+        suscripciones: true,
+        reservas: true
+      });
+
       try {
         const [ingreso, proximoClienteReservado, suscripciones, reservas] =
-          await Promise.all([
+          await Promise.allSettled([
             ingresoMensual(),
             proximoCliente(),
             totalSuscripcionesActivas(),
             totalReservasHoyBarbero(),
           ]);
 
-        setInfoIngresos(ingreso);
-        setProxCliente(proximoClienteReservado);
-        setSuscripcionesActivas(suscripciones);
-        setReservasHoy(reservas);
+        if (ingreso.status === 'fulfilled') {
+          setInfoIngresos(ingreso.value);
+          setCargandoStats(prev => ({ ...prev, ingresos: false }));
+        } else {
+          console.error("Error en ingresoMensual:", ingreso.reason);
+          setCargandoStats(prev => ({ ...prev, ingresos: false }));
+        }
+
+        if (proximoClienteReservado.status === 'fulfilled') {
+          setProxCliente(proximoClienteReservado.value);
+          setCargandoStats(prev => ({ ...prev, proximoCliente: false }));
+        } else {
+          console.error("Error en proximoCliente:", proximoClienteReservado.reason);
+          setCargandoStats(prev => ({ ...prev, proximoCliente: false }));
+        }
+
+        if (suscripciones.status === 'fulfilled') {
+          setSuscripcionesActivas(suscripciones.value);
+          setCargandoStats(prev => ({ ...prev, suscripciones: false }));
+        } else {
+          console.error("Error en totalSuscripcionesActivas:", suscripciones.reason);
+          setCargandoStats(prev => ({ ...prev, suscripciones: false }));
+        }
+
+        if (reservas.status === 'fulfilled') {
+          setReservasHoy(reservas.value);
+          setCargandoStats(prev => ({ ...prev, reservas: false }));
+        } else {
+          console.error("Error en totalReservasHoyBarbero:", reservas.reason);
+          setCargandoStats(prev => ({ ...prev, reservas: false }));
+        }
+
       } catch (error) {
         console.error("Error cargando datos del dashboard:", error);
       }
@@ -139,106 +181,229 @@ const AdminDashboard = () => {
     },
   ];
 
-  const stats = [
-    {
-      label: "Próximo Cliente",
-      value: proxCliente?.data?.cliente?.nombreCompleto || "-",
-      icon: <User size={20} />,
-      extra: {
-        hora: proxCliente?.data?.hora,
-        fecha: proxCliente?.data?.fecha || "-",
-      },
-    },
-    {
-      label: "Reservas Hoy",
-      value: reservasHoy.total,
-      icon: <Calendar size={20} />,
-    },
-    {
-      label: "Suscripciones Activas",
-      value: suscripcionesActivas.total,
-      icon: <Users size={20} />,
-    },
-  ];
-
-  // Card especial de ingresos
-  const renderCardIngresos = () => (
-    <Card
-      className="shadow-sm border-0 h-100"
-      style={{
-        borderRadius: "16px",
-        transition: "transform 0.25s ease",
-      }}
-      onMouseEnter={(e) =>
-        (e.currentTarget.style.transform = "translateY(-5px)")
-      }
-      onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
-    >
+  // Componente Skeleton para cards
+  const CardSkeleton = () => (
+    <Card className="shadow-sm border-0 h-100" style={{ borderRadius: "16px" }}>
       <CardBody className="p-4">
-        <div className="d-flex align-items-center justify-content-between mb-3">
-          <div>
-            <h6 className="text-uppercase text-muted mb-1">Ingreso del mes</h6>
-            <h3 className="font-weight-bold mb-0">
-              {infoIngresos ? formatPesos(infoIngresos.ingresoTotal) : "—"}
-            </h3>
+        <div className="d-flex align-items-center justify-content-between">
+          <div style={{ width: "70%" }}>
+            <div 
+              className="bg-light rounded mb-2" 
+              style={{ 
+                height: "14px", 
+                width: "60%",
+                animation: "pulse 1.5s ease-in-out infinite"
+              }}
+            ></div>
+            <div 
+              className="bg-light rounded" 
+              style={{ 
+                height: "24px", 
+                width: "80%",
+                animation: "pulse 1.5s ease-in-out infinite"
+              }}
+            ></div>
           </div>
-          <div className="bg-light rounded-circle p-3 shadow-sm">
-            <CreditCard size={20} />
-          </div>
-        </div>
-
-        {/* Desglose */}
-        {infoIngresos?.detalle && (
-          <div
-            style={{
-              borderTop: "1px solid #f0f0f0",
-              paddingTop: "10px",
-              marginTop: "4px",
+          <div 
+            className="bg-light rounded-circle" 
+            style={{ 
+              width: "56px", 
+              height: "56px",
+              animation: "pulse 1.5s ease-in-out infinite"
             }}
-          >
-            {/* Reservas completadas */}
-            <div className="d-flex justify-content-between align-items-center mb-1">
-              <small className="text-muted d-flex align-items-center">
-                ✂️ Reservas cobradas
-              </small>
-              <small className="font-weight-bold text-success">
-                {formatPesos(infoIngresos.detalle.ingresoReservas)}
-              </small>
-            </div>
-
-            {/* Suscripciones */}
-            <div className="d-flex justify-content-between align-items-center mb-1">
-              <small className="text-muted d-flex align-items-center">
-                ⭐ Suscripciones ({infoIngresos.detalle.suscripcionesNuevas})
-              </small>
-              <small className="font-weight-bold text-primary">
-                {formatPesos(infoIngresos.detalle.ingresoSuscripciones)}
-              </small>
-            </div>
-
-            {/* Posible ingreso */}
-            <div
-              className="d-flex justify-content-between align-items-center mt-2 pt-2"
-              style={{ borderTop: "1px dashed #e0e0e0" }}
-            >
-              <small className="text-muted d-flex align-items-center">
-                <TrendingUp size={12} className="mr-1 text-warning" />
-                Posible ingreso
-              </small>
-              <small className="font-weight-bold text-warning">
-                {formatPesos(infoIngresos.detalle.posibleIngreso)}
-              </small>
-            </div>
-          </div>
-        )}
-
-        {!infoIngresos && <small className="text-muted">Cargando...</small>}
+          ></div>
+        </div>
       </CardBody>
     </Card>
   );
 
+  // Skeleton para la card de ingresos (más detallada)
+  const IngresosSkeleton = () => (
+    <Card className="shadow-sm border-0 h-100" style={{ borderRadius: "16px" }}>
+      <CardBody className="p-4">
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <div style={{ width: "60%" }}>
+            <div 
+              className="bg-light rounded mb-2" 
+              style={{ 
+                height: "14px", 
+                width: "70%",
+                animation: "pulse 1.5s ease-in-out infinite"
+              }}
+            ></div>
+            <div 
+              className="bg-light rounded" 
+              style={{ 
+                height: "28px", 
+                width: "80%",
+                animation: "pulse 1.5s ease-in-out infinite"
+              }}
+            ></div>
+          </div>
+          <div 
+            className="bg-light rounded-circle" 
+            style={{ 
+              width: "56px", 
+              height: "56px",
+              animation: "pulse 1.5s ease-in-out infinite"
+            }}
+          ></div>
+        </div>
+        <div className="mt-3">
+          <div 
+            className="bg-light rounded mb-2" 
+            style={{ 
+              height: "12px", 
+              width: "90%",
+              animation: "pulse 1.5s ease-in-out infinite"
+            }}
+          ></div>
+          <div 
+            className="bg-light rounded mb-2" 
+            style={{ 
+              height: "12px", 
+              width: "85%",
+              animation: "pulse 1.5s ease-in-out infinite"
+            }}
+          ></div>
+          <div 
+            className="bg-light rounded" 
+            style={{ 
+              height: "12px", 
+              width: "80%",
+              animation: "pulse 1.5s ease-in-out infinite"
+            }}
+          ></div>
+        </div>
+      </CardBody>
+    </Card>
+  );
+
+  const stats = [
+    {
+      label: "Próximo Cliente",
+      value: proxCliente?.cliente?.nombreCompleto || "Sin reservas",
+      icon: <User size={20} />,
+      extra: proxCliente
+        ? {
+            hora: proxCliente.hora,
+            fecha: proxCliente.fecha,
+          }
+        : null,
+      cargando: cargandoStats.proximoCliente,
+    },
+    {
+      label: "Reservas Hoy",
+      value: reservasHoy?.total ?? 0,
+      icon: <Calendar size={20} />,
+      cargando: cargandoStats.reservas,
+    },
+    {
+      label: "Suscripciones Activas",
+      value: suscripcionesActivas?.total ?? 0,
+      icon: <Users size={20} />,
+      cargando: cargandoStats.suscripciones,
+    },
+  ];
+
+  // Card especial de ingresos
+  const renderCardIngresos = () => {
+    if (cargandoStats.ingresos) {
+      return <IngresosSkeleton />;
+    }
+
+    return (
+      <Card
+        className="shadow-sm border-0 h-100"
+        style={{
+          borderRadius: "16px",
+          transition: "transform 0.25s ease",
+        }}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.transform = "translateY(-5px)")
+        }
+        onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+      >
+        <CardBody className="p-4">
+          <div className="d-flex align-items-center justify-content-between mb-3">
+            <div>
+              <h6 className="text-uppercase text-muted mb-1">Ingreso del mes</h6>
+              <h3 className="font-weight-bold mb-0">
+                {infoIngresos ? formatPesos(infoIngresos.ingresoTotal) : "$0"}
+              </h3>
+            </div>
+            <div className="bg-light rounded-circle p-3 shadow-sm">
+              <CreditCard size={20} />
+            </div>
+          </div>
+
+          {/* Desglose */}
+          {infoIngresos?.detalle && (
+            <div
+              style={{
+                borderTop: "1px solid #f0f0f0",
+                paddingTop: "10px",
+                marginTop: "4px",
+              }}
+            >
+              {/* Reservas completadas */}
+              <div className="d-flex justify-content-between align-items-center mb-1">
+                <small className="text-muted d-flex align-items-center">
+                  ✂️ Reservas cobradas
+                </small>
+                <small className="font-weight-bold text-success">
+                  {formatPesos(infoIngresos.detalle.ingresoReservas)}
+                </small>
+              </div>
+
+              {/* Suscripciones */}
+              <div className="d-flex justify-content-between align-items-center mb-1">
+                <small className="text-muted d-flex align-items-center">
+                  ⭐ Suscripciones ({infoIngresos.detalle.suscripcionesNuevas})
+                </small>
+                <small className="font-weight-bold text-primary">
+                  {formatPesos(infoIngresos.detalle.ingresoSuscripciones)}
+                </small>
+              </div>
+
+              {/* Posible ingreso */}
+              <div
+                className="d-flex justify-content-between align-items-center mt-2 pt-2"
+                style={{ borderTop: "1px dashed #e0e0e0" }}
+              >
+                <small className="text-muted d-flex align-items-center">
+                  <TrendingUp size={12} className="mr-1 text-warning" />
+                  Posible ingreso
+                </small>
+                <small className="font-weight-bold text-warning">
+                  {formatPesos(infoIngresos.detalle.posibleIngreso)}
+                </small>
+              </div>
+            </div>
+          )}
+        </CardBody>
+      </Card>
+    );
+  };
+
+  // Estilos para la animación de pulso
+  const pulseAnimation = `
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.4;
+      }
+      100% {
+        opacity: 1;
+      }
+    }
+  `;
+
   return (
     <>
+      <style>{pulseAnimation}</style>
       <UserHeader />
       <Container className="mt--7" fluid>
         {/* Encabezado */}
@@ -288,46 +453,51 @@ const AdminDashboard = () => {
           <Col lg="3" md="6" className="mb-4">
             {renderCardIngresos()}
           </Col>
+          
           {/* Cards normales */}
           {stats.map((stat, index) => (
             <Col lg="3" md="6" className="mb-4" key={index}>
-              <Card
-                className="shadow-sm border-0 h-100"
-                style={{
-                  borderRadius: "16px",
-                  transition: "transform 0.25s ease",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.transform = "translateY(-5px)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.transform = "translateY(0)")
-                }
-              >
-                <CardBody className="p-4">
-                  <div className="d-flex align-items-center justify-content-between">
-                    <div>
-                      <h6 className="text-uppercase text-muted mb-1">
-                        {stat.label}
-                      </h6>
-                      <h3 className="font-weight-bold mb-0">
-                        {stat.value ?? "—"}
-                      </h3>
+              {stat.cargando ? (
+                <CardSkeleton />
+              ) : (
+                <Card
+                  className="shadow-sm border-0 h-100"
+                  style={{
+                    borderRadius: "16px",
+                    transition: "transform 0.25s ease",
+                  }}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.transform = "translateY(-5px)")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.transform = "translateY(0)")
+                  }
+                >
+                  <CardBody className="p-4">
+                    <div className="d-flex align-items-center justify-content-between">
+                      <div>
+                        <h6 className="text-uppercase text-muted mb-1">
+                          {stat.label}
+                        </h6>
+                        <h3 className="font-weight-bold mb-0">
+                          {stat.value ?? "—"}
+                        </h3>
 
-                      {stat.extra?.fecha && stat.extra?.hora && (
-                        <div className="mt-1">
-                          <small className="d-block text-muted">
-                            📅 {stat.extra.fecha} &nbsp; 🕒 {stat.extra.hora}
-                          </small>
-                        </div>
-                      )}
+                        {stat.extra?.fecha && stat.extra?.hora && (
+                          <div className="mt-1">
+                            <small className="d-block text-muted">
+                              📅 {stat.extra.fecha} &nbsp; 🕒 {stat.extra.hora}
+                            </small>
+                          </div>
+                        )}
+                      </div>
+                      <div className="bg-light rounded-circle p-3 shadow-sm">
+                        {stat.icon}
+                      </div>
                     </div>
-                    <div className="bg-light rounded-circle p-3 shadow-sm">
-                      {stat.icon}
-                    </div>
-                  </div>
-                </CardBody>
-              </Card>
+                  </CardBody>
+                </Card>
+              )}
             </Col>
           ))}
         </Row>

@@ -1,13 +1,10 @@
+import { useContext } from "react";
+import { EstadisticasContext } from "context/EstadisticasContext";
+
 export const useEstadisticas = () => {
-  const totalCitasMes = () => {};
+  const context = useContext(EstadisticasContext);
 
-  const totalClientesRegistrados = () => {};
+  if (!context) throw new Error("useEstadisticas must be used within EstadisticasProvider");
 
-  const ingresoMensual = () => {};
-};
-
-return {
-  totalCitasMes,
-  totalClientesRegistrados,
-  ingresoMensual,
+  return context;
 };
