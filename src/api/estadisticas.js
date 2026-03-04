@@ -55,3 +55,12 @@ export const getTasaDeCancelacion = () => {
 export const getTasaDeAsistencia = () => {
   return axiosPrivate.get("/estadisticas/tasa-de-asistencia");
 };
+export const getTop5ClientesAsistentes = () =>{
+   return axiosPrivate.get("/estadisticas/top5-clientes-asistencia");
+}
+export const getTop5ClientesCanceladores = () =>{
+  return axiosPrivate.get("/estadisticas/top5-clientes-canceladores");
+}
+export const getTop5ClientesNoAsistidores = () =>{
+  return axiosPrivate.get("/estadisticas/top5-clientes-no-asisten");
+}

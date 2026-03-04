@@ -6,6 +6,9 @@ import { getReservasCompletadas } from "api/estadisticas";
 import { getReservasNoAsistidas } from "api/estadisticas";
 import { getServicioMasPopular } from "api/estadisticas";
 import { getTasaDeAsistencia } from "api/estadisticas";
+import { getTop5ClientesCanceladores } from "api/estadisticas";
+import { getTop5ClientesNoAsistidores } from "api/estadisticas";
+import { getTop5ClientesAsistentes } from "api/estadisticas";
 import { getTasaDeCancelacion } from "api/estadisticas";
 import { getHoraMasCancelada } from "api/estadisticas";
 import { getReservasCanceladas } from "api/estadisticas";
@@ -177,6 +180,31 @@ export const EstadisticasProvider = ({ children }) => {
     }
   };
 
+  const top5ClientesAsistentes = async () => {
+    try {
+      const res = await getTop5ClientesAsistentes();
+      return res.data.data; // ✅ retorna el array directamente
+    } catch (error) {
+      throw error;
+    }
+  };
+  const top5ClientesCanceladores = async () => {
+    try {
+      const res = await getTop5ClientesCanceladores();
+      return res.data.data; // ✅ retorna el array directamente
+    } catch (error) {
+      throw error;
+    }
+  };
+  const top5ClientesNoAsistidores = async () => {
+    try {
+      const res = await getTop5ClientesNoAsistidores();
+      return res.data.data; // ✅ retorna el array directamente
+    } catch (error) {
+      throw error;
+    }
+  };
+
   return (
     <EstadisticasContext.Provider
       value={{
@@ -196,6 +224,9 @@ export const EstadisticasProvider = ({ children }) => {
         servicioMasPopular,
         tasaDeCancelacion,
         tasaDeAsistencia,
+        top5ClientesAsistentes, // ← nombre correcto
+        top5ClientesCanceladores,
+        top5ClientesNoAsistidores,
       }}
     >
       {children}
