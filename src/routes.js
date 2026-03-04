@@ -114,9 +114,10 @@ export const clienteRoutes = [
     component: <Suscripcion />,
     icon: "ni ni-credit-card text-warning",
     layout: "/admin",
+    excludeSlugs: ["lumicabeauty"], // ✅
   },
   {
-    path: "/barberos",
+    path: "/profesionales",
     name: "Profesionales",
     component: <BarberosPage />,
     icon: "ni ni-single-02 text-primary",

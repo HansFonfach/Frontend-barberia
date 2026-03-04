@@ -1,7 +1,7 @@
 // src/views/admin/pages/ReservarHora.jsx
 import React, { useEffect } from "react";
 import { Container, Card, CardBody } from "reactstrap";
-import { Scissors } from "lucide-react";
+import { CalendarCheck, Scissors } from "lucide-react";
 import UserHeader from "components/Headers/UserHeader.js";
 import { useAuth } from "context/AuthContext";
 
@@ -147,7 +147,7 @@ const ReservarHora = () => {
           <CardBody className="p-4">
             <div className="text-center mb-4">
               <div className="bg-success rounded-circle d-inline-flex p-2 mb-3 shadow">
-                <Scissors size={28} className="text-white" />
+                 <CalendarCheck size={28} className="text-white" />
               </div>
               <h2 className="h3 font-weight-bold text-dark mb-1">
                 Reserva Tu Hora

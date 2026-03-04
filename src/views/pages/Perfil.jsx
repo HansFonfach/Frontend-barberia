@@ -113,7 +113,7 @@ const Perfil = () => {
     link.click();
   };
 
-  console.log(user);
+
   /* =========================
      RENDER
   ========================= */

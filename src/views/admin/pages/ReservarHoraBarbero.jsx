@@ -1,11 +1,16 @@
 // src/views/admin/pages/ReservarHoraBarbero.jsx
 import React from "react";
 import {
-  Container, Card, CardBody,
-  Modal, ModalHeader, ModalBody,
-  Input, Button,
+  Container,
+  Card,
+  CardBody,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  Input,
+  Button,
 } from "reactstrap";
-import { Scissors, UserPlus } from "lucide-react";
+import { CalendarCheck, Scissors, UserPlus } from "lucide-react";
 import { FaPhone } from "react-icons/fa";
 import Swal from "sweetalert2";
 import UserHeader from "components/Headers/UserHeader.js";
@@ -70,7 +75,7 @@ const ReservarHoraBarbero = () => {
     handleSeleccionarServicio,
     handleSeleccionarBarbero,
     setHora,
-  } = useReservaBarbero()
+  } = useReservaBarbero();
 
   const servicioSeleccionado = servicios.find((s) => s._id === servicio);
   const duracionSeleccionado = servicioSeleccionado?.duracion || 60;
@@ -80,27 +85,32 @@ const ReservarHoraBarbero = () => {
   const clienteListo = usuarioEncontrado || modoInvitado;
 
   // --- Modal waitlist ---
-  const [modalNotificacionOpen, setModalNotificacionOpen] = React.useState(false);
-  const [selectedDiaForWaitlist, setSelectedDiaForWaitlist] = React.useState(null);
+  const [modalNotificacionOpen, setModalNotificacionOpen] =
+    React.useState(false);
+  const [selectedDiaForWaitlist, setSelectedDiaForWaitlist] =
+    React.useState(null);
   const [horasBase, setHorasBase] = React.useState([]);
   const [loadingHorasBase, setLoadingHorasBase] = React.useState(false);
   const [horasSeleccionadas, setHorasSeleccionadas] = React.useState([]);
 
   const { obtenerHorarioBasePorDia } = useHorario();
 
-  const handleOpenWaitlist = React.useCallback((data) => {
-    if (!barbero) {
-      Swal.fire("Error", "Debes seleccionar un barbero primero", "error");
-      return;
-    }
-    const fechaSeleccionada = data?.fecha;
-    if (!fechaSeleccionada) {
-      Swal.fire("Error", "No se especificó fecha", "error");
-      return;
-    }
-    setSelectedDiaForWaitlist(fechaSeleccionada);
-    setModalNotificacionOpen(true);
-  }, [barbero]);
+  const handleOpenWaitlist = React.useCallback(
+    (data) => {
+      if (!barbero) {
+        Swal.fire("Error", "Debes seleccionar un barbero primero", "error");
+        return;
+      }
+      const fechaSeleccionada = data?.fecha;
+      if (!fechaSeleccionada) {
+        Swal.fire("Error", "No se especificó fecha", "error");
+        return;
+      }
+      setSelectedDiaForWaitlist(fechaSeleccionada);
+      setModalNotificacionOpen(true);
+    },
+    [barbero],
+  );
 
   React.useEffect(() => {
     if (!modalNotificacionOpen || !selectedDiaForWaitlist || !barbero) return;
@@ -109,7 +119,10 @@ const ReservarHoraBarbero = () => {
       setLoadingHorasBase(true);
       setHorasBase([]);
       try {
-        const resultado = await obtenerHorarioBasePorDia(barbero, selectedDiaForWaitlist);
+        const resultado = await obtenerHorarioBasePorDia(
+          barbero,
+          selectedDiaForWaitlist,
+        );
         const bloques = Array.isArray(resultado) ? resultado : [];
         const horasProcesadas = [];
 
@@ -122,7 +135,9 @@ const ReservarHoraBarbero = () => {
           for (let min = start; min < end; min += 30) {
             const h = Math.floor(min / 60);
             const m = min % 60;
-            horasProcesadas.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
+            horasProcesadas.push(
+              `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`,
+            );
           }
         });
 
@@ -140,7 +155,7 @@ const ReservarHoraBarbero = () => {
 
   const toggleHoraSeleccionada = (h) => {
     setHorasSeleccionadas((prev) =>
-      prev.includes(h) ? prev.filter((x) => x !== h) : [...prev, h]
+      prev.includes(h) ? prev.filter((x) => x !== h) : [...prev, h],
     );
   };
 
@@ -171,7 +186,7 @@ const ReservarHoraBarbero = () => {
           <CardBody className="p-4">
             <div className="text-center mb-4">
               <div className="bg-success rounded-circle d-inline-flex p-2 mb-3">
-                <Scissors size={28} className="text-white" />
+                <CalendarCheck size={28} className="text-white" />
               </div>
               <h2 className="h3 mb-1">Reserva de Hora para Cliente</h2>
               <p className="text-muted mb-0">
@@ -181,7 +196,6 @@ const ReservarHoraBarbero = () => {
 
             <div className="row">
               <div className="col-lg-7 pr-lg-4">
-
                 {/* RUT */}
                 <RutInput
                   rut={rut}
@@ -197,15 +211,24 @@ const ReservarHoraBarbero = () => {
                 {modoInvitado && !usuarioEncontrado && (
                   <div
                     className="d-flex align-items-center justify-content-between p-3 mb-3 rounded"
-                    style={{ backgroundColor: "#fff8e1", border: "1px solid #ffe082" }}
+                    style={{
+                      backgroundColor: "#fff8e1",
+                      border: "1px solid #ffe082",
+                    }}
                   >
                     <div className="d-flex align-items-center gap-2">
                       <UserPlus size={18} className="text-warning" />
                       <div>
-                        <p className="mb-0 fw-bold" style={{ fontSize: "0.9rem" }}>
+                        <p
+                          className="mb-0 fw-bold"
+                          style={{ fontSize: "0.9rem" }}
+                        >
                           Cliente no registrado
                         </p>
-                        <p className="mb-0 text-muted" style={{ fontSize: "0.8rem" }}>
+                        <p
+                          className="mb-0 text-muted"
+                          style={{ fontSize: "0.8rem" }}
+                        >
                           {invitadoValido
                             ? `${invitado.nombre} ${invitado.apellido} — Datos completos ✓`
                             : "Completa los datos para reservar como invitado"}
@@ -274,7 +297,11 @@ const ReservarHoraBarbero = () => {
                     // ✅ Si es invitado, pasamos un objeto con sus datos para el resumen
                     usuarioEncontrado ||
                     (modoInvitado && invitadoValido
-                      ? { nombre: invitado.nombre, apellido: invitado.apellido, rut }
+                      ? {
+                          nombre: invitado.nombre,
+                          apellido: invitado.apellido,
+                          rut,
+                        }
                       : null)
                   }
                   rut={rut}
@@ -307,7 +334,11 @@ const ReservarHoraBarbero = () => {
       </Container>
 
       {/* ✅ MODAL DATOS INVITADO */}
-      <Modal isOpen={modalInvitado} toggle={() => setModalInvitado(false)} centered>
+      <Modal
+        isOpen={modalInvitado}
+        toggle={() => setModalInvitado(false)}
+        centered
+      >
         <ModalHeader toggle={() => setModalInvitado(false)}>
           <UserPlus size={18} className="me-2" />
           Datos del cliente invitado
@@ -322,14 +353,18 @@ const ReservarHoraBarbero = () => {
             className="mb-2"
             placeholder="Nombre"
             value={invitado.nombre}
-            onChange={(e) => setInvitado({ ...invitado, nombre: e.target.value })}
+            onChange={(e) =>
+              setInvitado({ ...invitado, nombre: e.target.value })
+            }
           />
 
           <Input
             className="mb-2"
             placeholder="Apellido"
             value={invitado.apellido}
-            onChange={(e) => setInvitado({ ...invitado, apellido: e.target.value })}
+            onChange={(e) =>
+              setInvitado({ ...invitado, apellido: e.target.value })
+            }
           />
 
           {/* Teléfono */}
@@ -340,10 +375,19 @@ const ReservarHoraBarbero = () => {
             >
               <div
                 className="d-flex align-items-center px-3 py-2"
-                style={{ backgroundColor: "#f7fafc", borderRight: "1px solid #cad1d7", whiteSpace: "nowrap" }}
+                style={{
+                  backgroundColor: "#f7fafc",
+                  borderRight: "1px solid #cad1d7",
+                  whiteSpace: "nowrap",
+                }}
               >
                 <FaPhone size={13} className="text-success me-2" />
-                <span className="text-muted fw-bold" style={{ fontSize: "0.85rem" }}>+569</span>
+                <span
+                  className="text-muted fw-bold"
+                  style={{ fontSize: "0.85rem" }}
+                >
+                  +569
+                </span>
               </div>
               <input
                 placeholder="Teléfono (8 dígitos)"
@@ -355,19 +399,28 @@ const ReservarHoraBarbero = () => {
                   setInvitado({ ...invitado, telefono: value });
                 }}
                 className="form-control"
-                style={{ border: "none", boxShadow: "none", backgroundColor: "transparent" }}
+                style={{
+                  border: "none",
+                  boxShadow: "none",
+                  backgroundColor: "transparent",
+                }}
               />
               {invitado.telefono && (
                 <div className="px-2">
-                  {invitado.telefono.length === 8
-                    ? <span className="text-success fw-bold">✓</span>
-                    : <span className="text-muted small">{invitado.telefono.length}/8</span>
-                  }
+                  {invitado.telefono.length === 8 ? (
+                    <span className="text-success fw-bold">✓</span>
+                  ) : (
+                    <span className="text-muted small">
+                      {invitado.telefono.length}/8
+                    </span>
+                  )}
                 </div>
               )}
             </div>
             {invitado.telefono && invitado.telefono.length !== 8 && (
-              <small className="text-danger ms-1">El teléfono debe tener 8 dígitos</small>
+              <small className="text-danger ms-1">
+                El teléfono debe tener 8 dígitos
+              </small>
             )}
           </div>
 
@@ -376,7 +429,9 @@ const ReservarHoraBarbero = () => {
             placeholder="Email"
             type="email"
             value={invitado.email}
-            onChange={(e) => setInvitado({ ...invitado, email: e.target.value })}
+            onChange={(e) =>
+              setInvitado({ ...invitado, email: e.target.value })
+            }
           />
 
           <Button

@@ -1,7 +1,7 @@
 // src/views/admin/pages/components/ResumenReserva.jsx
 import React from "react";
 import { Card, CardBody, Button, Spinner, Badge } from "reactstrap";
-import { Zap, MapPin } from "lucide-react";
+import { Zap, MapPin, Briefcase } from "lucide-react";
 import { useEmpresa } from "context/EmpresaContext";
 
 const ResumenReserva = ({
@@ -30,8 +30,46 @@ const ResumenReserva = ({
 
   const serviciosLuegoReserva = Math.max(
     0,
-    serviciosRestantes - serviciosReserva
+    serviciosRestantes - serviciosReserva,
   );
+
+  const obtenerIconoServicio = () => {
+    if (!empresa?.tipo) return "🛠"; // fallback genérico
+
+    switch (empresa.tipo) {
+      case "barberia":
+        return "✂️";
+      case "salon de belleza":
+        return "💅";
+      default:
+        return "🛠"; // icono genérico para otros servicios
+    }
+  };
+
+    const obtenerIconoProfesional = () => {
+    if (!empresa?.tipo) return "🛠"; // fallback genérico
+
+    switch (empresa.tipo) {
+      case "barberia":
+        return "👨‍💼";
+      case "salon de belleza":
+        return "💇‍♀️";
+      default:
+        return "🛠"; // icono genérico para otros servicios
+    }
+  };
+      const obtenerIconoCliente = () => {
+    if (!empresa?.tipo) return "🛠"; // fallback genérico
+
+    switch (empresa.tipo) {
+      case "barberia":
+        return "👤 ";
+      case "salon de belleza":
+        return "👩🏼";
+      default:
+        return "🛠"; // icono genérico para otros servicios
+    }
+  };
 
   return (
     <>
@@ -43,7 +81,7 @@ const ResumenReserva = ({
 
           <div className="small">
             <div className="d-flex justify-content-between border-bottom py-1">
-              <span>👤 Cliente:</span>
+                 <span>{obtenerIconoCliente()} Servicio:</span>
               <strong>
                 {usuarioEncontrado
                   ? `${usuarioEncontrado.nombre} ${usuarioEncontrado.apellido}`
@@ -52,7 +90,9 @@ const ResumenReserva = ({
             </div>
 
             <div className="d-flex justify-content-between border-bottom py-1">
-              <span>✂️ Servicio:</span>
+              <span className="d-flex align-items-center gap-1">
+                <span>{obtenerIconoServicio()} Servicio:</span>
+              </span>
               <strong>
                 {duracionServicio
                   ? `${nombreServicio} (${duracionServicio} min)`
@@ -61,7 +101,7 @@ const ResumenReserva = ({
             </div>
 
             <div className="d-flex justify-content-between border-bottom py-1">
-              <span>👨‍💼 Profesional:</span>
+              <span>{obtenerIconoProfesional()} Profesional:</span>
               <strong>
                 {barberoSeleccionado
                   ? `${barberoSeleccionado.nombre} ${barberoSeleccionado.apellido}`
@@ -98,21 +138,17 @@ const ResumenReserva = ({
             >
               {excedente === 0 ? (
                 <>
-                  Esta reserva consume{" "}
-                  <strong>{serviciosReserva}</strong>{" "}
+                  Esta reserva consume <strong>{serviciosReserva}</strong>{" "}
                   servicio{serviciosReserva > 1 ? "s" : ""}. Te quedarán{" "}
-                  <strong>{serviciosLuegoReserva}</strong>{" "}
-                  disponible
+                  <strong>{serviciosLuegoReserva}</strong> disponible
                   {serviciosLuegoReserva !== 1 ? "s" : ""}.
                 </>
               ) : (
                 <>
-                  Esta reserva consume{" "}
-                  <strong>{serviciosReserva}</strong>{" "}
+                  Esta reserva consume <strong>{serviciosReserva}</strong>{" "}
                   servicio{serviciosReserva > 1 ? "s" : ""}. Excedes tu plan en{" "}
-                  <strong>{excedente}</strong>{" "}
-                  servicio{excedente > 1 ? "s" : ""}, que se cobrará a valor
-                  normal.
+                  <strong>{excedente}</strong> servicio
+                  {excedente > 1 ? "s" : ""}, que se cobrará a valor normal.
                 </>
               )}
             </div>
@@ -147,8 +183,11 @@ const ResumenReserva = ({
               </h5>
               <p className="small text-muted mb-2">
                 🕒 {empresa?.horarios || "—"}
-                <br />
-                ⭐ Sábado atención solo suscritos
+               
+                {empresa?.slug === "lasantabarberia" && (
+                  
+                  <>  <br />⭐ Sábado atención solo suscritos</>
+                )}
                 <br />
                 📍 {empresa?.direccion || "—"}
                 <br />

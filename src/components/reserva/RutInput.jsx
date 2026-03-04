@@ -20,7 +20,7 @@ const RutInput = ({
   return (
     <FormGroup className="mb-4">
       <Label className="font-weight-bold text-dark mb-3">
-        👤 RUT del Cliente
+         RUT del Cliente
       </Label>
 
       <div className="position-relative mb-3">

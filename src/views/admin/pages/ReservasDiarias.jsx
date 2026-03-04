@@ -15,6 +15,7 @@ import {
 import UserHeader from "components/Headers/UserHeader.js";
 import { useReserva } from "context/ReservaContext";
 import Swal from "sweetalert2";
+import { useEmpresa } from "context/EmpresaContext";
 
 const GestionReservas = () => {
   const {
@@ -25,6 +26,7 @@ const GestionReservas = () => {
     cancelarReserva,
     marcarReservaNoAsistida,
   } = useReserva();
+  const { empresa } = useEmpresa();
 
   const [modal, setModal] = useState(false);
   const [reservaSeleccionada, setReservaSeleccionada] = useState(null);
@@ -61,7 +63,8 @@ const GestionReservas = () => {
     return new Date(reserva.fecha) >= new Date() ? "primary" : "success";
   };
 
-  const esPendiente = (reserva) => reserva.estado === "pendiente" || reserva.estado === "confirmada";
+  const esPendiente = (reserva) =>
+    reserva.estado === "pendiente" || reserva.estado === "confirmada";
 
   /* =============================
      HANDLERS
@@ -125,6 +128,14 @@ const GestionReservas = () => {
     });
   };
 
+  const iconoCliente = (reserva) => {
+    if (reserva.suscripcion) return "⭐";
+
+    if (empresa?.slug === "lumicabeauty") return "🎀";
+
+    return "🧔🏻‍♂️";
+  };
+
   /* =============================
      VISTA MOBILE
   ============================== */
@@ -136,7 +147,7 @@ const GestionReservas = () => {
             <div className="d-flex justify-content-between align-items-center mb-2">
               <div className="d-flex align-items-center">
                 <span className="mr-2" style={{ fontSize: "1.2rem" }}>
-                  {reserva.suscripcion ? "⭐" : "🧔🏻‍♂️"}
+                  {iconoCliente(reserva)}
                 </span>
                 <strong className="text-dark">
                   {reserva.cliente?.nombre} {reserva.cliente?.apellido}
@@ -177,13 +188,15 @@ const GestionReservas = () => {
                   <small className="w-50 text-right">
                     <Badge
                       color={
-                        reserva.suscripcion.posicion > reserva.suscripcion.limite
+                        reserva.suscripcion.posicion >
+                        reserva.suscripcion.limite
                           ? "danger"
                           : "success"
                       }
                       pill
                     >
-                      {reserva.suscripcion.posicion}/{reserva.suscripcion.limite}
+                      {reserva.suscripcion.posicion}/
+                      {reserva.suscripcion.limite}
                       {reserva.suscripcion.esDobleServicio && " ×2"}
                     </Badge>
                   </small>
@@ -238,7 +251,7 @@ const GestionReservas = () => {
             <tr key={reserva._id}>
               <td className="text-nowrap">
                 <span className="mr-2">
-                  {reserva.suscripcion ? "⭐" : "🧔🏻‍♂️"}
+                  {iconoCliente(reserva)}
                 </span>
                 {reserva.cliente?.nombre} {reserva.cliente?.apellido}
               </td>
@@ -257,7 +270,9 @@ const GestionReservas = () => {
                     {reserva.suscripcion.esDobleServicio && " ×2"}
                   </Badge>
                 ) : (
-                  <Badge color="secondary" pill>-</Badge>
+                  <Badge color="secondary" pill>
+                    -
+                  </Badge>
                 )}
               </td>
               <td className="text-nowrap">
@@ -372,7 +387,11 @@ const GestionReservas = () => {
                 <i className="ni ni-single-copy-04 mr-2"></i>
                 Detalles de la Reserva
               </h5>
-              <button type="button" className="close text-white" onClick={toggle}>
+              <button
+                type="button"
+                className="close text-white"
+                onClick={toggle}
+              >
                 <span aria-hidden="true">&times;</span>
               </button>
             </div>
@@ -394,7 +413,9 @@ const GestionReservas = () => {
                             {reservaSeleccionada.cliente?.apellido}
                           </h5>
                           <p className="text-sm text-muted mb-0">
-                            {reservaSeleccionada.suscripcion ? "Suscriptor" : "Cliente Regular"}
+                            {reservaSeleccionada.suscripcion
+                              ? "Suscriptor"
+                              : "Cliente Regular"}
                           </p>
                         </div>
                       </div>
@@ -413,11 +434,15 @@ const GestionReservas = () => {
                           <i className="ni ni-tag mr-1"></i>Tipo:
                         </strong>
                         <Badge
-                          color={reservaSeleccionada.suscripcion ? "success" : "info"}
+                          color={
+                            reservaSeleccionada.suscripcion ? "success" : "info"
+                          }
                           className="ml-auto"
                           pill
                         >
-                          {reservaSeleccionada.suscripcion ? "Suscriptor" : "Regular"}
+                          {reservaSeleccionada.suscripcion
+                            ? "Suscriptor"
+                            : "Regular"}
                         </Badge>
                       </p>
                     </CardBody>
@@ -446,7 +471,9 @@ const GestionReservas = () => {
                           <i className="ni ni-watch-time mr-1"></i>Hora:
                         </strong>
                         <span className="ml-auto font-weight-bold">
-                          {new Date(reservaSeleccionada.fecha).toLocaleTimeString([], {
+                          {new Date(
+                            reservaSeleccionada.fecha,
+                          ).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
@@ -457,7 +484,9 @@ const GestionReservas = () => {
                           <i className="ni ni-calendar-grid-58 mr-1"></i>Fecha:
                         </strong>
                         <span className="ml-auto font-weight-bold">
-                          {new Date(reservaSeleccionada.fecha).toLocaleDateString()}
+                          {new Date(
+                            reservaSeleccionada.fecha,
+                          ).toLocaleDateString()}
                         </span>
                       </p>
                       <p className="mb-0 d-flex flex-wrap">
@@ -500,28 +529,30 @@ const GestionReservas = () => {
                     Cancelar
                   </Button>
                 </>
-              ) : reservaSeleccionada.estado !== "no_asistio" && (
-                <Button
-                  color="warning"
-                  size={vistaMobile ? "sm" : "md"}
-                  className="mr-2 mb-2 mb-sm-0 flex-fill"
-                  onClick={async () => {
-                    const confirm = await Swal.fire({
-                      title: "¿Marcar como No Asistió?",
-                      text: "Esta acción es retroactiva.",
-                      icon: "warning",
-                      showCancelButton: true,
-                      confirmButtonColor: "#f5a623",
-                      cancelButtonColor: "#3085d6",
-                      confirmButtonText: "Sí, marcar",
-                      cancelButtonText: "Cancelar",
-                    });
-                    if (confirm.isConfirmed) handleNoAsistio();
-                  }}
-                >
-                  <i className="ni ni-user-run mr-1"></i>
-                  No asistió
-                </Button>
+              ) : (
+                reservaSeleccionada.estado !== "no_asistio" && (
+                  <Button
+                    color="warning"
+                    size={vistaMobile ? "sm" : "md"}
+                    className="mr-2 mb-2 mb-sm-0 flex-fill"
+                    onClick={async () => {
+                      const confirm = await Swal.fire({
+                        title: "¿Marcar como No Asistió?",
+                        text: "Esta acción es retroactiva.",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonColor: "#f5a623",
+                        cancelButtonColor: "#3085d6",
+                        confirmButtonText: "Sí, marcar",
+                        cancelButtonText: "Cancelar",
+                      });
+                      if (confirm.isConfirmed) handleNoAsistio();
+                    }}
+                  >
+                    <i className="ni ni-user-run mr-1"></i>
+                    No asistió
+                  </Button>
+                )
               )}
 
               <Button

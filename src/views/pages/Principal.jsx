@@ -6,7 +6,6 @@ import {
   Row,
   Col,
   Spinner,
-  Button,
   Progress,
   Badge,
   Alert,
@@ -15,8 +14,9 @@ import UserHeader from "components/Headers/UserHeader";
 import { useAuth } from "context/AuthContext";
 import { useEstadisticas } from "context/EstadisticasContext";
 import { useLook } from "context/LookContext";
-import { Sparkles, Scissors, Star, Zap } from "lucide-react";
+import { Sparkles, Scissors, Star, Zap, Calendar } from "lucide-react";
 import { useUsuario } from "context/usuariosContext";
+import { useEmpresa } from "context/EmpresaContext";
 import { useParams } from "react-router-dom";
 
 const UserDashboard = () => {
@@ -24,10 +24,12 @@ const UserDashboard = () => {
   const { ultimaReserva, proximaReserva } = useEstadisticas();
   const { estadoLookCliente } = useLook();
   const { getVerPuntos, puntos, getSuscripcionActiva } = useUsuario();
+  const { empresa } = useEmpresa();
   const { slug } = useParams();
 
-  const [suscripcion, setSuscripcion] = useState(null);
+  const esBarberia = empresa?.tipo === "barberia";
 
+  const [suscripcion, setSuscripcion] = useState(null);
   const [data, setData] = useState({ ultima: null, proxima: null });
   const [look, setLook] = useState(null);
   const [loadingDatos, setLoadingDatos] = useState(true);
@@ -51,27 +53,30 @@ const UserDashboard = () => {
         const [ultima, proxima, lookDataRaw] = await Promise.all([
           ultimaReserva().catch(() => null),
           proximaReserva().catch(() => null),
-          estadoLookCliente().catch(() => null),
+          // ✅ Solo cargar look si es barbería
+          esBarberia
+            ? estadoLookCliente().catch(() => null)
+            : Promise.resolve(null),
         ]);
 
-        // ✅ Fuera del Promise.all para poder ver el log
-        const sus = await getSuscripcionActiva().catch(() => null);
-        console.log("suscripcion:", sus);
-        setSuscripcion(sus);
-
-        await getVerPuntos().catch(() => null);
+        // ✅ Solo cargar suscripción si es barbería
+        if (esBarberia) {
+          const sus = await getSuscripcionActiva().catch(() => null);
+          setSuscripcion(sus);
+          await getVerPuntos().catch(() => null);
+        }
 
         setData({ ultima, proxima });
-        setLook(lookDataRaw || null); // ✅ directo, sin fallback que tape el 0
+        setLook(lookDataRaw || null);
       } catch (e) {
         console.error(e);
       } finally {
-        setLoadingDatos(false); // ✅ siempre se ejecuta, corta el spinner
+        setLoadingDatos(false);
       }
     };
 
     cargarDatos();
-  }, [user?.id]);
+  }, [user?.id, esBarberia]);
 
   const diasRestantes = suscripcion
     ? Math.max(
@@ -86,7 +91,7 @@ const UserDashboard = () => {
     ? Math.max(0, suscripcion.serviciosTotales - suscripcion.serviciosUsados)
     : null;
 
-  // 🔄 Spinner global (solo auth)
+  // 🔄 Spinner global
   if (authLoading || !user || loadingDatos) {
     return (
       <Container
@@ -97,6 +102,7 @@ const UserDashboard = () => {
       </Container>
     );
   }
+
   return (
     <>
       <UserHeader />
@@ -109,20 +115,19 @@ const UserDashboard = () => {
           transform: translateY(-3px);
           box-shadow: 0 6px 25px rgba(0,0,0,0.12) !important;
         }
-
         .hero-animate {
           animation: heroFade 0.8s ease-out both;
         }
-
         @keyframes heroFade {
-          from {
-            opacity: 0;
-            transform: translateY(12px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
+          from { opacity: 0; transform: translateY(12px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        .cita-card {
+          border-radius: 16px;
+          transition: transform 0.25s ease;
+        }
+        .cita-card:hover {
+          transform: translateY(-5px);
         }
       `}</style>
 
@@ -138,27 +143,18 @@ const UserDashboard = () => {
                     Bienvenido, {user.nombre}
                   </h1>
                 </div>
+                {empresa?.nombre && (
+                  <p className="mb-0 text-white-50">{empresa.nombre}</p>
+                )}
               </CardBody>
             </Card>
           </Col>
         </Row>
-        {/* Última visita / Próxima cita */}
+
+        {/* ===== PRÓXIMA CITA / ÚLTIMA VISITA ===== */}
         <Row className="mb-5">
-          {/* Próxima cita */}
           <Col lg="6" md="6" className="mb-4">
-            <Card
-              className="shadow-sm border-0 h-100"
-              style={{
-                borderRadius: "16px",
-                transition: "transform 0.25s ease",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.transform = "translateY(-5px)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.transform = "translateY(0)")
-              }
-            >
+            <Card className="shadow-sm border-0 h-100 cita-card">
               <CardBody className="p-4">
                 <div className="d-flex align-items-center justify-content-between">
                   <div>
@@ -170,61 +166,39 @@ const UserDashboard = () => {
                         ? `${data.proxima.fecha} · ${data.proxima.hora}`
                         : "—"}
                     </h3>
-
-                    {data.proxima ? (
-                      <small className="d-block text-muted mt-1"></small>
-                    ) : (
-                      <small className="d-block text-muted mt-1">
-                        No tienes reservas agendadas
-                      </small>
-                    )}
+                    <small className="d-block text-muted mt-1">
+                      {data.proxima
+                        ? "Tu próxima cita está confirmada"
+                        : "No tienes reservas agendadas"}
+                    </small>
                   </div>
-
                   <div className="bg-light rounded-circle p-3 shadow-sm">
-                    <Scissors size={22} />
+                    <Calendar size={22} />
                   </div>
                 </div>
               </CardBody>
             </Card>
           </Col>
 
-          {/* Última visita */}
           <Col lg="6" md="6" className="mb-4">
-            <Card
-              className="shadow-sm border-0 h-100"
-              style={{
-                borderRadius: "16px",
-                transition: "transform 0.25s ease",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.transform = "translateY(-5px)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.transform = "translateY(0)")
-              }
-            >
+            <Card className="shadow-sm border-0 h-100 cita-card">
               <CardBody className="p-4">
                 <div className="d-flex align-items-center justify-content-between">
                   <div>
                     <h6 className="text-uppercase text-muted mb-1">
                       📅 Última visita
                     </h6>
-
                     <h3 className="font-weight-bold mb-0">
                       {data.ultima
                         ? `${data.ultima.fecha} · ${data.ultima.hora}`
                         : "—"}
                     </h3>
-
-                    {data.ultima ? (
-                      <small className="d-block text-muted mt-1"></small>
-                    ) : (
-                      <small className="d-block text-muted mt-1">
-                        Aún no tienes visitas registradas
-                      </small>
-                    )}
+                    <small className="d-block text-muted mt-1">
+                      {data.ultima
+                        ? "Mantener una frecuencia regular mejora tu look"
+                        : "Aún no tienes visitas registradas"}
+                    </small>
                   </div>
-
                   <div className="bg-light rounded-circle p-3 shadow-sm">
                     <Scissors size={22} />
                   </div>
@@ -233,101 +207,106 @@ const UserDashboard = () => {
             </Card>
           </Col>
         </Row>
-        {/* Estado del look */}
-        <Row className="mb-5">
-          {["corte", "barba"].map((tipo) => {
-            const necesitaAtencion =
-              look[tipo].diasDesdeUltimo > look[tipo].promedio;
 
-            return (
-              <Col lg="6" key={tipo} className="mb-4">
-                <Card className="border-0 shadow card-hover h-100">
-                  <CardBody className="p-4">
-                    <div className="d-flex align-items-center mb-3">
-                      <div
-                        className={`${
-                          necesitaAtencion ? "bg-warning" : "bg-success"
-                        } text-white rounded-circle p-3 mr-3`}
+        {/* ===== ESTADO DEL LOOK — SOLO BARBERÍA ===== */}
+        {esBarberia && look && (
+          <Row className="mb-5">
+            {["corte", "barba"].map((tipo) => {
+              const necesitaAtencion =
+                look[tipo]?.diasDesdeUltimo > look[tipo]?.promedio;
+
+              return (
+                <Col lg="6" key={tipo} className="mb-4">
+                  <Card className="border-0 shadow card-hover h-100">
+                    <CardBody className="p-4">
+                      <div className="d-flex align-items-center mb-3">
+                        <div
+                          className={`${
+                            necesitaAtencion ? "bg-warning" : "bg-success"
+                          } text-white rounded-circle p-3 mr-3`}
+                        >
+                          <Scissors size={20} />
+                        </div>
+                        <div>
+                          <h4 className="mb-0 text-capitalize">Tu {tipo}</h4>
+                          <small className="text-muted">Estado actual</small>
+                        </div>
+                      </div>
+
+                      <Row className="mb-3">
+                        <Col xs="6">
+                          <div className="border rounded p-3 text-center">
+                            <small className="text-muted d-block">
+                              Última vez
+                            </small>
+                            <strong>
+                              {look[tipo]?.diasDesdeUltimo !== null
+                                ? `${look[tipo].diasDesdeUltimo} días`
+                                : "Sin datos"}
+                            </strong>
+                          </div>
+                        </Col>
+                        <Col xs="6">
+                          <div className="border rounded p-3 text-center">
+                            <small className="text-muted d-block">
+                              Frecuencia ideal
+                            </small>
+                            <strong>
+                              {look[tipo]?.promedio !== null &&
+                              look[tipo]?.promedio !== 0
+                                ? `${look[tipo].promedio} días`
+                                : "Sin datos"}
+                            </strong>
+                          </div>
+                        </Col>
+                      </Row>
+
+                      <Alert
+                        color={necesitaAtencion ? "warning" : "success"}
+                        className="mb-0"
                       >
-                        <Scissors size={20} />
-                      </div>
-                      <div>
-                        <h4 className="mb-0 text-capitalize">Tu {tipo}</h4>
-                        <small className="text-muted">Estado actual</small>
-                      </div>
+                        {look[tipo]?.mensaje}
+                      </Alert>
+                    </CardBody>
+                  </Card>
+                </Col>
+              );
+            })}
+          </Row>
+        )}
+
+        {/* ===== PUNTOS — SOLO BARBERÍA ===== */}
+        {esBarberia && (
+          <Row className="mb-5">
+            <Col>
+              <Card className="border-0 shadow card-hover">
+                <CardBody className="p-4">
+                  <div className="d-flex justify-content-between align-items-center mb-3">
+                    <div className="d-flex align-items-center">
+                      <Star className="text-warning mr-2" size={24} />
+                      <h4 className="mb-0">Tus puntos</h4>
                     </div>
-
-                    <Row className="mb-3">
-                      <Col xs="6">
-                        <div className="border rounded p-3 text-center">
-                          <small className="text-muted d-block">
-                            Última vez
-                          </small>
-                          <strong>
-                            {look[tipo].diasDesdeUltimo !== null
-                              ? `${look[tipo].diasDesdeUltimo} días`
-                              : "Sin datos"}
-                          </strong>
-                        </div>
-                      </Col>
-                      <Col xs="6">
-                        <div className="border rounded p-3 text-center">
-                          <small className="text-muted d-block">
-                            Frecuencia ideal
-                          </small>
-                          <strong>
-                            {look[tipo].promedio !== null &&
-                            look[tipo].promedio !== 0
-                              ? `${look[tipo].promedio} días`
-                              : "Sin datos"}
-                          </strong>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <Alert
-                      color={necesitaAtencion ? "warning" : "success"}
-                      className="mb-0"
-                    >
-                      {look[tipo].mensaje}
-                    </Alert>
-                  </CardBody>
-                </Card>
-              </Col>
-            );
-          })}
-        </Row>
-        {/* Puntos */}
-        {/* Puntos */}
-        <Row className="mb-5">
-          <Col>
-            <Card className="border-0 shadow card-hover">
-              <CardBody className="p-4">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <div className="d-flex align-items-center">
-                    <Star className="text-warning mr-2" size={24} />
-                    <h4 className="mb-0">Tus puntos</h4>
+                    <Badge color="success" pill>
+                      {puntos} pts
+                    </Badge>
                   </div>
-                  <Badge color="success" pill>
-                    {puntos} pts
-                  </Badge>
-                </div>
-                <Progress
-                  value={(puntos / meta) * 100}
-                  style={{ height: 10 }}
-                  className="mb-2"
-                />
-                <small className="text-muted">
-                  Te faltan <strong>{meta - puntos}</strong> puntos para tu
-                  próximo beneficio
-                </small>
-              </CardBody>
-            </Card>
-          </Col>
-        </Row>{" "}
-        {/* ✅ Cierra el Row de puntos AQUÍ */}
-        {/* Suscripción */}
-        {suscripcion && (
+                  <Progress
+                    value={(puntos / meta) * 100}
+                    style={{ height: 10 }}
+                    className="mb-2"
+                  />
+                  <small className="text-muted">
+                    Te faltan <strong>{meta - puntos}</strong> puntos para tu
+                    próximo beneficio
+                  </small>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+        )}
+
+        {/* ===== SUSCRIPCIÓN — SOLO BARBERÍA ===== */}
+        {esBarberia && suscripcion && (
           <Row className="mb-5">
             <Col>
               <Card className="border-0 shadow card-hover">
@@ -341,6 +320,7 @@ const UserDashboard = () => {
                       Activa
                     </Badge>
                   </div>
+
                   <Row>
                     <Col xs="6">
                       <div className="border rounded p-3 text-center">
@@ -353,7 +333,7 @@ const UserDashboard = () => {
                     <Col xs="6">
                       <div className="border rounded p-3 text-center">
                         <small className="text-muted d-block">
-                          Servicios disponibles
+                          Servicios incluidos
                         </small>
                         <strong className="h3">
                           {suscripcion.serviciosUsados}/
@@ -362,6 +342,7 @@ const UserDashboard = () => {
                       </div>
                     </Col>
                   </Row>
+
                   <Progress
                     value={Math.min(
                       (suscripcion.serviciosUsados /
@@ -373,11 +354,32 @@ const UserDashboard = () => {
                     style={{ height: 8 }}
                     className="mt-3 mb-2"
                   />
+
                   <small className="text-muted">
-                    {suscripcion.serviciosUsados < suscripcion.serviciosTotales
-                      ? `Te quedan ${suscripcion.serviciosTotales - suscripcion.serviciosUsados} servicio${suscripcion.serviciosTotales - suscripcion.serviciosUsados !== 1 ? "s" : ""} gratis`
-                      : "Ya superaste los servicios incluidos en tu plan"}
+                    {serviciosRestantes > 0
+                      ? `Te quedan ${serviciosRestantes} servicio${serviciosRestantes !== 1 ? "s" : ""} gratis`
+                      : "Ya usaste todos los servicios incluidos — el próximo tiene costo normal"}
                   </small>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+        )}
+
+        {/* ===== MENSAJE GENÉRICO PARA NO BARBERÍA ===== */}
+        {!esBarberia && (
+          <Row className="mb-5">
+            <Col>
+              <Card className="border-0 shadow card-hover">
+                <CardBody className="p-4 text-center">
+                  <Sparkles size={32} className="text-success mb-3" />
+                  <h4 className="font-weight-bold mb-2">
+                    ¡Todo listo para tu próxima cita!
+                  </h4>
+                  <p className="text-muted mb-0">
+                    Reserva cuando quieras y gestiona tus citas desde el menú
+                    lateral.
+                  </p>
                 </CardBody>
               </Card>
             </Col>
