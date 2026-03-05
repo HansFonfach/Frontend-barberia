@@ -26,6 +26,7 @@ const UserDashboard = () => {
   const { getVerPuntos, puntos, getSuscripcionActiva } = useUsuario();
   const { empresa } = useEmpresa();
   const { slug } = useParams();
+  const esLumiBeauty = empresa?.slug === "lumicabeauty";
 
   const esBarberia = empresa?.tipo === "barberia";
 
@@ -132,19 +133,31 @@ const UserDashboard = () => {
       `}</style>
 
       <Container fluid className="mt--7">
-        {/* ===== HERO ===== */}
         <Row className="mb-5">
           <Col>
-            <Card className="border-0 shadow-lg bg-gradient-success text-white card-hover hero-animate">
+            <Card
+              className="border-0 shadow-lg text-white card-hover hero-animate"
+              style={
+                esLumiBeauty
+                  ? {
+                      background:
+                        "linear-gradient(135deg, #ff4da6 0%, #ff85c1 100%)",
+                    }
+                  : {
+                      background:
+                        "linear-gradient(135deg, #2dce89 0%, #2dcecc 100%)",
+                    }
+              }
+            >
               <CardBody className="p-5">
                 <div className="d-flex align-items-center mb-3">
                   <Sparkles size={32} className="text-warning mr-3" />
-                  <h1 className="display-4 font-weight-bold mb-0">
+                  <h1 className="display-4 font-weight-bold mb-0 text-white">
                     Bienvenido, {user.nombre}
                   </h1>
                 </div>
                 {empresa?.nombre && (
-                  <p className="mb-0 text-white-50">{empresa.nombre}</p>
+                  <p className="mb-0 text-white">{empresa.nombre}</p>
                 )}
               </CardBody>
             </Card>
