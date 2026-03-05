@@ -1,28 +1,29 @@
-import React from "react";
 import { Container, Row, Col, Badge, Button } from "reactstrap";
-import SectionTitle from "./SectionTitle";
 import barberoDefault from "assets/img/barberos/ale.jpg";
 import "./profesionalesSection.css";
+import { useParams } from "react-router-dom";
 
-
-const ProfesionalesSection = ({ profesionales }) => {
+const ProfesionalesSection = ({profesionales}) => {
+  const {slug} = useParams();
   if (!profesionales?.length) return null;
 
   const prof = profesionales[0];
+  const fotoPerfil = prof.perfilProfesional?.fotoPerfil?.url || barberoDefault;
+  const especialidades = prof.perfilProfesional?.especialidades || [];
+  const aniosExp = prof.perfilProfesional?.aniosExperiencia;
+
+  const isLumica = slug === "lumicabeauty"; // 👈
 
   return (
     <>
-      <section className="py-7 ">
+      <section className="py-7">
         <Container>
-       
-
           <Row className="align-items-center g-5 mt-4 justify-content-center">
-            {/* Imagen circular del barbero */}
             <Col lg="4" className="text-center">
               <div className="barber-circle-container">
                 <div className="barber-circle">
                   <img
-                    src={prof.avatar || barberoDefault}
+                    src={fotoPerfil}
                     alt={prof.nombre}
                     className="barber-img"
                   />
@@ -30,50 +31,43 @@ const ProfesionalesSection = ({ profesionales }) => {
               </div>
             </Col>
 
-            {/* Info */}
             <Col lg="6">
               <div className="barber-info-content">
-              
-
-                <h2 className="barber-name text- mb-3">
+                <h2 className="barber-name mb-3">
                   {prof.nombre} <span>{prof.apellido}</span>
                 </h2>
 
                 <div className="barber-stats mb-4">
-                  <div className="stat-item">
-                    <span className="stat-value">20+</span>
-                    <span className="stat-label">Años exp.</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-value">100+</span>
-                    <span className="stat-label">Clientes</span>
-                  </div>
-                  <div className="stat-item">
-                    <span className="stat-value">+100</span>
-                    <span className="stat-label">Reservas al mes</span>
-                  </div>
+                  {aniosExp && (
+                    <div className="stat-item">
+                      <span className="stat-value">{aniosExp}+</span>
+                      <span className="stat-label">Años exp.</span>
+                    </div>
+                  )}
+                  {isLumica && ( // 👈
+                    <div className="stat-item">
+                      <span className="stat-value">+2.000</span>
+                      <span className="stat-label">
+                        Lifting de pestañas realizados
+                      </span>
+                    </div>
+                  )}
                 </div>
 
-                <p className="barber-description mb-4">
-                  Especialista en cortes clásicos y contemporáneos, degradados
-                  perfectos y diseño profesional de barba. Cada servicio es una
-                  experiencia personalizada donde el detalle y la precisión
-                  marcan la diferencia.
-                </p>
+                <p className="barber-description mb-4">{prof.descripcion}</p>
 
                 <div className="specialties mb-4">
-                  <span className="specialty-tag">Degradados</span>
-                  <span className="specialty-tag">Barba</span>
-                  <span className="specialty-tag">Cortes clásicos</span>
-                  <span className="specialty-tag">Diseño</span>
+                  {especialidades.map((esp, i) => (
+                    <span key={i} className="specialty-tag">
+                      {esp}
+                    </span>
+                  ))}
                 </div>
               </div>
             </Col>
           </Row>
         </Container>
       </section>
-
-   
     </>
   );
 };
