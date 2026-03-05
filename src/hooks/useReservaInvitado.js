@@ -27,6 +27,7 @@ export const useReservaInvitado = (slug) => {
   const [barbero, setBarbero] = useState("");
   const [fecha, setFecha] = useState("");
   const [hora, setHora] = useState("");
+  const [diasPermitidos, setDiasPermitidos] = useState(15);
 
   // 📅 ESTADOS PARA LA SEMANA
   const [weekStart, setWeekStart] = useState(new Date());
@@ -170,15 +171,11 @@ export const useReservaInvitado = (slug) => {
   // ────────────────────────────────
   const fetchWeekAvailability = useCallback(
     async (barberoId, serviceId, startDate) => {
-      // Evitar llamadas múltiples
-      if (fetchingWeekRef.current) {
-        return;
-      }
+      if (fetchingWeekRef.current) return;
 
       const dates = buildWeekDates(startDate);
       const weekStartKey = isoDate(startDate);
 
-      // Verificar si ya cargamos estos mismos datos
       if (
         prevBarberoRef.current === barberoId &&
         prevServicioRef.current === serviceId &&
@@ -188,18 +185,18 @@ export const useReservaInvitado = (slug) => {
       }
 
       if (!barberoId || !serviceId) {
-      
-        const emptyDays = dates.map((d) => ({
-          date: d,
-          label: formatDayLabel(d),
-          iso: isoDate(d),
-          available: false,
-          horas: [],
-          mensaje: !barberoId
-            ? "Selecciona un barbero"
-            : "Selecciona un servicio",
-        }));
-        setWeekDays(emptyDays);
+        setWeekDays(
+          dates.map((d) => ({
+            date: d,
+            label: formatDayLabel(d),
+            iso: isoDate(d),
+            available: false,
+            horas: [],
+            mensaje: !barberoId
+              ? "Selecciona un barbero"
+              : "Selecciona un servicio",
+          })),
+        );
         return;
       }
 
@@ -216,65 +213,70 @@ export const useReservaInvitado = (slug) => {
                 serviceId,
               );
 
-              // Extraer horas de la respuesta
-              const horasData = response?.horas || [];
-
               return {
-                horas: Array.isArray(horasData) ? horasData : [],
+                horas: Array.isArray(response?.horas) ? response.horas : [],
                 esFeriado: response?.esFeriado || false,
                 nombreFeriado: response?.nombreFeriado || "",
+                diasPermitidos: response?.diasPermitidos ?? null,
               };
             } catch (error) {
               console.error(`Error en fecha ${isoDate(d)}:`, error);
-              return { horas: [], esFeriado: false, nombreFeriado: "" };
+              return {
+                horas: [],
+                esFeriado: false,
+                nombreFeriado: "",
+                diasPermitidos: null,
+              };
             }
           }),
         );
 
-        const newWeekDays = dates.map((d, idx) => {
-          const data = results[idx] || { horas: [] };
-          const horas = data.horas || [];
-          const horasArray = Array.isArray(horas) ? horas : [];
+        // ✅ Leer diasPermitidos del primer resultado que lo traiga
+        const dp =
+          results.find((r) => r?.diasPermitidos != null)?.diasPermitidos ?? 15;
+        setDiasPermitidos(dp);
 
-          const horasDisponibles = horasArray.filter(
-            (h) => h?.estado === "disponible",
-          );
+        setWeekDays(
+          dates.map((d, idx) => {
+            const data = results[idx] || { horas: [] };
+            const horas = Array.isArray(data.horas) ? data.horas : [];
+            const horasDisponibles = horas.filter(
+              (h) => h?.estado === "disponible",
+            );
 
-          return {
-            date: d,
-            label: formatDayLabel(d),
-            iso: isoDate(d),
-            available: horasDisponibles.length > 0,
-            horas: horasArray,
-            esFeriado: data.esFeriado || false,
-            nombreFeriado: data.nombreFeriado || "",
-            mensaje:
-              horasArray.length === 0
-                ? "No disponible"
-                : horasDisponibles.length === 0
-                  ? "Sin horas libres"
-                  : "",
-          };
-        });
+            return {
+              date: d,
+              label: formatDayLabel(d),
+              iso: isoDate(d),
+              available: horasDisponibles.length > 0,
+              horas,
+              esFeriado: data.esFeriado || false,
+              nombreFeriado: data.nombreFeriado || "",
+              mensaje:
+                horas.length === 0
+                  ? "No disponible"
+                  : horasDisponibles.length === 0
+                    ? "Sin horas libres"
+                    : "",
+            };
+          }),
+        );
 
-     
-        setWeekDays(newWeekDays);
-
-        // Guardar referencia de lo que cargamos
         prevBarberoRef.current = barberoId;
         prevServicioRef.current = serviceId;
         prevWeekStartRef.current = weekStartKey;
       } catch (error) {
         console.error("Error cargando disponibilidad semanal:", error);
-        const errorDays = dates.map((d) => ({
-          date: d,
-          label: formatDayLabel(d),
-          iso: isoDate(d),
-          available: false,
-          horas: [],
-          mensaje: "Error al cargar",
-        }));
-        setWeekDays(errorDays);
+        setWeekDays(
+          dates.map((d) => ({
+            date: d,
+            label: formatDayLabel(d),
+            iso: isoDate(d),
+            available: false,
+            horas: [],
+            mensaje: "Error al cargar",
+          })),
+        );
       } finally {
         setLoadingWeek(false);
         fetchingWeekRef.current = false;
@@ -284,32 +286,28 @@ export const useReservaInvitado = (slug) => {
   );
 
   // ────────────────────────────────
-  // EFECTO PARA CARGAR SEMANA - VERSIÓN CONTROLADA
+  // EFECTO PARA CARGAR SEMANA
   // ────────────────────────────────
   useEffect(() => {
- 
-
-    // Mostrar días vacíos si falta algún dato
     if (!servicio || !barbero) {
-     
       const dates = buildWeekDates(weekStart);
-      const emptyDays = dates.map((d) => ({
-        date: d,
-        label: formatDayLabel(d),
-        iso: isoDate(d),
-        available: false,
-        horas: [],
-        mensaje: !barbero
-          ? "Selecciona un barbero"
-          : !servicio
-            ? "Selecciona un servicio"
-            : "Completa la selección",
-      }));
-      setWeekDays(emptyDays);
+      setWeekDays(
+        dates.map((d) => ({
+          date: d,
+          label: formatDayLabel(d),
+          iso: isoDate(d),
+          available: false,
+          horas: [],
+          mensaje: !barbero
+            ? "Selecciona un barbero"
+            : !servicio
+              ? "Selecciona un servicio"
+              : "Completa la selección",
+        })),
+      );
       return;
     }
 
-    // Programar la carga con un pequeño delay para evitar múltiples llamadas
     const timeoutId = setTimeout(() => {
       fetchWeekAvailability(barbero, servicio, weekStart);
     }, 300);
@@ -340,14 +338,11 @@ export const useReservaInvitado = (slug) => {
   // HANDLERS DE SELECCIÓN
   // ────────────────────────────────
   const handleSeleccionarServicio = (id) => {
- 
     setServicio(id);
     setBarbero("");
     setFecha("");
     setHora("");
     setWeekStart(new Date());
-
-    // Resetear referencias
     prevBarberoRef.current = "";
     prevServicioRef.current = "";
     prevWeekStartRef.current = "";
@@ -358,13 +353,10 @@ export const useReservaInvitado = (slug) => {
   };
 
   const handleSeleccionarBarbero = (id) => {
-   
     setBarbero(id);
     setFecha("");
     setHora("");
     setWeekStart(new Date());
-
-    // Resetear referencias de semana para forzar recarga
     prevBarberoRef.current = "";
     prevServicioRef.current = "";
     prevWeekStartRef.current = "";
@@ -375,7 +367,6 @@ export const useReservaInvitado = (slug) => {
   };
 
   const handleSelectDay = (iso) => {
-  
     setFecha(iso);
     setHora("");
   };
@@ -384,18 +375,28 @@ export const useReservaInvitado = (slug) => {
     const d = new Date(weekStart);
     d.setDate(d.getDate() - 7);
     setWeekStart(d);
-    // Resetear referencia de semana para forzar recarga
     prevWeekStartRef.current = "";
   };
 
   const nextWeek = () => {
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    const limiteDate = new Date(hoy);
+    limiteDate.setDate(hoy.getDate() + diasPermitidos);
+
     const d = new Date(weekStart);
     d.setDate(d.getDate() + 7);
+
+    if (d > limiteDate) return;
+
     setWeekStart(d);
-    // Resetear referencia de semana para forzar recarga
     prevWeekStartRef.current = "";
   };
 
+  // ────────────────────────────────
+  // RESERVAR COMO INVITADO
+  // ────────────────────────────────
   const reservarComoInvitado = async () => {
     if (Object.values(invitado).some((v) => !v)) {
       return Swal.fire("Error", "Completa tus datos", "warning");
@@ -407,21 +408,24 @@ export const useReservaInvitado = (slug) => {
 
     setReservando(true);
     try {
-      // 👇 CORRECCIÓN: pasar slug y payload por separado
       await postReservarHoraInvitado(slug, {
         servicio,
         barbero,
         fecha,
         hora,
-        nombre: invitado.nombre, // ← Sacar del objeto invitado
-        apellido: invitado.apellido, // ← Sacar del objeto invitado
-        rut: invitado.rut, // ← Sacar del objeto invitado
-        email: invitado.email, // ← Sacar del objeto invitado
-        telefono: invitado.telefono, // ← Sacar del objeto invitado
+        nombre: invitado.nombre,
+        apellido: invitado.apellido,
+        rut: invitado.rut,
+        email: invitado.email,
+        telefono: invitado.telefono,
       });
-      Swal.fire("Reserva creada", "Tu hora fue agendada, te enviaremos un correo confirmando tu reserva.", "success");
 
-      // Resetear formulario después de reservar exitosamente
+      Swal.fire(
+        "Reserva creada",
+        "Tu hora fue agendada, te enviaremos un correo confirmando tu reserva.",
+        "success",
+      );
+
       setServicio("");
       setBarbero("");
       setFecha("");
@@ -444,11 +448,11 @@ export const useReservaInvitado = (slug) => {
       setReservando(false);
     }
   };
+
   // ────────────────────────────────
   // EXPORT
   // ────────────────────────────────
   return {
-    // data
     servicios,
     barberos,
     barberosFiltrados,
@@ -462,6 +466,7 @@ export const useReservaInvitado = (slug) => {
     fecha,
     hora,
     invitado,
+    diasPermitidos,
 
     loadingServicios,
     loadingBarberos,
@@ -470,12 +475,10 @@ export const useReservaInvitado = (slug) => {
     pasoActual,
     duracionServicio,
 
-    // 📅 datos de la semana
     weekStart,
     weekDays,
     loadingWeek,
 
-    // actions
     setInvitado,
     setHora,
     handleSeleccionarServicio,
