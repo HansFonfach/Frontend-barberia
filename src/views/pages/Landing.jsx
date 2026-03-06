@@ -585,7 +585,7 @@ const Landing = () => {
                       borderRadius: "50%",
                     }}
                     onClick={() =>
-                      window.open("https://instagram.com/tu_cuenta", "_blank")
+                      window.open(`${empresa.redes.instagram}`, "_blank")
                     }
                   >
                     <img

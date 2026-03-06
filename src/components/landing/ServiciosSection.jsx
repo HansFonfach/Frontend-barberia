@@ -103,7 +103,7 @@ const ServiciosSection = ({ servicios, onReservar, theme }) => {
                         } : {})
                       }}
                     >
-                      ${servicio.precio}
+                    ${servicio.precio.toLocaleString('es-ES')} 
                     </span>
                     <Button
                       size="sm"
