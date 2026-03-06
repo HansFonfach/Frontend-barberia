@@ -24,7 +24,12 @@ export const useUsuarios = (rolFiltro) => {
 
   // Actualiza usuariosFiltrados cuando cambie el contexto de usuarios
   useEffect(() => {
-    const filtered = (usuariosContext || []).filter((u) => u.rol === rolFiltro);
+    const filtered = (usuariosContext || []).filter((u) => {
+      if (rolFiltro === "cliente") {
+        return u.rol === "cliente" || u.rol === "invitado"; // ← incluir invitados
+      }
+      return u.rol === rolFiltro;
+    });
     setUsuariosFiltrados(filtered);
   }, [usuariosContext, rolFiltro]);
 

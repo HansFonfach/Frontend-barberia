@@ -19,7 +19,6 @@ import { postAsignarServiciosAlBarbero } from "api/usuarios";
 import { postCrearBarbero } from "api/usuarios";
 import { updateEstadoUsuario } from "api/usuarios";
 
-
 const UsuarioContext = createContext();
 
 export const useUsuario = () => {
@@ -164,30 +163,26 @@ export const UsuarioProvider = ({ children }) => {
   // Recargar usuarios cuando la autenticación cambie
   useEffect(() => {
     const fetchData = async () => {
-      // Solo cargar datos si está autenticado y hay un usuario
       if (isAuthenticated && user) {
         try {
           setCargando(true);
-          const res = await getUsuarios();
-          setUsuarios(res.data);
-          setBarberos(res.data.filter((u) => u.rol === "barbero"));
+          const res = await getTodosLosUsuarios(); // antes era getUsuarios()
+          setUsuarios(res.data.usuarios); // antes era res.data
+          setBarberos(res.data.usuarios.filter((u) => u.rol === "barbero"));
           setErrors(null);
         } catch (error) {
-          console.error("Error al cargar datos:", error);
           setErrors(error.response?.data || error.message);
         } finally {
           setCargando(false);
         }
       } else {
-        // Si no está autenticado, limpiar los datos
         setUsuarios([]);
         setBarberos([]);
         setCargando(false);
       }
     };
-
     fetchData();
-  }, [isAuthenticated, user]); // Dependencias: cuando auth o user cambien
+  }, [isAuthenticated, user]); // dependencias igual que antes
 
   const getVerPuntos = async () => {
     if (!isAuthenticated) return;

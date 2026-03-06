@@ -10,7 +10,7 @@ export const getHorasDisponibles = async (barberoId, fecha, servicioId) => {
           fecha,
           servicioId,
         },
-      }
+      },
     );
 
     return res.data;
@@ -22,7 +22,7 @@ export const getHorasDisponibles = async (barberoId, fecha, servicioId) => {
 export const getHorarioBasePorDia = async (barberoId, fecha) => {
   try {
     const res = await axiosPrivate.get(
-      `/horarios/barbero/${barberoId}/horarioBase?fecha=${fecha}`
+      `/horarios/barbero/${barberoId}/horarioBase?fecha=${fecha}`,
     );
     return res.data;
   } catch (error) {
@@ -35,7 +35,7 @@ export const postToggleHora = async (
   barbero,
   fecha,
   horaInicio,
-  motivo = ""
+  motivo = "",
 ) => {
   try {
     const res = await axiosPrivate.post("/excepcionHorario/toggle", {
@@ -55,7 +55,7 @@ export const postCancelarHoraDiaria = async (
   barberoId,
   fecha,
   horaInicio,
-  motivo
+  motivo,
 ) => {
   try {
     // Llama a toggle en su lugar
@@ -75,7 +75,7 @@ export const postRevertirHoraPorDia = async (
   barberoId,
   fecha,
   horaInicio,
-  motivo
+  motivo,
 ) => {
   try {
     // Llama a toggle en su lugar
@@ -95,7 +95,7 @@ export const postRevertirHoraPorDia = async (
 export const postAgregarHoraExtraDiaria = async (
   barberoId,
   fecha,
-  horaInicio
+  horaInicio,
 ) => {
   try {
     const res = await axiosPrivate.post(
@@ -104,7 +104,7 @@ export const postAgregarHoraExtraDiaria = async (
         barbero: barberoId,
         fecha,
         horaInicio,
-      }
+      },
     );
     return res.data;
   } catch (error) {
@@ -115,7 +115,7 @@ export const postAgregarHoraExtraDiaria = async (
 export const postCancelarHoraExtraDiaria = async (
   barberoId,
   fecha,
-  horaInicio
+  horaInicio,
 ) => {
   try {
     const res = await axiosPrivate.post(
@@ -124,7 +124,7 @@ export const postCancelarHoraExtraDiaria = async (
         barbero: barberoId,
         fecha,
         horaInicio,
-      }
+      },
     );
     return res.data;
   } catch (error) {
@@ -135,7 +135,7 @@ export const postCancelarHoraExtraDiaria = async (
 export const getObtenerExcepcionesPorDia = async (barberoId, fecha) => {
   try {
     const res = await axiosPrivate.get(
-      `/excepcionHorario/${barberoId}?fecha=${fecha}`
+      `/excepcionHorario/${barberoId}?fecha=${fecha}`,
     );
     return res.data;
   } catch (error) {
@@ -152,8 +152,8 @@ export const postAsignarHorario = async (horario) => {
     colacionInicio: horario.colacionInicio,
     colacionFin: horario.colacionFin,
     duracionBloque: horario.duracionBloque,
+    horasAncla: horario.horasAncla, // 👈 agregar esto
   });
-
   return res.data;
 };
 
@@ -167,7 +167,5 @@ export const getHorariosByBarbero = async (barberoId) => {
 };
 
 export const deleteHorarioDia = async (barberoId, diaSemana) => {
-  return axiosPrivate.delete(
-    `/horarios/barbero/${barberoId}/dia/${diaSemana}`,
-  );
+  return axiosPrivate.delete(`/horarios/barbero/${barberoId}/dia/${diaSemana}`);
 };
