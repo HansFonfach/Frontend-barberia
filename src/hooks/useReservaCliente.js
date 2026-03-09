@@ -303,17 +303,86 @@ export const useReservaCliente = () => {
     setReservando(true);
 
     try {
-      await postReservarHora(fecha, barbero, hora, servicio, user.id);
-
-      const result = await Swal.fire(
-        "Reserva creada",
-        "Tu hora fue agendada, te enviaremos un correo confirmando tu reserva.",
-        "success",
+      const respuesta = await postReservarHora(
+        fecha,
+        barbero,
+        hora,
+        servicio,
+        user.id,
       );
-      if (result.isConfirmed || result.isDismissed) {
-        setHora("");
-        navigate(`/${user.empresa.slug}/admin/administrar-reservas`);
+
+      // ✅ Si la reserva requiere abono, mostrar datos de pago
+      if (respuesta?.abono?.requerido && respuesta?.datosPago) {
+        const { banco, tipoCuenta, numeroCuenta, titular, rut, correo } =
+          respuesta.datosPago;
+        const monto = respuesta.abono.monto;
+
+        await Swal.fire({
+          title: "✅ Reserva creada",
+          icon: "success",
+          html: `
+  <p style="color:#6c757d; font-size:0.95rem; margin-bottom:16px">
+    Tu hora fue agendada. Para confirmarla, transfiere el abono a:
+  </p>
+
+  <div style="background:#f8f9fa; border-radius:12px; padding:16px; text-align:left">
+    
+    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #e9ecef">
+      <span style="color:#6c757d; font-size:0.85rem">Monto</span>
+      <span style="font-weight:700; color:#2dce89; font-size:1.1rem">$${monto.toLocaleString("es-CL")}</span>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #e9ecef">
+      <span style="color:#6c757d; font-size:0.85rem">Banco</span>
+      <span style="font-weight:600; font-size:0.9rem">${banco}</span>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #e9ecef">
+      <span style="color:#6c757d; font-size:0.85rem">Tipo cuenta</span>
+      <span style="font-weight:600; font-size:0.9rem">${tipoCuenta}</span>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #e9ecef">
+      <span style="color:#6c757d; font-size:0.85rem">N° cuenta</span>
+      <span style="font-weight:600; font-size:0.9rem">${numeroCuenta}</span>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #e9ecef">
+      <span style="color:#6c757d; font-size:0.85rem">Titular</span>
+      <span style="font-weight:600; font-size:0.9rem">${titular}</span>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #e9ecef">
+      <span style="color:#6c757d; font-size:0.85rem">RUT</span>
+      <span style="font-weight:600; font-size:0.9rem">${rut}</span>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; padding:8px 0">
+      <span style="color:#6c757d; font-size:0.85rem">Correo</span>
+      <span style="font-weight:600; font-size:0.9rem; word-break:break-all">${correo}</span>
+    </div>
+
+  </div>
+
+  <div style="background:#fff3cd; border-radius:8px; padding:12px 16px; margin-top:12px; display:flex; align-items:center; gap:10px; text-align:left">
+    <span style="font-size:1.2rem">📱</span>
+    <span style="font-size:0.85rem; color:#856404">
+      Envía el comprobante al <b>+569 ${respuesta.datosPago.telefonoEmpresa || ""}</b>
+    </span>
+  </div>
+`,
+          confirmButtonText: "Entendido",
+        });
+      } else {
+        await Swal.fire(
+          "Reserva creada",
+          "Tu hora fue agendada, te enviaremos un correo confirmando tu reserva.",
+          "success",
+        );
       }
+
+      setHora("");
+      navigate(`/${user.empresa.slug}/admin/administrar-reservas`);
     } catch (error) {
       Swal.fire(
         "Error",

@@ -431,8 +431,8 @@ const ReservarHoraInvitado = () => {
               color="success"
               block
               disabled={!invitadoValido || reservando}
-              onClick={() => {
-                reservarComoInvitado();
+              onClick={async () => {
+                await reservarComoInvitado();
                 toggleModalInvitado();
               }}
             >
