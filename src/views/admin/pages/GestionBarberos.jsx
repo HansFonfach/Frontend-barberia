@@ -16,30 +16,55 @@ import {
   Input,
   Label,
 } from "reactstrap";
-import { FiPlus } from "react-icons/fi";
+import { FiPlus, FiEdit2 } from "react-icons/fi";
+import { Power } from "lucide-react";
 import Swal from "sweetalert2";
 
 import UserHeader from "components/Headers/UserHeader";
 import SearchBar from "components/gestionUsuarios/BarraBusqueda";
-import UserTable, {
-  AccionIcons,
-} from "components/gestionUsuarios/TablaUsuarios";
 import Pagination from "components/gestionUsuarios/Paginacion";
 import UserModal from "components/gestionUsuarios/UsuariosModel";
+
 import { useUsuarios } from "hooks/useUsuarios";
 import { usePagination } from "hooks/usePagination";
 import { useCrearBarbero } from "hooks/barberos/useCrearBarbero";
 
+const AvatarBarbero = ({ nombre, apellido, foto }) => {
+  const iniciales = `${nombre?.[0] || ""}${apellido?.[0] || ""}`.toUpperCase();
+
+  return (
+    <div
+      className="mx-auto d-flex align-items-center justify-content-center"
+      style={{
+        width: 90,
+        height: 90,
+        borderRadius: "50%",
+        overflow: "hidden",
+        background: "linear-gradient(135deg,#111,#444)",
+        boxShadow: "0 4px 10px rgba(0,0,0,.25)",
+      }}
+    >
+      {foto ? (
+        <img
+          src={foto}
+          alt={`${nombre} ${apellido}`}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: "center top",
+          }}
+        />
+      ) : (
+        <span style={{ color: "#fff", fontSize: 28, fontWeight: "bold" }}>
+          {iniciales}
+        </span>
+      )}
+    </div>
+  );
+};
+
 const GestionBarberos = () => {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
   const {
     usuarios,
     busqueda,
@@ -50,11 +75,11 @@ const GestionBarberos = () => {
     handleEditar,
     handleGuardar,
     toggleModal,
-    handleCambiarEstado, // ✅ correcto
+    handleCambiarEstado,
   } = useUsuarios("barbero");
 
   const { paginaActual, totalPaginas, itemsPaginados, cambiarPagina } =
-    usePagination(usuarios, 6);
+    usePagination(usuarios, 8);
 
   const {
     modalCrear,
@@ -67,44 +92,6 @@ const GestionBarberos = () => {
     handleRutChange,
   } = useCrearBarbero();
 
-  const columnas = [
-    { key: "nombre", label: "Nombre" },
-    { key: "apellido", label: "Apellido" },
-    { key: "rut", label: "RUT" },
-    { key: "email", label: "Email" },
-    {
-      key: "estado",
-      label: "Estado",
-      render: (value) => {
-        const activo = value === "activo";
-        return (
-          <Badge
-            color={activo ? "success" : "danger"}
-            className="py-2 px-3"
-            style={{ borderRadius: "20px", fontWeight: "500" }}
-          >
-            {activo ? "Activo" : "Inactivo"}
-          </Badge>
-        );
-      },
-    },
-  ];
-
-  const acciones = [
-    {
-      id: "editar",
-      icon: AccionIcons.EDITAR,
-      color: "primary",
-      title: "Editar datos",
-    },
-    {
-      id: "estado",
-      icon: AccionIcons.ELIMINAR,
-      color: "warning",
-      title: "Activar / Inactivar",
-    },
-  ];
-
   const handleAccion = async (accionId, usuario) => {
     try {
       if (accionId === "editar") {
@@ -115,10 +102,7 @@ const GestionBarberos = () => {
         const activar = usuario.estado === "inactivo";
 
         const confirm = await Swal.fire({
-          title: activar ? "¿Reactivar usuario?" : "¿Inactivar usuario?",
-          text: activar
-            ? "El usuario podrá volver a acceder al sistema"
-            : "El usuario no podrá acceder al sistema",
+          title: activar ? "¿Reactivar profesional?" : "¿Inactivar profesional?",
           icon: "warning",
           showCancelButton: true,
           confirmButtonText: activar ? "Sí, reactivar" : "Sí, inactivar",
@@ -133,7 +117,7 @@ const GestionBarberos = () => {
 
           Swal.fire(
             "Listo",
-            activar ? "Usuario reactivado" : "Usuario inactivado",
+            activar ? "Profesional reactivado" : "Profesional inactivado",
             "success"
           );
         }
@@ -158,17 +142,18 @@ const GestionBarberos = () => {
 
       <Container className="mt--7" fluid>
         <Row className="justify-content-center">
-          <Col xl="10">
-            <Card className="bg-secondary shadow border-0">
-              <CardHeader className="bg-white border-0">
+          <Col lg="11">
+            <Card className="shadow border-0">
+              <CardHeader className="bg-white">
                 <Row className="align-items-center">
-                  <Col xs="8">
-                    <h3 className="mb-0">Gestión de profesionales</h3>
+                  <Col md="6">
+                    <h3 className="mb-0">Gestión de Profesionales</h3>
                   </Col>
-                  <Col xs="4" className="text-right">
-                    <Button color="primary" onClick={toggleCrear} size="sm">
+
+                  <Col md="6" className="text-right">
+                    <Button color="primary" onClick={toggleCrear}>
                       <FiPlus className="mr-1" />
-                      Crear
+                      Crear Profesional
                     </Button>
                   </Col>
                 </Row>
@@ -182,75 +167,69 @@ const GestionBarberos = () => {
                   totalResultados={usuarios.length}
                 />
 
-                {isMobile ? (
-                  <Row className="mt-3">
-                    {itemsPaginados.map((u) => {
-                      const activo = u.estado === "activo";
+                <Row className="mt-4">
+                  {itemsPaginados.map((b) => {
+                    const activo = b.estado === "activo";
+                    const foto = b.perfilProfesional?.fotoPerfil?.url;
 
-                      return (
-                        <Col xs="12" key={u._id} className="mb-3">
-                          <Card className="shadow-sm">
-                            <CardBody className="p-3">
-                              <Row className="align-items-center">
-                                <Col xs="8">
-                                  <h6 className="mb-1 font-weight-bold">
-                                    {u.nombre} {u.apellido}
-                                  </h6>
-                                  <small className="text-muted d-block">
-                                    {u.email}
-                                  </small>
-                                  <small className="text-muted">
-                                    RUT: {u.rut}
-                                  </small>
-                                </Col>
-                                <Col xs="4" className="text-right">
-                                  <Badge
-                                    color={activo ? "success" : "danger"}
-                                    className="py-1 px-2"
-                                  >
-                                    {activo ? "Activo" : "Inactivo"}
-                                  </Badge>
-                                </Col>
-                              </Row>
+                    return (
+                      <Col key={b._id} xs="12" sm="6" md="4" lg="3">
+                        <Card
+                          className="mb-4 border-0 shadow-sm"
+                          style={{
+                            borderRadius: 16,
+                            transition: "all .2s ease",
+                          }}
+                        >
+                          <CardBody className="text-center py-4">
+                            <AvatarBarbero
+                              nombre={b.nombre}
+                              apellido={b.apellido}
+                              foto={foto}
+                            />
 
-                              <hr className="my-2" />
+                            <h5 className="mt-3 mb-1 font-weight-bold">
+                              {b.nombre} {b.apellido}
+                            </h5>
 
-                              <Row>
-                                <Col xs="6" className="pr-1">
-                                  <Button
-                                    size="sm"
-                                    color="primary"
-                                    block
-                                    onClick={() => handleAccion("editar", u)}
-                                  >
-                                    Editar
-                                  </Button>
-                                </Col>
-                                <Col xs="6" className="pl-1">
-                                  <Button
-                                    size="sm"
-                                    color={activo ? "danger" : "success"}
-                                    block
-                                    onClick={() => handleAccion("estado", u)}
-                                  >
-                                    {activo ? "Inactivar" : "Reactivar"}
-                                  </Button>
-                                </Col>
-                              </Row>
-                            </CardBody>
-                          </Card>
-                        </Col>
-                      );
-                    })}
-                  </Row>
-                ) : (
-                  <UserTable
-                    usuarios={itemsPaginados}
-                    columns={columnas}
-                    acciones={acciones}
-                    onAccion={handleAccion}
-                  />
-                )}
+                            <p className="text-muted small mb-1">{b.email}</p>
+
+                            <Badge
+                              color={activo ? "success" : "danger"}
+                              className="mb-3"
+                            >
+                              {activo ? "Activo" : "Inactivo"}
+                            </Badge>
+
+                            <Row>
+                              <Col xs="6" className="pr-1">
+                                <Button
+                                  size="sm"
+                                  color="primary"
+                                  block
+                                  onClick={() => handleAccion("editar", b)}
+                                >
+                                  <FiEdit2 size={14} /> Editar
+                                </Button>
+                              </Col>
+
+                              <Col xs="6" className="pl-1">
+                                <Button
+                                  size="sm"
+                                  color={activo ? "danger" : "success"}
+                                  block
+                                  onClick={() => handleAccion("estado", b)}
+                                >
+                                  <Power size={14} />
+                                </Button>
+                              </Col>
+                            </Row>
+                          </CardBody>
+                        </Card>
+                      </Col>
+                    );
+                  })}
+                </Row>
 
                 {totalPaginas > 1 && (
                   <Pagination
@@ -276,6 +255,7 @@ const GestionBarberos = () => {
 
       <Modal isOpen={modalCrear} toggle={toggleCrear} centered size="lg">
         <ModalHeader toggle={toggleCrear}>Crear Profesional</ModalHeader>
+
         <ModalBody>
           <Form>
             <Row>
