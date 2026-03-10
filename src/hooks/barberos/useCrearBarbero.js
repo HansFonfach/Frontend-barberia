@@ -18,6 +18,8 @@ export const useCrearBarbero = () => {
   const [modalCrear, setModalCrear] = useState(false);
   const [formCrear, setFormCrear] = useState(initialForm);
   const { crearBarbero } = useUsuario();
+  const [fotoPreview, setFotoPreview] = useState(null);
+  const [fotoFile, setFotoFile] = useState(null);
 
   const {
     rut,
@@ -35,6 +37,13 @@ export const useCrearBarbero = () => {
       }
       return !prev;
     });
+  };
+
+  const handleFotoChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setFotoFile(file);
+    setFotoPreview(URL.createObjectURL(file)); // preview local
   };
 
   const handleCrearChange = (e) => {
@@ -74,18 +83,25 @@ export const useCrearBarbero = () => {
       return Swal.fire("Error", "Email inválido", "error");
 
     try {
-      await crearBarbero(formCrear);
+      const formData = new FormData();
+      Object.entries(formCrear).forEach(([key, value]) => {
+        formData.append(key, value);
+      });
+      if (fotoFile) formData.append("fotoPerfil", fotoFile);
 
-      Swal.fire("Listo", "Barbero creado", "success");
+      await crearBarbero(formData); // 👈 envías FormData en vez de objeto
 
+      Swal.fire("Listo", "Profesional creado", "success");
       setFormCrear(initialForm);
+      setFotoFile(null);
+      setFotoPreview(null);
       clearRut();
       setModalCrear(false);
     } catch (error) {
       Swal.fire(
         "Error",
-        error.response?.data?.message || "Error al crear barbero",
-        "error"
+        error.response?.data?.message || "Error al crear",
+        "error",
       );
     }
   };
@@ -99,5 +115,7 @@ export const useCrearBarbero = () => {
     rut,
     rutError,
     handleRutChange,
+    fotoPreview,
+    handleFotoChange,
   };
 };

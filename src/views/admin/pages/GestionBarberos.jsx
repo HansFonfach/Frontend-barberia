@@ -90,6 +90,8 @@ const GestionBarberos = () => {
     rut,
     rutError,
     handleRutChange,
+    fotoPreview,
+    handleFotoChange,
   } = useCrearBarbero();
 
   const handleAccion = async (accionId, usuario) => {
@@ -102,7 +104,9 @@ const GestionBarberos = () => {
         const activar = usuario.estado === "inactivo";
 
         const confirm = await Swal.fire({
-          title: activar ? "¿Reactivar profesional?" : "¿Inactivar profesional?",
+          title: activar
+            ? "¿Reactivar profesional?"
+            : "¿Inactivar profesional?",
           icon: "warning",
           showCancelButton: true,
           confirmButtonText: activar ? "Sí, reactivar" : "Sí, inactivar",
@@ -112,13 +116,13 @@ const GestionBarberos = () => {
         if (confirm.isConfirmed) {
           await handleCambiarEstado(
             usuario._id,
-            activar ? "activo" : "inactivo"
+            activar ? "activo" : "inactivo",
           );
 
           Swal.fire(
             "Listo",
             activar ? "Profesional reactivado" : "Profesional inactivado",
-            "success"
+            "success",
           );
         }
       }
@@ -276,7 +280,9 @@ const GestionBarberos = () => {
               {["nombre", "apellido", "telefono", "email"].map((name) => (
                 <Col sm={6} key={name}>
                   <FormGroup>
-                    <Label>{name}</Label>
+                    <Label>
+                      {name.charAt(0).toUpperCase() + name.slice(1)}
+                    </Label>
                     <Input
                       name={name}
                       value={formCrear[name]}
@@ -307,6 +313,59 @@ const GestionBarberos = () => {
                     value={formCrear.confirmaPassword}
                     onChange={handleCrearChange}
                   />
+                </FormGroup>
+              </Col>
+
+              <Col sm={12}>
+                <FormGroup>
+                  <Label>Foto de perfil</Label>
+                  <div
+                    className="d-flex align-items-center"
+                    style={{ gap: 16 }}
+                  >
+                    {/* Preview */}
+                    <div
+                      style={{
+                        width: 72,
+                        height: 72,
+                        borderRadius: "50%",
+                        overflow: "hidden",
+                        background: "#f0f0f0",
+                        flexShrink: 0,
+                        border: "2px dashed #dee2e6",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {fotoPreview ? (
+                        <img
+                          src={fotoPreview}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            objectPosition: "center top",
+                          }}
+                        />
+                      ) : (
+                        <span style={{ fontSize: 24 }}>📷</span>
+                      )}
+                    </div>
+
+                    {/* Input */}
+                    <div>
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFotoChange}
+                        style={{ borderRadius: 8 }}
+                      />
+                      <small className="text-muted">
+                        JPG, PNG. Recomendado: foto de cara
+                      </small>
+                    </div>
+                  </div>
                 </FormGroup>
               </Col>
             </Row>
