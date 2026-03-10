@@ -32,6 +32,7 @@ import Landing from "views/pages/Landing";
 import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
 import CancelarInvitado from "views/invitados/pages/CancelarInvitado";
 import VerificarCuenta from "views/publico/VerificarCuenta";
+import ConfiguracionEmpresa from "views/admin/ConfiguracionEmpresa";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -276,6 +277,14 @@ export const barberoRoutes = [
     name: "Estadísticas",
     icon: "fas fa-chart-line text-info",
     component: <Estadisticas />,
+    layout: "/admin",
+    section: "otros",
+  },
+  {
+    path: "/configuracion-empresa",
+    name: "Mi empresa",
+    icon: "ni ni-settings text-purple",
+    component: <ConfiguracionEmpresa/>,
     layout: "/admin",
     section: "otros",
   },
