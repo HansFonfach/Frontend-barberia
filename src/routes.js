@@ -287,5 +287,6 @@ export const barberoRoutes = [
     component: <ConfiguracionEmpresa/>,
     layout: "/admin",
     section: "otros",
+    soloAdmin: true, // 👈 solo lo ve el admin
   },
 ];

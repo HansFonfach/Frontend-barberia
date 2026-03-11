@@ -68,6 +68,7 @@ const Sidebar = ({ routes, logo, usuario }) => {
     const grouped = routes
       .filter((r) => !r.invisible)
       .filter((r) => !r.excludeSlugs?.includes(slug)) // ✅ filtrar por slug
+      .filter((r) => !r.soloAdmin || user?.esAdmin) // 👈 agrega esto
       .reduce((acc, route) => {
         const section = route.section || "otros";
         if (!acc[section]) acc[section] = [];

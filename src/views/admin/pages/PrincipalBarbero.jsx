@@ -18,6 +18,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useEmpresa } from "context/EmpresaContext";
+import { useAuth } from "context/AuthContext";
 
 const formatPesos = (valor) => `$${(valor || 0).toLocaleString("es-CL")}`;
 
@@ -28,6 +29,7 @@ const AdminDashboard = () => {
     totalReservasHoyBarbero,
     proximoCliente,
   } = useEstadisticas();
+
 
   const [infoIngresos, setInfoIngresos] = useState(null);
   const [proxCliente, setProxCliente] = useState(null);
@@ -42,6 +44,7 @@ const AdminDashboard = () => {
 
   const { empresa } = useEmpresa();
   const esLumiBeauty = empresa?.slug === "lumicabeauty";
+
 
   useEffect(() => {
     const cargarDatosDashBoard = async () => {
