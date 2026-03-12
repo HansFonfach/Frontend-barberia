@@ -5,6 +5,9 @@ import { getObtenerExcepcionesPorDia } from "api/horarios";
 import { postAsignarHorario } from "api/horarios";
 import { postToggleHora } from "api/horarios";
 import { getHorarioBasePorDia } from "api/horarios";
+import { postCrearVacaciones } from "api/horarios";
+import { getVacaciones } from "api/horarios";
+import { deleteVacaciones } from "api/horarios";
 import { deleteHorarioDia } from "api/horarios";
 import { getHorariosByBarbero } from "api/horarios";
 import { postCancelarHoraExtraDiaria } from "api/horarios";
@@ -25,7 +28,6 @@ export const HorarioProvider = ({ children }) => {
   const getHorasDisponiblesBarbero = async (barberoId, fecha, servicioId) => {
     try {
       const result = await getHorasDisponibles(barberoId, fecha, servicioId);
-     
 
       return result; // objeto completo del backend
     } catch (err) {
@@ -65,10 +67,9 @@ export const HorarioProvider = ({ children }) => {
   };
 
   const obtenerHorarioBasePorDia = async (barbero, fecha) => {
-
     try {
       const result = await getHorarioBasePorDia(barbero, fecha);
-   
+
       // Asegurar que devolvemos un array
       if (result && result.bloques) {
         return result.bloques; // Esto debería ser un array
@@ -153,6 +154,22 @@ export const HorarioProvider = ({ children }) => {
     }
   };
 
+  // Dentro del provider:
+const crearVacaciones = async (barbero, fechaInicio, fechaFin, motivo) => {
+  const res = await postCrearVacaciones({ barbero, fechaInicio, fechaFin, motivo });
+  return res;
+};
+
+const eliminarVacaciones = async (id) => {
+  const res = await deleteVacaciones(id);
+  return res;
+};
+
+  const obtenerVacacionesBarbero = async (barberoId) => {
+    const res = await getVacaciones(barberoId);
+    return res;
+  };
+
   return (
     <HorarioContext.Provider
       value={{
@@ -167,6 +184,9 @@ export const HorarioProvider = ({ children }) => {
         eliminarHorarioDia,
         toggleHoraPorDia,
         obtenerHorarioBasePorDia,
+        crearVacaciones,
+        eliminarVacaciones,
+        obtenerVacacionesBarbero
       }}
     >
       {children}

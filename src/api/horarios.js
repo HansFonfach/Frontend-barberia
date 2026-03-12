@@ -169,3 +169,23 @@ export const getHorariosByBarbero = async (barberoId) => {
 export const deleteHorarioDia = async (barberoId, diaSemana) => {
   return axiosPrivate.delete(`/horarios/barbero/${barberoId}/dia/${diaSemana}`);
 };
+
+export const postCrearVacaciones = async (data) => {
+  const res = await axiosPrivate.post("/horarios/vacaciones", data);
+  return res.data;
+};
+
+export const deleteVacaciones = async (id) => {
+  const res = await axiosPrivate.delete("/horarios/vacaciones", {
+    data: { id },
+  });
+
+  return res.data;
+};
+
+export const getVacaciones = async (barberoId) => {
+  const res = await axiosPrivate.get(
+    `/horarios/vacaciones/${barberoId}`,
+  );
+  return res.data;
+};

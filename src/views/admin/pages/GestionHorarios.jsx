@@ -43,6 +43,7 @@ const GestionHorarios = () => {
     cargando,
     error,
     refetch,
+    infoFeriado, // ← NUEVO
   } = useGestionHorariosAdmin(barbero, fechaSeleccionada);
 
   // Crear un Set de horas canceladas para búsqueda rápida
@@ -52,7 +53,7 @@ const GestionHorarios = () => {
 
   // Crear un Set de horas extra para búsqueda rápida
   const horasExtraSet = useMemo(() => {
-    return new Set(horasExtra.map(h => h.hora));
+    return new Set(horasExtra.map((h) => h.hora));
   }, [horasExtra]);
 
   const obtenerEstadoHora = (hora) => {
@@ -64,12 +65,26 @@ const GestionHorarios = () => {
   const onToggleHora = async (hora) => {
     try {
       setMensajeError("");
-      await toggleHoraPorDia(hora, fechaSeleccionada, barbero);
-      setMensaje(`Hora ${hora} ${horasCanceladasSet.has(hora) ? 'reactivada' : 'cancelada'} correctamente`);
+      const esBloqueada = horasCanceladasSet.has(hora);
+
+      if (infoFeriado) {
+        // En feriado: habilitar = agregar hora extra, deshabilitar = eliminarla
+        if (esBloqueada) {
+          await agregarHoraExtraDiaria(barbero, fechaSeleccionada, hora);
+          setMensaje(`Hora ${hora} habilitada para el feriado`);
+        } else {
+          await cancelarHoraExtraDiaria(barbero, fechaSeleccionada, hora);
+          setMensaje(`Hora ${hora} bloqueada nuevamente`);
+        }
+      } else {
+        // Día normal: toggle de bloqueo
+        await toggleHoraPorDia(hora, fechaSeleccionada, barbero);
+        setMensaje(`Hora ${hora} ${esBloqueada ? "reactivada" : "cancelada"}`);
+      }
+
       await refetch();
     } catch (err) {
       setMensajeError(`Error al actualizar hora ${hora}`);
-      console.error(err);
     }
   };
 
@@ -133,13 +148,13 @@ const GestionHorarios = () => {
                 {mensaje}
               </Alert>
             )}
-            
+
             {mensajeError && (
               <Alert color="danger" toggle={() => setMensajeError("")}>
                 {mensajeError}
               </Alert>
             )}
-            
+
             {error && <Alert color="danger">{error}</Alert>}
 
             <FormGroup>
@@ -158,6 +173,19 @@ const GestionHorarios = () => {
               </div>
             ) : (
               <>
+                {infoFeriado && (
+                  <Alert color="warning" className="d-flex align-items-center">
+                    <Calendar size={16} className="me-2" />
+                    <div>
+                      <strong>Feriado: {infoFeriado.nombre}</strong>
+                      <br />
+                      <small>
+                        Las horas aparecen bloqueadas. Activa las que quieras
+                        habilitar.
+                      </small>
+                    </div>
+                  </Alert>
+                )}
                 {todasLasHoras.length === 0 ? (
                   <Alert color="warning" className="mt-3">
                     No hay horarios configurados para este día
@@ -181,13 +209,19 @@ const GestionHorarios = () => {
                             <td className="fw-bold">{hora}</td>
                             <td>
                               {estado === "disponible" && (
-                                <Badge color="success" pill>Disponible</Badge>
+                                <Badge color="success" pill>
+                                  Disponible
+                                </Badge>
                               )}
                               {estado === "cancelada" && (
-                                <Badge color="danger" pill>Cancelada</Badge>
+                                <Badge color="danger" pill>
+                                  Cancelada
+                                </Badge>
                               )}
                               {estado === "extra" && (
-                                <Badge color="info" pill>Extra</Badge>
+                                <Badge color="info" pill>
+                                  Extra
+                                </Badge>
                               )}
                             </td>
                             <td>
@@ -203,9 +237,17 @@ const GestionHorarios = () => {
                               ) : (
                                 <Button
                                   size="sm"
-                                  color={estado === "cancelada" ? "success" : "danger"}
+                                  color={
+                                    estado === "cancelada"
+                                      ? "success"
+                                      : "danger"
+                                  }
                                   onClick={() => onToggleHora(hora)}
-                                  title={estado === "cancelada" ? "Reactivar hora" : "Cancelar hora"}
+                                  title={
+                                    estado === "cancelada"
+                                      ? "Reactivar hora"
+                                      : "Cancelar hora"
+                                  }
                                 >
                                   <RefreshCw size={14} />
                                 </Button>
@@ -235,8 +277,8 @@ const GestionHorarios = () => {
                         />
                       </Col>
                       <Col md="7">
-                        <Button 
-                          onClick={onAgregarHoraExtra} 
+                        <Button
+                          onClick={onAgregarHoraExtra}
                           color="info"
                           disabled={!nuevaHora}
                         >
@@ -252,13 +294,22 @@ const GestionHorarios = () => {
                 <Row className="mt-4">
                   <Col>
                     <small className="text-muted me-3">
-                      <Badge color="success" pill className="me-1">●</Badge> Disponible
+                      <Badge color="success" pill className="me-1">
+                        ●
+                      </Badge>{" "}
+                      Disponible
                     </small>
                     <small className="text-muted me-3">
-                      <Badge color="danger" pill className="me-1">●</Badge> Cancelada
+                      <Badge color="danger" pill className="me-1">
+                        ●
+                      </Badge>{" "}
+                      Cancelada
                     </small>
                     <small className="text-muted">
-                      <Badge color="info" pill className="me-1">●</Badge> Extra
+                      <Badge color="info" pill className="me-1">
+                        ●
+                      </Badge>{" "}
+                      Extra
                     </small>
                   </Col>
                 </Row>

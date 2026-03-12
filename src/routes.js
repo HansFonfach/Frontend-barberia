@@ -33,6 +33,7 @@ import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
 import CancelarInvitado from "views/invitados/pages/CancelarInvitado";
 import VerificarCuenta from "views/publico/VerificarCuenta";
 import ConfiguracionEmpresa from "views/admin/ConfiguracionEmpresa";
+import GestionVacaciones from "views/admin/pages/GestionVacaciones";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -263,6 +264,14 @@ export const barberoRoutes = [
     section: "gestion",
   },
   {
+    path: "/gestion-vacaciones",
+    name: "Administrar Vacaciones",
+    icon: "fas fa-umbrella-beach text-success",
+    component: <GestionVacaciones />,
+    layout: "/admin",
+    section: "gestion",
+  },
+  {
     path: "/gestion-canjes",
     name: "Canjes",
     icon: "ni ni-shop text-warning",
@@ -279,12 +288,13 @@ export const barberoRoutes = [
     component: <Estadisticas />,
     layout: "/admin",
     section: "otros",
+    soloAdmin: true,
   },
   {
     path: "/configuracion-empresa",
     name: "Mi empresa",
     icon: "ni ni-settings text-purple",
-    component: <ConfiguracionEmpresa/>,
+    component: <ConfiguracionEmpresa />,
     layout: "/admin",
     section: "otros",
     soloAdmin: true, // 👈 solo lo ve el admin
