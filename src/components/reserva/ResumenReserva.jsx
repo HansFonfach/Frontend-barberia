@@ -81,7 +81,7 @@ const ResumenReserva = ({
 
           <div className="small">
             <div className="d-flex justify-content-between border-bottom py-1">
-                 <span>{obtenerIconoCliente()} Servicio:</span>
+                 <span>{obtenerIconoCliente()}Nombre:</span>
               <strong>
                 {usuarioEncontrado
                   ? `${usuarioEncontrado.nombre} ${usuarioEncontrado.apellido}`
