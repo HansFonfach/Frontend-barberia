@@ -10,6 +10,8 @@ const initialForm = {
   telefono: "",
   email: "",
   descripcion: "",
+  aniosExperiencia: "",
+  especialidades: [],
   password: "",
   confirmaPassword: "",
 };
@@ -21,18 +23,14 @@ export const useCrearBarbero = () => {
   const [fotoPreview, setFotoPreview] = useState(null);
   const [fotoFile, setFotoFile] = useState(null);
 
-  const {
-    rut,
-    error: rutError,
-    handleRutChange,
-    isValid: rutValido,
-    clearRut,
-  } = useRutValidator();
+  const { rut, error: rutError, handleRutChange, isValid: rutValido, clearRut } = useRutValidator();
 
   const toggleCrear = () => {
     setModalCrear((prev) => {
       if (prev) {
         setFormCrear(initialForm);
+        setFotoFile(null);
+        setFotoPreview(null);
         clearRut();
       }
       return !prev;
@@ -43,7 +41,7 @@ export const useCrearBarbero = () => {
     const file = e.target.files[0];
     if (!file) return;
     setFotoFile(file);
-    setFotoPreview(URL.createObjectURL(file)); // preview local
+    setFotoPreview(URL.createObjectURL(file));
   };
 
   const handleCrearChange = (e) => {
@@ -51,45 +49,34 @@ export const useCrearBarbero = () => {
     setFormCrear((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Guardar RUT FORMATEADO
   useEffect(() => {
-    if (rut) {
-      setFormCrear((prev) => ({ ...prev, rut }));
-    }
+    if (rut) setFormCrear((prev) => ({ ...prev, rut }));
   }, [rut]);
 
   const handleCrearBarbero = async () => {
-    const {
-      rut,
-      nombre,
-      apellido,
-      telefono,
-      email,
-      password,
-      confirmaPassword,
-    } = formCrear;
+    const { rut, nombre, apellido, telefono, email, password, confirmaPassword } = formCrear;
 
     if (!rut || !nombre || !apellido || !telefono || !email || !password)
       return Swal.fire("Error", "Completa todos los campos", "error");
-
     if (!rutValido)
       return Swal.fire("Error", "RUT o pasaporte inválido", "error");
-
     if (password !== confirmaPassword)
       return Swal.fire("Error", "Las contraseñas no coinciden", "error");
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email))
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       return Swal.fire("Error", "Email inválido", "error");
 
     try {
       const formData = new FormData();
       Object.entries(formCrear).forEach(([key, value]) => {
-        formData.append(key, value);
+        if (key === "especialidades") {
+          value.forEach((esp) => formData.append("especialidades[]", esp));
+        } else {
+          formData.append(key, value);
+        }
       });
       if (fotoFile) formData.append("fotoPerfil", fotoFile);
 
-      await crearBarbero(formData); // 👈 envías FormData en vez de objeto
+      await crearBarbero(formData);
 
       Swal.fire("Listo", "Profesional creado", "success");
       setFormCrear(initialForm);
@@ -98,11 +85,7 @@ export const useCrearBarbero = () => {
       clearRut();
       setModalCrear(false);
     } catch (error) {
-      Swal.fire(
-        "Error",
-        error.response?.data?.message || "Error al crear",
-        "error",
-      );
+      Swal.fire("Error", error.response?.data?.message || "Error al crear", "error");
     }
   };
 

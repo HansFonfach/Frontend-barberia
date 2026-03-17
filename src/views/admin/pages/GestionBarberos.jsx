@@ -16,7 +16,7 @@ import {
   Input,
   Label,
 } from "reactstrap";
-import { FiPlus, FiEdit2 } from "react-icons/fi";
+import { FiPlus, FiEdit2, FiX } from "react-icons/fi";
 import { Power } from "lucide-react";
 import Swal from "sweetalert2";
 
@@ -31,7 +31,6 @@ import { useCrearBarbero } from "hooks/barberos/useCrearBarbero";
 
 const AvatarBarbero = ({ nombre, apellido, foto }) => {
   const iniciales = `${nombre?.[0] || ""}${apellido?.[0] || ""}`.toUpperCase();
-
   return (
     <div
       className="mx-auto d-flex align-items-center justify-content-center"
@@ -94,15 +93,94 @@ const GestionBarberos = () => {
     handleFotoChange,
   } = useCrearBarbero();
 
+  const [especialidadInput, setEspecialidadInput] = useState("");
+
+  // ── foto edición: vive en el componente, no en el hook ──
+  const [fotoEditPreview, setFotoEditPreview] = useState(null);
+  const [fotoEditFile, setFotoEditFile] = useState(null);
+
+  const handleFotoEditChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setFotoEditFile(file);
+    setFotoEditPreview(URL.createObjectURL(file));
+  };
+
+  const handleToggleModal = () => {
+    toggleModal();
+    setFotoEditFile(null);
+    setFotoEditPreview(null);
+  };
+
+  // ── campos adicionales barbero ──
+  const camposBarbero = [
+    {
+      name: "perfilProfesional.aniosExperiencia",
+      label: "Años de experiencia",
+      type: "number",
+    },
+    { name: "descripcion", label: "Descripción", type: "textarea" },
+    {
+      name: "perfilProfesional.especialidades",
+      label: "Especialidades",
+      type: "especialidades",
+    },
+    {
+      name: "fotoPerfil",
+      label: "Foto de perfil",
+      type: "foto",
+      preview: fotoEditPreview,
+      onFotoChange: handleFotoEditChange,
+    },
+  ];
+
+  const agregarEspecialidad = () => {
+    const val = especialidadInput.trim();
+    if (!val) return;
+    const actuales = formCrear.especialidades || [];
+    if (!actuales.includes(val)) {
+      handleCrearChange({
+        target: { name: "especialidades", value: [...actuales, val] },
+      });
+    }
+    setEspecialidadInput("");
+  };
+
+  const quitarEspecialidad = (esp) => {
+    handleCrearChange({
+      target: {
+        name: "especialidades",
+        value: formCrear.especialidades.filter((e) => e !== esp),
+      },
+    });
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (name.includes(".")) {
+      const [parent, child] = name.split(".");
+      setUsuarioEdit((prev) => ({
+        ...prev,
+        [parent]: { ...prev[parent], [child]: value },
+      }));
+    } else {
+      setUsuarioEdit((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleGuardarConAlerta = async () => {
+    await handleGuardar(fotoEditFile);
+    setFotoEditFile(null);
+    setFotoEditPreview(null);
+    Swal.fire("Listo", "Datos actualizados", "success");
+  };
+
   const handleAccion = async (accionId, usuario) => {
     try {
-      if (accionId === "editar") {
-        handleEditar(usuario);
-      }
+      if (accionId === "editar") handleEditar(usuario);
 
       if (accionId === "estado") {
         const activar = usuario.estado === "inactivo";
-
         const confirm = await Swal.fire({
           title: activar
             ? "¿Reactivar profesional?"
@@ -112,13 +190,11 @@ const GestionBarberos = () => {
           confirmButtonText: activar ? "Sí, reactivar" : "Sí, inactivar",
           cancelButtonText: "Cancelar",
         });
-
         if (confirm.isConfirmed) {
           await handleCambiarEstado(
             usuario._id,
             activar ? "activo" : "inactivo",
           );
-
           Swal.fire(
             "Listo",
             activar ? "Profesional reactivado" : "Profesional inactivado",
@@ -131,19 +207,9 @@ const GestionBarberos = () => {
     }
   };
 
-  const handleChange = (e) => {
-    setUsuarioEdit({ ...usuarioEdit, [e.target.name]: e.target.value });
-  };
-
-  const handleGuardarConAlerta = async () => {
-    await handleGuardar();
-    Swal.fire("Listo", "Datos actualizados", "success");
-  };
-
   return (
     <>
       <UserHeader />
-
       <Container className="mt--7" fluid>
         <Row className="justify-content-center">
           <Col lg="11">
@@ -153,11 +219,9 @@ const GestionBarberos = () => {
                   <Col md="6">
                     <h3 className="mb-0">Gestión de Profesionales</h3>
                   </Col>
-
                   <Col md="6" className="text-right">
                     <Button color="primary" onClick={toggleCrear}>
-                      <FiPlus className="mr-1" />
-                      Crear Profesional
+                      <FiPlus className="mr-1" /> Crear Profesional
                     </Button>
                   </Col>
                 </Row>
@@ -175,7 +239,6 @@ const GestionBarberos = () => {
                   {itemsPaginados.map((b) => {
                     const activo = b.estado === "activo";
                     const foto = b.perfilProfesional?.fotoPerfil?.url;
-
                     return (
                       <Col key={b._id} xs="12" sm="6" md="4" lg="3">
                         <Card
@@ -191,20 +254,16 @@ const GestionBarberos = () => {
                               apellido={b.apellido}
                               foto={foto}
                             />
-
                             <h5 className="mt-3 mb-1 font-weight-bold">
                               {b.nombre} {b.apellido}
                             </h5>
-
                             <p className="text-muted small mb-1">{b.email}</p>
-
                             <Badge
                               color={activo ? "success" : "danger"}
                               className="mb-3"
                             >
                               {activo ? "Activo" : "Inactivo"}
                             </Badge>
-
                             <Row>
                               <Col xs="6" className="pr-1">
                                 <Button
@@ -216,7 +275,6 @@ const GestionBarberos = () => {
                                   <FiEdit2 size={14} /> Editar
                                 </Button>
                               </Col>
-
                               <Col xs="6" className="pl-1">
                                 <Button
                                   size="sm"
@@ -248,21 +306,24 @@ const GestionBarberos = () => {
         </Row>
       </Container>
 
+      {/* Modal Editar */}
       <UserModal
         isOpen={modal}
-        toggle={toggleModal}
+        toggle={handleToggleModal}
         usuario={usuarioEdit}
         onSave={handleGuardarConAlerta}
         onFieldChange={handleChange}
         tipoUsuario="barbero"
+        camposAdicionales={camposBarbero}
       />
 
+      {/* Modal Crear */}
       <Modal isOpen={modalCrear} toggle={toggleCrear} centered size="lg">
         <ModalHeader toggle={toggleCrear}>Crear Profesional</ModalHeader>
-
         <ModalBody>
           <Form>
             <Row>
+              {/* RUT */}
               <Col sm={6}>
                 <FormGroup>
                   <Label>RUT *</Label>
@@ -277,6 +338,7 @@ const GestionBarberos = () => {
                 </FormGroup>
               </Col>
 
+              {/* Campos base */}
               {["nombre", "apellido", "telefono", "email"].map((name) => (
                 <Col sm={6} key={name}>
                   <FormGroup>
@@ -292,6 +354,7 @@ const GestionBarberos = () => {
                 </Col>
               ))}
 
+              {/* Contraseñas */}
               <Col sm={6}>
                 <FormGroup>
                   <Label>Contraseña</Label>
@@ -303,7 +366,6 @@ const GestionBarberos = () => {
                   />
                 </FormGroup>
               </Col>
-
               <Col sm={6}>
                 <FormGroup>
                   <Label>Confirmar Contraseña</Label>
@@ -316,6 +378,76 @@ const GestionBarberos = () => {
                 </FormGroup>
               </Col>
 
+              {/* Años de experiencia */}
+              <Col sm={6}>
+                <FormGroup>
+                  <Label>Años de experiencia</Label>
+                  <Input
+                    type="number"
+                    name="aniosExperiencia"
+                    value={formCrear.aniosExperiencia || ""}
+                    onChange={handleCrearChange}
+                  />
+                </FormGroup>
+              </Col>
+
+              {/* Descripción */}
+              <Col sm={6}>
+                <FormGroup>
+                  <Label>Descripción</Label>
+                  <Input
+                    type="textarea"
+                    name="descripcion"
+                    value={formCrear.descripcion || ""}
+                    onChange={handleCrearChange}
+                    rows={3}
+                  />
+                </FormGroup>
+              </Col>
+
+              {/* Especialidades */}
+              <Col sm={12}>
+                <FormGroup>
+                  <Label>Especialidades</Label>
+                  <div className="d-flex" style={{ gap: 8 }}>
+                    <Input
+                      value={especialidadInput}
+                      onChange={(e) => setEspecialidadInput(e.target.value)}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" &&
+                        (e.preventDefault(), agregarEspecialidad())
+                      }
+                      placeholder="Ej: Degradado, Barba..."
+                    />
+                    <Button
+                      type="button"
+                      color="secondary"
+                      onClick={agregarEspecialidad}
+                    >
+                      <FiPlus />
+                    </Button>
+                  </div>
+                  <div className="mt-2 d-flex flex-wrap" style={{ gap: 6 }}>
+                    {(formCrear.especialidades || []).map((esp) => (
+                      <Badge
+                        key={esp}
+                        color="dark"
+                        pill
+                        className="d-flex align-items-center px-3 py-2"
+                        style={{ fontSize: 13, gap: 6 }}
+                      >
+                        {esp}
+                        <FiX
+                          style={{ cursor: "pointer", marginLeft: 4 }}
+                          onClick={() => quitarEspecialidad(esp)}
+                        />
+                      </Badge>
+                    ))}
+                  </div>
+                </FormGroup>
+              </Col>
+
+              {/* Foto de perfil */}
               <Col sm={12}>
                 <FormGroup>
                   <Label>Foto de perfil</Label>
@@ -323,7 +455,6 @@ const GestionBarberos = () => {
                     className="d-flex align-items-center"
                     style={{ gap: 16 }}
                   >
-                    {/* Preview */}
                     <div
                       style={{
                         width: 72,
@@ -352,8 +483,6 @@ const GestionBarberos = () => {
                         <span style={{ fontSize: 24 }}>📷</span>
                       )}
                     </div>
-
-                    {/* Input */}
                     <div>
                       <Input
                         type="file"

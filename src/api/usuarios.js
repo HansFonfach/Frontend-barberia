@@ -6,7 +6,10 @@ export const getUsuarios = () => {
 };
 
 export const putUsuario = (id, data) => {
-  return axiosPrivate.put(`/usuarios/${id}`, data);
+  const isFormData = data instanceof FormData;
+  return axiosPrivate.put(`/usuarios/${id}`, data, {
+    headers: isFormData ? { "Content-Type": "multipart/form-data" } : {},
+  });
 };
 
 export const putUpdatePerfilUsuario = (data) =>
