@@ -28,7 +28,6 @@ import {
   FiClock,
   FiMail,
   FiGift,
-  FiStar,
   FiUsers,
   FiBell,
   FiRefreshCw,
@@ -36,12 +35,10 @@ import {
   FiMessageCircle,
   FiUserCheck,
   FiUserX,
-  FiAward,
-  FiHeart,
-  FiThumbsUp,
   FiShield,
 } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
+import NegociosConfianza from "./NegociosConfianza";
 
 const LandingPage = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -359,50 +356,300 @@ const LandingPage = () => {
         </Container>
       </section>
 
-      {/* Sección: Para quién es - NUEVA */}
-      <section className="py-6" style={{ background: "#ffffff" }}>
+      {/* Sección: Así de simple - Cómo funciona */}
+      <section className="py-6" style={{ background: "#f8faff" }}>
         <Container>
           <div className="text-center mb-5">
             <Badge
               className="mb-3 px-3 py-2"
               style={{
-                background: "#e0e7ff",
+                background: "#e8edff",
                 color: "#4361ee",
                 borderRadius: "50px",
               }}
             >
-              📋 Para todo tipo de negocios
+              ⚡ Simple y rápido
             </Badge>
-            <h2 className="display-4 font-weight-bold">
-              ¿Tienes un negocio de atención al cliente?
-            </h2>
+            <h2 className="display-4 font-weight-bold">Así de simple</h2>
             <p className="text-muted">
-              AgendaFonfach funciona para cualquier rubro que requiera reservas
+              En menos de 10 minutos tu negocio ya está recibiendo reservas solo
             </p>
           </div>
 
-          <Row className="justify-content-center">
-            {rubros.map((rubro, index) => (
-              <Col xs={6} md={3} key={index} className="mb-3">
-                <div className="text-center p-3">
-                  <span style={{ fontSize: "2rem" }}>{rubro.icon}</span>
-                  <h6 className="mt-2 mb-1">{rubro.nombre}</h6>
-                  {rubro.count > 0 && (
-                    <Badge color="success" pill>
-                      Ya en uso
-                    </Badge>
-                  )}
+          <Row className="align-items-start justify-content-center">
+            {/* Paso 1 */}
+            <Col md="3">
+              <div
+                className="text-center p-4 position-relative"
+                style={{
+                  background: "#fff",
+                  borderRadius: "20px",
+                  border: "1px solid rgba(67,97,238,0.1)",
+                }}
+              >
+                <div
+                  className="d-flex align-items-center justify-content-center mx-auto"
+                  style={{
+                    position: "absolute",
+                    top: "-16px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #4361ee, #f72585)",
+                    color: "white",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                  }}
+                >
+                  1
                 </div>
-              </Col>
-            ))}
+                <div
+                  className="d-flex align-items-center justify-content-center mx-auto mb-3"
+                  style={{
+                    width: "64px",
+                    height: "64px",
+                    borderRadius: "18px",
+                    background: "#eef1ff",
+                  }}
+                >
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#4361ee"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <rect x="3" y="3" width="18" height="18" rx="4" />
+                    <path d="M8 12h8M12 8v8" />
+                  </svg>
+                </div>
+                <h5 className="font-weight-bold mb-2">Creas tu negocio</h5>
+                <p className="text-muted small mb-3">
+                  Registras tu negocio, tus profesionales y los horarios
+                  disponibles. Sin complicaciones.
+                </p>
+                <span
+                  className="px-3 py-1"
+                  style={{
+                    background: "#eef1ff",
+                    color: "#4361ee",
+                    borderRadius: "50px",
+                    fontSize: "11px",
+                    fontWeight: "600",
+                  }}
+                >
+                  5 minutos
+                </span>
+              </div>
+            </Col>
+
+            {/* Flecha 1 */}
+            <Col
+              md="1"
+              className="d-none d-md-flex align-items-center justify-content-center"
+              style={{ paddingTop: "52px" }}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#c7d0f8"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </Col>
+
+            {/* Paso 2 */}
+            <Col md="3">
+              <div
+                className="text-center p-4 position-relative"
+                style={{
+                  background: "#fff",
+                  borderRadius: "20px",
+                  border: "1px solid rgba(247,37,133,0.1)",
+                }}
+              >
+                <div
+                  className="d-flex align-items-center justify-content-center mx-auto"
+                  style={{
+                    position: "absolute",
+                    top: "-16px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #4361ee, #f72585)",
+                    color: "white",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                  }}
+                >
+                  2
+                </div>
+                <div
+                  className="d-flex align-items-center justify-content-center mx-auto mb-3"
+                  style={{
+                    width: "64px",
+                    height: "64px",
+                    borderRadius: "18px",
+                    background: "#fff0f7",
+                  }}
+                >
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#f72585"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="18" cy="5" r="3" />
+                    <circle cx="6" cy="12" r="3" />
+                    <circle cx="18" cy="19" r="3" />
+                    <path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98" />
+                  </svg>
+                </div>
+                <h5 className="font-weight-bold mb-2">Compartes tu link</h5>
+                <p className="text-muted small mb-3">
+                  Le das a tus clientes el link de tu agenda. Lo pones en
+                  Instagram, WhatsApp o donde quieras.
+                </p>
+                <span
+                  className="px-3 py-1"
+                  style={{
+                    background: "#fff0f7",
+                    color: "#f72585",
+                    borderRadius: "50px",
+                    fontSize: "11px",
+                    fontWeight: "600",
+                  }}
+                >
+                  1 link, todo listo
+                </span>
+              </div>
+            </Col>
+
+            {/* Flecha 2 */}
+            <Col
+              md="1"
+              className="d-none d-md-flex align-items-center justify-content-center"
+              style={{ paddingTop: "52px" }}
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="#c7d0f8"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14M13 6l6 6-6 6" />
+              </svg>
+            </Col>
+
+            {/* Paso 3 */}
+            <Col md="3">
+              <div
+                className="text-center p-4 position-relative"
+                style={{
+                  background: "#fff",
+                  borderRadius: "20px",
+                  border: "1px solid rgba(6,214,160,0.15)",
+                }}
+              >
+                <div
+                  className="d-flex align-items-center justify-content-center mx-auto"
+                  style={{
+                    position: "absolute",
+                    top: "-16px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    width: "32px",
+                    height: "32px",
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #4361ee, #f72585)",
+                    color: "white",
+                    fontSize: "13px",
+                    fontWeight: "600",
+                  }}
+                >
+                  3
+                </div>
+                <div
+                  className="d-flex align-items-center justify-content-center mx-auto mb-3"
+                  style={{
+                    width: "64px",
+                    height: "64px",
+                    borderRadius: "18px",
+                    background: "#edfff8",
+                  }}
+                >
+                  <svg
+                    width="28"
+                    height="28"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="#06d6a0"
+                    strokeWidth="1.8"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+                    <path d="M8 12l3 3 5-5" />
+                  </svg>
+                </div>
+                <h5 className="font-weight-bold mb-2">
+                  Las reservas llegan solas
+                </h5>
+                <p className="text-muted small mb-3">
+                  Tus clientes reservan, reciben recordatorios automáticos y
+                  acumulan puntos. Tú solo atiendes.
+                </p>
+                <span
+                  className="px-3 py-1"
+                  style={{
+                    background: "#edfff8",
+                    color: "#06d6a0",
+                    borderRadius: "50px",
+                    fontSize: "11px",
+                    fontWeight: "600",
+                  }}
+                >
+                  100% automático
+                </span>
+              </div>
+            </Col>
           </Row>
 
-          <div className="text-center mt-4">
-            <p className="text-muted">
-              <FiShield className="mr-2" style={{ color: "#4361ee" }} />
-              Todos los rubros tienen el mismo precio:{" "}
-              <strong>$24.990 CLP/mes</strong>
-            </p>
+          {/* CTA */}
+          <div className="text-center mt-5">
+            <Button
+              size="lg"
+              className="px-5 py-3 text-white"
+              style={{
+                background: "linear-gradient(135deg, #4361ee, #f72585)",
+                border: "none",
+                borderRadius: "50px",
+                fontWeight: "600",
+              }}
+              onClick={() => (window.location.href = "/registro-negocio")}
+            >
+              Comenzar gratis — 7 días sin costo →
+            </Button>
           </div>
         </Container>
       </section>
@@ -531,191 +778,7 @@ const LandingPage = () => {
         </Container>
       </section>
 
-      {/* Testimonios - Combinando real y simulados */}
-      <section
-        id="testimonios"
-        className="py-7"
-        style={{ background: "#f8f9fa" }}
-      >
-        <Container>
-          <div className="text-center mb-6">
-            <Badge
-              className="mb-3 px-3 py-2"
-              style={{
-                background: "linear-gradient(135deg, #4361ee 0%, #f72585 100%)",
-                color: "white",
-                borderRadius: "50px",
-              }}
-            >
-              ⭐ Resultados que hablan
-            </Badge>
-            <h2 className="display-4 font-weight-bold">
-              Lo que dicen los profesionales
-            </h2>
-            <p className="text-muted">
-              Historias reales de negocios que ya están usando AgendaFonfach
-            </p>
-          </div>
-
-          <Row>
-            {/* Cliente Real destacado */}
-            <Col lg={12} className="mb-5">
-              <Card
-                className="border-0 shadow-lg"
-                style={{ borderRadius: "30px", overflow: "hidden" }}
-              >
-                <Row className="g-0">
-                  <Col md={4}>
-                    <img
-                      src={clienteReal.imagen}
-                      alt={clienteReal.nombre}
-                      className="img-fluid h-100"
-                      style={{ objectFit: "cover", width: "100%" }}
-                    />
-                  </Col>
-                  <Col md={8}>
-                    <CardBody className="p-5">
-                      <div className="d-flex align-items-center mb-3">
-                        <Badge
-                          className="mr-3"
-                          style={{
-                            background: "#4361ee",
-                            color: "white",
-                            borderRadius: "50px",
-                            padding: "8px 16px",
-                          }}
-                        >
-                          ⭐ Cliente real
-                        </Badge>
-                        <h4 className="font-weight-bold mb-0">
-                          {clienteReal.nombre}
-                        </h4>
-                      </div>
-
-                      <div className="d-flex mb-4">
-                        {[...Array(5)].map((_, i) => (
-                          <FiStar
-                            key={i}
-                            className="text-warning"
-                            fill="currentColor"
-                            size={20}
-                          />
-                        ))}
-                      </div>
-
-                      <p className="lead mb-4 font-italic">
-                        "{clienteReal.testimonio}"
-                      </p>
-
-                      <Row>
-                        <Col xs={6} md={3} className="mb-3">
-                          <small className="text-muted d-block">Dueño</small>
-                          <strong>{clienteReal.dueño}</strong>
-                        </Col>
-                        <Col xs={6} md={3} className="mb-3">
-                          <small className="text-muted d-block">
-                            Trayectoria
-                          </small>
-                          <strong>{clienteReal.años} años</strong>
-                        </Col>
-                        <Col xs={6} md={3} className="mb-3">
-                          <small className="text-muted d-block">
-                            Profesionales
-                          </small>
-                          <strong>{clienteReal.profesionales}</strong>
-                        </Col>
-                        <Col xs={6} md={3} className="mb-3">
-                          <small className="text-muted d-block">
-                            Reservas/mes
-                          </small>
-                          <strong>+{clienteReal.reservasMes}</strong>
-                        </Col>
-                      </Row>
-
-                      <Button
-                        color="link"
-                        className="p-0 mt-3"
-                        onClick={() =>
-                          (window.location.href = "/lasantabarberia")
-                        }
-                      >
-                        Ver perfil público <FiArrowRight />
-                      </Button>
-                    </CardBody>
-                  </Col>
-                </Row>
-              </Card>
-            </Col>
-          </Row>
-
-          <Row>
-            {testimoniosSimulados.map((testimonio, index) => (
-              <Col md={4} key={index} className="mb-4">
-                <Card
-                  className="border-0 shadow h-100 hover-lift"
-                  style={{ borderRadius: "20px" }}
-                >
-                  <CardBody className="p-4">
-                    <div className="d-flex align-items-center mb-3">
-                      <img
-                        src={testimonio.avatar}
-                        alt={testimonio.nombre}
-                        className="rounded-circle mr-3"
-                        width="50"
-                        height="50"
-                      />
-                      <div>
-                        <h5 className="font-weight-bold mb-0">
-                          {testimonio.nombre}
-                        </h5>
-                        <small className="text-muted">
-                          {testimonio.negocio}
-                        </small>
-                      </div>
-                    </div>
-
-                    <Badge
-                      className="mb-3"
-                      style={{
-                        background: "#e0e7ff",
-                        color: "#4361ee",
-                        borderRadius: "50px",
-                      }}
-                    >
-                      {testimonio.tipo}
-                    </Badge>
-
-                    <p className="text-muted font-italic mb-3">
-                      "{testimonio.testimonio}"
-                    </p>
-
-                    <div className="d-flex justify-content-between align-items-center mt-3">
-                      <small className="text-success">
-                        <FiCheckCircle className="mr-1" />
-                        Problema resuelto: {testimonio.problemaResuelto}
-                      </small>
-                      <small className="text-muted">
-                        {testimonio.mesesUsando}
-                      </small>
-                    </div>
-                  </CardBody>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-
-          {/* Badge de confianza */}
-          <div className="text-center mt-5">
-            <div className="d-inline-flex align-items-center p-3 bg-white rounded-pill shadow-sm">
-              <FiHeart className="mr-2" color="#f72585" />
-              <span className="mr-3">Únete a</span>
-              <strong style={{ color: "#4361ee" }}>La Santa Barbería</strong>
-              <span className="mx-2">y otros profesionales</span>
-              <FiUsers className="ml-2" color="#4361ee" />
-            </div>
-          </div>
-        </Container>
-      </section>
+      <NegociosConfianza />
 
       {/* SECCIÓN COMBINADA: PLAN Y CONTACTO */}
       <section id="plan-contacto" className="py-7 bg-white">

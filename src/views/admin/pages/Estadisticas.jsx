@@ -18,21 +18,7 @@ import {
 import { useEstadisticas } from "context/EstadisticasContext";
 
 const Estadisticas = () => {
-  const {
-    ingresoTotal,
-    ingresoMensual,
-    totalCitasEsteMes,
-    totalClientes,
-    reservasCompletadas,
-    reservasCanceladas,
-    horaMasCancelada,
-    servicioMasPopular,
-    tasaDeCancelacion,
-    tasaDeAsistencia,
-    top5ClientesAsistentes,
-    top5ClientesCanceladores,
-    top5ClientesNoAsistidores,
-  } = useEstadisticas();
+  const { DashboardResumen } = useEstadisticas();
 
   const [stats, setStats] = useState({
     ingresosTotales: null,
@@ -65,55 +51,28 @@ const Estadisticas = () => {
   useEffect(() => {
     const cargarEstadisticas = async () => {
       try {
-        const [
-          totalIng,
-          ingMes,
-          reservasMes,
-          clientes,
-          completadas,
-          canceladas,
-          servicioPopular,
-          horaCancelada,
-          tasaCanc,
-          tasaAsis,
-          top5,
-          canceladores,
-          noAsistidos,
-        ] = await Promise.all([
-          ingresoTotal(),
-          ingresoMensual(),
-          totalCitasEsteMes(),
-          totalClientes(),
-          reservasCompletadas(),
-          reservasCanceladas(),
-          servicioMasPopular(),
-          horaMasCancelada(),
-          tasaDeCancelacion(),
-          tasaDeAsistencia(),
-          top5ClientesAsistentes(),
-          top5ClientesCanceladores(),
-          top5ClientesNoAsistidores(),
-        ]);
+        const d = await DashboardResumen(); // 1 sola llamada 🚀
 
         setStats({
-          ingresosTotales: formatMoney(totalIng),
-          ingresoMensual: formatMoney(ingMes?.ingresoTotal ?? ingMes),
-          reservasTotales: reservasMes,
-          clientesTotales: clientes,
-          reservasCompletadas: completadas,
-          reservasCanceladas: canceladas,
-          horaMasCancelada: horaCancelada ?? "--",
-          servicioMasPopular:
-            servicioPopular?.nombre ?? servicioPopular ?? "--",
+          ingresosTotales: formatMoney(d.ingresoTotal),
+          ingresoMensual: formatMoney(d.ingresoMensual?.detalle?.ingresoReservas + d.ingresoMensual?.detalle?.ingresoSuscripciones ?? 0),
+          reservasTotales: d.citasMes,
+          clientesTotales: d.totalClientes,
+          reservasCompletadas: d.reservasCompletadas,
+          reservasCanceladas: d.reservasCanceladas,
+          horaMasCancelada: d.horaMasCancelada?.rango ?? "--",
+          servicioMasPopular: d.servicioMasPopular?.nombre ?? "--",
           ticketPromedio:
-            reservasMes > 0 ? formatMoney(totalIng / reservasMes) : "--",
-          tasaCancelacion: tasaCanc ? `${tasaCanc}%` : "--",
-          tasaAsistencia: tasaAsis ? `${tasaAsis}%` : "--",
+            d.citasMes > 0
+              ? formatMoney(d.ingresoTotal / d.citasMes)
+              : "--",
+          tasaCancelacion: d.tasaCancelacion?.porcentaje ?? "--",
+          tasaAsistencia: d.tasaAsistencia?.porcentaje ?? "--",
         });
 
-        setTopClientes(top5 || []);
-        setTopCanceladores(canceladores || []);
-        setTopNoAsistidos(noAsistidos || []);
+        setTopClientes(d.topAsistentes || []);
+        setTopCanceladores(d.topCanceladores || []);
+        setTopNoAsistidos(d.topNoAsistidos || []);
       } catch (error) {
         console.error("Error cargando estadísticas", error);
       }
@@ -124,30 +83,30 @@ const Estadisticas = () => {
 
   const StatCard = ({ title, value, icon, variant = "default" }) => {
     const getVariantStyles = () => {
-      switch(variant) {
+      switch (variant) {
         case "primary":
           return {
             bg: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
             text: "white",
-            iconBg: "rgba(255,255,255,0.2)"
+            iconBg: "rgba(255,255,255,0.2)",
           };
         case "success":
           return {
             bg: "linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%)",
             text: "#1a4731",
-            iconBg: "rgba(255,255,255,0.3)"
+            iconBg: "rgba(255,255,255,0.3)",
           };
         case "warning":
           return {
             bg: "linear-gradient(135deg, #fad961 0%, #f76b1c 100%)",
             text: "#5f370e",
-            iconBg: "rgba(255,255,255,0.3)"
+            iconBg: "rgba(255,255,255,0.3)",
           };
         default:
           return {
             bg: "white",
             text: "#2d3748",
-            iconBg: "#f1f3f5"
+            iconBg: "#f1f3f5",
           };
       }
     };
@@ -155,45 +114,58 @@ const Estadisticas = () => {
     const styles = getVariantStyles();
 
     return (
-      <Card 
-        className="stat-card border-0 h-100" 
-        style={{ 
+      <Card
+        className="stat-card border-0 h-100"
+        style={{
           background: styles.bg,
           borderRadius: "16px",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.05)"
+          boxShadow: "0 4px 20px rgba(0,0,0,0.05)",
         }}
       >
         <CardBody className="d-flex justify-content-between align-items-center p-3 p-md-4">
           <div>
-            <p 
-              className="stat-label mb-1" 
-              style={{ 
-                color: variant === "default" ? "#6c757d" : "rgba(255,255,255,0.8)",
+            <p
+              className="stat-label mb-1"
+              style={{
+                color:
+                  variant === "default"
+                    ? "#6c757d"
+                    : "rgba(255,255,255,0.8)",
                 fontSize: "0.8rem",
                 fontWeight: 500,
-                letterSpacing: "0.3px"
+                letterSpacing: "0.3px",
               }}
             >
               {title}
             </p>
-            <h4 
-              className="stat-value mb-0" 
-              style={{ 
+            <h4
+              className="stat-value mb-0"
+              style={{
                 color: styles.text,
                 fontWeight: 700,
-                fontSize: "clamp(1.2rem, 4vw, 1.5rem)"
+                fontSize: "clamp(1.2rem, 4vw, 1.5rem)",
               }}
             >
-              {value === null ? <span className={variant === "default" ? "text-muted" : "text-white-50"}>...</span> : value}
+              {value === null ? (
+                <span
+                  className={
+                    variant === "default" ? "text-muted" : "text-white-50"
+                  }
+                >
+                  ...
+                </span>
+              ) : (
+                value
+              )}
             </h4>
           </div>
-          <div 
-            className="stat-icon" 
-            style={{ 
+          <div
+            className="stat-icon"
+            style={{
               background: styles.iconBg,
               padding: "12px",
               borderRadius: "12px",
-              color: variant === "default" ? styles.text : "white"
+              color: variant === "default" ? styles.text : "white",
             }}
           >
             {icon}
@@ -217,7 +189,10 @@ const Estadisticas = () => {
           <div className="mr-2" style={{ color: `var(--${colorBadge})` }}>
             {icono}
           </div>
-          <h5 className="mb-0 fw-bold" style={{ fontSize: "clamp(1rem, 3vw, 1.25rem)" }}>
+          <h5
+            className="mb-0 fw-bold"
+            style={{ fontSize: "clamp(1rem, 3vw, 1.25rem)" }}
+          >
             {titulo}
           </h5>
         </div>
@@ -232,16 +207,16 @@ const Estadisticas = () => {
               style={{
                 background: "#f8fafc",
                 borderRadius: "10px",
-                transition: "all 0.2s ease"
+                transition: "all 0.2s ease",
               }}
             >
               <div className="d-flex align-items-center w-100 w-sm-auto mb-2 mb-sm-0">
-                <span 
-                  className="rank-badge mr-2 mr-sm-3" 
-                  style={{ 
+                <span
+                  className="rank-badge mr-2 mr-sm-3"
+                  style={{
                     minWidth: "28px",
                     fontWeight: 600,
-                    color: "#94a3b8"
+                    color: "#94a3b8",
                   }}
                 >
                   #{index + 1}
@@ -250,26 +225,26 @@ const Estadisticas = () => {
                   <strong style={{ fontSize: "0.9rem", display: "block" }}>
                     {item.nombre} {item.apellido}
                   </strong>
-                  <span 
-                    className="text-muted small" 
-                    style={{ 
+                  <span
+                    className="text-muted small"
+                    style={{
                       fontSize: "0.75rem",
                       display: "block",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
-                      whiteSpace: "nowrap"
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {item.email}
                   </span>
                 </div>
               </div>
-              <span 
+              <span
                 className={`badge badge-${colorBadge} px-2 px-sm-3 py-1 py-sm-2 ml-auto ml-sm-0`}
                 style={{
                   fontSize: "0.75rem",
                   fontWeight: 500,
-                  borderRadius: "20px"
+                  borderRadius: "20px",
                 }}
               >
                 {item[columnaValor]} {labelValor}
@@ -432,36 +407,36 @@ const Estadisticas = () => {
           background: #f7f9fc;
           min-height: 100vh;
         }
-        
+
         .stat-card {
           transition: all 0.3s ease;
           cursor: default;
           overflow: hidden;
         }
-        
+
         .stat-card:hover {
           transform: translateY(-5px);
-          box-shadow: 0 12px 30px rgba(0,0,0,0.1) !important;
+          box-shadow: 0 12px 30px rgba(0, 0, 0, 0.1) !important;
         }
-        
+
         .top-card {
           border-radius: 16px;
           transition: all 0.3s ease;
         }
-        
+
         .top-card:hover {
-          box-shadow: 0 8px 25px rgba(0,0,0,0.08) !important;
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08) !important;
         }
-        
+
         .top-client-row {
           transition: all 0.2s ease;
         }
-        
+
         .top-client-row:hover {
           background: #eef2f6 !important;
           transform: translateX(5px);
         }
-        
+
         .empty-box {
           padding: 30px;
           text-align: center;
@@ -470,40 +445,38 @@ const Estadisticas = () => {
           border-radius: 12px;
           font-size: 0.9rem;
         }
-        
+
         .badge {
           font-weight: 500;
           letter-spacing: 0.3px;
         }
-        
-        /* Mejoras responsive */
+
         @media (max-width: 576px) {
           .stat-card .card-body {
             padding: 1rem !important;
           }
-          
+
           .top-client-row {
             flex-direction: column;
             align-items: flex-start !important;
           }
-          
+
           .top-client-row > div:first-child {
             width: 100%;
             margin-bottom: 10px;
           }
-          
+
           .top-client-row .badge {
             align-self: flex-end;
             margin-top: 5px;
           }
-          
+
           .empty-box {
             padding: 20px;
             font-size: 0.85rem;
           }
         }
-        
-        /* Animaciones */
+
         @keyframes fadeIn {
           from {
             opacity: 0;
@@ -514,12 +487,12 @@ const Estadisticas = () => {
             transform: translateY(0);
           }
         }
-        
-        .stat-card, .top-card {
+
+        .stat-card,
+        .top-card {
           animation: fadeIn 0.5s ease forwards;
         }
-        
-        /* Retraso en animaciones para efecto cascada */
+
         .row:nth-child(2) .col {
           animation-delay: 0.1s;
         }

@@ -8,3 +8,4 @@ export const getEmpresaById = (id) => axiosPrivate.get(`/empresa/${id}`);
 
 export const patchActualizarEmpresa = (data) =>
   axiosPrivate.patch("/empresa/actualizar", data);
+

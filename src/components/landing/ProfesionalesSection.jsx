@@ -3,14 +3,22 @@ import barberoDefault from "assets/img/barberos/ale.jpg";
 import "./profesionalesSection.css";
 import { useParams } from "react-router-dom";
 
-const ProfesionalesSection = ({profesionales}) => {
-  const {slug} = useParams();
+const ProfesionalesSection = ({ profesionales }) => {
+  const { slug } = useParams();
   if (!profesionales?.length) return null;
 
   const prof = profesionales[0];
   const fotoPerfil = prof.perfilProfesional?.fotoPerfil?.url || barberoDefault;
   const especialidades = prof.perfilProfesional?.especialidades || [];
   const aniosExp = prof.perfilProfesional?.aniosExperiencia;
+
+  const getInitials = (nombre, apellido) => {
+    const primera = nombre?.[0] || "";
+    const segunda = apellido?.[0] || "";
+    return (primera + segunda).toUpperCase();
+  };
+
+  const tieneFoto = prof.perfilProfesional?.fotoPerfil?.url;
 
   const isLumica = slug === "lumicabeauty"; // 👈
 
@@ -22,11 +30,30 @@ const ProfesionalesSection = ({profesionales}) => {
             <Col lg="4" className="text-center">
               <div className="barber-circle-container">
                 <div className="barber-circle">
-                  <img
-                    src={fotoPerfil}
-                    alt={prof.nombre}
-                    className="barber-img"
-                  />
+                  {tieneFoto ? (
+                    <img
+                      src={fotoPerfil}
+                      alt={prof.nombre}
+                      className="barber-img"
+                    />
+                  ) : (
+                    <div
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        backgroundColor: "#4654d1",
+                        color: "#ffffff",
+                        fontSize: "3rem",
+                        fontWeight: 700,
+                        borderRadius: "50%",
+                      }}
+                    >
+                      {getInitials(prof.nombre, prof.apellido)}
+                    </div>
+                  )}
                 </div>
               </div>
             </Col>

@@ -7,6 +7,8 @@ import { getReservasNoAsistidas } from "api/estadisticas";
 import { getServicioMasPopular } from "api/estadisticas";
 import { getTasaDeAsistencia } from "api/estadisticas";
 import { getTop5ClientesCanceladores } from "api/estadisticas";
+import { getDashboardResumen } from "api/estadisticas";
+import { getDashboardAdmin } from "api/estadisticas";
 import { getTop5ClientesNoAsistidores } from "api/estadisticas";
 import { getTop5ClientesAsistentes } from "api/estadisticas";
 import { getTasaDeCancelacion } from "api/estadisticas";
@@ -205,6 +207,25 @@ export const EstadisticasProvider = ({ children }) => {
     }
   };
 
+  const DashboardResumen = async () => {
+    try {
+      const res = await getDashboardResumen();
+      return res.data.data; // ✅ retorna el array directamente
+    } catch (error) {
+      throw error;
+    }
+  };
+
+   const DashboardResumenAdmin = async () => {
+    try {
+      const res = await getDashboardAdmin();
+      return res.data.data; // ✅ retorna el array directamente
+    } catch (error) {
+      throw error;
+    }
+  };
+
+
   return (
     <EstadisticasContext.Provider
       value={{
@@ -217,6 +238,8 @@ export const EstadisticasProvider = ({ children }) => {
         proximaReserva,
         proximoCliente,
         ingresoTotal,
+        DashboardResumen,
+        DashboardResumenAdmin,
         reservasCompletadas,
         reservasCanceladas,
         reservasNoAsistidas,

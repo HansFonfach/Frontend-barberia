@@ -64,3 +64,11 @@ export const getTop5ClientesCanceladores = () =>{
 export const getTop5ClientesNoAsistidores = () =>{
   return axiosPrivate.get("/estadisticas/top5-clientes-no-asisten");
 }
+
+export const getDashboardResumen = () => {
+  return axiosPrivate.get("/estadisticas/dashboard/resumen");
+};
+
+export const getDashboardAdmin = () => {
+  return axiosPrivate.get("/estadisticas/dashboard/resumenAdmin");
+};

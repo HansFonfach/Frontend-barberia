@@ -18,7 +18,7 @@ const TabBtn = ({ active, onClick, icon, label }) => (
     style={{
       display: "flex", alignItems: "center", gap: 8,
       padding: "10px 18px", borderRadius: 10, border: "none", cursor: "pointer",
-      background: active ? "#5e72e4" : "transparent",
+      background: active ? "var(--color-primary)" : "transparent",
       color: active ? "#fff" : "#525f7f",
       fontWeight: active ? 600 : 400,
       fontSize: "0.88rem", transition: "all 0.2s ease",
@@ -44,14 +44,14 @@ const Field = ({ label, children, hint }) => (
 // ─── SectionTitle ─────────────────────────────────────────────────────────────
 const SectionTitle = ({ icon, title }) => (
   <div className="d-flex align-items-center mb-4" style={{ gap: 10 }}>
-    <div style={{ background: "#f0f2ff", borderRadius: 10, padding: "8px 10px", color: "#5e72e4" }}>
+    <div style={{ background: "var(--color-primary-light)", borderRadius: 10, padding: "8px 10px", color: "var(--color-primary)" }}>
       {icon}
     </div>
-    <h5 className="mb-0 font-weight-bold" style={{ color: "#172b4d" }}>{title}</h5>
+    <h5 className="mb-0 font-weight-bold" style={{ color: "var(--color-text)" }}>{title}</h5>
   </div>
 );
 
-// ─── ColorPicker ──────────────────────────────────────────────────────────────
+// ─── ColorField ───────────────────────────────────────────────────────────────
 const ColorField = ({ label, value, onChange }) => (
   <FormGroup className="mb-3">
     <Label style={{ fontSize: "0.82rem", fontWeight: 600, color: "#525f7f", textTransform: "uppercase", letterSpacing: "0.05em" }}>
@@ -79,14 +79,14 @@ const Toggle = ({ label, hint, checked, onChange }) => (
   <div className="d-flex align-items-center justify-content-between p-3 mb-3"
     style={{ background: "#f8f9fa", borderRadius: 12, border: "1px solid #e9ecef" }}>
     <div>
-      <div style={{ fontWeight: 600, fontSize: "0.9rem", color: "#172b4d" }}>{label}</div>
+      <div style={{ fontWeight: 600, fontSize: "0.9rem", color: "var(--color-text)" }}>{label}</div>
       {hint && <small className="text-muted">{hint}</small>}
     </div>
     <div
       onClick={() => onChange(!checked)}
       style={{
         width: 46, height: 26, borderRadius: 13,
-        background: checked ? "#2dce89" : "#dee2e6",
+        background: checked ? "var(--color-primary)" : "#dee2e6",
         cursor: "pointer", position: "relative", transition: "background 0.2s ease",
         flexShrink: 0,
       }}
@@ -102,13 +102,28 @@ const Toggle = ({ label, hint, checked, onChange }) => (
   </div>
 );
 
+// ─── Preview de colores ───────────────────────────────────────────────────────
+const ColorPreview = ({ colores }) => (
+  <div className="mb-4 p-3" style={{ background: "#f8f9fa", borderRadius: 12, border: "1px solid #e9ecef" }}>
+    <small style={{ fontWeight: 600, color: "#525f7f", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      Vista previa
+    </small>
+    <div className="d-flex align-items-center mt-2" style={{ gap: 10, flexWrap: "wrap" }}>
+      <div style={{ width: 36, height: 36, borderRadius: 8, background: colores.primario, border: "1px solid #e9ecef" }} title="Primario" />
+      <div style={{ width: 36, height: 36, borderRadius: 8, background: colores.secundario, border: "1px solid #e9ecef" }} title="Secundario" />
+      <div style={{ width: 36, height: 36, borderRadius: 8, background: colores.texto, border: "1px solid #e9ecef" }} title="Texto" />
+      <div style={{ width: 36, height: 36, borderRadius: 8, background: colores.textoMuted, border: "1px solid #e9ecef" }} title="Texto muted" />
+      <div style={{ flex: 1, minWidth: 120, height: 36, borderRadius: 8, background: colores.heroBg || colores.primario, border: "1px solid #e9ecef" }} title="Hero" />
+    </div>
+  </div>
+);
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 const ConfiguracionEmpresa = () => {
   const { empresa, actualizarEmpresa, guardando } = useEmpresa();
   const [tab, setTab] = useState("general");
   const [form, setForm] = useState(null);
 
-  // Inicializar form con datos de empresa
   useEffect(() => {
     if (!empresa) return;
     setForm({
@@ -131,6 +146,7 @@ const ConfiguracionEmpresa = () => {
         texto: empresa.colores?.texto || "#172b4d",
         textoMuted: empresa.colores?.textoMuted || "#8898aa",
         heroBg: empresa.colores?.heroBg || "",
+        heroEsClaro: empresa.colores?.heroEsClaro ?? false, // 👈 agregado
       },
       configuracion: {
         mostrarLogo: empresa.configuracion?.mostrarLogo ?? true,
@@ -177,7 +193,7 @@ const ConfiguracionEmpresa = () => {
         title: "✅ Guardado",
         text: "Los cambios fueron guardados correctamente.",
         icon: "success",
-        confirmButtonColor: "#5e72e4",
+        confirmButtonColor: "var(--color-primary)",
         timer: 2000,
         showConfirmButton: false,
       });
@@ -196,7 +212,7 @@ const ConfiguracionEmpresa = () => {
 
   if (!form) return (
     <div className="d-flex justify-content-center align-items-center" style={{ minHeight: 300 }}>
-      <div className="spinner-border text-primary" />
+      <div className="spinner-border" style={{ color: "var(--color-primary)" }} />
     </div>
   );
 
@@ -209,7 +225,7 @@ const ConfiguracionEmpresa = () => {
 
             {/* Header */}
             <Card className="shadow-lg border-0 mb-4 overflow-hidden">
-              <div style={{ background: "linear-gradient(135deg, #5e72e4 0%, #825ee4 100%)", padding: "28px 32px" }}>
+              <div style={{ background: "linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%)", padding: "28px 32px" }}>
                 <div className="d-flex align-items-center justify-content-between flex-wrap" style={{ gap: 12 }}>
                   <div className="d-flex align-items-center" style={{ gap: 14 }}>
                     <div style={{ background: "rgba(255,255,255,0.2)", borderRadius: 12, padding: 10 }}>
@@ -226,7 +242,7 @@ const ConfiguracionEmpresa = () => {
                     onClick={handleGuardar}
                     disabled={guardando}
                     style={{
-                      background: "#fff", color: "#5e72e4", border: "none",
+                      background: "#fff", color: "var(--color-primary)", border: "none",
                       borderRadius: 10, fontWeight: 700, padding: "10px 24px",
                       display: "flex", alignItems: "center", gap: 8,
                     }}
@@ -261,8 +277,7 @@ const ConfiguracionEmpresa = () => {
                     <Row>
                       <Col md={6}>
                         <Field label="Nombre de la empresa">
-                          <Input value={form.nombre} onChange={(e) => set("nombre", e.target.value)}
-                            style={{ borderRadius: 8 }} />
+                          <Input value={form.nombre} onChange={(e) => set("nombre", e.target.value)} style={{ borderRadius: 8 }} />
                         </Field>
                       </Col>
                       <Col md={6}>
@@ -271,8 +286,7 @@ const ConfiguracionEmpresa = () => {
                             <span className="input-group-text" style={{ borderRadius: "8px 0 0 8px", background: "#f8f9fa" }}>
                               <Mail size={15} color="#8898aa" />
                             </span>
-                            <Input value={form.correo} onChange={(e) => set("correo", e.target.value)}
-                              style={{ borderRadius: "0 8px 8px 0" }} />
+                            <Input value={form.correo} onChange={(e) => set("correo", e.target.value)} style={{ borderRadius: "0 8px 8px 0" }} />
                           </div>
                         </Field>
                       </Col>
@@ -282,8 +296,7 @@ const ConfiguracionEmpresa = () => {
                             <span className="input-group-text" style={{ borderRadius: "8px 0 0 8px", background: "#f8f9fa" }}>
                               <Phone size={15} color="#8898aa" />
                             </span>
-                            <Input value={form.telefono} onChange={(e) => set("telefono", e.target.value)}
-                              style={{ borderRadius: "0 8px 8px 0" }} />
+                            <Input value={form.telefono} onChange={(e) => set("telefono", e.target.value)} style={{ borderRadius: "0 8px 8px 0" }} />
                           </div>
                         </Field>
                       </Col>
@@ -293,8 +306,7 @@ const ConfiguracionEmpresa = () => {
                             <span className="input-group-text" style={{ borderRadius: "8px 0 0 8px", background: "#f8f9fa" }}>
                               <MapPin size={15} color="#8898aa" />
                             </span>
-                            <Input value={form.direccion} onChange={(e) => set("direccion", e.target.value)}
-                              style={{ borderRadius: "0 8px 8px 0" }} />
+                            <Input value={form.direccion} onChange={(e) => set("direccion", e.target.value)} style={{ borderRadius: "0 8px 8px 0" }} />
                           </div>
                         </Field>
                       </Col>
@@ -340,6 +352,10 @@ const ConfiguracionEmpresa = () => {
                 {tab === "apariencia" && (
                   <>
                     <SectionTitle icon={<Palette size={18} />} title="Colores y apariencia" />
+
+                    {/* Preview en tiempo real */}
+                    <ColorPreview colores={form.colores} />
+
                     <Row>
                       <Col md={6}>
                         <ColorField label="Color primario" value={form.colores.primario} onChange={(v) => set("colores.primario", v)} />
@@ -362,6 +378,14 @@ const ConfiguracionEmpresa = () => {
                       </Col>
                     </Row>
 
+                    {/* Toggle heroEsClaro */}
+                    <Toggle
+                      label="Hero con fondo claro"
+                      hint="Actívalo si el fondo del hero es claro — el texto cambiará a oscuro automáticamente"
+                      checked={form.colores.heroEsClaro}
+                      onChange={(v) => set("colores.heroEsClaro", v)}
+                    />
+
                     <hr className="my-4" />
                     <SectionTitle icon={<Settings size={18} />} title="Layout del hero" />
                     <div className="d-flex" style={{ gap: 12, flexWrap: "wrap" }}>
@@ -371,9 +395,9 @@ const ConfiguracionEmpresa = () => {
                           onClick={() => set("configuracion.tipoHero", tipo)}
                           style={{
                             padding: "12px 24px", borderRadius: 10, cursor: "pointer",
-                            border: form.configuracion.tipoHero === tipo ? "2px solid #5e72e4" : "2px solid #e9ecef",
-                            background: form.configuracion.tipoHero === tipo ? "#f0f2ff" : "#fff",
-                            color: form.configuracion.tipoHero === tipo ? "#5e72e4" : "#525f7f",
+                            border: form.configuracion.tipoHero === tipo ? "2px solid var(--color-primary)" : "2px solid #e9ecef",
+                            background: form.configuracion.tipoHero === tipo ? "var(--color-primary-light)" : "#fff",
+                            color: form.configuracion.tipoHero === tipo ? "var(--color-primary)" : "#525f7f",
                             fontWeight: form.configuracion.tipoHero === tipo ? 700 : 400,
                             textTransform: "capitalize", fontSize: "0.9rem",
                             transition: "all 0.2s ease",
@@ -414,7 +438,6 @@ const ConfiguracionEmpresa = () => {
 
                     {form.pagos.requiereAbono && (
                       <>
-                        {/* Tipo abono */}
                         <Field label="Tipo de abono">
                           <div className="d-flex" style={{ gap: 10 }}>
                             {[
@@ -426,10 +449,10 @@ const ConfiguracionEmpresa = () => {
                                 onClick={() => set("pagos.tipoAbono", value)}
                                 style={{
                                   flex: 1, padding: "12px 16px", borderRadius: 10,
-                                  border: form.pagos.tipoAbono === value ? "2px solid #5e72e4" : "2px solid #e9ecef",
-                                  background: form.pagos.tipoAbono === value ? "#f0f2ff" : "#fff",
+                                  border: form.pagos.tipoAbono === value ? "2px solid var(--color-primary)" : "2px solid #e9ecef",
+                                  background: form.pagos.tipoAbono === value ? "var(--color-primary-light)" : "#fff",
                                   cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
-                                  color: form.pagos.tipoAbono === value ? "#5e72e4" : "#525f7f",
+                                  color: form.pagos.tipoAbono === value ? "var(--color-primary)" : "#525f7f",
                                   fontWeight: form.pagos.tipoAbono === value ? 700 : 400,
                                   transition: "all 0.2s ease",
                                 }}
@@ -490,7 +513,6 @@ const ConfiguracionEmpresa = () => {
                 {tab === "reservas" && (
                   <>
                     <SectionTitle icon={<Calendar size={18} />} title="Configuración de reservas" />
-
                     <Field label="Días mostrados en el calendario"
                       hint="Cuántos días hacia adelante puede reservar un cliente">
                       <div className="d-flex align-items-center" style={{ gap: 12 }}>
@@ -500,14 +522,13 @@ const ConfiguracionEmpresa = () => {
                           onChange={(e) => set("diasMostradosCalendario", Number(e.target.value))}
                           style={{ flex: 1 }}
                         />
-                        <Badge color="primary" style={{ fontSize: "1rem", padding: "8px 16px", borderRadius: 8 }}>
+                        <Badge style={{ fontSize: "1rem", padding: "8px 16px", borderRadius: 8, backgroundColor: "var(--color-primary)", color: "#fff" }}>
                           {form.diasMostradosCalendario} días
                         </Badge>
                       </div>
                     </Field>
 
                     <hr className="my-4" />
-
                     <SectionTitle icon={<Bell size={18} />} title="Notificaciones" />
                     <Toggle
                       label="Notificar al profesional por nueva reserva"
@@ -524,7 +545,7 @@ const ConfiguracionEmpresa = () => {
                     onClick={handleGuardar}
                     disabled={guardando}
                     style={{
-                      background: "linear-gradient(135deg, #5e72e4, #825ee4)",
+                      background: "linear-gradient(135deg, var(--color-primary), var(--color-primary-dark))",
                       border: "none", borderRadius: 10, fontWeight: 700,
                       padding: "12px 32px", color: "#fff",
                       display: "flex", alignItems: "center", gap: 8,
