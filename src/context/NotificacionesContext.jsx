@@ -11,25 +11,26 @@ export const NotificacionProvider = ({ children }) => {
     const { data } = await axios.get("/api/notificaciones");
     setNotificaciones(data);
   };
-
   const crearNotificacion = async ({
     fecha,
     hora,
     horas,
     barberoId,
     usuarioId,
+    emailInvitado, // ← faltaba
+    esInvitado, // ← faltaba
   }) => {
     try {
       const payload = {
         fecha,
         barberoId,
-        usuarioId,
         ...(hora ? { hora } : {}),
         ...(horas ? { horas } : {}),
+        ...(usuarioId ? { usuarioId } : {}),
+        ...(esInvitado ? { esInvitado: true, emailInvitado } : {}),
       };
 
       const res = await postCrearNotificacion(payload);
-    
       return res.data;
     } catch (error) {
       console.error(
@@ -39,7 +40,6 @@ export const NotificacionProvider = ({ children }) => {
       throw error;
     }
   };
-
   return (
     <NotificacionContext.Provider
       value={{ notificaciones, crearNotificacion, obtenerNotificaciones }}

@@ -1,5 +1,5 @@
 // src/components/reserva/HorasDisponibles.jsx
-import React from "react";
+import React, { useState } from "react";
 import {
   FormGroup,
   Label,
@@ -9,11 +9,17 @@ import {
   Spinner,
   Alert,
   Badge,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Input,
 } from "reactstrap";
-import { Bell, Clock } from "lucide-react";
+import { Bell, Clock, Mail } from "lucide-react";
 import Swal from "sweetalert2";
 import { useNotificacion } from "context/NotificacionesContext";
 import { useAuth } from "context/AuthContext";
+import { postCrearNotificacion } from "api/notificaciones";
 
 const HorasDisponibles = ({
   horasDisponibles = [],
@@ -30,13 +36,22 @@ const HorasDisponibles = ({
   // ✅ Los hooks SIEMPRE se llaman, sin condiciones
   const notificacionContext = useNotificacion();
   const authContext = useAuth();
-  
+
   // Luego usamos los valores condicionalmente
-  const crearNotificacion = !esInvitado ? notificacionContext?.crearNotificacion : null;
+  const crearNotificacion = !esInvitado
+    ? notificacionContext?.crearNotificacion
+    : null;
   const user = !esInvitado ? authContext?.user : null;
 
+  // Estado para el modal de invitados
+  const [modalEmail, setModalEmail] = useState(false);
+  const [emailInvitado, setEmailInvitado] = useState("");
+  const [horaParaNotificar, setHoraParaNotificar] = useState(null);
+  const [enviandoNotif, setEnviandoNotif] = useState(false);
+  const [emailError, setEmailError] = useState("");
+
   const duracionReal = Number(
-    horasDataCompleta?.duracionServicio || duracionSeleccionado || 0
+    horasDataCompleta?.duracionServicio || duracionSeleccionado || 0,
   );
 
   const calcularHoraFin = (horaInicio) => {
@@ -44,21 +59,33 @@ const HorasDisponibles = ({
     const [h, m] = horaInicio.split(":").map(Number);
     const total = h * 60 + m + duracionReal;
     return `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(
-      total % 60
+      total % 60,
     ).padStart(2, "0")}`;
+  };
+
+  const validarEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const handleEmailChange = (e) => {
+    const val = e.target.value;
+    setEmailInvitado(val);
+    if (val && !validarEmail(val)) {
+      setEmailError("Ingresa un correo válido");
+    } else {
+      setEmailError("");
+    }
   };
 
   const handleNotify = async (e, h) => {
     e.stopPropagation();
 
     if (esInvitado) {
-      Swal.fire({
-        icon: "info",
-        title: "Inicia sesión",
-        text: "Debes iniciar sesión para activar notificaciones",
-        timer: 2500,
-        showConfirmButton: false,
-      });
+      // Abrir modal para pedir email
+      setHoraParaNotificar(h);
+      setEmailInvitado("");
+      setEmailError("");
+      setModalEmail(true);
       return;
     }
 
@@ -94,13 +121,65 @@ const HorasDisponibles = ({
     }
   };
 
+  const handleConfirmarNotifInvitado = async () => {
+    console.log("🔔 handleConfirmarNotifInvitado ejecutado");
+    console.log("📧 email:", emailInvitado);
+    console.log("⏰ hora:", horaParaNotificar);
+    console.log("📅 fecha:", fecha);
+    console.log("💈 barberoId:", barberoId);
+    console.log("contexto:", notificacionContext);
+
+
+    if (!validarEmail(emailInvitado)) {
+      setEmailError("Ingresa un correo válido");
+      return;
+    }
+
+    setEnviandoNotif(true);
+    try {
+      await postCrearNotificacion({
+        fecha,
+        hora: horaParaNotificar,
+        barberoId,
+        emailInvitado,
+        esInvitado: true,
+      });
+
+      setModalEmail(false);
+
+      Swal.fire({
+        icon: "success",
+        title: "¡Te avisaremos! 🔔",
+        html: `Te enviaremos un correo a <strong>${emailInvitado}</strong> si se libera la hora <strong>${horaParaNotificar}</strong>.`,
+        timer: 3000,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Error al crear notificación de invitado:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo registrar la notificación. Intenta nuevamente.",
+        timer: 2500,
+        showConfirmButton: false,
+      });
+    } finally {
+      setEnviandoNotif(false);
+    }
+  };
+
   return (
     <FormGroup className="mb-4">
       <Label className="font-weight-bold d-flex align-items-center mb-3">
         <Clock size={18} className="mr-2 text-primary" />
         <span style={{ fontSize: "1.1rem" }}>Horas disponibles</span>
         {esInvitado && (
-          <Badge color="warning" pill className="ms-2 px-2" style={{ fontSize: "0.7rem" }}>
+          <Badge
+            color="warning"
+            pill
+            className="ms-2 px-2"
+            style={{ fontSize: "0.7rem" }}
+          >
             Invitado
           </Badge>
         )}
@@ -155,13 +234,13 @@ const HorasDisponibles = ({
                       {h}
                     </Button>
 
-                    {/* Campanita para horas NO disponibles - siempre visible pero con diferente comportamiento */}
+                    {/* Campanita para horas NO disponibles */}
                     {!isDisponible && (
                       <button
                         onClick={(e) => handleNotify(e, h)}
                         title={
-                          esInvitado 
-                            ? "Inicia sesión para activar notificaciones" 
+                          esInvitado
+                            ? "Avísame por correo si se libera"
                             : "Avísame si se libera"
                         }
                         style={{
@@ -180,7 +259,6 @@ const HorasDisponibles = ({
                           cursor: "pointer",
                           boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                           zIndex: 2,
-                          opacity: esInvitado ? 0.6 : 1,
                         }}
                       >
                         <Bell size={12} fill="#212529" color="#212529" />
@@ -207,8 +285,7 @@ const HorasDisponibles = ({
                     Reserva seleccionada
                   </span>
                   <span className="h5 mb-0">
-                    {horaSeleccionada} –{" "}
-                    {calcularHoraFin(horaSeleccionada)}
+                    {horaSeleccionada} – {calcularHoraFin(horaSeleccionada)}
                   </span>
                 </div>
                 <Badge color="success" pill className="px-3 py-2">
@@ -219,6 +296,103 @@ const HorasDisponibles = ({
           )}
         </>
       )}
+
+      {/* ===== MODAL EMAIL PARA INVITADOS ===== */}
+      <Modal
+        isOpen={modalEmail}
+        toggle={() => setModalEmail(false)}
+        centered
+        size="sm"
+      >
+        <ModalHeader toggle={() => setModalEmail(false)}>
+          <div className="d-flex align-items-center gap-2">
+            <Bell size={18} className="text-warning" />
+            <span>Notificarme para las {horaParaNotificar}</span>
+          </div>
+        </ModalHeader>
+
+        <ModalBody>
+          <p className="text-muted mb-3" style={{ fontSize: "0.9rem" }}>
+            Ingresa tu correo y te avisaremos si esta hora se libera.
+          </p>
+
+          <div className="position-relative mb-1">
+            <div
+              className="d-flex align-items-center rounded"
+              style={{
+                border: `1px solid ${emailError ? "#dc3545" : "#cad1d7"}`,
+                backgroundColor: "#fff",
+                overflow: "hidden",
+              }}
+            >
+              {/* Ícono prefijo */}
+              <div
+                className="d-flex align-items-center px-3 py-2"
+                style={{
+                  backgroundColor: "#f7fafc",
+                  borderRight: "1px solid #cad1d7",
+                }}
+              >
+                <Mail size={14} className="text-success" />
+              </div>
+
+              {/* Input */}
+              <input
+                type="email"
+                placeholder="tucorreo@email.com"
+                value={emailInvitado}
+                onChange={handleEmailChange}
+                className="form-control"
+                style={{
+                  border: "none",
+                  boxShadow: "none",
+                  backgroundColor: "transparent",
+                  padding: "0.65rem 0.75rem",
+                  fontSize: "0.875rem",
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !emailError && emailInvitado) {
+                    handleConfirmarNotifInvitado();
+                  }
+                }}
+              />
+            </div>
+
+            {emailError && (
+              <small className="text-danger ms-1">{emailError}</small>
+            )}
+          </div>
+
+          <small
+            className="text-muted d-block mt-2"
+            style={{ fontSize: "0.78rem" }}
+          >
+            🔒 Solo usaremos tu correo para avisarte sobre esta hora.
+          </small>
+        </ModalBody>
+
+        <ModalFooter className="pt-0 border-0">
+          <Button
+            color="warning"
+            block
+            disabled={!emailInvitado || !!emailError || enviandoNotif}
+            onClick={handleConfirmarNotifInvitado}
+            style={{ fontWeight: 600 }}
+          >
+            {enviandoNotif ? (
+              <>
+                <Spinner size="sm" className="me-2" />
+                Registrando...
+              </>
+            ) : (
+              <>
+                <Bell size={14} className="me-2" />
+                Avisarme cuando se libere
+              </>
+            )}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </FormGroup>
   );
 };
