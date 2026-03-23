@@ -18,7 +18,6 @@ import {
 } from "reactstrap";
 import { useNavigate } from "react-router-dom";
 
-import logo from "assets/img/brand/lasanta.png";
 import Swal from "sweetalert2";
 import { Link } from "react-router-dom";
 import { useEmpresa } from "context/EmpresaContext";
@@ -85,13 +84,17 @@ const Login = () => {
       <Col lg="5" md="7">
         {/* Card condicional - mantiene bg-secondary para no-lumica */}
         <Card
-          className={isLumica ? "shadow border-0" : "bg-secondary shadow border-0"}
+          className={
+            isLumica ? "shadow border-0" : "bg-secondary shadow border-0"
+          }
           style={{
             backgroundColor: isLumica ? "#FFFFFF" : undefined,
           }}
         >
           <CardHeader
-            className={isLumica ? "text-center" : "bg-transparent pb-1 text-center"}
+            className={
+              isLumica ? "text-center" : "bg-transparent pb-1 text-center"
+            }
             style={{
               backgroundColor: isLumica ? "#FFFFFF" : undefined,
               borderBottom: isLumica
@@ -101,7 +104,10 @@ const Login = () => {
             }}
           >
             <img
-              src={empresa?.logo || logo}
+              src={
+                empresa?.logo ||
+                `https://ui-avatars.com/api/?name=${encodeURIComponent(empresa?.nombre || "Negocio")}&background=4361ee&color=fff&size=150&bold=true&rounded=true`
+              }
               alt="Logo"
               style={{
                 width: "150px",
@@ -172,7 +178,9 @@ const Login = () => {
                 >
                   <span
                     className={isLumica ? "" : "text-muted"}
-                    style={{ color: isLumica ? lumicaTheme.textMuted : undefined }}
+                    style={{
+                      color: isLumica ? lumicaTheme.textMuted : undefined,
+                    }}
                   >
                     Recordarme
                   </span>

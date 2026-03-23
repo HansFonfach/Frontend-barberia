@@ -60,13 +60,32 @@ export const useUsuarios = (rolFiltro) => {
     setModal(true);
   };
 
-  const handleGuardar = async () => {
+  const handleGuardar = async (fotoFile) => {
     if (!usuarioEdit?.nombre || !usuarioEdit?.apellido || !usuarioEdit?.email) {
       throw new Error("Completa todos los campos requeridos");
     }
-    await updateUser(usuarioEdit._id, usuarioEdit);
+
+    const formData = new FormData();
+    formData.append("nombre", usuarioEdit.nombre);
+    formData.append("apellido", usuarioEdit.apellido || "");
+    formData.append("email", usuarioEdit.email);
+    formData.append("telefono", usuarioEdit.telefono || "");
+    formData.append("descripcion", usuarioEdit.descripcion || "");
+    formData.append(
+      "aniosExperiencia",
+      usuarioEdit.perfilProfesional?.aniosExperiencia || 0,
+    );
+    formData.append(
+      "especialidades",
+      JSON.stringify(usuarioEdit.perfilProfesional?.especialidades || []),
+    );
+
+    if (fotoFile) {
+      formData.append("fotoPerfil", fotoFile);
+    }
+
+    await updateUser(usuarioEdit._id, formData);
     setModal(false);
-    // recarga global para mantener todo sincronizado
     await getAllUsers();
   };
 

@@ -69,11 +69,12 @@ export const UsuarioProvider = ({ children }) => {
   const updateUser = async (id, data) => {
     try {
       const res = await putUsuario(id, data);
-
       setErrors(null);
+      return res.data; // 👈 devuelve el resultado
     } catch (error) {
       console.error("Error al actualizar al usuario", error);
       setErrors(error.response?.data || error.message);
+      throw error; // 👈 relanza para que el hook lo capture
     }
   };
   const subscribeUser = async (_id) => {
