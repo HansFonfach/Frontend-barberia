@@ -9,3 +9,6 @@ export const getEmpresaById = (id) => axiosPrivate.get(`/empresa/${id}`);
 export const patchActualizarEmpresa = (data) =>
   axiosPrivate.patch("/empresa/actualizar", data);
 
+export const postRegistroEmpresa = (data) => {
+  return axiosPublic.post("/empresa/registro-negocio", data);
+};

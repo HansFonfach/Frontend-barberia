@@ -38,13 +38,13 @@ import Landing from "views/pages/Landing";
 import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
 import CancelarInvitado from "views/invitados/pages/CancelarInvitado";
 import VerificarCuenta from "views/publico/VerificarCuenta";
+import RegistrarNegocio from "views/publico/RegistrarNegocio";
 
 // Wrapper por empresa (slug)
 const EmpresaWrapper = ({ children }) => {
   const { slug } = useParams();
   return <EmpresaProvider slug={slug}>{children}</EmpresaProvider>;
 };
-
 
 // Solo envuelve Providers que necesitan token (admin)
 const AdminProviders = ({ children }) => (
@@ -77,24 +77,18 @@ root.render(
       ========================= */}
           <Route path="/" element={<Principal />} />
 
-          {/* =========================
-          LANDING POR EMPRESA
-          www.agendafonfach.cl/lasantabarberia
-      ========================= */}
+          {/* 🔥 RUTAS GLOBALES */}
+          <Route path="/registro-negocio" element={<RegistrarNegocio />} />
+
+          {/* 👇 DESPUÉS VIENEN LAS DINÁMICAS */}
           <Route
             path="/:slug"
             element={
               <EmpresaWrapper>
-               
-                  <Landing />
-            
+                <Landing />
               </EmpresaWrapper>
             }
           />
-
-          {/* =========================
-          AUTH POR EMPRESA
-      ========================= */}
           <Route
             path="/:slug/*"
             element={
