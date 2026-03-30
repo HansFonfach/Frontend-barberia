@@ -56,6 +56,15 @@ const GestionHorarios = () => {
     return new Set(horasExtra.map((h) => h.hora));
   }, [horasExtra]);
 
+  const horasSinDuplicados = useMemo(() => {
+    const vistas = new Set();
+    return todasLasHoras.filter(({ hora }) => {
+      if (vistas.has(hora)) return false;
+      vistas.add(hora);
+      return true;
+    });
+  }, [todasLasHoras]);
+
   const obtenerEstadoHora = (hora) => {
     if (horasCanceladasSet.has(hora)) return "cancelada";
     if (horasExtraSet.has(hora)) return "extra";
@@ -200,7 +209,7 @@ const GestionHorarios = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {todasLasHoras.map(({ hora }) => {
+                      {horasSinDuplicados.map(({ hora }) => {
                         const estado = obtenerEstadoHora(hora);
                         const esExtra = estado === "extra";
 
