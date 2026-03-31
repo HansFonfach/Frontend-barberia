@@ -15,14 +15,14 @@ import {
   Col,
 } from "reactstrap";
 import Swal from "sweetalert2";
-
-import logo from "assets/img/logo4.png";
 import { useAuth } from "context/AuthContext";
+import { useEmpresa } from "context/EmpresaContext";
 
 const ResetPassword = () => {
   const navigate = useNavigate();
   const { token, slug } = useParams();
-const { resetPassword } = useAuth();
+  const { resetPassword } = useAuth();
+  const { empresa } = useEmpresa();
 
   const [form, setForm] = useState({
     password: "",
@@ -73,7 +73,10 @@ const { resetPassword } = useAuth();
       <Card className="bg-secondary shadow border-0">
         <CardHeader className="bg-transparent pb-1 text-center">
           <img
-            src={logo}
+            src={
+              empresa?.logo ||
+              `https://ui-avatars.com/api/?name=${encodeURIComponent(empresa?.nombre || "Negocio")}&background=4361ee&color=fff&size=150&bold=true&rounded=true`
+            }
             alt="Logo"
             style={{
               width: "150px",
