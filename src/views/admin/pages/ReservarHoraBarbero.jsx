@@ -28,6 +28,7 @@ import WeekSelector from "../../../components/reserva/WeekSelector";
 import HorasDisponibles from "../../../components/reserva/HorasDisponibles";
 import ResumenReserva from "../../../components/reserva/ResumenReserva";
 import ModalHorasBase from "../../../components/reserva/ModalHorasBase";
+import { useAuth } from "context/AuthContext";
 
 const ReservarHoraBarbero = () => {
   const {
@@ -76,6 +77,9 @@ const ReservarHoraBarbero = () => {
     handleSeleccionarBarbero,
     setHora,
   } = useReservaBarbero();
+
+  const {user } = useAuth();
+
 
   const servicioSeleccionado = servicios.find((s) => s._id === servicio);
   const duracionSeleccionado = servicioSeleccionado?.duracion || 60;
@@ -274,6 +278,7 @@ const ReservarHoraBarbero = () => {
                         onNextWeek={nextWeek}
                         onWaitlist={handleOpenWaitlist}
                         barberoId={barbero}
+                        rolUsuario={user.rol}
                       />
                     )}
 

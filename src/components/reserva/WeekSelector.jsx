@@ -17,11 +17,7 @@ const isoDate = (d) => d.toISOString().split("T")[0];
 // 👉 Fecha de hoy en formato YYYY-MM-DD (LOCAL, sin UTC)
 const todayISO = () => {
   const now = new Date();
-  const local = new Date(
-    now.getFullYear(),
-    now.getMonth(),
-    now.getDate(),
-  );
+  const local = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   return local.toISOString().split("T")[0];
 };
 
@@ -36,11 +32,14 @@ const WeekSelector = ({
   onWaitlist,
   barberoId,
   barberoInfo,
+  rolUsuario,
 }) => {
   const parseLocalDate = (str) => {
     const [y, m, d] = str.split("-").map(Number);
     return new Date(y, m - 1, d);
   };
+
+  const esPrivilegiado = rolUsuario === "barbero";
 
   /* ===============================
      ESTADOS BASE
@@ -115,7 +114,7 @@ const WeekSelector = ({
         <div className="flex-grow-1 overflow-auto">
           <div style={{ display: "flex", gap: "10px" }}>
             {weekDays.map((d) => {
-              const isPast = d.iso < hoyISO;
+              const isPast = !esPrivilegiado && d.iso < hoyISO;
               const isToday = d.iso === hoyISO;
               const isSelected = d.iso === fecha;
 
