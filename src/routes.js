@@ -35,6 +35,7 @@ import VerificarCuenta from "views/publico/VerificarCuenta";
 import ConfiguracionEmpresa from "views/admin/ConfiguracionEmpresa";
 import GestionVacaciones from "views/admin/pages/GestionVacaciones";
 import RegistrarNegocio from "views/publico/RegistrarNegocio";
+import ConfirmacionResultado from "views/publico/ConfirmacionResultado";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -89,6 +90,12 @@ export const publicRoutes = [
     component: <RegistrarNegocio />,
     invisible: true,
   },
+   {
+    path: "/confirmar-reserva",
+    component: <ConfirmacionResultado />,
+    invisible: true,
+  },
+
 
 ];
 

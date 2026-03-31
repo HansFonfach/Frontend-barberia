@@ -49,25 +49,47 @@ const GestionReservas = () => {
   }, [filtroFecha]);
 
   /* =============================
-     HELPERS DE ESTADO
+      HELPERS DE ESTADO ACTUALIZADOS
   ============================== */
   const getEstado = (reserva) => {
-    if (reserva.estado === "no_asistio") return "No asistió";
     if (reserva.estado === "cancelada") return "Cancelada";
-    return new Date(reserva.fecha) >= new Date() ? "Pendiente" : "Terminada";
+    if (reserva.estado === "no_asistio") return "No asistió";
+    if (reserva.estado === "completada") return "Completada";
+
+    // Nueva validación: Confirmación activa por el cliente vía Email/WhatsApp
+    if (reserva.confirmacionAsistencia?.respondida && reserva.confirmacionAsistencia?.respuesta === "confirma") {
+      return "Confirmada por Cliente";
+    }
+
+    const fechaReserva = new Date(reserva.fecha);
+    const ahora = new Date();
+
+    if (fechaReserva < ahora) return "Terminada";
+    
+    // Si el barbero la confirmó manualmente o el sistema la marcó al agendar
+    if (reserva.estado === "confirmada") return "Confirmada";
+    
+    return "Pendiente";
   };
 
   const getColorEstado = (reserva) => {
-    if (reserva.estado === "no_asistio") return "danger";
-    if (reserva.estado === "cancelada") return "dark";
-    return new Date(reserva.fecha) >= new Date() ? "primary" : "success";
+    const estado = getEstado(reserva);
+    switch (estado) {
+      case "No asistió": return "danger";
+      case "Cancelada": return "dark";
+      case "Confirmada por Cliente": return "success"; // Verde para acción del cliente
+      case "Confirmada": return "primary";
+      case "Terminada": return "secondary";
+      case "Completada": return "success";
+      default: return "info"; // Pendiente
+    }
   };
 
   const esPendiente = (reserva) =>
     reserva.estado === "pendiente" || reserva.estado === "confirmada";
 
   /* =============================
-     HANDLERS
+      HANDLERS
   ============================== */
   const handleVerResumen = (reserva) => {
     setReservaSeleccionada(reserva);
@@ -130,14 +152,12 @@ const GestionReservas = () => {
 
   const iconoCliente = (reserva) => {
     if (reserva.suscripcion) return "⭐";
-
     if (empresa?.slug === "lumicabeauty") return "🎀";
-
     return "🧔🏻‍♂️";
   };
 
   /* =============================
-     VISTA MOBILE
+      VISTA MOBILE
   ============================== */
   const renderMobileView = () => (
     <div className="reservas-mobile">
@@ -231,7 +251,7 @@ const GestionReservas = () => {
   );
 
   /* =============================
-     VISTA DESKTOP
+      VISTA DESKTOP
   ============================== */
   const renderDesktopView = () => (
     <div className="table-responsive">
@@ -312,9 +332,6 @@ const GestionReservas = () => {
     </div>
   );
 
-  /* =============================
-     RENDER
-  ============================== */
   return (
     <>
       <UserHeader />
@@ -489,7 +506,7 @@ const GestionReservas = () => {
                           ).toLocaleDateString()}
                         </span>
                       </p>
-                      <p className="mb-0 d-flex flex-wrap">
+                      <p className="mb-2 d-flex flex-wrap">
                         <strong className="text-muted mr-2">
                           <i className="ni ni-check-bold mr-1"></i>Estado:
                         </strong>
@@ -501,6 +518,33 @@ const GestionReservas = () => {
                           {getEstado(reservaSeleccionada)}
                         </Badge>
                       </p>
+
+                      {/* --- SECCIÓN DE TRAZABILIDAD DE CONFIRMACIÓN --- */}
+                      {reservaSeleccionada.confirmacionAsistencia?.solicitada && (
+                        <div className="mt-3 p-2 bg-secondary rounded border shadow-none">
+                          <small className="d-block text-muted mb-1 font-weight-bold">
+                            <i className="ni ni-send mr-1 text-primary"></i> RECORDATORIO 24H:
+                          </small>
+                          <div className="d-flex justify-content-between align-items-center">
+                            <small className="text-xs">Estado:</small>
+                            {reservaSeleccionada.confirmacionAsistencia.respondida ? (
+                              <Badge color={reservaSeleccionada.confirmacionAsistencia.respuesta === 'confirma' ? "success" : "danger"} className="text-xxs">
+                                {reservaSeleccionada.confirmacionAsistencia.respuesta === 'confirma' ? 'CONFIRMÓ' : 'CANCELÓ VÍA LINK'}
+                              </Badge>
+                            ) : (
+                              <Badge color="warning" className="text-xxs">ENVIADO / SIN RESPUESTA</Badge>
+                            )}
+                          </div>
+                          {reservaSeleccionada.confirmacionAsistencia.respondidaEn && (
+                            <div className="d-flex justify-content-between align-items-center mt-1">
+                              <small className="text-xs">Respondido:</small>
+                              <small className="font-weight-bold text-xs text-primary">
+                                {new Date(reservaSeleccionada.confirmacionAsistencia.respondidaEn).toLocaleString([], { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                              </small>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </CardBody>
                   </Card>
                 </Col>
@@ -583,6 +627,9 @@ const GestionReservas = () => {
             background-color: #888;
             border-radius: 4px;
           }
+        }
+        .text-xxs {
+          font-size: 0.65rem;
         }
       `}</style>
     </>

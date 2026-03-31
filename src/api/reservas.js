@@ -1,4 +1,5 @@
 import { axiosPrivate } from "./axiosPrivate";
+import { axiosPublic } from "./axiosPublic";
 
 export const getReservasByUserId = (id) => {
   return axiosPrivate.get(`/reservas/${id}`); // usar GET para obtener datos
@@ -34,4 +35,10 @@ export const getReservasActivas = async (userId) => {
 
 export const getResevasPorFecha = (fecha) => {
   return axiosPrivate.get(`/reservas/barbero/por-fecha?fecha=${fecha}`);
+};
+
+
+export const getConfirmarAsistencia = (token) => {
+  // ✅ Ahora el token se inyecta dinámicamente en la URL
+  return axiosPublic.get(`/reservas/confirmacion/${token}`);
 };

@@ -39,6 +39,7 @@ import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
 import CancelarInvitado from "views/invitados/pages/CancelarInvitado";
 import VerificarCuenta from "views/publico/VerificarCuenta";
 import RegistrarNegocio from "views/publico/RegistrarNegocio";
+import ConfirmacionResultado from "views/publico/ConfirmacionResultado";
 
 // Wrapper por empresa (slug)
 const EmpresaWrapper = ({ children }) => {
@@ -106,6 +107,14 @@ root.render(
             element={
               <EmpresaWrapper>
                 <ReservarHoraInvitado />
+              </EmpresaWrapper>
+            }
+          />
+          <Route
+            path="/:slug/confirmar-reserva"
+            element={
+              <EmpresaWrapper>
+                <ConfirmacionResultado />
               </EmpresaWrapper>
             }
           />
