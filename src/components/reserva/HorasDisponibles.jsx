@@ -129,7 +129,6 @@ const HorasDisponibles = ({
     console.log("💈 barberoId:", barberoId);
     console.log("contexto:", notificacionContext);
 
-
     if (!validarEmail(emailInvitado)) {
       setEmailError("Ingresa un correo válido");
       return;
@@ -173,16 +172,6 @@ const HorasDisponibles = ({
       <Label className="font-weight-bold d-flex align-items-center mb-3">
         <Clock size={18} className="mr-2 text-primary" />
         <span style={{ fontSize: "1.1rem" }}>Horas disponibles</span>
-        {esInvitado && (
-          <Badge
-            color="warning"
-            pill
-            className="ms-2 px-2"
-            style={{ fontSize: "0.7rem" }}
-          >
-            Invitado
-          </Badge>
-        )}
       </Label>
 
       {cargandoHoras && (

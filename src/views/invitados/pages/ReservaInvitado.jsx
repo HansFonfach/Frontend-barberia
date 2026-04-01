@@ -64,6 +64,7 @@ const ReservarHoraInvitado = () => {
     invitado,
     setInvitado,
     loadingServicios,
+    loadingBarberos,
     reservando,
     pasoActual,
     handleSeleccionarServicio,
@@ -250,6 +251,7 @@ const ReservarHoraInvitado = () => {
                   <BarberoSelector
                     barberos={barberosFiltrados}
                     barbero={barbero}
+                    loading={loadingBarberos}
                     onSeleccionarBarbero={handleSeleccionarBarbero}
                   />
                 )}

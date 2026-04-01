@@ -199,9 +199,9 @@ export const useReservaInvitado = (slug) => {
         );
         return;
       }
-
       fetchingWeekRef.current = true;
       setLoadingWeek(true);
+      setWeekDays([]); 
 
       try {
         const results = await Promise.all(
@@ -290,21 +290,7 @@ export const useReservaInvitado = (slug) => {
   // ────────────────────────────────
   useEffect(() => {
     if (!servicio || !barbero) {
-      const dates = buildWeekDates(weekStart);
-      setWeekDays(
-        dates.map((d) => ({
-          date: d,
-          label: formatDayLabel(d),
-          iso: isoDate(d),
-          available: false,
-          horas: [],
-          mensaje: !barbero
-            ? "Selecciona un barbero"
-            : !servicio
-              ? "Selecciona un servicio"
-              : "Completa la selección",
-        })),
-      );
+      setWeekDays([]); // 🔥 clave: vacío real
       return;
     }
 

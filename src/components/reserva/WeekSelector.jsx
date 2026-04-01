@@ -3,8 +3,6 @@ import React from "react";
 import { FormGroup, Label, Button, Spinner, Badge } from "reactstrap";
 import { ChevronLeft, ChevronRight, Bell } from "lucide-react";
 
-const DAYS_TO_SHOW = 7;
-
 const formatDayLabel = (d) =>
   d.toLocaleDateString("es-CL", {
     weekday: "short",
@@ -12,9 +10,7 @@ const formatDayLabel = (d) =>
     month: "short",
   });
 
-const isoDate = (d) => d.toISOString().split("T")[0];
-
-// 👉 Fecha de hoy en formato YYYY-MM-DD (LOCAL, sin UTC)
+// 👉 Fecha de hoy en formato YYYY-MM-DD (LOCAL)
 const todayISO = () => {
   const now = new Date();
   const local = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -42,9 +38,20 @@ const WeekSelector = ({
   const esPrivilegiado = rolUsuario === "barbero";
 
   /* ===============================
+     VALIDACIÓN DATA REAL (ANTI FLASH)
+  =============================== */
+  const weekReady =
+    weekDays &&
+    weekDays.length > 0 &&
+    weekDays.some((d) => d.horas !== undefined);
+
+  const hoyISO = todayISO();
+
+  /* ===============================
      ESTADOS BASE
   =============================== */
 
+  // 🔒 Sin barbero seleccionado
   if (!barberoId) {
     return (
       <FormGroup className="mb-4">
@@ -59,20 +66,25 @@ const WeekSelector = ({
     );
   }
 
-  if (loadingWeek) {
+  // ⏳ Loading REAL (evita parpadeo de días bloqueados)
+  if (loadingWeek || !weekReady) {
     return (
       <FormGroup className="mb-4">
         <Label className="font-weight-bold">
           📅 Disponibilidad de la semana
         </Label>
-        <div className="d-flex justify-content-center py-4 rounded">
-          <Spinner size="sm" className="me-2" />
-          Cargando disponibilidad...
+
+        <div className="d-flex flex-column align-items-center py-5">
+          <Spinner size="sm" className="mb-2 text-success" />
+          <span className="text-muted small">
+            Cargando disponibilidad...
+          </span>
         </div>
       </FormGroup>
     );
   }
 
+  // ⚠️ Sin datos reales
   if (!weekDays || weekDays.length === 0) {
     return (
       <FormGroup className="mb-4">
@@ -86,14 +98,18 @@ const WeekSelector = ({
     );
   }
 
-  const hoyISO = todayISO();
+  /* ===============================
+     RENDER NORMAL
+  =============================== */
 
   return (
     <FormGroup className="mb-4">
+      {/* HEADER */}
       <div className="d-flex justify-content-between align-items-center mb-3">
         <Label className="font-weight-bold mb-0 h5">
           📅 Disponibilidad de la semana
         </Label>
+
         {barberoInfo && (
           <Badge color="info" pill className="px-3 py-1">
             {barberoInfo.nombre}
@@ -101,6 +117,7 @@ const WeekSelector = ({
         )}
       </div>
 
+      {/* NAV + DÍAS */}
       <div className="d-flex align-items-center mb-3">
         <Button
           color="outline-primary"
@@ -119,14 +136,13 @@ const WeekSelector = ({
               const isSelected = d.iso === fecha;
 
               const horasDisponibles = (d.horas || []).filter(
-                (h) => h.estado === "disponible",
+                (h) => h.estado === "disponible"
               );
 
               const diaHabilitado = d.horas && d.horas.length > 0;
               const diaTieneHoras = horasDisponibles.length > 0;
               const diaLleno = diaHabilitado && !diaTieneHoras;
 
-              // 👉 bloqueo final
               const diaBloqueado = isPast || !diaHabilitado;
 
               return (
@@ -138,7 +154,7 @@ const WeekSelector = ({
                     minWidth: "85px",
                   }}
                 >
-                  {/* 🔔 Campanita SOLO si NO es pasado y NO habilitado */}
+                  {/* 🔔 WAITLIST */}
                   {!isPast && !diaHabilitado && (
                     <div
                       onClick={(e) => {
@@ -161,7 +177,7 @@ const WeekSelector = ({
                     </div>
                   )}
 
-                  {/* TARJETA DÍA */}
+                  {/* TARJETA */}
                   <div
                     onClick={() => {
                       if (!diaBloqueado) {
@@ -176,13 +192,13 @@ const WeekSelector = ({
                       backgroundColor: isSelected
                         ? "#09cf62"
                         : diaTieneHoras
-                          ? "#ffffff"
-                          : "#f8f9fa",
+                        ? "#ffffff"
+                        : "#f8f9fa",
                       color: isSelected
                         ? "#fff"
                         : diaBloqueado
-                          ? "#6c757d"
-                          : "#212529",
+                        ? "#6c757d"
+                        : "#212529",
                       border: isSelected
                         ? "2px solid #28a745"
                         : "1px solid #dee2e6",
@@ -247,6 +263,7 @@ const WeekSelector = ({
         </Button>
       </div>
 
+      {/* FOOTER */}
       <div className="text-muted small">
         Semana del {formatDayLabel(new Date(weekStart))}
       </div>

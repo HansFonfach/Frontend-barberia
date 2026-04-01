@@ -21,9 +21,9 @@ const BarberoSelector = ({
       )}
 
       {/* ❌ SIN BARBEROS (solo cuando NO está cargando) */}
-      {!loading && barberos.length === 0 && (
+      {loading && barberos.length === 0 && (
         <p className="text-warning mb-0">
-          No hay profesionales disponibles
+          cargando profesionales...
         </p>
       )}
 
