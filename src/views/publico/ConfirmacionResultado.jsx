@@ -12,7 +12,6 @@ import {
 import { Link, useLocation, useParams } from "react-router-dom";
 // 2. Importamos tu servicio
 
-
 import {
   FiCalendar,
   FiInstagram,
@@ -37,10 +36,38 @@ const ConfirmacionResultado = () => {
   });
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+    const params = new URLSearchParams(location.search);
+    const respuestaDirecta = params.get("respuesta");
+    const errorDirecto = params.get("error");
+    const yaRespondida = params.get("ya_respondida");
+    const token = params.get("token");
+
+    if (errorDirecto) {
+      actualizarUI(null, errorDirecto, yaRespondida === "true");
+      return;
+    }
+
+    // ✅ Si hay token y respuesta, llamar al backend primero
+    if (token && respuestaDirecta) {
+      getConfirmarAsistencia(token, respuestaDirecta)
+        .then(() => {
+          actualizarUI(respuestaDirecta, null);
+        })
+        .catch((err) => {
+          const errorType = err.response?.data?.error || "servidor";
+          actualizarUI(null, errorType);
+        });
+      return;
+    }
+
+    // Sin token, solo mostrar resultado
+    if (respuestaDirecta) {
+      actualizarUI(respuestaDirecta, null, yaRespondida === "true");
+      return;
+    }
+
+    actualizarUI(null, "servidor");
+  }, [location]);
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);

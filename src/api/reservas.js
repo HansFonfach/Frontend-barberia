@@ -38,7 +38,6 @@ export const getResevasPorFecha = (fecha) => {
 };
 
 
-export const getConfirmarAsistencia = (token) => {
-  // ✅ Ahora el token se inyecta dinámicamente en la URL
-  return axiosPublic.get(`/reservas/confirmacion/${token}`);
+export const getConfirmarAsistencia = (token, respuesta) => {
+  return axiosPublic.get(`/reservas/confirmacion/${token}?respuesta=${respuesta}`);
 };
