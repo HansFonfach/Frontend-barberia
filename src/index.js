@@ -72,16 +72,10 @@ root.render(
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          {/* =========================
-          HOME GLOBAL (AgendaFonfach)
-          www.agendafonfach.cl/
-      ========================= */}
           <Route path="/" element={<Principal />} />
-
-          {/* 🔥 RUTAS GLOBALES */}
           <Route path="/registro-negocio" element={<RegistrarNegocio />} />
 
-          {/* 👇 DESPUÉS VIENEN LAS DINÁMICAS */}
+          {/* ✅ Rutas específicas PRIMERO */}
           <Route
             path="/:slug"
             element={
@@ -90,18 +84,6 @@ root.render(
               </EmpresaWrapper>
             }
           />
-          <Route
-            path="/:slug/*"
-            element={
-              <EmpresaWrapper>
-                <AuthLayout />
-              </EmpresaWrapper>
-            }
-          />
-
-          {/* =========================
-          RESERVA INVITADO
-      ========================= */}
           <Route
             path="/:slug/reservar"
             element={
@@ -126,7 +108,6 @@ root.render(
               </EmpresaWrapper>
             }
           />
-
           <Route
             path="/:slug/verificar-cuenta"
             element={
@@ -136,9 +117,7 @@ root.render(
             }
           />
 
-          {/* =========================
-          ADMIN PROTEGIDO
-      ========================= */}
+          {/* ✅ Admin protegido */}
           <Route element={<ProtectedRoute />}>
             <Route
               path="/:slug/admin/*"
@@ -152,9 +131,16 @@ root.render(
             />
           </Route>
 
-          {/* =========================
-          FALLBACK
-      ========================= */}
+          {/* ✅ /:slug/* AL FINAL */}
+          <Route
+            path="/:slug/*"
+            element={
+              <EmpresaWrapper>
+                <AuthLayout />
+              </EmpresaWrapper>
+            }
+          />
+
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </AuthProvider>
