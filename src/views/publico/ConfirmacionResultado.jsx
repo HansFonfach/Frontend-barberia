@@ -104,17 +104,15 @@ const ConfirmacionResultado = () => {
     const yaRespondida = params.get("ya_respondida");
     const token = params.get("token");
 
-    // A. Si ya viene resultado en la URL
-    if (respuesta || error) {
-      actualizarUI(respuesta, error, yaRespondida === "true");
-      return;
-    }
-
-    // B. Si viene token → llamar API
-    if (token) {
-      getConfirmarAsistencia(token)
-        .then(() => {
-          actualizarUI("confirma", null);
+    // 1. Si hay token y respuesta → pegarle al backend SIEMPRE
+    if (token && respuesta) {
+      getConfirmarAsistencia(token, respuesta)
+        .then((res) => {
+          actualizarUI(
+            res.data?.respuesta || respuesta,
+            null,
+            res.data?.ya_respondida,
+          );
         })
         .catch((err) => {
           const errorType = err.response?.data?.error || "servidor";
@@ -123,7 +121,13 @@ const ConfirmacionResultado = () => {
       return;
     }
 
-    // C. Nada válido
+    // 2. Si backend ya redirigió con resultado
+    if (respuesta || error) {
+      actualizarUI(respuesta, error, yaRespondida === "true");
+      return;
+    }
+
+    // 3. Nada válido
     actualizarUI(null, "servidor");
   }, [location]);
 
@@ -176,9 +180,7 @@ const ConfirmacionResultado = () => {
           <div
             style={{
               height: "6px",
-              backgroundColor: loading
-                ? "#4361ee"
-                : `var(--${config.color})`,
+              backgroundColor: loading ? "#4361ee" : `var(--${config.color})`,
             }}
           />
 
