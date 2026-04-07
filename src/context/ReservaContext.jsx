@@ -8,6 +8,7 @@ import {
   getReservasActivas,
   getResevasPorFecha,
   postMarcarReservaNoAsistida,
+  patchReagendarReserva,
 } from "../api/reservas";
 
 const ReservaContext = createContext();
@@ -150,6 +151,16 @@ export const ReservaProvider = ({ children }) => {
     }
   };
 
+  const reagendarReserva = async (reservaId, fecha, hora) => {
+    try {
+      const { data } = await patchReagendarReserva(reservaId, fecha, hora)
+      return data;
+    } catch (error) {
+      console.error("Error al reagendar:", error);
+      return null;
+    }
+  };
+
   return (
     <ReservaContext.Provider
       value={{
@@ -159,6 +170,7 @@ export const ReservaProvider = ({ children }) => {
         horasDisponibles,
         loading,
         error,
+        reagendarReserva,
         getAllReservasByUser,
         setReservaActual,
         postReservarHora,
@@ -166,7 +178,7 @@ export const ReservaProvider = ({ children }) => {
         getReservasDiaByBarber,
         reservasActivas,
         getReservasPorFechaBarbero,
-        marcarReservaNoAsistida
+        marcarReservaNoAsistida,
       }}
     >
       {children}

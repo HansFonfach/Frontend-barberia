@@ -37,7 +37,15 @@ export const getResevasPorFecha = (fecha) => {
   return axiosPrivate.get(`/reservas/barbero/por-fecha?fecha=${fecha}`);
 };
 
-
 export const getConfirmarAsistencia = (token, respuesta) => {
-  return axiosPublic.get(`/reservas/confirmacion/${token}?respuesta=${respuesta}`);
+  return axiosPublic.get(
+    `/reservas/confirmacion/${token}?respuesta=${respuesta}`,
+  );
+};
+
+export const patchReagendarReserva = (reservaId, fecha, hora) => {
+  return axiosPrivate.patch(`/reservas/${reservaId}/reagendar`, {
+    fecha,
+    hora,
+  });
 };

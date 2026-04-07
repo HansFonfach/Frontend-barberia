@@ -16,6 +16,7 @@ import UserHeader from "components/Headers/UserHeader.js";
 import { useReserva } from "context/ReservaContext";
 import Swal from "sweetalert2";
 import { useEmpresa } from "context/EmpresaContext";
+import { useHorario } from "context/HorarioContext";
 
 const GestionReservas = () => {
   const {
@@ -35,6 +36,15 @@ const GestionReservas = () => {
   );
   const [vistaMobile, setVistaMobile] = useState(false);
 
+  const { reagendarReserva } = useReserva();
+  const { getHorasDisponiblesBarbero } = useHorario();
+
+  const [modalReagendar, setModalReagendar] = useState(false);
+  const [nuevaFecha, setNuevaFecha] = useState("");
+  const [horasDisponibles, setHorasDisponibles] = useState([]);
+  const [horaSeleccionada, setHoraSeleccionada] = useState(null);
+  const [loadingHoras, setLoadingHoras] = useState(false);
+
   useEffect(() => {
     const checkMobile = () => setVistaMobile(window.innerWidth < 768);
     checkMobile();
@@ -52,36 +62,51 @@ const GestionReservas = () => {
       HELPERS DE ESTADO ACTUALIZADOS
   ============================== */
   const getEstado = (reserva) => {
+    // ✅ RESPETAR ESTADOS REALES DEL BACK
     if (reserva.estado === "cancelada") return "Cancelada";
     if (reserva.estado === "no_asistio") return "No asistió";
     if (reserva.estado === "completada") return "Completada";
+    if (reserva.estado === "reagendada") return "Reagendada";
 
-    // Nueva validación: Confirmación activa por el cliente vía Email/WhatsApp
-    if (reserva.confirmacionAsistencia?.respondida && reserva.confirmacionAsistencia?.respuesta === "confirma") {
+    // ✅ Confirmación del cliente
+    if (
+      reserva.confirmacionAsistencia?.respondida &&
+      reserva.confirmacionAsistencia?.respuesta === "confirma"
+    ) {
       return "Confirmada por Cliente";
     }
 
+    // ⏱️ SOLO si sigue activa
     const fechaReserva = new Date(reserva.fecha);
     const ahora = new Date();
 
-    if (fechaReserva < ahora) return "Terminada";
-    
-    // Si el barbero la confirmó manualmente o el sistema la marcó al agendar
     if (reserva.estado === "confirmada") return "Confirmada";
-    
+
+    if (fechaReserva < ahora) return "Terminada";
+
     return "Pendiente";
   };
 
   const getColorEstado = (reserva) => {
     const estado = getEstado(reserva);
+
     switch (estado) {
-      case "No asistió": return "danger";
-      case "Cancelada": return "dark";
-      case "Confirmada por Cliente": return "success"; // Verde para acción del cliente
-      case "Confirmada": return "primary";
-      case "Terminada": return "secondary";
-      case "Completada": return "success";
-      default: return "info"; // Pendiente
+      case "No asistió":
+        return "danger";
+      case "Cancelada":
+        return "dark";
+      case "Reagendada":
+        return "warning"; // 🔥 NUEVO
+      case "Confirmada por Cliente":
+        return "success";
+      case "Confirmada":
+        return "primary";
+      case "Terminada":
+        return "secondary";
+      case "Completada":
+        return "success";
+      default:
+        return "info";
     }
   };
 
@@ -128,6 +153,68 @@ const GestionReservas = () => {
       text: "La reserva fue cancelada correctamente, notificaremos al cliente con el motivo de cancelación.",
       icon: "success",
       timer: 2000,
+      showConfirmButton: false,
+    });
+  };
+
+  // 🔥 SOLO CAMBIÉ LO NECESARIO (handleFechaReagendar)
+
+  const handleFechaReagendar = async (fecha) => {
+    setNuevaFecha(fecha);
+    setHoraSeleccionada(null);
+
+    if (!fecha || !reservaSeleccionada) return;
+
+    // ✅ FIX IMPORTANTE
+    const barberoId =
+      reservaSeleccionada?.barbero?._id || reservaSeleccionada?.barbero;
+
+    const servicioId =
+      reservaSeleccionada?.servicio?._id || reservaSeleccionada?.servicio;
+
+    if (!barberoId || !servicioId) {
+      console.warn("❌ Faltan datos:", { barberoId, servicioId });
+      return;
+    }
+
+    try {
+      setLoadingHoras(true);
+
+      const response = await getHorasDisponiblesBarbero(
+        barberoId,
+        fecha,
+        servicioId,
+      );
+
+      // ✅ FIX RESPONSE
+      setHorasDisponibles(response?.horas || []);
+    } catch (error) {
+      console.error("❌ Error cargando horas:", error);
+      setHorasDisponibles([]);
+    } finally {
+      setLoadingHoras(false);
+    }
+  };
+
+  const handleConfirmarReagendar = async () => {
+    if (!horaSeleccionada || !nuevaFecha) return;
+
+    const result = await reagendarReserva(
+      reservaSeleccionada._id,
+      nuevaFecha,
+      horaSeleccionada,
+    );
+    if (!result) return;
+
+    setModalReagendar(false);
+    setModal(false);
+    getReservasPorFechaBarbero(filtroFecha);
+
+    Swal.fire({
+      title: "Reserva reagendada",
+      text: `La reserva fue movida al ${nuevaFecha} a las ${horaSeleccionada}`,
+      icon: "success",
+      timer: 2500,
       showConfirmButton: false,
     });
   };
@@ -270,9 +357,7 @@ const GestionReservas = () => {
           {reservas.map((reserva) => (
             <tr key={reserva._id}>
               <td className="text-nowrap">
-                <span className="mr-2">
-                  {iconoCliente(reserva)}
-                </span>
+                <span className="mr-2">{iconoCliente(reserva)}</span>
                 {reserva.cliente?.nombre} {reserva.cliente?.apellido}
               </td>
               <td className="text-nowrap">{reserva.servicio?.nombre}</td>
@@ -520,26 +605,51 @@ const GestionReservas = () => {
                       </p>
 
                       {/* --- SECCIÓN DE TRAZABILIDAD DE CONFIRMACIÓN --- */}
-                      {reservaSeleccionada.confirmacionAsistencia?.solicitada && (
+                      {reservaSeleccionada.confirmacionAsistencia
+                        ?.solicitada && (
                         <div className="mt-3 p-2 bg-secondary rounded border shadow-none">
                           <small className="d-block text-muted mb-1 font-weight-bold">
-                            <i className="ni ni-send mr-1 text-primary"></i> RECORDATORIO 24H:
+                            <i className="ni ni-send mr-1 text-primary"></i>{" "}
+                            RECORDATORIO 24H:
                           </small>
                           <div className="d-flex justify-content-between align-items-center">
                             <small className="text-xs">Estado:</small>
-                            {reservaSeleccionada.confirmacionAsistencia.respondida ? (
-                              <Badge color={reservaSeleccionada.confirmacionAsistencia.respuesta === 'confirma' ? "success" : "danger"} className="text-xxs">
-                                {reservaSeleccionada.confirmacionAsistencia.respuesta === 'confirma' ? 'CONFIRMÓ' : 'CANCELÓ VÍA LINK'}
+                            {reservaSeleccionada.confirmacionAsistencia
+                              .respondida ? (
+                              <Badge
+                                color={
+                                  reservaSeleccionada.confirmacionAsistencia
+                                    .respuesta === "confirma"
+                                    ? "success"
+                                    : "danger"
+                                }
+                                className="text-xxs"
+                              >
+                                {reservaSeleccionada.confirmacionAsistencia
+                                  .respuesta === "confirma"
+                                  ? "CONFIRMÓ"
+                                  : "CANCELÓ VÍA LINK"}
                               </Badge>
                             ) : (
-                              <Badge color="warning" className="text-xxs">ENVIADO / SIN RESPUESTA</Badge>
+                              <Badge color="warning" className="text-xxs">
+                                ENVIADO / SIN RESPUESTA
+                              </Badge>
                             )}
                           </div>
-                          {reservaSeleccionada.confirmacionAsistencia.respondidaEn && (
+                          {reservaSeleccionada.confirmacionAsistencia
+                            .respondidaEn && (
                             <div className="d-flex justify-content-between align-items-center mt-1">
                               <small className="text-xs">Respondido:</small>
                               <small className="font-weight-bold text-xs text-primary">
-                                {new Date(reservaSeleccionada.confirmacionAsistencia.respondidaEn).toLocaleString([], { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                                {new Date(
+                                  reservaSeleccionada.confirmacionAsistencia
+                                    .respondidaEn,
+                                ).toLocaleString([], {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
                               </small>
                             </div>
                           )}
@@ -563,6 +673,22 @@ const GestionReservas = () => {
                     <i className="ni ni-user-run mr-1"></i>
                     No asistió
                   </Button>
+                  {esPendiente(reservaSeleccionada) && (
+                    <Button
+                      color="primary"
+                      size={vistaMobile ? "sm" : "md"}
+                      className="mr-2 mb-2 mb-sm-0 flex-fill"
+                      onClick={() => {
+                        setNuevaFecha("");
+                        setHorasDisponibles([]);
+                        setHoraSeleccionada(null);
+                        setModalReagendar(true);
+                      }}
+                    >
+                      <i className="ni ni-calendar-grid-58 mr-1"></i>
+                      Reagendar
+                    </Button>
+                  )}
                   <Button
                     color="danger"
                     size={vistaMobile ? "sm" : "md"}
@@ -611,6 +737,126 @@ const GestionReservas = () => {
             </div>
           </div>
         )}
+      </Modal>
+
+      <Modal
+        isOpen={modalReagendar}
+        toggle={() => setModalReagendar(false)}
+        className="modal-dialog-centered"
+      >
+        <div className="modal-header bg-gradient-primary">
+          <h5 className="modal-title text-white">
+            <i className="ni ni-calendar-grid-58 mr-2"></i>
+            Reagendar reserva
+          </h5>
+          <button
+            className="close text-white"
+            onClick={() => setModalReagendar(false)}
+          >
+            <span>&times;</span>
+          </button>
+        </div>
+
+        <div className="modal-body">
+          {/* Info de la reserva actual */}
+          <div
+            className="bg-secondary rounded p-3 mb-3 d-flex flex-wrap"
+            style={{ gap: "1rem" }}
+          >
+            <div>
+              <small className="text-muted d-block">Cliente</small>
+              <strong>
+                {reservaSeleccionada?.cliente?.nombre}{" "}
+                {reservaSeleccionada?.cliente?.apellido}
+              </strong>
+            </div>
+            <div>
+              <small className="text-muted d-block">Servicio</small>
+              <strong>{reservaSeleccionada?.servicio?.nombre}</strong>
+            </div>
+            <div>
+              <small className="text-muted d-block">Hora actual</small>
+              <Badge color="info" pill>
+                {reservaSeleccionada &&
+                  new Date(reservaSeleccionada.fecha).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+              </Badge>
+            </div>
+          </div>
+
+          {/* Selector de fecha */}
+          <div className="mb-3">
+            <label
+              className="form-control-label text-muted"
+              style={{ fontSize: "13px" }}
+            >
+              Nueva fecha
+            </label>
+            <Input
+              type="date"
+              value={nuevaFecha}
+              min={new Date().toISOString().split("T")[0]}
+              onChange={(e) => handleFechaReagendar(e.target.value)}
+            />
+          </div>
+
+          {/* Slots de horas */}
+          {nuevaFecha && (
+            <div>
+              <label
+                className="form-control-label text-muted"
+                style={{ fontSize: "13px" }}
+              >
+                Hora disponible
+              </label>
+              {loadingHoras ? (
+                <div className="text-center py-3">
+                  <div className="spinner-border spinner-border-sm text-primary" />
+                </div>
+              ) : horasDisponibles.length === 0 ? (
+                <p className="text-muted text-sm text-center py-2">
+                  No hay horas disponibles para este día
+                </p>
+              ) : (
+                <div className="d-flex flex-wrap" style={{ gap: "8px" }}>
+                  {horasDisponibles.map((h) => (
+                    <Button
+                      key={h.hora}
+                      size="sm"
+                      color={
+                        horaSeleccionada === h.hora ? "primary" : "secondary"
+                      }
+                      disabled={h.estado !== "disponible"}
+                      onClick={() => setHoraSeleccionada(h.hora)}
+                      style={{
+                        minWidth: "70px",
+                        opacity: h.estado !== "disponible" ? 0.4 : 1,
+                      }}
+                    >
+                      {h.hora}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="modal-footer">
+          <Button color="secondary" onClick={() => setModalReagendar(false)}>
+            Cancelar
+          </Button>
+          <Button
+            color="primary"
+            disabled={!horaSeleccionada || !nuevaFecha}
+            onClick={handleConfirmarReagendar}
+          >
+            <i className="ni ni-check-bold mr-1"></i>
+            Confirmar reagendo
+          </Button>
+        </div>
       </Modal>
 
       <style jsx>{`
