@@ -1,16 +1,7 @@
-// src/views/invitados/pages/ReservaInvitado.jsx
 import React, { useState, useMemo, useEffect } from "react";
 import {
-  Container,
-  Card,
-  CardBody,
-  Button,
-  Modal,
-  ModalHeader,
-  ModalBody,
-  Input,
-  Row,
-  Col,
+  Container, Card, CardBody, Button, Modal, ModalHeader,
+  ModalBody, Input, Row, Col,
 } from "reactstrap";
 import { Info } from "lucide-react";
 import { FaPhone } from "react-icons/fa";
@@ -34,10 +25,7 @@ const ReservarHoraInvitado = () => {
   const { slug } = useParams();
   const { empresa } = useEmpresa();
 
-  // Determinar si es Lumica
   const isLumica = slug === "lumicabeauty";
-
-  // Tema solo para el banner de Lumica
   const lumicaTheme = {
     primary: "#FF5DA1",
     primaryLight: "#FFE4F0",
@@ -48,72 +36,39 @@ const ReservarHoraInvitado = () => {
   };
 
   const {
-    servicios,
-    barberosFiltrados,
-    servicio,
-    barbero,
-    fecha,
-    hora,
-    weekStart,
-    weekDays,
-    loadingWeek,
-    horasDisponibles,
-    cargandoHoras,
-    mensajeHoras,
-    horasDataCompleta,
-    duracionServicio,
-    invitado,
-    setInvitado,
-    loadingServicios,
-    loadingBarberos,
-    reservando,
-    pasoActual,
-    handleSeleccionarServicio,
-    handleSeleccionarBarbero,
-    handleSelectDay,
-    prevWeek,
-    nextWeek,
-    setHora,
-    reservarComoInvitado,
+    servicios, barberosFiltrados, servicio, barbero, fecha, hora,
+    weekStart, weekDays, loadingWeek, horasDisponibles, cargandoHoras,
+    mensajeHoras, horasDataCompleta, duracionServicio, invitado, setInvitado,
+    loadingServicios, loadingBarberos, reservando, pasoActual,
+    handleSeleccionarServicio, handleSeleccionarBarbero, handleSelectDay,
+    prevWeek, nextWeek, setHora, reservarComoInvitado,
   } = useReservaInvitado(slug);
 
-  const {
-    rut: rutInvitado,
-    handleRutChange,
-    error: rutError,
-  } = useRutValidator();
+  const { rut: rutInvitado, handleRutChange, error: rutError } = useRutValidator();
 
   const [modalInvitado, setModalInvitado] = useState(false);
   const toggleModalInvitado = () => setModalInvitado(!modalInvitado);
   const [buscandoUsuario, setBuscandoUsuario] = useState(false);
   const [usuarioEncontrado, setUsuarioEncontrado] = useState(false);
+  const [usuarioData, setUsuarioData] = useState(null);
 
   useEffect(() => {
     setInvitado((prev) => ({ ...prev, rut: rutInvitado }));
     setUsuarioEncontrado(false);
-
-    console.log(
-      "RUT:",
-      rutInvitado,
-      "| Error:",
-      rutError,
-      "| Largo:",
-      rutInvitado.length,
-    );
+    setUsuarioData(null);
 
     if (!rutError && rutInvitado.length >= 8) {
       const buscar = async () => {
         setBuscandoUsuario(true);
         try {
           const usuario = await getUsuarioByRutPublico(rutInvitado);
-          console.log("✅ Usuario encontrado:", usuario);
-
           if (usuario) {
+            setUsuarioData(usuario);
             setInvitado({
               rut: rutInvitado,
               nombre: usuario.nombre || "",
               apellido: usuario.apellido || "",
-              telefono: usuario.telefono?.slice(-8) || "",
+              telefono: "",
               email: usuario.email || "",
             });
             setUsuarioEncontrado(true);
@@ -129,12 +84,8 @@ const ReservarHoraInvitado = () => {
   }, [rutInvitado, rutError]);
 
   const invitadoValido =
-    invitado.nombre &&
-    invitado.apellido &&
-    rutInvitado &&
-    !rutError &&
-    invitado.telefono?.length === 8 &&
-    invitado.email;
+    invitado.nombre && invitado.apellido && rutInvitado &&
+    !rutError && invitado.telefono?.length === 8 && invitado.email;
 
   const servicioSeleccionado = useMemo(() => {
     if (!servicio) return null;
@@ -166,7 +117,6 @@ const ReservarHoraInvitado = () => {
 
   return (
     <div style={{ backgroundColor: "#FFFFFF", overflowX: "hidden" }}>
-      {/* ================= BANNER SUPERIOR (SOLO ESTO CAMBIA) ================= */}
       <div
         className="position-relative py-7 py-lg-8"
         style={{
@@ -181,44 +131,30 @@ const ReservarHoraInvitado = () => {
         <Container>
           <Row className="justify-content-center text-center">
             <Col lg="8">
-              {/* Glow efecto para Lumica (solo en el banner) */}
-
-              {/* Si no es Lumica, mostrar logo sin glow */}
               {!isLumica && (
                 <img
                   src={empresa?.logo || logo}
                   alt={empresa?.nombre || "Logo"}
                   className="img-fluid mb-4 floating"
-                  style={{
-                    width: "150px",
-                    filter: "drop-shadow(0px 10px 15px rgba(0,0,0,0.3))",
-                  }}
+                  style={{ width: "150px", filter: "drop-shadow(0px 10px 15px rgba(0,0,0,0.3))" }}
                 />
               )}
-
-              {/* Badge - con color dinámico según la empresa */}
               <div
                 style={{
                   display: "inline-block",
-                  backgroundColor: isLumica
-                    ? lumicaTheme.primaryLight
-                    : "rgba(255,255,255,0.2)",
+                  backgroundColor: isLumica ? lumicaTheme.primaryLight : "rgba(255,255,255,0.2)",
                   color: isLumica ? lumicaTheme.primary : "#ffffff",
                   padding: "8px 20px",
                   borderRadius: "50px",
                   fontSize: "0.95rem",
                   marginBottom: "1.5rem",
                   fontWeight: 500,
-                  border: isLumica
-                    ? `1px solid ${lumicaTheme.primary}30`
-                    : "1px solid rgba(255,255,255,0.1)",
+                  border: isLumica ? `1px solid ${lumicaTheme.primary}30` : "1px solid rgba(255,255,255,0.1)",
                   backdropFilter: isLumica ? "none" : "blur(10px)",
                 }}
               >
                 ✨ {empresa?.nombre || "Bienvenido"}
               </div>
-
-              {/* Título principal */}
               <h1
                 className="display-2 font-weight-bold mb-2"
                 style={{
@@ -229,43 +165,31 @@ const ReservarHoraInvitado = () => {
               >
                 Reserva tu hora
               </h1>
-
-              {/* Descripción */}
               <p
                 className="lead"
                 style={{
-                  color: isLumica
-                    ? lumicaTheme.textMuted
-                    : "rgba(255,255,255,0.9)",
+                  color: isLumica ? lumicaTheme.textMuted : "rgba(255,255,255,0.9)",
                   fontSize: "1.25rem",
                   maxWidth: "600px",
                   marginLeft: "auto",
                   marginRight: "auto",
                 }}
               >
-                Sin cuenta, sin complicaciones. Completa los pasos y asegura tu
-                cita.
+                Sin cuenta, sin complicaciones. Completa los pasos y asegura tu cita.
               </p>
             </Col>
           </Row>
         </Container>
       </div>
 
-      {/* ===== TODO LO DEMÁS SIGUE IGUAL ===== */}
       <Container className="mt-5 mb-5" style={{ maxWidth: "1200px" }}>
-        {/* PROGRESO - MANTIENE COLOR ORIGINAL */}
         <div className="mb-4">
           <div className="d-flex justify-content-between">
             <span className="small text-muted">Progreso</span>
-            <span className="small fw-bold text-success">
-              {Math.round(progresoPasos)}%
-            </span>
+            <span className="small fw-bold text-success">{Math.round(progresoPasos)}%</span>
           </div>
           <div className="progress" style={{ height: 6 }}>
-            <div
-              className="progress-bar bg-success"
-              style={{ width: `${progresoPasos}%` }}
-            />
+            <div className="progress-bar bg-success" style={{ width: `${progresoPasos}%` }} />
           </div>
         </div>
 
@@ -276,7 +200,6 @@ const ReservarHoraInvitado = () => {
             <h3 className="mb-1">Reserva tu hora</h3>
             <small>Sin cuenta, sin complicaciones</small>
           </div>
-
           <CardBody className="p-4">
             <Row>
               <Col lg={7}>
@@ -285,7 +208,6 @@ const ReservarHoraInvitado = () => {
                   servicio={servicio}
                   onSeleccionarServicio={handleSeleccionarServicio}
                 />
-
                 {servicio && (
                   <BarberoSelector
                     barberos={barberosFiltrados}
@@ -294,7 +216,6 @@ const ReservarHoraInvitado = () => {
                     onSeleccionarBarbero={handleSeleccionarBarbero}
                   />
                 )}
-
                 {servicio && barbero && (
                   <WeekSelector
                     weekStart={weekStart}
@@ -308,7 +229,6 @@ const ReservarHoraInvitado = () => {
                     barberoInfo={barberoSeleccionado}
                   />
                 )}
-
                 {servicio && barbero && fecha && (
                   <HorasDisponibles
                     horasDisponibles={horasDisponibles}
@@ -323,17 +243,13 @@ const ReservarHoraInvitado = () => {
                     esInvitado={true}
                   />
                 )}
-
                 {(!servicio || !barbero || !fecha || !hora) && (
                   <div className="mt-4 d-flex">
                     <Info className="me-2 text-success" />
-                    <small className="text-muted">
-                      Sigue los pasos para completar tu reserva
-                    </small>
+                    <small className="text-muted">Sigue los pasos para completar tu reserva</small>
                   </div>
                 )}
               </Col>
-
               <Col lg={5}>
                 <ResumenReserva
                   servicioSeleccionado={servicioSeleccionado}
@@ -349,14 +265,10 @@ const ReservarHoraInvitado = () => {
           </CardBody>
         </Card>
 
-        {/* MODAL INVITADO - IGUAL QUE ANTES */}
         <Modal isOpen={modalInvitado} toggle={toggleModalInvitado} centered>
-          <ModalHeader toggle={toggleModalInvitado}>
-            Datos del cliente
-          </ModalHeader>
+          <ModalHeader toggle={toggleModalInvitado}>Datos del cliente</ModalHeader>
           <ModalBody>
             {/* RUT */}
-
             <Input
               className={`mb-2 ${rutError ? "is-invalid" : ""}`}
               placeholder="Ingrese RUT sin puntos ni guión"
@@ -368,16 +280,11 @@ const ReservarHoraInvitado = () => {
               <div className="invalid-feedback d-block mb-2">{rutError}</div>
             )}
 
-            {/* NUEVO: feedback de búsqueda */}
             {buscandoUsuario && (
-              <small className="text-muted d-block mb-2">
-                🔍 Buscando cliente...
-              </small>
+              <small className="text-muted d-block mb-2">🔍 Buscando cliente...</small>
             )}
             {usuarioEncontrado && !buscandoUsuario && (
-              <small className="text-success d-block mb-2">
-                ✓ Datos completados automáticamente
-              </small>
+              <small className="text-success d-block mb-2">✓ Datos completados automáticamente</small>
             )}
 
             {/* Nombre */}
@@ -386,7 +293,7 @@ const ReservarHoraInvitado = () => {
               placeholder="Nombre"
               value={invitado.nombre}
               onChange={(e) => {
-                setUsuarioEncontrado(false); // Si edita, quita el badge verde
+                setUsuarioEncontrado(false);
                 setInvitado({ ...invitado, nombre: e.target.value });
               }}
             />
@@ -396,42 +303,29 @@ const ReservarHoraInvitado = () => {
               className="mb-2"
               placeholder="Apellido"
               value={invitado.apellido}
-              onChange={(e) =>
-                setInvitado({ ...invitado, apellido: e.target.value })
-              }
+              onChange={(e) => setInvitado({ ...invitado, apellido: e.target.value })}
             />
 
             {/* Teléfono */}
             <div className="mb-2">
               <div
                 className="d-flex align-items-center rounded input-group-alternative"
-                style={{
-                  border: "1px solid #cad1d7",
-                  backgroundColor: "#fff",
-                  transition: "all 0.15s ease",
-                }}
+                style={{ border: "1px solid #cad1d7", backgroundColor: "#fff", transition: "all 0.15s ease" }}
               >
-                {/* Prefijo */}
                 <div
                   className="d-flex align-items-center px-3 py-2"
-                  style={{
-                    backgroundColor: "#f7fafc",
-                    borderRight: "1px solid #cad1d7",
-                    whiteSpace: "nowrap",
-                  }}
+                  style={{ backgroundColor: "#f7fafc", borderRight: "1px solid #cad1d7", whiteSpace: "nowrap" }}
                 >
                   <FaPhone size={13} className="text-success me-2" />
-                  <span
-                    className="text-muted fw-bold"
-                    style={{ fontSize: "0.85rem" }}
-                  >
-                    +569
-                  </span>
+                  <span className="text-muted fw-bold" style={{ fontSize: "0.85rem" }}>+569</span>
                 </div>
 
-                {/* Input estilo Argon */}
                 <input
-                  placeholder="Ingrese teléfono"
+                  placeholder={
+                    usuarioEncontrado && usuarioData?.telefono
+                      ? usuarioData.telefono.slice(-4).padStart(8, "*")
+                      : "Ingrese teléfono"
+                  }
                   type="text"
                   value={invitado.telefono}
                   onChange={(e) => {
@@ -449,25 +343,19 @@ const ReservarHoraInvitado = () => {
                   }}
                 />
 
-                {/* Indicador */}
                 {invitado.telefono && (
                   <div className="px-2">
                     {invitado.telefono.length === 8 ? (
                       <span className="text-success fw-bold">✓</span>
                     ) : (
-                      <span className="text-muted small">
-                        {invitado.telefono.length}/8
-                      </span>
+                      <span className="text-muted small">{invitado.telefono.length}/8</span>
                     )}
                   </div>
                 )}
               </div>
 
-              {/* Error */}
               {invitado.telefono && invitado.telefono.length !== 8 && (
-                <small className="text-danger ms-1">
-                  El teléfono debe tener 8 dígitos
-                </small>
+                <small className="text-danger ms-1">El teléfono debe tener 8 dígitos</small>
               )}
             </div>
 
@@ -477,9 +365,7 @@ const ReservarHoraInvitado = () => {
               placeholder="Email"
               type="email"
               value={invitado.email}
-              onChange={(e) =>
-                setInvitado({ ...invitado, email: e.target.value })
-              }
+              onChange={(e) => setInvitado({ ...invitado, email: e.target.value })}
             />
 
             <Button
