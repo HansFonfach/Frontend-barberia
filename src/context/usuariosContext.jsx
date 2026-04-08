@@ -185,6 +185,8 @@ export const UsuarioProvider = ({ children }) => {
     fetchData();
   }, [isAuthenticated, user]); // dependencias igual que antes
 
+  
+
   const getVerPuntos = async () => {
     if (!isAuthenticated) return;
 

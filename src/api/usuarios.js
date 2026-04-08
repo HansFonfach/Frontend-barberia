@@ -18,6 +18,10 @@ export const putUpdatePerfilUsuario = (data) =>
 export const getUsuarioByRut = (rut) => {
   return axiosPrivate.get(`/usuarios/rut/${rut}`);
 };
+export const getUsuarioByRutPublico = async (rut) => {
+  const res = await axiosPublic.get(`/usuarios/rutPublico/${rut}`);
+  return res.data;
+};
 export const postSubscribeUserById = (_id) => {
   return axiosPrivate.post(`/suscripcion/usuario/${_id}/suscribir`);
 };

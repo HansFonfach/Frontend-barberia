@@ -28,6 +28,7 @@ import AuthFooter from "components/Footers/AuthFooter";
 import logo from "assets/img/logo4.png";
 import { useRutValidator } from "hooks/useRutValidador";
 import { useEmpresa } from "context/EmpresaContext";
+import { getUsuarioByRutPublico } from "api/usuarios";
 
 const ReservarHoraInvitado = () => {
   const { slug } = useParams();
@@ -82,12 +83,50 @@ const ReservarHoraInvitado = () => {
     error: rutError,
   } = useRutValidator();
 
-  useEffect(() => {
-    setInvitado((prev) => ({ ...prev, rut: rutInvitado }));
-  }, [rutInvitado]);
-
   const [modalInvitado, setModalInvitado] = useState(false);
   const toggleModalInvitado = () => setModalInvitado(!modalInvitado);
+  const [buscandoUsuario, setBuscandoUsuario] = useState(false);
+  const [usuarioEncontrado, setUsuarioEncontrado] = useState(false);
+
+  useEffect(() => {
+    setInvitado((prev) => ({ ...prev, rut: rutInvitado }));
+    setUsuarioEncontrado(false);
+
+    console.log(
+      "RUT:",
+      rutInvitado,
+      "| Error:",
+      rutError,
+      "| Largo:",
+      rutInvitado.length,
+    );
+
+    if (!rutError && rutInvitado.length >= 8) {
+      const buscar = async () => {
+        setBuscandoUsuario(true);
+        try {
+          const usuario = await getUsuarioByRutPublico(rutInvitado);
+          console.log("✅ Usuario encontrado:", usuario);
+
+          if (usuario) {
+            setInvitado({
+              rut: rutInvitado,
+              nombre: usuario.nombre || "",
+              apellido: usuario.apellido || "",
+              telefono: usuario.telefono?.slice(-8) || "",
+              email: usuario.email || "",
+            });
+            setUsuarioEncontrado(true);
+          }
+        } catch (err) {
+          console.log("❌ Error al buscar:", err.message);
+        } finally {
+          setBuscandoUsuario(false);
+        }
+      };
+      buscar();
+    }
+  }, [rutInvitado, rutError]);
 
   const invitadoValido =
     invitado.nombre &&
@@ -317,6 +356,7 @@ const ReservarHoraInvitado = () => {
           </ModalHeader>
           <ModalBody>
             {/* RUT */}
+
             <Input
               className={`mb-2 ${rutError ? "is-invalid" : ""}`}
               placeholder="Ingrese RUT sin puntos ni guión"
@@ -328,14 +368,27 @@ const ReservarHoraInvitado = () => {
               <div className="invalid-feedback d-block mb-2">{rutError}</div>
             )}
 
+            {/* NUEVO: feedback de búsqueda */}
+            {buscandoUsuario && (
+              <small className="text-muted d-block mb-2">
+                🔍 Buscando cliente...
+              </small>
+            )}
+            {usuarioEncontrado && !buscandoUsuario && (
+              <small className="text-success d-block mb-2">
+                ✓ Datos completados automáticamente
+              </small>
+            )}
+
             {/* Nombre */}
             <Input
               className="mb-2"
               placeholder="Nombre"
               value={invitado.nombre}
-              onChange={(e) =>
-                setInvitado({ ...invitado, nombre: e.target.value })
-              }
+              onChange={(e) => {
+                setUsuarioEncontrado(false); // Si edita, quita el badge verde
+                setInvitado({ ...invitado, nombre: e.target.value });
+              }}
             />
 
             {/* Apellido */}
