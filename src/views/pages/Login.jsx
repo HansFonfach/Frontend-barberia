@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "context/AuthContext";
 import { useParams } from "react-router-dom";
+import { getLogoUrl } from "utils/getLogoUrl";
 
 import {
   Button,
@@ -79,6 +80,8 @@ const Login = () => {
     });
   };
 
+  const logoUrl = getLogoUrl(empresa);
+
   return (
     <>
       <Col lg="5" md="7">
@@ -105,7 +108,7 @@ const Login = () => {
           >
             <img
               src={
-                empresa?.logo ||
+                logoUrl ||
                 `https://ui-avatars.com/api/?name=${encodeURIComponent(empresa?.nombre || "Negocio")}&background=4361ee&color=fff&size=150&bold=true&rounded=true`
               }
               alt="Logo"

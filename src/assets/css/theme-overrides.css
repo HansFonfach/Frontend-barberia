@@ -1,0 +1,61 @@
+/* theme-overrides.css — sobreescribe Argon con tus variables */
+
+:root {
+  --color-primary:    #5e72e4;
+  --color-secondary:  #2dce89;
+  --color-background: #ffffff;
+  --color-text:       #172b4d;
+  --color-muted:      #8898aa;
+  --border-radius:    24px;
+}
+
+/* Botones primarios */
+.btn-primary {
+  background-color: var(--color-primary) !important;
+  border-color:     var(--color-primary) !important;
+}
+.btn-primary:hover {
+  filter: brightness(0.88);
+}
+
+/* Botones secundarios */
+.btn-secondary {
+  background-color: var(--color-secondary) !important;
+  border-color:     var(--color-secondary) !important;
+}
+
+/* Sidebar / navbar de Argon */
+.bg-gradient-primary,
+.navbar-vertical.navbar-expand-xs {
+  background: linear-gradient(
+    180deg,
+    var(--color-primary) 0%,
+    color-mix(in srgb, var(--color-primary) 70%, black)
+  ) !important;
+}
+
+/* Cards */
+.card {
+  border-radius: var(--border-radius) !important;
+}
+
+/* Badges, pills */
+.badge-primary { background-color: var(--color-primary) !important; }
+.badge-success { background-color: var(--color-secondary) !important; }
+
+/* Links */
+a { color: var(--color-primary); }
+
+/* Texto base */
+body { color: var(--color-text); }
+.text-muted { color: var(--color-muted) !important; }
+
+/* Background del body/fondo */
+body, #root {
+  background-color: var(--color-background) !important;
+}
+
+/* Fuente */
+body {
+  font-family: var(--font-family-base, inherit);
+}
