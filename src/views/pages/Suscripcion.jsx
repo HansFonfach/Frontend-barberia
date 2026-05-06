@@ -57,12 +57,12 @@ const SubscriptionPage = () => {
   ];
 
   const datosCuenta = [
-    { label: "Nombre", value: "Josefina Tuma" },
-    { label: "RUT", value: "19.889.487-7" },
-    { label: "Banco", value: "Banco de Chile" },
+    { label: "Nombre", value: "Alejandro Daniel Robledo" },
+    { label: "RUT", value: "24.153.990-3" },
+    { label: "Banco", value: "Mercado Pago" },
     { label: "Tipo de cuenta", value: "Cuenta Vista" },
-    { label: "N° de cuenta", value: "00-020-37221-08" },
-    { label: "Correo", value: "josefina.tuma.nortes@gmail.com" },
+    { label: "N° de cuenta", value: "1039233588" },
+    { label: "Correo", value: "alerobledo26@gmail.com" },
   ];
 
   const copiar = (value, label) => {
