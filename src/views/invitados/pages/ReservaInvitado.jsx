@@ -319,147 +319,161 @@ const ReservarHoraInvitado = () => {
           </CardBody>
         </Card>
 
+        {/* ...todo tu código igual arriba */}
+
         <Modal isOpen={modalInvitado} toggle={toggleModalInvitado} centered>
           <ModalHeader toggle={toggleModalInvitado}>
             Datos del cliente
           </ModalHeader>
-          <ModalBody>
-            {/* RUT */}
-            <Input
-              className={`mb-2 ${rutError ? "is-invalid" : ""}`}
-              placeholder="Ingrese RUT sin puntos ni guión"
-              value={rutInvitado}
-              maxLength={12}
-              onChange={handleRutChange}
-            />
-            {rutError && (
-              <div className="invalid-feedback d-block mb-2">{rutError}</div>
-            )}
 
-            {buscandoUsuario && (
-              <small className="text-muted d-block mb-2">
-                🔍 Buscando cliente...
-              </small>
-            )}
-            {usuarioEncontrado && !buscandoUsuario && (
-              <small className="text-success d-block mb-2">
-                ✓ Datos completados automáticamente
-              </small>
-            )}
+          {/* 👇 IMPORTANTE */}
+          <ModalBody autoComplete="off">
+            <form autoComplete="off">
+              {/* RUT */}
+              <Input
+                className={`mb-2 ${rutError ? "is-invalid" : ""}`}
+                placeholder="Ingrese RUT sin puntos ni guión"
+                value={rutInvitado}
+                maxLength={12}
+                onChange={handleRutChange}
+                autoComplete="off"
+                name="rut_fake"
+              />
 
-            {/* Nombre */}
-            <Input
-              className="mb-2"
-              placeholder="Nombre"
-              value={invitado.nombre}
-              onChange={(e) => {
-                setUsuarioEncontrado(false);
-                setInvitado({ ...invitado, nombre: e.target.value });
-              }}
-            />
+              {rutError && (
+                <div className="invalid-feedback d-block mb-2">{rutError}</div>
+              )}
 
-            {/* Apellido */}
-            <Input
-              className="mb-2"
-              placeholder="Apellido"
-              value={invitado.apellido}
-              onChange={(e) =>
-                setInvitado({ ...invitado, apellido: e.target.value })
-              }
-            />
+              {buscandoUsuario && (
+                <small className="text-muted d-block mb-2">
+                  🔍 Buscando cliente...
+                </small>
+              )}
+              {usuarioEncontrado && !buscandoUsuario && (
+                <small className="text-success d-block mb-2">
+                  ✓ Datos completados automáticamente
+                </small>
+              )}
 
-            {/* Teléfono */}
-            <div className="mb-2">
-              <div
-                className="d-flex align-items-center rounded input-group-alternative"
-                style={{
-                  border: "1px solid #cad1d7",
-                  backgroundColor: "#fff",
-                  transition: "all 0.15s ease",
+              {/* Nombre */}
+              <Input
+                className="mb-2"
+                placeholder="Nombre"
+                value={invitado.nombre}
+                autoComplete="off"
+                name="nombre_fake"
+                onChange={(e) => {
+                  setUsuarioEncontrado(false);
+                  setInvitado({ ...invitado, nombre: e.target.value });
                 }}
-              >
+              />
+
+              {/* Apellido */}
+              <Input
+                className="mb-2"
+                placeholder="Apellido"
+                value={invitado.apellido}
+                autoComplete="off"
+                name="apellido_fake"
+                onChange={(e) =>
+                  setInvitado({ ...invitado, apellido: e.target.value })
+                }
+              />
+
+              {/* Teléfono */}
+              <div className="mb-2">
                 <div
-                  className="d-flex align-items-center px-3 py-2"
+                  className="d-flex align-items-center rounded input-group-alternative"
                   style={{
-                    backgroundColor: "#f7fafc",
-                    borderRight: "1px solid #cad1d7",
-                    whiteSpace: "nowrap",
+                    border: "1px solid #cad1d7",
+                    backgroundColor: "#fff",
                   }}
                 >
-                  <FaPhone size={13} className="text-success me-2" />
-                  <span
-                    className="text-muted fw-bold"
-                    style={{ fontSize: "0.85rem" }}
+                  <div
+                    className="d-flex align-items-center px-3 py-2"
+                    style={{
+                      backgroundColor: "#f7fafc",
+                      borderRight: "1px solid #cad1d7",
+                      whiteSpace: "nowrap",
+                    }}
                   >
-                    +569
-                  </span>
+                    <FaPhone size={13} className="text-success me-2" />
+                    <span
+                      className="text-muted fw-bold"
+                      style={{ fontSize: "0.85rem" }}
+                    >
+                      +569
+                    </span>
+                  </div>
+
+                  <input
+                    placeholder="Teléfono"
+                  
+                    type="text"
+                    name="telefono_random" // 👈 clave
+                    autoComplete="new-password" // 👈 hack anti-autocomplete
+                    inputMode="numeric"
+                    value={invitado.telefono}
+                    onChange={(e) => {
+                      let value = e.target.value.replace(/\D/g, "");
+                      if (value.length > 8) value = value.slice(0, 8);
+                      setInvitado({ ...invitado, telefono: value });
+                    }}
+                    className="form-control"
+                    style={{
+                      border: "none",
+                      boxShadow: "none",
+                      backgroundColor: "transparent",
+                      padding: "0.65rem 0.75rem",
+                      fontSize: "0.875rem",
+                    }}
+                  />
+
+                  {invitado.telefono && (
+                    <div className="px-2">
+                      {invitado.telefono.length === 8 ? (
+                        <span className="text-success fw-bold">✓</span>
+                      ) : (
+                        <span className="text-muted small">
+                          {invitado.telefono.length}/8
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                <input
-                  placeholder={
-                    usuarioEncontrado && usuarioData?.telefono
-                      ? usuarioData.telefono.slice(-4).padStart(8, "*")
-                      : "Ingrese teléfono"
-                  }
-                  type="text"
-                  value={invitado.telefono}
-                  onChange={(e) => {
-                    let value = e.target.value.replace(/\D/g, "");
-                    if (value.length > 8) value = value.slice(0, 8);
-                    setInvitado({ ...invitado, telefono: value });
-                  }}
-                  className="form-control"
-                  style={{
-                    border: "none",
-                    boxShadow: "none",
-                    backgroundColor: "transparent",
-                    padding: "0.65rem 0.75rem",
-                    fontSize: "0.875rem",
-                  }}
-                />
-
-                {invitado.telefono && (
-                  <div className="px-2">
-                    {invitado.telefono.length === 8 ? (
-                      <span className="text-success fw-bold">✓</span>
-                    ) : (
-                      <span className="text-muted small">
-                        {invitado.telefono.length}/8
-                      </span>
-                    )}
-                  </div>
+                {invitado.telefono && invitado.telefono.length !== 8 && (
+                  <small className="text-danger ms-1">
+                    El teléfono debe tener 8 dígitos
+                  </small>
                 )}
               </div>
 
-              {invitado.telefono && invitado.telefono.length !== 8 && (
-                <small className="text-danger ms-1">
-                  El teléfono debe tener 8 dígitos
-                </small>
-              )}
-            </div>
+              {/* Email */}
+              <Input
+                className="mb-3"
+                placeholder="Email"
+                type="email"
+                value={invitado.email}
+                name="email_random"
+                autoComplete="new-password" // 👈 evita autofill también
+                onChange={(e) =>
+                  setInvitado({ ...invitado, email: e.target.value })
+                }
+              />
 
-            {/* Email */}
-            <Input
-              className="mb-3"
-              placeholder="Email"
-              type="email"
-              value={invitado.email}
-              onChange={(e) =>
-                setInvitado({ ...invitado, email: e.target.value })
-              }
-            />
-
-            <Button
-              color="success"
-              block
-              disabled={!invitadoValido || reservando}
-              onClick={async () => {
-                await reservarComoInvitado();
-                toggleModalInvitado();
-              }}
-            >
-              {reservando ? "Reservando..." : "Confirmar reserva"}
-            </Button>
+              <Button
+                color="success"
+                block
+                disabled={!invitadoValido || reservando}
+                onClick={async () => {
+                  await reservarComoInvitado();
+                  toggleModalInvitado();
+                }}
+              >
+                {reservando ? "Reservando..." : "Confirmar reserva"}
+              </Button>
+            </form>
           </ModalBody>
         </Modal>
       </Container>
