@@ -1,0 +1,124 @@
+[33md80c105[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m Fix slug
+[33mec01fb3[m Fix slug
+[33mabfcb23[m clg para depurar
+[33m6545935[m clg para depurar
+[33me21fa22[m Actualizacion para rutas usuario normal
+[33m2b70900[m Actualizaciones varias
+[33me77a5d2[m Nueva funcionalidad para actualizar colores de la pagina
+[33mcf60494[m Ahora muestra datos sensibles enmascarados
+[33m5a988df[m Funcion para rellenar datos automaticamente al reservar como invitado
+[33m8caf8a0[m Nueva funcion para poder reagendar desde el panel admin
+[33m9f20d8e[m Mejora en la presentacion visual de los negocios
+[33mdff7ecc[m Landing ahora muestra la duracion de los servicios
+[33m98c73ba[m Mejora funcion confirmar asistencia
+[33m59550f2[m Actualizacion para confirmar y cancelar reservas
+[33m2118256[m Actualizacion para confirmar y cancelar reservas
+[33m7423009[m fix: orden en las rutas
+[33m707f508[m Mejoras en el diseño, y en los mensajes de carga
+[33m850d591[m Fix: ahora muestra el logo correcto en recuperar contraseña
+[33m258e4f1[m Permite confirmar reservas y muestra nuevos estados
+[33mc3fb354[m admin ahora puede ver dias pasados y agendar
+[33m013ad67[m feat: ahora permite actualizar mas campos en los datos de empresa
+[33mfa61b21[m Ahora permite actualizar la foto de perfil
+[33mb85529d[m feat: registro público de empresa con creación automática de admin
+[33m9bb2b06[m Feat: -usuarios invitados ahora pueden solicitar notificacion de hora
+[33m27a909d[m Nuevo diseño en pagina principal - nueva funcion para optimizas la muestra de estadisticas
+[33m6df5b47[m Feat: -Nuevos campos agregados para actualizar datos del barbero
+[33ma67ea54[m Fix: ahora en el nombre de cliente dice nombre y no servicio
+[33md8bed0c[m feat: gestión de feriados y vacaciones
+[33m41ed138[m Ahora se ocultan las rutas según el rol del usuario
+[33m59f8f92[m feat: - Nueva actualización para subir foto de perfil del profesional
+[33m058f7c3[m feat(admin): página de configuración de empresa
+[33m06d5b0f[m Nuevo diseño para mostrar a los profesionales desde admin
+[33mc4613ff[m feat(profesionales): muestra datos más detallados del profesional
+[33ma160883[m feat(reservas): mostrar datos de abono al confirmar reserva
+[33md087586[m feat(horarios): UI configuración de bloques de atención por ancla
+[33m92f8163[m fix: - los valores ahora se muestran en miles - link arreglado para direccionar a instagram
+[33m9b43f91[m Ahora carga los datos del profesional desde la base de datos
+[33mb9f8f5c[m Cambio en el diseño del hero
+[33me19a9a2[m feat: respetar configuración dinámica de empresa en calendarios
+[33mb263ef9[m Mejora en el diseño de las estádisticas
+[33mda55bfa[m Nuevas funciones para mostrar top 5 clientes asistidores, canceladores, no asistidores
+[33m415b103[m Mejoras en diseños generales, para que aparezcan iconos más genericos
+[33m219819a[m Nuevas funciones y diseño para mostrar estadisticas adicionales - nueva función para mostrar cuantos servicios disponibles les quedan a los usuarios suscritos
+[33m77fbe16[m Ahora el profesional puede agendar un cliente aunque no esté registrado
+[33mb53d63d[m Fix: ahora no deja ingresar otro slug que no sea el del usuario logeado
+[33m73c8857[m Fix: actualización de diseño para que se muestren en base al color de la empresa
+[33me2c5790[m Rediseño paginas publicas
+[33m6da260d[m Mejoras en el diseño
+[33m5fe79fe[m Mejora en el loading para que ya no muestre logo por defecto
+[33m26a368e[m Cambios en diseños para que muestre los nombres más genericos
+[33me331a8e[m Se quito el boton de pago
+[33meb1f001[m update componente estadisticas, diseño
+[33m39a9c6a[m Rediseño y separacion de responsabilidades
+[33mc069a00[m Fix: envio de slug
+[33mfca8456[m Fix: recuperar contraseña
+[33md52ce4c[m Actualizacion funcion recuperar contraseña
+[33m097c66a[m Nueva forma de enfiar el slug
+[33m3ebf505[m actualizaciones de diseño para mostrar tarjeta de suscriptor
+[33m65d0ca3[m feat: suscripciones, límite días calendario y mejoras dashboard
+[33mb8351c6[m Nueva ruta publica
+[33m7e7706a[m Nueva ruta publica
+[33mf90c38c[m Nueva pagina para verificar cuenta
+[33m304405a[m Arreglos funcion registro para enviar correo a cuentas de invitado y registrarlas
+[33mc485111[m Mensaje de notificacion modificado
+[33maa74ed0[m - nueva funcion para marcar reservas como no asistidas - funcion ajustada para enviar motivo de cancelacion
+[33m463a5f7[m Nueva foto perfil barbero agregada
+[33md96d674[m Nuevas funciones para actualizar perfil usuario
+[33m7154616[m Eliminados los console log
+[33m1c12c7c[m Mejoras al campo telefono
+[33ma4ce7a3[m Cambio en el axios
+[33mdd093f1[m Se agregó boton de whatsapp en el navbar
+[33m5bc8d64[m Mejora en los mensajes
+[33m7fce2b2[m Eliminacion de botones
+[33m3e60cba[m Rediseño titulo de la pagina en index.html
+[33m9ea6601[m cambio en funcion de reservar, espera a que se confirme para mandarlo a otra pagina
+[33m73dea43[m Rediseño
+[33m6231b00[m Ajustes de diseño
+[33m51a31a5[m Borrado boton reservar ahora
+[33mc2ac368[m rediseño boton
+[33mc40127c[m Retoque al diseño
+[33m862a4be[m Re diseño pagina cancelarInvitado
+[33m15d22d2[m Re diseño pagina cancelarInvitado
+[33mf23c6dd[m Fix rutas de invitado
+[33mbfb7d8f[m Mejoras y nuevas funciones para mostrar datos de la reserva como invitado y cancelarla
+[33mc178345[m Mejoras visuales a principal, bloqueo de boton suscribirse, nueva funcion para cancelar horas desde el usuario invitado
+[33m4c2045d[m mejoras en el diseño de la pagina principal
+[33md07a4a9[m Mejoras visuales
+[33m0c3386e[m Mejora al diseño del modal para reservar como invitado
+[33m4e9719c[m Actualizacion a la funcion para obtener reservas
+[33mff14c54[m Cambios en context auth y axiosPrivate
+[33m7bd20cd[m Cambio en el interceptors
+[33mc9533ae[m Actualizacion para que funcione el token en mobile
+[33mce506ee[m ROLL BACK
+[33mecfc444[m nuevas mejoras para que funcione bien en mobile
+[33m40629b4[m Fix dashboard que se quedaba en un bucle
+[33m03194ef[m Mejora a la funcion sigIn en context, para al captura de datos
+[33mba64261[m Nuevo diseño pagina principal
+[33mf9f68e3[m Nueva pagina principal
+[33mdb0175d[m Mejora para que funcione la pagina en celulares
+[33m7d04660[m Mejora para que funcione la pagina en celulares
+[33m455af4d[m Mejora visual al mostrar los servicios
+[33m5e84b9b[m mejora funcion para crear excepciones diarias , rediseño de tabla clientes y reservas diarias
+[33m97a9972[m feat: soporte multi-empresa por slug/dominio con reservas y barberos
+[33m05c7c0d[m Ya no aparecen los minutos del servicio en el resumen de la reserva
+[33m724f643[m nuevas funciones y componente para reservar como invitado
+[33m4d62b9f[m Mejora funcion para enviar recordatorios por whatsapp - mejora de diseño para solicitud de notificacion
+[33m9b37c1c[m Nueva funcion para activar/desactivar usuarios
+[33m38870ff[m nuevo hook para crear barbero y separar responsabilidades - nuevo rediseño para que se vea mejor en mobile
+[33md03e45a[m Nueva funcion para actualizar el horario del barbero
+[33mdc4b3cf[m - Ahora se muestran las horas ocupadas, pero bloqueadas - se corrigió la función para que el barbero administre su horario diario
+[33mb1e19e6[m Nueva pagina principal
+[33med42522[m Se agrega debug para las funciones de obtener horas disponibles
+[33m48102f3[m Se agrega debug para las funciones de obtener horas disponibles
+[33mb662b50[m correccion axios
+[33mabebaa9[m Nuevas funcionalidades que permiten que el barbero elija sus bloques de trabajo y horario mas flexible
+[33m938057b[m Arreglo dashboard principal, muestra informacion correcta
+[33m2c73401[m nuevas funciones y context agregadas para el canje de productos
+[33mb7e7ea1[m Nueva pagina para gestion de canjesÇ
+[33mf3aa76d[m nueva implementacion para sumar y canjear puntos
+[33m2e03ce4[m ajustes generales en flujo de suscripción y reservas
+[33m28a8b64[m nuevo logo
+[33m34dc866[m nuevo logo
+[33m6baea46[m nuevo diseño tabla reservas vista admin
+[
