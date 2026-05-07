@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useHorario } from "context/HorarioContext";
-import { verificarFeriado } from "api/feriados"; // ← necesitas esta función en tu api
+import { verificarFeriado } from "api/feriados";
+import { getHorasProfesionalDia } from "api/horarios"; // ← NUEVA
 
 const asegurarArray = (v) => (Array.isArray(v) ? v : []);
 const normalizarHora = (hora) =>
@@ -11,9 +12,10 @@ export const useGestionHorariosAdmin = (barbero, fecha) => {
 
   const [horasBase, setHorasBase] = useState([]);
   const [excepciones, setExcepciones] = useState([]);
+  const [horasAdmin, setHorasAdmin] = useState([]); // ← NUEVO: grilla completa
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState("");
-  const [infoFeriado, setInfoFeriado] = useState(null); // ← NUEVO
+  const [infoFeriado, setInfoFeriado] = useState(null);
 
   const cargarHorarios = useCallback(async () => {
     if (!barbero || !fecha) return;
@@ -22,17 +24,25 @@ export const useGestionHorariosAdmin = (barbero, fecha) => {
     setError("");
 
     try {
-      // Horario base
-      const base = await obtenerHorarioBasePorDia(barbero, fecha);
+      // ── Todo en paralelo para no esperar de a uno ──
+      const [base, resExcepciones, feriado, resAdmin] = await Promise.all([
+        obtenerHorarioBasePorDia(barbero, fecha),
+        obtenerExcepcionesPorDia(barbero, fecha),
+        verificarFeriado(fecha),
+        getHorasProfesionalDia(barbero, fecha), // ← NUEVO
+      ]);
+
+      // Horario base (sin cambios)
       const baseNormalizado = asegurarArray(base)
         .map((h) => normalizarHora(h?.hora))
         .filter(Boolean)
         .map((hora) => ({ hora, origen: "base" }));
       setHorasBase(baseNormalizado);
 
-      // Excepciones
-      const res = await obtenerExcepcionesPorDia(barbero, fecha);
-      const excepcionesData = asegurarArray(res?.excepciones || res)
+      // Excepciones (sin cambios)
+      const excepcionesData = asegurarArray(
+        resExcepciones?.excepciones || resExcepciones
+      )
         .map((e) => ({
           hora: normalizarHora(e.horaInicio || e.hora),
           tipo: e.tipo,
@@ -42,14 +52,18 @@ export const useGestionHorariosAdmin = (barbero, fecha) => {
         .filter((e) => e.hora);
       setExcepciones(excepcionesData);
 
-      // ← NUEVO: verificar si es feriado
-      const feriado = await verificarFeriado(fecha);
+      // Feriado (sin cambios)
       setInfoFeriado(feriado?.esFeriado ? feriado : null);
+
+      // ── NUEVO: grilla completa del back ──
+      setHorasAdmin(asegurarArray(resAdmin?.horas));
+
     } catch (err) {
       console.error("❌ Error cargando horarios admin:", err);
       setError("Error al cargar horarios del día");
       setHorasBase([]);
       setExcepciones([]);
+      setHorasAdmin([]);
     } finally {
       setCargando(false);
     }
@@ -59,6 +73,7 @@ export const useGestionHorariosAdmin = (barbero, fecha) => {
     cargarHorarios();
   }, [cargarHorarios]);
 
+  // ── Sin cambios ──
   const obtenerTodasLasHoras = useCallback(() => {
     const horasExtras = excepciones
       .filter((e) => e.tipo === "extra")
@@ -70,8 +85,6 @@ export const useGestionHorariosAdmin = (barbero, fecha) => {
   }, [horasBase, excepciones]);
 
   const obtenerHorasCanceladas = useCallback(() => {
-    // ← CLAVE: si es feriado, todas las horas base están bloqueadas
-    // EXCEPTO las que tienen ExcepcionHorario tipo "extra" (habilitadas por el barbero)
     if (infoFeriado) {
       const horasHabilitadas = new Set(
         excepciones.filter((e) => e.tipo === "extra").map((e) => e.hora)
@@ -80,7 +93,6 @@ export const useGestionHorariosAdmin = (barbero, fecha) => {
         .map((h) => h.hora)
         .filter((hora) => !horasHabilitadas.has(hora));
     }
-
     return excepciones.filter((e) => e.tipo === "bloqueo").map((e) => e.hora);
   }, [excepciones, horasBase, infoFeriado]);
 
@@ -90,7 +102,14 @@ export const useGestionHorariosAdmin = (barbero, fecha) => {
       .map((e) => ({ hora: e.hora }));
   }, [excepciones]);
 
+  // ── NUEVO: buscar una hora específica en la grilla ──
+  const obtenerEstadoHora = useCallback(
+    (hora) => horasAdmin.find((h) => h.hora === hora) ?? null,
+    [horasAdmin]
+  );
+
   return {
+    // Lo que ya tenías (sin cambios)
     todasLasHoras: obtenerTodasLasHoras(),
     horasExtra: obtenerHorasExtra(),
     horasCanceladas: obtenerHorasCanceladas(),
@@ -98,6 +117,10 @@ export const useGestionHorariosAdmin = (barbero, fecha) => {
     cargando,
     error,
     refetch: cargarHorarios,
-    infoFeriado, // ← NUEVO: para que el componente sepa si es feriado
+    infoFeriado,
+
+    // NUEVO: grilla enriquecida del back
+    horasAdmin,         // array completo con estado, reserva, etc.
+    obtenerEstadoHora,  // helper para buscar una hora puntual
   };
 };

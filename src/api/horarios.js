@@ -184,8 +184,13 @@ export const deleteVacaciones = async (id) => {
 };
 
 export const getVacaciones = async (barberoId) => {
-  const res = await axiosPrivate.get(
-    `/horarios/vacaciones/${barberoId}`,
-  );
+  const res = await axiosPrivate.get(`/horarios/vacaciones/${barberoId}`);
+  return res.data;
+};
+
+export const getHorasProfesionalDia = async (barberoId, fecha) => {
+  const res = await axiosPrivate.get(`/horarios/admin/${barberoId}/horas`, {
+    params: { fecha },
+  });
   return res.data;
 };

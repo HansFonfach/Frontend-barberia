@@ -43,7 +43,8 @@ const GestionHorarios = () => {
     cargando,
     error,
     refetch,
-    infoFeriado, // ← NUEVO
+    infoFeriado,
+    horasAdmin, // ← NUEVO
   } = useGestionHorariosAdmin(barbero, fechaSeleccionada);
 
   // Crear un Set de horas canceladas para búsqueda rápida
@@ -148,7 +149,7 @@ const GestionHorarios = () => {
         <Card>
           <CardHeader className="bg-gradient-primary text-white d-flex align-items-center">
             <Calendar className="me-2" size={20} />
-            <h5 className="mb-0">Gestión de Horarios</h5>
+            <h5 className="mb-0 text-white">Gestión de Horarios</h5>
           </CardHeader>
 
           <CardBody>
@@ -195,79 +196,92 @@ const GestionHorarios = () => {
                     </div>
                   </Alert>
                 )}
-                {todasLasHoras.length === 0 ? (
-                  <Alert color="warning" className="mt-3">
-                    No hay horarios configurados para este día
-                  </Alert>
-                ) : (
-                  <table className="table table-bordered text-center mt-3">
-                    <thead className="bg-light">
-                      <tr>
-                        <th>Hora</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {horasSinDuplicados.map(({ hora }) => {
-                        const estado = obtenerEstadoHora(hora);
-                        const esExtra = estado === "extra";
+                <Row className="g-2 mt-1">
+                  {horasAdmin.map((h) => {
+                    const getColor = () => {
+                      switch (h.estado) {
+                        case "disponible":
+                          return "success";
 
-                        return (
-                          <tr key={hora}>
-                            <td className="fw-bold">{hora}</td>
-                            <td>
-                              {estado === "disponible" && (
-                                <Badge color="success" pill>
-                                  Disponible
-                                </Badge>
-                              )}
-                              {estado === "cancelada" && (
-                                <Badge color="danger" pill>
-                                  Cancelada
-                                </Badge>
-                              )}
-                              {estado === "extra" && (
-                                <Badge color="info" pill>
-                                  Extra
-                                </Badge>
-                              )}
-                            </td>
-                            <td>
-                              {esExtra ? (
-                                <Button
-                                  size="sm"
-                                  color="warning"
-                                  onClick={() => onEliminarHoraExtra(hora)}
-                                  title="Eliminar hora extra"
-                                >
-                                  <Trash2 size={14} />
-                                </Button>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  color={
-                                    estado === "cancelada"
-                                      ? "success"
-                                      : "danger"
-                                  }
-                                  onClick={() => onToggleHora(hora)}
-                                  title={
-                                    estado === "cancelada"
-                                      ? "Reactivar hora"
-                                      : "Cancelar hora"
-                                  }
-                                >
-                                  <RefreshCw size={14} />
-                                </Button>
-                              )}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                )}
+                        case "reservada":
+                          return "warning";
+
+                        case "bloqueada":
+                        case "cancelada":
+                          return "danger";
+
+                        case "extra":
+                          return "info";
+
+                        case "colacion":
+                          return "secondary";
+
+                        default:
+                          return "light";
+                      }
+                    };
+
+                    return (
+                      <Col md="6" key={h.hora}>
+                        <div
+                          className="border rounded d-flex justify-content-between align-items-center px-3 py-2 bg-white shadow-sm"
+                          style={{
+                            minHeight: "58px",
+                          }}
+                        >
+                          {/* IZQUIERDA */}
+                          <div className="d-flex flex-column">
+                            <div className="d-flex align-items-center gap-2">
+                              <span className="fw-bold">{h.hora}</span>
+
+                              <Badge color={getColor()} pill>
+                                {h.estado}
+                              </Badge>
+                            </div>
+
+                            {h.estado === "reservada" && (
+                              <small className="text-muted mt-1">
+                                👤 {h.reserva?.cliente?.nombre} — ✂️{" "}
+                                {h.reserva?.servicio}
+                              </small>
+                            )}
+                          </div>
+
+                          {/* DERECHA */}
+                          <div>
+                            {(h.estado === "disponible" ||
+                              h.estado === "cancelada" ||
+                              h.estado === "bloqueada") && (
+                              <Button
+                                size="sm"
+                                color={
+                                  h.estado === "disponible"
+                                    ? "danger"
+                                    : "success"
+                                }
+                                onClick={() => onToggleHora(h.hora)}
+                              >
+                                {h.estado === "disponible"
+                                  ? "Bloquear"
+                                  : "Habilitar"}
+                              </Button>
+                            )}
+
+                            {h.estado === "extra" && (
+                              <Button
+                                size="sm"
+                                color="danger"
+                                onClick={() => onEliminarHoraExtra(h.hora)}
+                              >
+                                Eliminar
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </Col>
+                    );
+                  })}
+                </Row>
 
                 {/* Sección para agregar horas extra */}
                 <Card className="mt-4 border-info">
