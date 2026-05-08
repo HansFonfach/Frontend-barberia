@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, CardBody, Container, Row, Col, Badge } from "reactstrap";
+import {
+  Button,
+  Card,
+  CardBody,
+  Container,
+  Row,
+  Col,
+  Badge,
+  Modal,
+  ModalBody,
+  ModalHeader,
+} from "reactstrap";
 import UserHeader from "components/Headers/UserHeader.js";
 import { useEstadisticas } from "context/EstadisticasContext";
 import {
@@ -18,7 +29,6 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useEmpresa } from "context/EmpresaContext";
-import { useAuth } from "context/AuthContext";
 
 const formatPesos = (valor) => `$${(valor || 0).toLocaleString("es-CL")}`;
 
@@ -30,8 +40,8 @@ const AdminDashboard = () => {
     proximoCliente,
   } = useEstadisticas();
 
-
   const [infoIngresos, setInfoIngresos] = useState(null);
+  const [modalPagoPendiente, setModalPagoPendiente] = useState(false);
   const [proxCliente, setProxCliente] = useState(null);
   const [suscripcionesActivas, setSuscripcionesActivas] = useState(null);
   const [reservasHoy, setReservasHoy] = useState(null);
@@ -39,12 +49,12 @@ const AdminDashboard = () => {
     ingresos: true,
     proximoCliente: true,
     suscripciones: true,
-    reservas: true
+    reservas: true,
   });
 
   const { empresa } = useEmpresa();
   const esLumiBeauty = empresa?.slug === "lumicabeauty";
-
+  const esDerikBarberVip = empresa?.slug === "DerikBarberVip";
 
   useEffect(() => {
     const cargarDatosDashBoard = async () => {
@@ -52,7 +62,7 @@ const AdminDashboard = () => {
         ingresos: true,
         proximoCliente: true,
         suscripciones: true,
-        reservas: true
+        reservas: true,
       });
 
       try {
@@ -64,38 +74,43 @@ const AdminDashboard = () => {
             totalReservasHoyBarbero(),
           ]);
 
-        if (ingreso.status === 'fulfilled') {
+        if (ingreso.status === "fulfilled") {
           setInfoIngresos(ingreso.value);
-          setCargandoStats(prev => ({ ...prev, ingresos: false }));
+          setCargandoStats((prev) => ({ ...prev, ingresos: false }));
         } else {
           console.error("Error en ingresoMensual:", ingreso.reason);
-          setCargandoStats(prev => ({ ...prev, ingresos: false }));
+          setCargandoStats((prev) => ({ ...prev, ingresos: false }));
         }
 
-        if (proximoClienteReservado.status === 'fulfilled') {
+        if (proximoClienteReservado.status === "fulfilled") {
           setProxCliente(proximoClienteReservado.value);
-          setCargandoStats(prev => ({ ...prev, proximoCliente: false }));
+          setCargandoStats((prev) => ({ ...prev, proximoCliente: false }));
         } else {
-          console.error("Error en proximoCliente:", proximoClienteReservado.reason);
-          setCargandoStats(prev => ({ ...prev, proximoCliente: false }));
+          console.error(
+            "Error en proximoCliente:",
+            proximoClienteReservado.reason,
+          );
+          setCargandoStats((prev) => ({ ...prev, proximoCliente: false }));
         }
 
-        if (suscripciones.status === 'fulfilled') {
+        if (suscripciones.status === "fulfilled") {
           setSuscripcionesActivas(suscripciones.value);
-          setCargandoStats(prev => ({ ...prev, suscripciones: false }));
+          setCargandoStats((prev) => ({ ...prev, suscripciones: false }));
         } else {
-          console.error("Error en totalSuscripcionesActivas:", suscripciones.reason);
-          setCargandoStats(prev => ({ ...prev, suscripciones: false }));
+          console.error(
+            "Error en totalSuscripcionesActivas:",
+            suscripciones.reason,
+          );
+          setCargandoStats((prev) => ({ ...prev, suscripciones: false }));
         }
 
-        if (reservas.status === 'fulfilled') {
+        if (reservas.status === "fulfilled") {
           setReservasHoy(reservas.value);
-          setCargandoStats(prev => ({ ...prev, reservas: false }));
+          setCargandoStats((prev) => ({ ...prev, reservas: false }));
         } else {
           console.error("Error en totalReservasHoyBarbero:", reservas.reason);
-          setCargandoStats(prev => ({ ...prev, reservas: false }));
+          setCargandoStats((prev) => ({ ...prev, reservas: false }));
         }
-
       } catch (error) {
         console.error("Error cargando datos del dashboard:", error);
       }
@@ -108,6 +123,12 @@ const AdminDashboard = () => {
     totalSuscripcionesActivas,
     totalReservasHoyBarbero,
   ]);
+
+  useEffect(() => {
+    if (esDerikBarberVip) {
+      setModalPagoPendiente(true);
+    }
+  }, [esDerikBarberVip]);
 
   const menuItems = [
     {
@@ -190,29 +211,29 @@ const AdminDashboard = () => {
       <CardBody className="p-4">
         <div className="d-flex align-items-center justify-content-between">
           <div style={{ width: "70%" }}>
-            <div 
-              className="bg-light rounded mb-2" 
-              style={{ 
-                height: "14px", 
+            <div
+              className="bg-light rounded mb-2"
+              style={{
+                height: "14px",
                 width: "60%",
-                animation: "pulse 1.5s ease-in-out infinite"
+                animation: "pulse 1.5s ease-in-out infinite",
               }}
             ></div>
-            <div 
-              className="bg-light rounded" 
-              style={{ 
-                height: "24px", 
+            <div
+              className="bg-light rounded"
+              style={{
+                height: "24px",
                 width: "80%",
-                animation: "pulse 1.5s ease-in-out infinite"
+                animation: "pulse 1.5s ease-in-out infinite",
               }}
             ></div>
           </div>
-          <div 
-            className="bg-light rounded-circle" 
-            style={{ 
-              width: "56px", 
+          <div
+            className="bg-light rounded-circle"
+            style={{
+              width: "56px",
               height: "56px",
-              animation: "pulse 1.5s ease-in-out infinite"
+              animation: "pulse 1.5s ease-in-out infinite",
             }}
           ></div>
         </div>
@@ -226,55 +247,55 @@ const AdminDashboard = () => {
       <CardBody className="p-4">
         <div className="d-flex align-items-center justify-content-between mb-3">
           <div style={{ width: "60%" }}>
-            <div 
-              className="bg-light rounded mb-2" 
-              style={{ 
-                height: "14px", 
+            <div
+              className="bg-light rounded mb-2"
+              style={{
+                height: "14px",
                 width: "70%",
-                animation: "pulse 1.5s ease-in-out infinite"
+                animation: "pulse 1.5s ease-in-out infinite",
               }}
             ></div>
-            <div 
-              className="bg-light rounded" 
-              style={{ 
-                height: "28px", 
+            <div
+              className="bg-light rounded"
+              style={{
+                height: "28px",
                 width: "80%",
-                animation: "pulse 1.5s ease-in-out infinite"
+                animation: "pulse 1.5s ease-in-out infinite",
               }}
             ></div>
           </div>
-          <div 
-            className="bg-light rounded-circle" 
-            style={{ 
-              width: "56px", 
+          <div
+            className="bg-light rounded-circle"
+            style={{
+              width: "56px",
               height: "56px",
-              animation: "pulse 1.5s ease-in-out infinite"
+              animation: "pulse 1.5s ease-in-out infinite",
             }}
           ></div>
         </div>
         <div className="mt-3">
-          <div 
-            className="bg-light rounded mb-2" 
-            style={{ 
-              height: "12px", 
+          <div
+            className="bg-light rounded mb-2"
+            style={{
+              height: "12px",
               width: "90%",
-              animation: "pulse 1.5s ease-in-out infinite"
+              animation: "pulse 1.5s ease-in-out infinite",
             }}
           ></div>
-          <div 
-            className="bg-light rounded mb-2" 
-            style={{ 
-              height: "12px", 
+          <div
+            className="bg-light rounded mb-2"
+            style={{
+              height: "12px",
               width: "85%",
-              animation: "pulse 1.5s ease-in-out infinite"
+              animation: "pulse 1.5s ease-in-out infinite",
             }}
           ></div>
-          <div 
-            className="bg-light rounded" 
-            style={{ 
-              height: "12px", 
+          <div
+            className="bg-light rounded"
+            style={{
+              height: "12px",
               width: "80%",
-              animation: "pulse 1.5s ease-in-out infinite"
+              animation: "pulse 1.5s ease-in-out infinite",
             }}
           ></div>
         </div>
@@ -309,6 +330,10 @@ const AdminDashboard = () => {
     },
   ];
 
+  const cerrarModalPago = () => {
+    setModalPagoPendiente(false);
+  };
+
   // Card especial de ingresos
   const renderCardIngresos = () => {
     if (cargandoStats.ingresos) {
@@ -325,12 +350,16 @@ const AdminDashboard = () => {
         onMouseEnter={(e) =>
           (e.currentTarget.style.transform = "translateY(-5px)")
         }
-        onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.transform = "translateY(0)")
+        }
       >
         <CardBody className="p-4">
           <div className="d-flex align-items-center justify-content-between mb-3">
             <div>
-              <h6 className="text-uppercase text-muted mb-1">Ingreso del mes</h6>
+              <h6 className="text-uppercase text-muted mb-1">
+                Ingreso del mes
+              </h6>
               <h3 className="font-weight-bold mb-0">
                 {infoIngresos ? formatPesos(infoIngresos.ingresoTotal) : "$0"}
               </h3>
@@ -407,6 +436,52 @@ const AdminDashboard = () => {
   return (
     <>
       <style>{pulseAnimation}</style>
+      <Modal isOpen={modalPagoPendiente} toggle={cerrarModalPago} centered>
+        <ModalHeader toggle={cerrarModalPago}>Hola DerikBarberVip👋</ModalHeader>
+
+        <ModalBody>
+          <div className="text-center py-2">
+            <div style={{ fontSize: "50px" }} className="mb-3">
+              💳
+            </div>
+
+            <h4 className="font-weight-bold mb-3">
+              Tu pago se encuentra pendiente
+            </h4>
+
+            <p className="text-muted mb-4">
+              ¡Esperamos que estés disfrutando la plataforma! 😊
+              <br />
+              <br />
+              Actualmente tu suscripción se encuentra pendiente de pago.
+              Probablemente solo se pasó por alto, así que te agradeceríamos
+              revisar el pago cuando tengas un momento.
+            </p>
+
+            <div
+              className="p-3 rounded"
+              style={{
+                background: "#f8f9fa",
+                border: "1px solid #e9ecef",
+              }}
+            >
+              <small className="text-muted">
+                Si ya realizaste la transferencia, puedes ignorar este mensaje
+                🙌
+              </small>
+            </div>
+
+            <Button
+              color="primary"
+              className="mt-4 rounded-pill px-4"
+              href="https://www.instagram.com/agendaFonfach/"
+              target="_blank"
+            >
+              Contactar Soporte
+            </Button>
+          </div>
+        </ModalBody>
+      </Modal>
       <UserHeader />
       <Container className="mt--7" fluid>
         {/* Encabezado */}
@@ -456,7 +531,7 @@ const AdminDashboard = () => {
           <Col lg="3" md="6" className="mb-4">
             {renderCardIngresos()}
           </Col>
-          
+
           {/* Cards normales */}
           {stats.map((stat, index) => (
             <Col lg="3" md="6" className="mb-4" key={index}>
