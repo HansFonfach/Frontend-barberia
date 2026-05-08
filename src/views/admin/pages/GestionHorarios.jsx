@@ -15,7 +15,7 @@ import {
   Spinner,
   Alert,
 } from "reactstrap";
-import { PlusCircle, Trash2, RefreshCw, Calendar, Clock } from "lucide-react";
+import { PlusCircle, Calendar, Clock } from "lucide-react";
 
 import UserHeader from "components/Headers/UserHeader";
 import { useAuth } from "context/AuthContext";
@@ -44,33 +44,81 @@ const GestionHorarios = () => {
     error,
     refetch,
     infoFeriado,
-    horasAdmin, // ← NUEVO
+    horasAdmin,
   } = useGestionHorariosAdmin(barbero, fechaSeleccionada);
 
-  // Crear un Set de horas canceladas para búsqueda rápida
-  const horasCanceladasSet = useMemo(() => {
-    return new Set(horasCanceladas);
-  }, [horasCanceladas]);
+  // Verificar si es hoy
+  const esHoy = useMemo(() => {
+    const hoy = new Date().toISOString().split("T")[0];
+    return fechaSeleccionada === hoy;
+  }, [fechaSeleccionada]);
 
-  // Crear un Set de horas extra para búsqueda rápida
-  const horasExtraSet = useMemo(() => {
-    return new Set(horasExtra.map((h) => h.hora));
-  }, [horasExtra]);
+  // Filtrar horas pasadas (solo si es hoy)
+  const filtrarHorasFuturas = (horas) => {
+    if (!esHoy) return horas;
 
-  const horasSinDuplicados = useMemo(() => {
-    const vistas = new Set();
-    return todasLasHoras.filter(({ hora }) => {
-      if (vistas.has(hora)) return false;
-      vistas.add(hora);
-      return true;
+    const ahora = new Date();
+    const horaActual = ahora.getHours();
+    const minutoActual = ahora.getMinutes();
+
+    return horas.filter((item) => {
+      const [hora, minuto] = item.hora.split(":").map(Number);
+      if (hora > horaActual) return true;
+      if (hora === horaActual && minuto >= minutoActual - 30) return true;
+      return false;
     });
-  }, [todasLasHoras]);
-
-  const obtenerEstadoHora = (hora) => {
-    if (horasCanceladasSet.has(hora)) return "cancelada";
-    if (horasExtraSet.has(hora)) return "extra";
-    return "disponible";
   };
+
+  // Agrupar bloques consecutivos de la misma reserva
+  const agruparBloques = (horas) => {
+    if (!horas || horas.length === 0) return [];
+
+    const grupos = [];
+    let grupoActual = null;
+
+    for (let i = 0; i < horas.length; i++) {
+      const actual = horas[i];
+
+      if (grupoActual === null) {
+        grupoActual = { ...actual, horas: [actual.hora] };
+      } else {
+        const horaAnteriorNum = parseInt(
+          grupoActual.horas[grupoActual.horas.length - 1].split(":")[0],
+        );
+        const horaActualNum = parseInt(actual.hora.split(":")[0]);
+
+        const esMismaReserva =
+          actual.estado === "reservada" &&
+          grupoActual.estado === "reservada" &&
+          actual.reserva?._id === grupoActual.reserva?._id;
+
+        if (esMismaReserva && horaActualNum - horaAnteriorNum === 1) {
+          grupoActual.horas.push(actual.hora);
+        } else {
+          grupos.push(grupoActual);
+          grupoActual = { ...actual, horas: [actual.hora] };
+        }
+      }
+    }
+
+    if (grupoActual) grupos.push(grupoActual);
+    return grupos;
+  };
+
+  const horasCanceladasSet = useMemo(
+    () => new Set(horasCanceladas),
+    [horasCanceladas],
+  );
+  const horasExtraSet = useMemo(
+    () => new Set(horasExtra.map((h) => h.hora)),
+    [horasExtra],
+  );
+
+  // Horas filtradas y agrupadas
+  const horasAgrupadas = useMemo(() => {
+    const horasFiltradas = filtrarHorasFuturas(horasAdmin);
+    return agruparBloques(horasFiltradas);
+  }, [horasAdmin, esHoy]);
 
   const onToggleHora = async (hora) => {
     try {
@@ -78,7 +126,6 @@ const GestionHorarios = () => {
       const esBloqueada = horasCanceladasSet.has(hora);
 
       if (infoFeriado) {
-        // En feriado: habilitar = agregar hora extra, deshabilitar = eliminarla
         if (esBloqueada) {
           await agregarHoraExtraDiaria(barbero, fechaSeleccionada, hora);
           setMensaje(`Hora ${hora} habilitada para el feriado`);
@@ -87,7 +134,6 @@ const GestionHorarios = () => {
           setMensaje(`Hora ${hora} bloqueada nuevamente`);
         }
       } else {
-        // Día normal: toggle de bloqueo
         await toggleHoraPorDia(hora, fechaSeleccionada, barbero);
         setMensaje(`Hora ${hora} ${esBloqueada ? "reactivada" : "cancelada"}`);
       }
@@ -104,7 +150,6 @@ const GestionHorarios = () => {
       return;
     }
 
-    // Verificar si ya existe como hora extra
     if (horasExtraSet.has(nuevaHora)) {
       setMensajeError(`La hora ${nuevaHora} ya está agregada como extra`);
       return;
@@ -196,86 +241,99 @@ const GestionHorarios = () => {
                     </div>
                   </Alert>
                 )}
+
                 <Row className="g-2 mt-1">
-                  {horasAdmin.map((h) => {
+                  {horasAgrupadas.map((grupo) => {
+                    const rangoHoras =
+                      grupo.horas.length > 1
+                        ? `${grupo.horas[0]} - ${grupo.horas[grupo.horas.length - 1]}`
+                        : grupo.horas[0];
+
                     const getColor = () => {
-                      switch (h.estado) {
+                      switch (grupo.estado) {
                         case "disponible":
                           return "success";
-
                         case "reservada":
                           return "warning";
-
                         case "bloqueada":
                         case "cancelada":
                           return "danger";
-
                         case "extra":
                           return "info";
-
-                        case "colacion":
-                          return "secondary";
-
                         default:
                           return "light";
                       }
                     };
 
                     return (
-                      <Col md="6" key={h.hora}>
+                      <Col md="6" key={grupo.horas[0]}>
                         <div
-                          className="border rounded d-flex justify-content-between align-items-center px-3 py-2 bg-white shadow-sm"
+                          className="border rounded p-2 bg-white shadow-sm"
                           style={{
-                            minHeight: "58px",
+                            minHeight: "70px",
+                            backgroundColor:
+                              grupo.estado === "reservada"
+                                ? "#fff9e6"
+                                : "white",
+                            borderLeft:
+                              grupo.estado === "reservada"
+                                ? "3px solid #ffc107"
+                                : "none",
                           }}
                         >
-                          {/* IZQUIERDA */}
-                          <div className="d-flex flex-column">
-                            <div className="d-flex align-items-center gap-2">
-                              <span className="fw-bold">{h.hora}</span>
+                          <div className="d-flex justify-content-between align-items-center h-100">
+                            <div className="flex-grow-1">
+                              <div className="d-flex align-items-center gap-2 flex-wrap">
+                                <span className="fw-bold">{rangoHoras}</span>
+                                <Badge color={getColor()} pill>
+                                  {grupo.estado === "reservada" &&
+                                  grupo.horas.length > 1
+                                    ? `${grupo.horas.length}h`
+                                    : grupo.estado === "reservada"
+                                      ? "Reserva"
+                                      : grupo.estado}
+                                </Badge>
+                              </div>
 
-                              <Badge color={getColor()} pill>
-                                {h.estado}
-                              </Badge>
+                              {grupo.estado === "reservada" && (
+                                <small className="text-muted d-block mt-1">
+                                  👤 {grupo.reserva?.cliente?.nombre} — ✂️{" "}
+                                  {grupo.reserva?.servicio}
+                                </small>
+                              )}
                             </div>
 
-                            {h.estado === "reservada" && (
-                              <small className="text-muted mt-1">
-                                👤 {h.reserva?.cliente?.nombre} — ✂️{" "}
-                                {h.reserva?.servicio}
-                              </small>
-                            )}
-                          </div>
+                            <div>
+                              {(grupo.estado === "disponible" ||
+                                grupo.estado === "cancelada" ||
+                                grupo.estado === "bloqueada") && (
+                                <Button
+                                  size="sm"
+                                  color={
+                                    grupo.estado === "disponible"
+                                      ? "danger"
+                                      : "success"
+                                  }
+                                  onClick={() => onToggleHora(grupo.hora)}
+                                >
+                                  {grupo.estado === "disponible"
+                                    ? "Bloquear"
+                                    : "Habilitar"}
+                                </Button>
+                              )}
 
-                          {/* DERECHA */}
-                          <div>
-                            {(h.estado === "disponible" ||
-                              h.estado === "cancelada" ||
-                              h.estado === "bloqueada") && (
-                              <Button
-                                size="sm"
-                                color={
-                                  h.estado === "disponible"
-                                    ? "danger"
-                                    : "success"
-                                }
-                                onClick={() => onToggleHora(h.hora)}
-                              >
-                                {h.estado === "disponible"
-                                  ? "Bloquear"
-                                  : "Habilitar"}
-                              </Button>
-                            )}
-
-                            {h.estado === "extra" && (
-                              <Button
-                                size="sm"
-                                color="danger"
-                                onClick={() => onEliminarHoraExtra(h.hora)}
-                              >
-                                Eliminar
-                              </Button>
-                            )}
+                              {grupo.estado === "extra" && (
+                                <Button
+                                  size="sm"
+                                  color="danger"
+                                  onClick={() =>
+                                    onEliminarHoraExtra(grupo.hora)
+                                  }
+                                >
+                                  Eliminar
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </Col>
@@ -316,24 +374,12 @@ const GestionHorarios = () => {
                 {/* Leyenda de estados */}
                 <Row className="mt-4">
                   <Col>
-                    <small className="text-muted me-3">
-                      <Badge color="success" pill className="me-1">
-                        ●
-                      </Badge>{" "}
-                      Disponible
-                    </small>
-                    <small className="text-muted me-3">
-                      <Badge color="danger" pill className="me-1">
-                        ●
-                      </Badge>{" "}
-                      Cancelada
-                    </small>
-                    <small className="text-muted">
-                      <Badge color="info" pill className="me-1">
-                        ●
-                      </Badge>{" "}
-                      Extra
-                    </small>
+                    <div className="d-flex gap-3 flex-wrap">
+                      <small className="text-muted">✅ Disponible</small>
+                      <small className="text-muted">❌ Bloqueada</small>
+                      <small className="text-muted">⭐ Extra</small>
+                      <small className="text-muted">📅 Reservada</small>
+                    </div>
                   </Col>
                 </Row>
               </>
