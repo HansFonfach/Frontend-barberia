@@ -435,53 +435,7 @@ const AdminDashboard = () => {
 
   return (
     <>
-      <style>{pulseAnimation}</style>
-      <Modal isOpen={modalPagoPendiente} toggle={cerrarModalPago} centered>
-        <ModalHeader toggle={cerrarModalPago}>Hola DerikBarberVip👋</ModalHeader>
-
-        <ModalBody>
-          <div className="text-center py-2">
-            <div style={{ fontSize: "50px" }} className="mb-3">
-              💳
-            </div>
-
-            <h4 className="font-weight-bold mb-3">
-              Tu pago se encuentra pendiente
-            </h4>
-
-            <p className="text-muted mb-4">
-              ¡Esperamos que estés disfrutando la plataforma! 😊
-              <br />
-              <br />
-              Actualmente tu suscripción se encuentra pendiente de pago.
-              Probablemente solo se pasó por alto, así que te agradeceríamos
-              revisar el pago cuando tengas un momento.
-            </p>
-
-            <div
-              className="p-3 rounded"
-              style={{
-                background: "#f8f9fa",
-                border: "1px solid #e9ecef",
-              }}
-            >
-              <small className="text-muted">
-                Si ya realizaste la transferencia, puedes ignorar este mensaje
-                🙌
-              </small>
-            </div>
-
-            <Button
-              color="primary"
-              className="mt-4 rounded-pill px-4"
-              href="https://www.instagram.com/agendaFonfach/"
-              target="_blank"
-            >
-              Contactar Soporte
-            </Button>
-          </div>
-        </ModalBody>
-      </Modal>
+  
       <UserHeader />
       <Container className="mt--7" fluid>
         {/* Encabezado */}
