@@ -95,7 +95,8 @@ const GestionReservas = () => {
         return "danger";
       case "Cancelada":
         return "dark";
-
+      case "Reagendada":
+        return "warning"; // 🔥 NUEVO
       case "Confirmada por Cliente":
         return "success";
       case "Confirmada":
@@ -245,53 +246,133 @@ const GestionReservas = () => {
   /* =============================
       VISTA MOBILE
   ============================== */
-  const renderMobileView = () => (
-    <div className="reservas-mobile">
-      {reservas.map((reserva) => (
-        <Card key={reserva._id} className="mb-3 shadow-sm">
-          <CardBody className="p-3">
-            <div className="d-flex justify-content-between align-items-center mb-2">
-              <div className="d-flex align-items-center">
-                <span className="mr-2" style={{ fontSize: "1.2rem" }}>
-                  {iconoCliente(reserva)}
-                </span>
-                <strong className="text-dark">
-                  {reserva.cliente?.nombre} {reserva.cliente?.apellido}
-                </strong>
-              </div>
-              <Badge color={getColorEstado(reserva)} pill>
-                {getEstado(reserva)}
-              </Badge>
-            </div>
+  const renderMobileView = () => {
+    const reservasFiltradas = reservas.filter(
+      (reserva) => getEstado(reserva) !== "Reagendada",
+    );
 
-            <div className="pl-4 mb-3">
-              <div className="d-flex flex-wrap mb-1">
-                <small className="text-muted w-50">
-                  <i className="ni ni-scissors mr-1"></i>Servicio:
-                </small>
-                <small className="w-50 text-right font-weight-bold">
-                  {reserva.servicio?.nombre}
-                </small>
+    return (
+      <div className="reservas-mobile">
+        {reservasFiltradas.map((reserva) => (
+          <Card key={reserva._id} className="mb-3 shadow-sm">
+            <CardBody className="p-3">
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <div className="d-flex align-items-center">
+                  <span className="mr-2" style={{ fontSize: "1.2rem" }}>
+                    {iconoCliente(reserva)}
+                  </span>
+                  <strong className="text-dark">
+                    {reserva.cliente?.nombre} {reserva.cliente?.apellido}
+                  </strong>
+                </div>
+                <Badge color={getColorEstado(reserva)} pill>
+                  {getEstado(reserva)}
+                </Badge>
               </div>
 
-              <div className="d-flex flex-wrap mb-1">
-                <small className="text-muted w-50">
-                  <i className="ni ni-watch-time mr-1"></i>Hora:
-                </small>
-                <small className="w-50 text-right font-weight-bold">
-                  {new Date(reserva.fecha).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </small>
-              </div>
-
-              {reserva.suscripcion && (
+              <div className="pl-4 mb-3">
                 <div className="d-flex flex-wrap mb-1">
                   <small className="text-muted w-50">
-                    <i className="ni ni-tag mr-1"></i>Suscripción:
+                    <i className="ni ni-scissors mr-1"></i>Servicio:
                   </small>
-                  <small className="w-50 text-right">
+                  <small className="w-50 text-right font-weight-bold">
+                    {reserva.servicio?.nombre}
+                  </small>
+                </div>
+
+                <div className="d-flex flex-wrap mb-1">
+                  <small className="text-muted w-50">
+                    <i className="ni ni-watch-time mr-1"></i>Hora:
+                  </small>
+                  <small className="w-50 text-right font-weight-bold">
+                    {new Date(reserva.fecha).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </small>
+                </div>
+
+                {reserva.suscripcion && (
+                  <div className="d-flex flex-wrap mb-1">
+                    <small className="text-muted w-50">
+                      <i className="ni ni-tag mr-1"></i>Suscripción:
+                    </small>
+                    <small className="w-50 text-right">
+                      <Badge
+                        color={
+                          reserva.suscripcion.posicion >
+                          reserva.suscripcion.limite
+                            ? "danger"
+                            : "success"
+                        }
+                        pill
+                      >
+                        {reserva.suscripcion.posicion}/
+                        {reserva.suscripcion.limite}
+                        {reserva.suscripcion.esDobleServicio && " ×2"}
+                      </Badge>
+                    </small>
+                  </div>
+                )}
+              </div>
+
+              <div className="d-flex justify-content-end border-top pt-2">
+                <Button
+                  color="info"
+                  size="sm"
+                  className="mr-2"
+                  onClick={() => handleVerResumen(reserva)}
+                >
+                  <i className="ni ni-zoom-split-in mr-1"></i>Ver
+                </Button>
+
+                {esPendiente(reserva) && (
+                  <Button
+                    color="danger"
+                    size="sm"
+                    onClick={() => handleVerResumen(reserva)}
+                  >
+                    <i className="ni ni-fat-remove mr-1"></i>Cancelar
+                  </Button>
+                )}
+              </div>
+            </CardBody>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+  /* =============================
+      VISTA DESKTOP
+  ============================== */
+  const renderDesktopView = () => {
+    const reservasFiltradas = reservas.filter(
+      (reserva) => getEstado(reserva) !== "Reagendada",
+    );
+
+    return (
+      <div className="table-responsive">
+        <Table className="align-items-center table-flush" responsive>
+          <thead className="thead-light">
+            <tr>
+              <th>Cliente</th>
+              <th>Servicio</th>
+              <th>Suscripción</th>
+              <th>Hora</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {reservasFiltradas.map((reserva) => (
+              <tr key={reserva._id}>
+                <td className="text-nowrap">
+                  <span className="mr-2">{iconoCliente(reserva)}</span>
+                  {reserva.cliente?.nombre} {reserva.cliente?.apellido}
+                </td>
+                <td className="text-nowrap">{reserva.servicio?.nombre}</td>
+                <td>
+                  {reserva.suscripcion ? (
                     <Badge
                       color={
                         reserva.suscripcion.posicion >
@@ -305,116 +386,49 @@ const GestionReservas = () => {
                       {reserva.suscripcion.limite}
                       {reserva.suscripcion.esDobleServicio && " ×2"}
                     </Badge>
-                  </small>
-                </div>
-              )}
-            </div>
-
-            <div className="d-flex justify-content-end border-top pt-2">
-              <Button
-                color="info"
-                size="sm"
-                className="mr-2"
-                onClick={() => handleVerResumen(reserva)}
-              >
-                <i className="ni ni-zoom-split-in mr-1"></i>Ver
-              </Button>
-
-              {esPendiente(reserva) && (
-                <Button
-                  color="danger"
-                  size="sm"
-                  onClick={() => handleVerResumen(reserva)}
-                >
-                  <i className="ni ni-fat-remove mr-1"></i>Cancelar
-                </Button>
-              )}
-            </div>
-          </CardBody>
-        </Card>
-      ))}
-    </div>
-  );
-
-  /* =============================
-      VISTA DESKTOP
-  ============================== */
-  const renderDesktopView = () => (
-    <div className="table-responsive">
-      <Table className="align-items-center table-flush" responsive>
-        <thead className="thead-light">
-          <tr>
-            <th>Cliente</th>
-            <th>Servicio</th>
-            <th>Suscripción</th>
-            <th>Hora</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {reservas.map((reserva) => (
-            <tr key={reserva._id}>
-              <td className="text-nowrap">
-                <span className="mr-2">{iconoCliente(reserva)}</span>
-                {reserva.cliente?.nombre} {reserva.cliente?.apellido}
-              </td>
-              <td className="text-nowrap">{reserva.servicio?.nombre}</td>
-              <td>
-                {reserva.suscripcion ? (
-                  <Badge
-                    color={
-                      reserva.suscripcion.posicion > reserva.suscripcion.limite
-                        ? "danger"
-                        : "success"
-                    }
-                    pill
-                  >
-                    {reserva.suscripcion.posicion}/{reserva.suscripcion.limite}
-                    {reserva.suscripcion.esDobleServicio && " ×2"}
+                  ) : (
+                    <Badge color="secondary" pill>
+                      -
+                    </Badge>
+                  )}
+                </td>
+                <td className="text-nowrap">
+                  {new Date(reserva.fecha).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                </td>
+                <td>
+                  <Badge color={getColorEstado(reserva)} pill>
+                    {getEstado(reserva)}
                   </Badge>
-                ) : (
-                  <Badge color="secondary" pill>
-                    -
-                  </Badge>
-                )}
-              </td>
-              <td className="text-nowrap">
-                {new Date(reserva.fecha).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
-              </td>
-              <td>
-                <Badge color={getColorEstado(reserva)} pill>
-                  {getEstado(reserva)}
-                </Badge>
-              </td>
-              <td>
-                <Button
-                  color="info"
-                  size="sm"
-                  className="mr-2"
-                  onClick={() => handleVerResumen(reserva)}
-                >
-                  Ver
-                </Button>
-                {esPendiente(reserva) && (
+                </td>
+                <td>
                   <Button
-                    color="danger"
+                    color="info"
                     size="sm"
+                    className="mr-2"
                     onClick={() => handleVerResumen(reserva)}
                   >
-                    Cancelar
+                    Ver
                   </Button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </Table>
-    </div>
-  );
+                  {esPendiente(reserva) && (
+                    <Button
+                      color="danger"
+                      size="sm"
+                      onClick={() => handleVerResumen(reserva)}
+                    >
+                      Cancelar
+                    </Button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+      </div>
+    );
+  };
 
   return (
     <>
