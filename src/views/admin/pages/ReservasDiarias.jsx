@@ -95,8 +95,7 @@ const GestionReservas = () => {
         return "danger";
       case "Cancelada":
         return "dark";
-      case "Reagendada":
-        return "warning"; // 🔥 NUEVO
+
       case "Confirmada por Cliente":
         return "success";
       case "Confirmada":
