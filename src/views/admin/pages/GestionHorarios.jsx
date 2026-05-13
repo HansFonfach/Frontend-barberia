@@ -15,7 +15,17 @@ import {
   Spinner,
   Alert,
 } from "reactstrap";
-import { PlusCircle, Calendar, Clock, User, Scissors, Lock, Unlock, Star, CheckCircle } from "lucide-react";
+import {
+  PlusCircle,
+  Calendar,
+  Clock,
+  User,
+  Scissors,
+  Lock,
+  Unlock,
+  Star,
+  CheckCircle,
+} from "lucide-react";
 
 import UserHeader from "components/Headers/UserHeader";
 import { useAuth } from "context/AuthContext";
@@ -119,7 +129,11 @@ const agruparBloques = (horas) => {
       // Desborde huérfano (edge case), lo saltamos
       i++;
     } else {
-      grupos.push({ ...slot, horaInicio: slot.hora, horaFin: sumarMinutos(slot.hora, 30) });
+      grupos.push({
+        ...slot,
+        horaInicio: slot.hora,
+        horaFin: sumarMinutos(slot.hora, 30),
+      });
       i++;
     }
   }
@@ -128,7 +142,13 @@ const agruparBloques = (horas) => {
 };
 
 // ─── Componente SlotCard ────────────────────────────────────────────────────
-const SlotCard = ({ grupo, horasCanceladasSet, horasExtraSet, onToggle, onEliminarExtra }) => {
+const SlotCard = ({
+  grupo,
+  horasCanceladasSet,
+  horasExtraSet,
+  onToggle,
+  onEliminarExtra,
+}) => {
   const config = ESTADO_CONFIG[grupo.estado] || ESTADO_CONFIG.disponible;
   const rangoLabel =
     grupo.estado === "reservada"
@@ -155,18 +175,27 @@ const SlotCard = ({ grupo, horasCanceladasSet, horasExtraSet, onToggle, onElimin
       {/* Info izquierda */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-          <span style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1e293b" }}>
+          <span
+            style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1e293b" }}
+          >
             {rangoLabel}
           </span>
           <Badge
             color={config.badge}
             pill
-            style={{ fontSize: "0.7rem", display: "flex", alignItems: "center", gap: "3px" }}
+            style={{
+              fontSize: "0.7rem",
+              display: "flex",
+              alignItems: "center",
+              gap: "3px",
+            }}
           >
             {config.icon} {config.label}
           </Badge>
           {grupo.estado === "reservada" && grupo.reserva?.duracion && (
-            <span style={{ fontSize: "0.72rem", color: "#92400e", fontWeight: 600 }}>
+            <span
+              style={{ fontSize: "0.72rem", color: "#92400e", fontWeight: 600 }}
+            >
               {grupo.reserva.duracion} min
             </span>
           )}
@@ -199,9 +228,15 @@ const SlotCard = ({ grupo, horasCanceladasSet, horasExtraSet, onToggle, onElimin
             style={{ fontSize: "0.75rem", padding: "4px 10px" }}
           >
             {grupo.estado === "disponible" ? (
-              <><Lock size={12} className="me-1" />Bloquear</>
+              <>
+                <Lock size={12} className="me-1" />
+                Bloquear
+              </>
             ) : (
-              <><Unlock size={12} className="me-1" />Habilitar</>
+              <>
+                <Unlock size={12} className="me-1" />
+                Habilitar
+              </>
             )}
           </Button>
         )}
@@ -249,10 +284,11 @@ const GestionHorarios = () => {
   } = useGestionHorariosAdmin(barbero, fechaSeleccionada);
 
   const esHoy = useMemo(() => {
-    const hoy = new Date().toISOString().split("T")[0];
+    const hoy = new Date().toLocaleDateString("en-CA"); // "2026-05-12" en hora local
     return fechaSeleccionada === hoy;
   }, [fechaSeleccionada]);
 
+  
   const filtrarHorasFuturas = (horas) => {
     if (!esHoy) return horas;
     const ahora = new Date();
@@ -266,12 +302,23 @@ const GestionHorarios = () => {
     });
   };
 
-  const horasCanceladasSet = useMemo(() => new Set(horasCanceladas), [horasCanceladas]);
-  const horasExtraSet = useMemo(() => new Set(horasExtra.map((h) => h.hora)), [horasExtra]);
+  const horasCanceladasSet = useMemo(
+    () => new Set(horasCanceladas),
+    [horasCanceladas],
+  );
+  const horasExtraSet = useMemo(
+    () => new Set(horasExtra.map((h) => h.hora)),
+    [horasExtra],
+  );
 
   const horasAgrupadas = useMemo(() => {
+    console.log("📦 horasAdmin:", horasAdmin);
+    console.log("📦 horasAdmin.length:", horasAdmin?.length);
     const horasFiltradas = filtrarHorasFuturas(horasAdmin);
-    return agruparBloques(horasFiltradas);
+    console.log("📦 horasFiltradas:", horasFiltradas);
+    const agrupadas = agruparBloques(horasFiltradas);
+    console.log("📦 horasAgrupadas:", agrupadas);
+    return agrupadas;
   }, [horasAdmin, esHoy]);
 
   // Stats rápidas
@@ -280,7 +327,9 @@ const GestionHorarios = () => {
     return {
       disponibles: base.filter((h) => h.estado === "disponible").length,
       reservadas: base.filter((h) => h.estado === "reservada").length,
-      bloqueadas: base.filter((h) => h.estado === "bloqueada" || h.estado === "cancelada").length,
+      bloqueadas: base.filter(
+        (h) => h.estado === "bloqueada" || h.estado === "cancelada",
+      ).length,
       extras: base.filter((h) => h.estado === "extra").length,
     };
   }, [horasAdmin]);
@@ -308,8 +357,14 @@ const GestionHorarios = () => {
   };
 
   const onAgregarHoraExtra = async () => {
-    if (!nuevaHora) { setMensajeError("Selecciona una hora"); return; }
-    if (horasExtraSet.has(nuevaHora)) { setMensajeError(`La hora ${nuevaHora} ya está agregada como extra`); return; }
+    if (!nuevaHora) {
+      setMensajeError("Selecciona una hora");
+      return;
+    }
+    if (horasExtraSet.has(nuevaHora)) {
+      setMensajeError(`La hora ${nuevaHora} ya está agregada como extra`);
+      return;
+    }
     try {
       setMensajeError("");
       await agregarHoraExtraDiaria(barbero, fechaSeleccionada, nuevaHora);
@@ -375,12 +430,20 @@ const GestionHorarios = () => {
 
           <CardBody style={{ padding: "24px" }}>
             {mensaje && (
-              <Alert color="success" toggle={() => setMensaje("")} className="rounded-3">
+              <Alert
+                color="success"
+                toggle={() => setMensaje("")}
+                className="rounded-3"
+              >
                 ✅ {mensaje}
               </Alert>
             )}
             {mensajeError && (
-              <Alert color="danger" toggle={() => setMensajeError("")} className="rounded-3">
+              <Alert
+                color="danger"
+                toggle={() => setMensajeError("")}
+                className="rounded-3"
+              >
                 ❌ {mensajeError}
               </Alert>
             )}
@@ -397,14 +460,24 @@ const GestionHorarios = () => {
               }}
             >
               <FormGroup className="mb-0">
-                <Label style={{ fontWeight: 600, color: "#374151", fontSize: "0.85rem" }}>
+                <Label
+                  style={{
+                    fontWeight: 600,
+                    color: "#374151",
+                    fontSize: "0.85rem",
+                  }}
+                >
                   <Calendar size={14} className="me-1" /> Fecha
                 </Label>
                 <Input
                   type="date"
                   value={fechaSeleccionada}
                   onChange={(e) => setFechaSeleccionada(e.target.value)}
-                  style={{ borderRadius: "8px", border: "1px solid #d1d5db", maxWidth: "220px" }}
+                  style={{
+                    borderRadius: "8px",
+                    border: "1px solid #d1d5db",
+                    maxWidth: "220px",
+                  }}
                 />
               </FormGroup>
             </div>
@@ -417,12 +490,18 @@ const GestionHorarios = () => {
             ) : (
               <>
                 {infoFeriado && (
-                  <Alert color="warning" className="rounded-3 d-flex align-items-center">
+                  <Alert
+                    color="warning"
+                    className="rounded-3 d-flex align-items-center"
+                  >
                     <Calendar size={16} className="me-2 flex-shrink-0" />
                     <div>
                       <strong>Feriado: {infoFeriado.nombre}</strong>
                       <br />
-                      <small>Las horas aparecen bloqueadas. Activa las que quieras habilitar.</small>
+                      <small>
+                        Las horas aparecen bloqueadas. Activa las que quieras
+                        habilitar.
+                      </small>
                     </div>
                   </Alert>
                 )}
@@ -438,10 +517,30 @@ const GestionHorarios = () => {
                     }}
                   >
                     {[
-                      { label: "Disponibles", value: stats.disponibles, color: "#22c55e", bg: "#f0fdf4" },
-                      { label: "Reservadas", value: stats.reservadas, color: "#f59e0b", bg: "#fffbeb" },
-                      { label: "Bloqueadas", value: stats.bloqueadas, color: "#ef4444", bg: "#fef2f2" },
-                      { label: "Extras", value: stats.extras, color: "#3b82f6", bg: "#eff6ff" },
+                      {
+                        label: "Disponibles",
+                        value: stats.disponibles,
+                        color: "#22c55e",
+                        bg: "#f0fdf4",
+                      },
+                      {
+                        label: "Reservadas",
+                        value: stats.reservadas,
+                        color: "#f59e0b",
+                        bg: "#fffbeb",
+                      },
+                      {
+                        label: "Bloqueadas",
+                        value: stats.bloqueadas,
+                        color: "#ef4444",
+                        bg: "#fef2f2",
+                      },
+                      {
+                        label: "Extras",
+                        value: stats.extras,
+                        color: "#3b82f6",
+                        bg: "#eff6ff",
+                      },
                     ].map((s) => (
                       <div
                         key={s.label}
@@ -453,10 +552,22 @@ const GestionHorarios = () => {
                           textAlign: "center",
                         }}
                       >
-                        <div style={{ fontSize: "1.5rem", fontWeight: 700, color: s.color }}>
+                        <div
+                          style={{
+                            fontSize: "1.5rem",
+                            fontWeight: 700,
+                            color: s.color,
+                          }}
+                        >
                           {s.value}
                         </div>
-                        <div style={{ fontSize: "0.7rem", color: "#64748b", fontWeight: 500 }}>
+                        <div
+                          style={{
+                            fontSize: "0.7rem",
+                            color: "#64748b",
+                            fontWeight: 500,
+                          }}
+                        >
                           {s.label}
                         </div>
                       </div>
@@ -475,11 +586,20 @@ const GestionHorarios = () => {
                       borderRadius: "10px",
                     }}
                   >
-                    <Clock size={32} style={{ opacity: 0.4, marginBottom: "8px" }} />
+                    <Clock
+                      size={32}
+                      style={{ opacity: 0.4, marginBottom: "8px" }}
+                    />
                     <p className="mb-0">Sin horarios para esta fecha</p>
                   </div>
                 ) : (
-                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "8px",
+                    }}
+                  >
                     {horasAgrupadas.map((grupo) => (
                       <SlotCard
                         key={`${grupo.horaInicio}-${grupo.estado}`}
@@ -543,7 +663,13 @@ const GestionHorarios = () => {
                     .map(([key, cfg]) => (
                       <div
                         key={key}
-                        style={{ display: "flex", alignItems: "center", gap: "5px", fontSize: "0.75rem", color: "#64748b" }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "5px",
+                          fontSize: "0.75rem",
+                          color: "#64748b",
+                        }}
                       >
                         <div
                           style={{
