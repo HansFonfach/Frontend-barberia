@@ -67,19 +67,33 @@ export const useReservaCliente = () => {
     return svc?.duracion || 60;
   })();
 
+  const SERVICIO_COMBO_ID = "69934ce087e49726a2cd3da1";
+
   const calcularServiciosReserva = (duracion) => {
+    if (
+      suscripcion?.tipoPlan === "combo_visita_corte_barba" &&
+      String(servicio) === SERVICIO_COMBO_ID
+    ) {
+      return 1;
+    }
     return duracion >= 120 ? 2 : 1;
   };
 
-  const serviciosReserva = servicio
-    ? calcularServiciosReserva(duracionServicio)
-    : 0;
+  const esCubiertoPorSuscripcion =
+    suscripcion?.tipoPlan === "combo_visita_corte_barba"
+      ? String(servicio) === SERVICIO_COMBO_ID
+      : !!suscripcion; // plan creditos cubre todo
+
+  const serviciosReserva =
+    servicio && esCubiertoPorSuscripcion
+      ? calcularServiciosReserva(duracionServicio)
+      : 0;
 
   const serviciosRestantes = suscripcion
     ? Math.max(0, suscripcion.serviciosTotales - suscripcion.serviciosUsados)
     : 0;
 
-  const excedente = suscripcion
+  const excedente = esCubiertoPorSuscripcion
     ? Math.max(0, serviciosReserva - serviciosRestantes)
     : 0;
 
