@@ -12,7 +12,7 @@ import { postRegistroEmpresa } from "api/empresa";
 const RegistrarNegocio = () => {
   const [form, setForm] = useState({
     nombre: "",
-    rubro: "barberia",
+    rubro: "",
     telefono: "",
     correo: "",
   });
@@ -131,7 +131,7 @@ const RegistrarNegocio = () => {
                       <label className="font-weight-bold">Tipo de negocio</label>
                       <Input
                         type="select"
-                        name="tipo"
+                        name="rubro"
                         value={form.rubro}
                         onChange={handleChange}
                         style={{ borderRadius: "10px" }}
