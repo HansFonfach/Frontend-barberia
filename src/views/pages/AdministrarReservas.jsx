@@ -61,7 +61,7 @@ const MisReservas = () => {
 
   const { user } = useAuth();
   const { cancelarReserva } = useReserva();
-   const { empresa, loading } = useEmpresa();
+  const { empresa, loading } = useEmpresa();
 
   const userId = user.id;
 
@@ -180,7 +180,9 @@ const MisReservas = () => {
   const esPasada = (fecha) => new Date(fecha) < new Date();
 
   const reservasFuturas = reservas.filter(
-    (r) => r.estado === "pendiente" || r.estado === "confirmada",
+    (r) =>
+      (r.estado === "pendiente" || r.estado === "confirmada") &&
+      new Date(r.fecha) > new Date(),
   );
   const reservasHistorial = reservas.filter(
     (r) =>
@@ -337,7 +339,9 @@ const MisReservas = () => {
                   <div className="mb-4">
                     <div className="d-flex align-items-center mb-1">
                       <User size={16} className="text-primary mr-2" />
-                      <small className="text-muted">{empresa.profesional}</small>
+                      <small className="text-muted">
+                        {empresa.profesional}
+                      </small>
                     </div>
                     <h6 className="font-weight-bold text-dark mb-0">
                       {reserva.barbero?.nombre || "Barbero no asignado"}
@@ -410,7 +414,7 @@ const MisReservas = () => {
                       <Scissors size={32} className="text-white" />
                     </div>
                     <h1 className="h3 font-weight-bold text-dark mb-2">
-                      Mis Reservas 
+                      Mis Reservas
                     </h1>
                     <p className="text-muted mb-0">
                       Gestiona y revisa el historial de tus citas fácilmente

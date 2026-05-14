@@ -1,4 +1,3 @@
-// components/gestionUsuarios/ClienteDetallesModal.jsx
 import React, { useEffect, useState } from "react";
 import {
   Modal,
@@ -26,6 +25,25 @@ import {
   FiCheck,
 } from "react-icons/fi";
 
+const PLANES = [
+  {
+    id: "creditos",
+    nombre: "La Santa Navaja",
+    emoji: "✂️",
+    precio: "$25.000",
+    desc: "2 servicios · Corte o barba",
+    color: "#2dce89",
+  },
+  {
+    id: "combo_visita_corte_barba",
+    nombre: "La Santa Dupla",
+    emoji: "👑",
+    precio: "$40.000",
+    desc: "2 visitas · Corte + barba",
+    color: "#fb6340",
+  },
+];
+
 const ClienteDetallesModal = ({
   isOpen,
   toggle,
@@ -37,6 +55,7 @@ const ClienteDetallesModal = ({
   fullscreen = false,
 }) => {
   const [vistaMobile, setVistaMobile] = useState(false);
+  const [eligiendoPlan, setEligiendoPlan] = useState(false);
 
   useEffect(() => {
     const check = () => setVistaMobile(window.innerWidth < 768 || fullscreen);
@@ -44,6 +63,11 @@ const ClienteDetallesModal = ({
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, [fullscreen]);
+
+  // Reset al cerrar
+  useEffect(() => {
+    if (!isOpen) setEligiendoPlan(false);
+  }, [isOpen]);
 
   if (!usuario) return null;
 
@@ -57,6 +81,149 @@ const ClienteDetallesModal = ({
       month: "long",
       day: "numeric",
     });
+  };
+
+  const handleElegirPlan = (tipoPlan) => {
+    setEligiendoPlan(false);
+    onSuscribir(tipoPlan);
+  };
+
+  /* =============================
+     SELECTOR DE PLAN
+  ============================== */
+  const renderSelectorPlanes = () => (
+    <div style={{ width: "100%" }}>
+      <p
+        className="text-center text-muted mb-3"
+        style={{ fontSize: "13px", fontWeight: 600 }}
+      >
+        Selecciona el plan para {usuario.nombre}
+      </p>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: vistaMobile ? "1fr" : "1fr 1fr",
+          gap: "10px",
+          marginBottom: "10px",
+        }}
+      >
+        {PLANES.map((plan) => (
+          <button
+            key={plan.id}
+            onClick={() => handleElegirPlan(plan.id)}
+            style={{
+              background: "#fff",
+              border: `2px solid ${plan.color}`,
+              borderRadius: "12px",
+              padding: "12px 16px",
+              cursor: "pointer",
+              textAlign: "left",
+              transition: "all 0.2s ease",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = plan.color + "15";
+              e.currentTarget.style.transform = "translateY(-2px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#fff";
+              e.currentTarget.style.transform = "none";
+            }}
+          >
+            <span style={{ fontSize: "1.6rem" }}>{plan.emoji}</span>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: "13px", color: "#32325d" }}>
+                {plan.nombre}
+              </div>
+              <div style={{ fontSize: "11px", color: "#8898aa" }}>{plan.desc}</div>
+              <div style={{ fontWeight: 800, fontSize: "14px", color: plan.color, marginTop: "2px" }}>
+                {plan.precio}
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
+      <Button
+        color="light"
+        size="sm"
+        block
+        onClick={() => setEligiendoPlan(false)}
+        style={{ borderRadius: "8px", fontSize: "12px" }}
+      >
+        <FiX size={11} className="mr-1" /> Cancelar
+      </Button>
+    </div>
+  );
+
+  /* =============================
+     FOOTER MOBILE
+  ============================== */
+  const renderFooterMobile = () => {
+    if (eligiendoPlan) return renderSelectorPlanes();
+
+    return (
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", width: "100%" }}>
+        <Button color="warning" size="sm" onClick={onEditar} block>
+          <FiEdit size={12} className="mr-1" /> Editar
+        </Button>
+
+        {tieneSuscripcion ? (
+          <Button color="secondary" size="sm" onClick={onCancelarSuscripcion} block>
+            <FiX size={12} className="mr-1" /> Cancelar sus.
+          </Button>
+        ) : (
+          <Button color="success" size="sm" onClick={() => setEligiendoPlan(true)} block>
+            <FiStar size={12} className="mr-1" /> Suscribir
+          </Button>
+        )}
+
+        <Button color="danger" size="sm" onClick={onEliminar} block>
+          <FiTrash2 size={12} className="mr-1" /> Eliminar
+        </Button>
+
+        <Button color="light" size="sm" onClick={toggle} block>
+          <FiX size={12} className="mr-1" /> Cerrar
+        </Button>
+      </div>
+    );
+  };
+
+  /* =============================
+     FOOTER DESKTOP
+  ============================== */
+  const renderFooterDesktop = () => {
+    if (eligiendoPlan) return renderSelectorPlanes();
+
+    return (
+      <div className="d-flex justify-content-between w-100">
+        <div>
+          <Button color="warning" className="mr-2" onClick={onEditar}>
+            <FiEdit size={14} className="mr-1" /> Editar información
+          </Button>
+
+          {tieneSuscripcion ? (
+            <Button color="secondary" onClick={onCancelarSuscripcion}>
+              <FiX size={14} className="mr-1" /> Cancelar suscripción
+            </Button>
+          ) : (
+            <Button color="success" onClick={() => setEligiendoPlan(true)}>
+              <FiStar size={14} className="mr-1" /> Activar suscripción
+            </Button>
+          )}
+        </div>
+
+        <div>
+          <Button color="danger" className="mr-2" onClick={onEliminar}>
+            <FiTrash2 size={14} className="mr-1" /> Eliminar cliente
+          </Button>
+          <Button color="secondary" onClick={toggle}>
+            <FiX size={14} className="mr-1" /> Cerrar
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -113,7 +280,6 @@ const ClienteDetallesModal = ({
                   <FiUser className="mr-1" size={13} />
                   Información Personal
                 </h6>
-
                 <ListGroup flush>
                   {[
                     { label: "RUT", value: usuario.rut || "No registrado" },
@@ -161,13 +327,11 @@ const ClienteDetallesModal = ({
                 <div className="text-center mb-2">
                   {tieneSuscripcion ? (
                     <Badge color="success" pill style={{ padding: "6px 14px", fontSize: "12px" }}>
-                      <FiCheck className="mr-1" size={11} />
-                      Activa
+                      <FiCheck className="mr-1" size={11} /> Activa
                     </Badge>
                   ) : (
                     <Badge color="secondary" pill style={{ padding: "6px 14px", fontSize: "12px" }}>
-                      <FiX className="mr-1" size={11} />
-                      Sin suscripción
+                      <FiX className="mr-1" size={11} /> Sin suscripción
                     </Badge>
                   )}
                 </div>
@@ -175,20 +339,18 @@ const ClienteDetallesModal = ({
                 {tieneSuscripcion && suscripcionData ? (
                   <ListGroup flush>
                     {[
-                      { label: "Cortes realizados", value: suscripcionData.cortesRealizados || 0 },
-                      { label: "Cortes restantes", value: suscripcionData.cortesRestantes || 0, green: true },
+                      { label: "Plan", value: PLANES.find(p => p.id === suscripcionData.tipoPlan)?.nombre || suscripcionData.tipoPlan },
+                      { label: "Servicios usados", value: `${suscripcionData.serviciosUsados || 0} / ${suscripcionData.serviciosTotales || 0}` },
                       { label: "Inicio", value: formatFecha(suscripcionData.fechaInicio) },
-                      { label: "Vencimiento", value: formatFecha(suscripcionData.fechaExpiracion) },
-                    ].map(({ label, value, green }) => (
+                      { label: "Vencimiento", value: formatFecha(suscripcionData.fechaFin) },
+                    ].map(({ label, value }) => (
                       <ListGroupItem
                         key={label}
                         className="d-flex justify-content-between align-items-center px-0 border-0"
                         style={{ padding: "5px 0", fontSize: vistaMobile ? "12px" : "13px" }}
                       >
                         <span className="text-muted">{label}:</span>
-                        <span className={`font-weight-bold ${green ? "text-success" : ""}`}>
-                          {value}
-                        </span>
+                        <span className="font-weight-bold">{value}</span>
                       </ListGroupItem>
                     ))}
                   </ListGroup>
@@ -208,60 +370,7 @@ const ClienteDetallesModal = ({
 
       {/* FOOTER */}
       <ModalFooter style={{ padding: vistaMobile ? "8px 10px" : "12px 24px" }}>
-        {vistaMobile ? (
-          // Mobile: grid 2x2 de botones compactos
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", width: "100%" }}>
-            <Button color="warning" size="sm" onClick={onEditar} block>
-              <FiEdit size={12} className="mr-1" /> Editar
-            </Button>
-
-            {tieneSuscripcion ? (
-              <Button color="secondary" size="sm" onClick={onCancelarSuscripcion} block>
-                <FiX size={12} className="mr-1" /> Cancelar sus.
-              </Button>
-            ) : (
-              <Button color="success" size="sm" onClick={onSuscribir} block>
-                <FiStar size={12} className="mr-1" /> Suscribir
-              </Button>
-            )}
-
-            <Button color="danger" size="sm" onClick={onEliminar} block>
-              <FiTrash2 size={12} className="mr-1" /> Eliminar
-            </Button>
-
-            <Button color="light" size="sm" onClick={toggle} block>
-              <FiX size={12} className="mr-1" /> Cerrar
-            </Button>
-          </div>
-        ) : (
-          // Desktop: layout original
-          <div className="d-flex justify-content-between w-100">
-            <div>
-              <Button color="warning" className="mr-2" onClick={onEditar}>
-                <FiEdit size={14} className="mr-1" /> Editar información
-              </Button>
-
-              {tieneSuscripcion ? (
-                <Button color="secondary" onClick={onCancelarSuscripcion}>
-                  <FiX size={14} className="mr-1" /> Cancelar suscripción
-                </Button>
-              ) : (
-                <Button color="success" onClick={onSuscribir}>
-                  <FiStar size={14} className="mr-1" /> Activar suscripción
-                </Button>
-              )}
-            </div>
-
-            <div>
-              <Button color="danger" className="mr-2" onClick={onEliminar}>
-                <FiTrash2 size={14} className="mr-1" /> Eliminar cliente
-              </Button>
-              <Button color="secondary" onClick={toggle}>
-                <FiX size={14} className="mr-1" /> Cerrar
-              </Button>
-            </div>
-          </div>
-        )}
+        {vistaMobile ? renderFooterMobile() : renderFooterDesktop()}
       </ModalFooter>
 
       <style jsx>{`

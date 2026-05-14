@@ -77,9 +77,10 @@ export const UsuarioProvider = ({ children }) => {
       throw error; // 👈 relanza para que el hook lo capture
     }
   };
-  const subscribeUser = async (_id) => {
+  const subscribeUser = async (_id, tipoPlan) => {
     try {
-      const res = await postSubscribeUserById(_id);
+      const res = await postSubscribeUserById(_id, tipoPlan);
+      console.log(tipoPlan)
       setErrors(null);
       return res.data;
     } catch (error) {
@@ -184,8 +185,6 @@ export const UsuarioProvider = ({ children }) => {
     };
     fetchData();
   }, [isAuthenticated, user]); // dependencias igual que antes
-
-  
 
   const getVerPuntos = async () => {
     if (!isAuthenticated) return;

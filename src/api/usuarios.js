@@ -22,8 +22,10 @@ export const getUsuarioByRutPublico = async (rut) => {
   const res = await axiosPublic.get(`/usuarios/rutPublico/${rut}`);
   return res.data;
 };
-export const postSubscribeUserById = (_id) => {
-  return axiosPrivate.post(`/suscripcion/usuario/${_id}/suscribir`);
+export const postSubscribeUserById = (_id, tipoPlan) => {
+  return axiosPrivate.post(`/suscripcion/usuario/${_id}/suscribir`, {
+    tipoPlan,
+  });
 };
 
 export const putUnsubscribeUserById = (_id) => {

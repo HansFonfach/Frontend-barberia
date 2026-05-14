@@ -109,7 +109,7 @@ export const useUsuarios = (rolFiltro) => {
     }
   };
 
-  const handleSuscribir = async (usuarioId, accion) => {
+  const handleSuscribir = async (usuarioId, accion, tipoPlan) => {
     const usuario = usuariosFiltrados.find((u) => u._id === usuarioId);
     if (!usuario) return null;
 
@@ -117,23 +117,20 @@ export const useUsuarios = (rolFiltro) => {
       let resultado = null;
 
       if (accion === "suscribir") {
-        // subscribeUser arroja error si ya tiene suscripción (backend)
-        resultado = await subscribeUser(usuarioId);
+        resultado = await subscribeUser(usuarioId, tipoPlan); // ← pasa tipoPlan
       } else if (accion === "cancelar") {
         await unsubscribeUser(usuarioId);
         resultado = null;
       }
 
-      // recarga completa desde backend para evitar inconsistencias
       await getAllUsers();
-
       return resultado;
     } catch (error) {
-      // devolvemos el error para que el caller lo muestre con Swal (o lo manejamos aquí)
       throw error;
     }
   };
 
+  
   return {
     usuarios: usuariosBuscados,
     busqueda,

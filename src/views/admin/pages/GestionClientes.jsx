@@ -167,8 +167,8 @@ const GestionClientes = () => {
     }
   };
 
-  const handleSuscribirModal = async () => {
-    await handleSuscribir(usuarioEdit._id, "suscribir");
+  const handleSuscribirModal = async (tipoPlan) => {
+    await handleSuscribir(usuarioEdit._id, "suscribir", tipoPlan);
     Swal.fire({
       icon: "success",
       title: "¡Suscripción activada!",
