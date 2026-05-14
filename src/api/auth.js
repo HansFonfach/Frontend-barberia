@@ -13,7 +13,7 @@ export const registerRequest = (user, slug) => {
   });
 };
 
-export const forgotPasswordRequest = (email, slug) => {
+export const forgotPasswordRequest = ({email, slug}) => {
   return axiosPublic.post(`/auth/${slug}/forgot-password`, email); // ✅ Corregir: enviar como objeto
 };
 
