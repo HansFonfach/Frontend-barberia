@@ -70,11 +70,23 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await verifyRequest();
 
-      setUser(res.data);
-      setIsAuthenticated(true);
-      localStorage.setItem("user", JSON.stringify(res.data));
+      const userData = res.data;
 
-      return res.data;
+      // 👇 Derivar si la empresa está suspendida
+      const suspendida = userData?.empresa?.estadoSuscripcion === "suspendido";
+
+      setUser({
+        ...userData,
+        empresaSuspendida: suspendida, // 👈 lo agregas al user para usarlo en cualquier parte
+      });
+
+      setIsAuthenticated(true);
+      localStorage.setItem(
+        "user",
+        JSON.stringify({ ...userData, empresaSuspendida: suspendida }),
+      );
+
+      return { ...userData, empresaSuspendida: suspendida };
     } catch (err) {
       console.warn("verifySession falló (tolerado)");
       return null;

@@ -29,6 +29,8 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { useEmpresa } from "context/EmpresaContext";
+import { useAuth } from "context/AuthContext";
+import BannerSuspension from "components/pagos/ModalSuspension";
 
 const formatPesos = (valor) => `$${(valor || 0).toLocaleString("es-CL")}`;
 
@@ -52,9 +54,11 @@ const AdminDashboard = () => {
     reservas: true,
   });
 
+  const { user } = useAuth();
+  const empresaSuspendida = user?.empresa?.estadoSuscripcion === "suspendido";
+
   const { empresa } = useEmpresa();
   const esLumiBeauty = empresa?.slug === "lumicabeauty";
-  const esDerikBarberVip = empresa?.slug === "DerikBarberVip";
 
   useEffect(() => {
     const cargarDatosDashBoard = async () => {
@@ -125,10 +129,10 @@ const AdminDashboard = () => {
   ]);
 
   useEffect(() => {
-    if (esDerikBarberVip) {
+    if (empresaSuspendida) {
       setModalPagoPendiente(true);
     }
-  }, [esDerikBarberVip]);
+  }, [empresaSuspendida]);
 
   const menuItems = [
     {
@@ -330,10 +334,6 @@ const AdminDashboard = () => {
     },
   ];
 
-  const cerrarModalPago = () => {
-    setModalPagoPendiente(false);
-  };
-
   // Card especial de ingresos
   const renderCardIngresos = () => {
     if (cargandoStats.ingresos) {
@@ -435,7 +435,7 @@ const AdminDashboard = () => {
 
   return (
     <>
-  
+      <BannerSuspension isOpen={empresaSuspendida} />
       <UserHeader />
       <Container className="mt--7" fluid>
         {/* Encabezado */}
