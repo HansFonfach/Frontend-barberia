@@ -117,7 +117,7 @@ const FuncionalidadesSection = () => {
   const tabStyle = (active) => ({
     borderRadius: "50px",
     border: active ? "none" : "1px solid #dee2e6",
-    background: active ? "#1a1a2e" : "transparent",
+    background: active ? "#393ce9" : "transparent",
     color: active ? "#fff" : "#6c757d",
     fontWeight: 600,
     fontSize: "0.85rem",
