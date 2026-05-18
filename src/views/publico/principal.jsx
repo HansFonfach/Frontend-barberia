@@ -39,6 +39,7 @@ import {
 } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import NegociosConfianza from "./NegociosConfianza";
+import FuncionalidadesSection from "components/Principal/FuncionalidadesSection";
 
 const LandingPage = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -74,9 +75,6 @@ const LandingPage = () => {
     profesionales: 1,
     reservasMes: 180,
   };
-
-  // Testimonios simulados (basados en problemas reales)
-  const testimoniosSimulados = [];
 
   // Características de TU AGENDA (lo que vendes)
   const features = [
@@ -166,7 +164,7 @@ const LandingPage = () => {
 
   // PLAN ÚNICO
   const plan = {
-    nombre: "Plan Único",
+    nombre: "Plan Inicial",
     precio: "24.990",
     periodo: "mes",
     descripcion: "Todo lo que necesitas para nunca más perder una hora",
@@ -716,68 +714,7 @@ const LandingPage = () => {
       </section>
 
       {/* Funcionalidades de la agenda */}
-      <section id="funcionalidades" className="py-7 bg-white">
-        <Container>
-          <div className="text-center mb-6">
-            <Badge
-              className="mb-3 px-3 py-2"
-              style={{
-                background: "#e0e7ff",
-                color: "#4361ee",
-                borderRadius: "50px",
-              }}
-            >
-              🚀 Funcionalidades
-            </Badge>
-            <h2 className="display-4 font-weight-bold">
-              Tu nueva asistente 24/7
-            </h2>
-            <p className="text-muted">
-              Automatizamos todo para que tú solo te preocupes de atender bien
-            </p>
-          </div>
-
-          <Row>
-            {features.map((f, i) => (
-              <Col md="6" lg="4" key={i} className="mb-4">
-                <Card
-                  className="border-0 shadow-sm h-100 hover-lift"
-                  style={{ borderRadius: "20px" }}
-                >
-                  <CardBody className="p-4">
-                    <div className="d-flex justify-content-between align-items-start mb-3">
-                      <div
-                        className="p-3 rounded-circle"
-                        style={{ background: `${f.color}10`, color: f.color }}
-                      >
-                        <f.icon size={30} />
-                      </div>
-                      <Badge
-                        style={{
-                          background: `${f.color}20`,
-                          color: f.color,
-                          border: "none",
-                        }}
-                      >
-                        {f.stats}
-                      </Badge>
-                    </div>
-                    <h4 className="font-weight-bold mb-2">{f.title}</h4>
-                    <p className="text-muted mb-2">{f.desc}</p>
-                    <small
-                      className="font-weight-bold"
-                      style={{ color: f.color }}
-                    >
-                      {f.detalle}
-                    </small>
-                  </CardBody>
-                </Card>
-              </Col>
-            ))}
-          </Row>
-        </Container>
-      </section>
-
+      <FuncionalidadesSection />
       <NegociosConfianza />
 
       {/* SECCIÓN COMBINADA: PLAN Y CONTACTO */}
@@ -792,7 +729,7 @@ const LandingPage = () => {
                 borderRadius: "50px",
               }}
             >
-              💎 Precio único
+              💎 Precio Inicial
             </Badge>
             <h2 className="display-4 font-weight-bold">
               Un plan, todo incluido
@@ -828,7 +765,7 @@ const LandingPage = () => {
                           padding: "8px 16px",
                         }}
                       >
-                        PLAN ÚNICO
+                        PLAN INICIAL
                       </Badge>
                       <h3 className="text-white mb-2">
                         Para cualquier profesional
