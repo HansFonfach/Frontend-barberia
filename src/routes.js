@@ -36,6 +36,7 @@ import ConfiguracionEmpresa from "views/admin/ConfiguracionEmpresa";
 import GestionVacaciones from "views/admin/pages/GestionVacaciones";
 import RegistrarNegocio from "views/publico/RegistrarNegocio";
 import ConfirmacionResultado from "views/publico/ConfirmacionResultado";
+import GestionProductos from "views/admin/pages/GestionProductos";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -85,18 +86,16 @@ export const publicRoutes = [
     component: <VerificarCuenta />,
     invisible: true,
   },
-    {
+  {
     path: "/registro-negocio",
     component: <RegistrarNegocio />,
     invisible: true,
   },
-   {
+  {
     path: "/confirmar-reserva",
     component: <ConfirmacionResultado />,
     invisible: true,
   },
-
-
 ];
 
 /* =========================
@@ -290,6 +289,14 @@ export const barberoRoutes = [
     name: "Canjes",
     icon: "ni ni-shop text-warning",
     component: <GestionCanjes />,
+    layout: "/admin",
+    section: "gestion",
+  },
+  {
+    path: "/gestion-productos",
+    name: "Productos",
+    icon: "ni ni-shop text-warning",
+    component: <GestionProductos />,
     layout: "/admin",
     section: "gestion",
   },

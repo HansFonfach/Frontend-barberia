@@ -39,7 +39,7 @@ const ResumenReserva = ({
     switch (empresa.tipo) {
       case "barberia":
         return "✂️";
-      case "salon de belleza":
+      case "salon_belleza":
         return "💅";
       default:
         return "🛠"; // icono genérico para otros servicios
@@ -52,7 +52,7 @@ const ResumenReserva = ({
     switch (empresa.tipo) {
       case "barberia":
         return "👨‍💼";
-      case "salon de belleza":
+      case "salon_belleza":
         return "💇‍♀️";
       default:
         return "🛠"; // icono genérico para otros servicios
@@ -64,7 +64,7 @@ const ResumenReserva = ({
     switch (empresa.tipo) {
       case "barberia":
         return "👤 ";
-      case "salon de belleza":
+      case "salon_belleza":
         return "👩🏼";
       default:
         return "🛠"; // icono genérico para otros servicios
