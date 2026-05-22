@@ -1,3 +1,4 @@
+import { useProducto } from "context/ProductoContext";
 import React, { useEffect, useState } from "react";
 
 import {
@@ -14,13 +15,9 @@ import {
   Col,
   Badge,
 } from "reactstrap";
+import Swal from "sweetalert2";
 
-const ModalProducto = ({
-  isOpen,
-  toggle,
-  producto,
-  onSave,
-}) => {
+const ModalProducto = ({ isOpen, toggle, producto, onSave }) => {
   const [formData, setFormData] = useState({
     nombre: "",
     precio: "",
@@ -30,6 +27,8 @@ const ModalProducto = ({
     imagen: "",
     activo: true,
   });
+
+  const { crearProducto, loading } = useProducto();
 
   useEffect(() => {
     if (producto) {
@@ -64,9 +63,48 @@ const ModalProducto = ({
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+
+    try {
+      Swal.fire({
+        title: "Ingresando producto...",
+        text: "Por favor espera",
+        allowOutsideClick: false,
+        allowEscapeKey: false,
+        didOpen: () => {
+          Swal.showLoading();
+        },
+      });
+
+      const res = await crearProducto(formData);
+
+      Swal.fire({
+        icon: "success",
+        title: "¡Producto creado!",
+        text: "El producto fue registrado correctamente.",
+        timer: 1800,
+        showConfirmButton: false,
+      });
+
+      toggle();
+
+      setFormData({
+        nombre: "",
+        precio: "",
+        descripcion: "",
+        categoria: "",
+        stock: "",
+        imagen: "",
+        activo: true,
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error?.response?.data?.message || "No se pudo crear el producto.",
+      });
+    }
   };
 
   return (
@@ -193,8 +231,12 @@ const ModalProducto = ({
             Cancelar
           </Button>
 
-          <Button color="primary" type="submit">
-            {producto ? "Guardar cambios" : "Crear producto"}
+          <Button color="primary" type="submit" disabled={loading}>
+            {loading
+              ? "Guardando..."
+              : producto
+                ? "Guardar cambios"
+                : "Crear producto"}
           </Button>
         </ModalFooter>
       </Form>

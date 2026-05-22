@@ -295,7 +295,7 @@ export const barberoRoutes = [
   {
     path: "/gestion-productos",
     name: "Productos",
-    icon: "ni ni-shop text-warning",
+   icon: "ni ni-box-2 text-primary",
     component: <GestionProductos />,
     layout: "/admin",
     section: "gestion",

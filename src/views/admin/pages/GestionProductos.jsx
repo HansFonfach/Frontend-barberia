@@ -1,64 +1,326 @@
 import React, { useEffect, useState } from "react";
-import {
-  Container,
-  Row,
-  Col,
-  Card,
-  CardHeader,
-  CardBody,
-  Button,
-  Badge,
-} from "reactstrap";
-
+import { Container, Row, Col } from "reactstrap";
 import Swal from "sweetalert2";
-
-import { FiPackage, FiPlus, FiEdit, FiTrash2, FiEye } from "react-icons/fi";
+import { FiPackage, FiPlus, FiEdit, FiTrash2, FiEye, FiSearch } from "react-icons/fi";
 
 import UserHeader from "components/Headers/UserHeader";
-
-import TablaProductos from "components/gestionProductos/TablaProductos";
-import BarraBusquedaProductos from "components/gestionProductos/BarraBusquedaProductos";
 import ModalProducto from "components/gestionProductos/ModalProducto";
-import PaginacionProductos from "components/gestionProductos/PaginacionProductos";
+import { useProducto } from "context/ProductoContext";
 
+/* ─── estilos inline para no depender de clases externas ─── */
+const S = {
+  page: {
+    padding: "1.5rem 0",
+  },
+  card: {
+    background: "var(--white)",
+    borderRadius: 16,
+    border: "1px solid #e9ecef",
+    boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+    overflow: "hidden",
+  },
+  cardHeader: {
+    padding: "1.25rem 1.5rem",
+    borderBottom: "1px solid #f0f0f0",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexWrap: "wrap",
+    gap: 12,
+    background: "#fff",
+  },
+  iconWrap: {
+    width: 42,
+    height: 42,
+    borderRadius: 10,
+    background: "#EEEDFE",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  title: {
+    fontSize: 17,
+    fontWeight: 600,
+    color: "#1a1a2e",
+    margin: 0,
+  },
+  subtitle: {
+    fontSize: 12,
+    color: "#8898aa",
+    margin: 0,
+  },
+  searchWrap: {
+    position: "relative",
+    display: "flex",
+    alignItems: "center",
+  },
+  searchIcon: {
+    position: "absolute",
+    left: 10,
+    color: "#8898aa",
+    pointerEvents: "none",
+  },
+  searchInput: {
+    paddingLeft: 32,
+    paddingRight: 12,
+    paddingTop: 7,
+    paddingBottom: 7,
+    border: "1px solid #e9ecef",
+    borderRadius: 8,
+    fontSize: 13,
+    width: 200,
+    outline: "none",
+    background: "#fafafa",
+    color: "#1a1a2e",
+  },
+  btnPrimary: {
+    background: "#534AB7",
+    color: "#fff",
+    border: "none",
+    borderRadius: 8,
+    padding: "8px 16px",
+    fontSize: 13,
+    fontWeight: 500,
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    gap: 6,
+    whiteSpace: "nowrap",
+  },
+  statsGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
+    gap: 10,
+    padding: "1rem 1.5rem",
+    borderBottom: "1px solid #f0f0f0",
+    background: "#fafafa",
+  },
+  statCard: {
+    background: "#fff",
+    border: "1px solid #e9ecef",
+    borderRadius: 10,
+    padding: "10px 14px",
+  },
+  statLabel: {
+    fontSize: 11,
+    color: "#8898aa",
+    marginBottom: 2,
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+  },
+  statValue: {
+    fontSize: 22,
+    fontWeight: 600,
+    color: "#1a1a2e",
+    lineHeight: 1,
+  },
+  tableWrap: {
+    overflowX: "auto",
+  },
+  table: {
+    width: "100%",
+    borderCollapse: "collapse",
+    fontSize: 13,
+  },
+  th: {
+    padding: "10px 16px",
+    textAlign: "left",
+    fontSize: 11,
+    fontWeight: 600,
+    color: "#8898aa",
+    letterSpacing: "0.05em",
+    textTransform: "uppercase",
+    background: "#fafafa",
+    borderBottom: "1px solid #f0f0f0",
+    whiteSpace: "nowrap",
+  },
+  td: {
+    padding: "13px 16px",
+    borderBottom: "1px solid #f5f5f5",
+    color: "#1a1a2e",
+    verticalAlign: "middle",
+  },
+  productIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 8,
+    background: "#EEEDFE",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  },
+  productName: {
+    fontWeight: 600,
+    fontSize: 13,
+    color: "#1a1a2e",
+    marginBottom: 1,
+  },
+  productCat: {
+    fontSize: 11,
+    color: "#8898aa",
+  },
+  price: {
+    fontWeight: 600,
+    color: "#1a1a2e",
+  },
+  actionsCell: {
+    display: "flex",
+    gap: 4,
+    justifyContent: "flex-end",
+  },
+  btnIcon: {
+    width: 30,
+    height: 30,
+    borderRadius: 7,
+    border: "1px solid #e9ecef",
+    background: "transparent",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    color: "#8898aa",
+    transition: "all 0.15s",
+  },
+  footer: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: "0.75rem 1.5rem",
+    flexWrap: "wrap",
+    gap: 8,
+    borderTop: "1px solid #f0f0f0",
+  },
+  footerText: {
+    fontSize: 12,
+    color: "#8898aa",
+  },
+  pagination: {
+    display: "flex",
+    gap: 4,
+  },
+  pageBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 7,
+    border: "1px solid #e9ecef",
+    background: "transparent",
+    cursor: "pointer",
+    fontSize: 12,
+    color: "#8898aa",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  pageBtnActive: {
+    background: "#534AB7",
+    color: "#fff",
+    border: "1px solid #534AB7",
+  },
+  emptyState: {
+    textAlign: "center",
+    padding: "3rem 1rem",
+  },
+  emptyIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: "50%",
+    background: "#EEEDFE",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    margin: "0 auto 1rem",
+  },
+};
+
+/* ─── Badge de stock ─── */
+const StockBadge = ({ stock }) => {
+  if (stock === null)
+    return (
+      <span style={{ background: "#E6F1FB", color: "#185FA5", padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 500 }}>
+        Sin control
+      </span>
+    );
+  if (stock === 0)
+    return (
+      <span style={{ background: "#FCEBEB", color: "#A32D2D", padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 500 }}>
+        Sin stock
+      </span>
+    );
+  return <span style={{ fontWeight: 600 }}>{stock}</span>;
+};
+
+/* ─── Badge de estado ─── */
+const EstadoBadge = ({ activo }) => (
+  <span
+    style={{
+      background: activo ? "#ffffff" : "#F1EFE8",
+      color: activo ? "#1130e4" : "#1b9ae4",
+      padding: "3px 10px",
+      borderRadius: 99,
+      fontSize: 11,
+      fontWeight: 500,
+    }}
+  >
+    {activo ? "Activo" : "Inactivo"}
+  </span>
+);
+
+/* ─── Botón de acción ─── */
+const BtnIcon = ({ children, onClick, danger }) => {
+  const [hover, setHover] = useState(false);
+  return (
+    <button
+      style={{
+        ...S.btnIcon,
+        ...(hover
+          ? danger
+            ? { borderColor: "#E24B4A", color: "#E24B4A", background: "#fff5f5" }
+            : { borderColor: "#c5c5c5", color: "#444", background: "#f5f5f5" }
+          : {}),
+      }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+};
+
+/* ─── Componente principal ─── */
 const GestionProductos = () => {
-  const [productos, setProductos] = useState([]);
   const [busqueda, setBusqueda] = useState("");
   const [modal, setModal] = useState(false);
   const [productoEdit, setProductoEdit] = useState(null);
   const [paginaActual, setPaginaActual] = useState(1);
-  const [vistaMobile, setVistaMobile] = useState(false);
 
-  const ITEMS_POR_PAGINA = vistaMobile ? 5 : 10;
+  const { productos, listarProductos, eliminarProducto } = useProducto();
+
+  const ITEMS_POR_PAGINA = 8;
 
   useEffect(() => {
-    const checkMobile = () => {
-      setVistaMobile(window.innerWidth < 768);
-    };
+    listarProductos();
+  }, [listarProductos]);
 
-    checkMobile();
+  const toggleModal = () => setModal((m) => !m);
 
-    window.addEventListener("resize", checkMobile);
-
-    return () => window.removeEventListener("resize", checkMobile);
-  }, []);
-
-  const toggleModal = () => {
-    setModal(!modal);
-  };
-
-  const productosFiltrados = productos.filter((producto) =>
-    producto.nombre.toLowerCase().includes(busqueda.toLowerCase()),
+  const productosFiltrados = productos.filter((p) =>
+    p.nombre.toLowerCase().includes(busqueda.toLowerCase())
   );
 
   const totalPaginas = Math.ceil(productosFiltrados.length / ITEMS_POR_PAGINA);
-
   const indexInicio = (paginaActual - 1) * ITEMS_POR_PAGINA;
+  const productosPaginados = productosFiltrados.slice(indexInicio, indexInicio + ITEMS_POR_PAGINA);
 
-  const productosPaginados = productosFiltrados.slice(
-    indexInicio,
-    indexInicio + ITEMS_POR_PAGINA,
-  );
+  /* stats */
+  const stats = {
+    total: productosFiltrados.length,
+    activos: productosFiltrados.filter((p) => p.activo).length,
+    sinStock: productosFiltrados.filter((p) => p.stock === 0).length,
+    categorias: new Set(productosFiltrados.map((p) => p.categoria).filter(Boolean)).size,
+  };
 
   const handleCrear = () => {
     setProductoEdit(null);
@@ -78,124 +340,22 @@ const GestionProductos = () => {
       showCancelButton: true,
       confirmButtonText: "Eliminar",
       cancelButtonText: "Cancelar",
-      confirmButtonColor: "#d33",
+      confirmButtonColor: "#E24B4A",
     });
-
     if (!confirm.isConfirmed) return;
-
-    Swal.fire({
-      icon: "success",
-      title: "Producto eliminado",
-      timer: 1500,
-      showConfirmButton: false,
-    });
+    await eliminarProducto(producto._id);
+    Swal.fire({ icon: "success", title: "Producto eliminado", timer: 1500, showConfirmButton: false });
   };
 
-  const handleGuardar = async () => {
+  const handleGuardar = () => {
     Swal.fire({
       icon: "success",
       title: productoEdit ? "Producto actualizado" : "Producto creado",
       timer: 1500,
       showConfirmButton: false,
     });
-
     toggleModal();
-  };
-
-  const columnas = [
-    {
-      key: "producto",
-      label: "Producto",
-      render: (_, producto) => (
-        <div className="d-flex align-items-center">
-          <div className="avatar avatar-sm rounded-circle bg-gradient-primary mr-3 d-flex align-items-center justify-content-center">
-            <FiPackage className="text-white" />
-          </div>
-
-          <div>
-            <div className="font-weight-bold text-sm">{producto.nombre}</div>
-
-            <small className="text-muted">
-              {producto.categoria || "Sin categoría"}
-            </small>
-          </div>
-        </div>
-      ),
-    },
-
-    {
-      key: "precio",
-      label: "Precio",
-      render: (_, producto) => (
-        <span className="font-weight-bold text-success">
-          ${producto.precio?.toLocaleString("es-CL")}
-        </span>
-      ),
-    },
-
-    {
-      key: "stock",
-      label: "Stock",
-      render: (_, producto) => {
-        if (producto.stock === null) {
-          return <Badge color="info">Sin control</Badge>;
-        }
-
-        return producto.stock > 0 ? (
-          <Badge color="success">{producto.stock}</Badge>
-        ) : (
-          <Badge color="danger">Sin stock</Badge>
-        );
-      },
-    },
-
-    {
-      key: "activo",
-      label: "Estado",
-      render: (_, producto) => (
-        <Badge color={producto.activo ? "success" : "secondary"}>
-          {producto.activo ? "Activo" : "Inactivo"}
-        </Badge>
-      ),
-    },
-  ];
-
-  const acciones = [
-    {
-      id: "ver",
-      icon: <FiEye size={16} />,
-      color: "info",
-      className: "btn-outline-info",
-    },
-
-    {
-      id: "editar",
-      icon: <FiEdit size={16} />,
-      color: "warning",
-      className: "btn-outline-warning",
-    },
-
-    {
-      id: "eliminar",
-      icon: <FiTrash2 size={16} />,
-      color: "danger",
-      className: "btn-outline-danger",
-    },
-  ];
-
-  const handleAccion = (accion, producto) => {
-    switch (accion) {
-      case "editar":
-        handleEditar(producto);
-        break;
-
-      case "eliminar":
-        handleEliminar(producto);
-        break;
-
-      default:
-        break;
-    }
+    listarProductos();
   };
 
   return (
@@ -204,91 +364,146 @@ const GestionProductos = () => {
 
       <Container className="mt--7" fluid>
         <Row className="justify-content-center">
-          <Col xl="11">
-            <Card className="shadow bg-secondary border-0">
-              <CardHeader className="bg-white border-0 py-4">
-                <Row className="align-items-center">
-                  <Col lg="6" xs="12" className="mb-3 mb-lg-0">
-                    <div className="d-flex align-items-center">
-                      <div className="icon icon-shape bg-gradient-primary text-white rounded-circle shadow mr-3">
-                        <FiPackage size={20} />
-                      </div>
+          <Col xl="11" style={S.page}>
+            <div style={S.card}>
 
-                      <div>
-                        <h3 className="mb-0">Gestión de Productos</h3>
-
-                        <small className="text-muted">
-                          Administra productos y ventas
-                        </small>
-                      </div>
-                    </div>
-                  </Col>
-
-                  <Col lg="6" xs="12">
-                    <div className="d-flex flex-column flex-md-row gap-2 justify-content-md-end">
-                      <div className="flex-grow-1 mr-md-2 mb-2 mb-md-0">
-                        <BarraBusquedaProductos
-                          busqueda={busqueda}
-                          setBusqueda={setBusqueda}
-                        />
-                      </div>
-
-                      <Button
-                        color="primary"
-                        onClick={handleCrear}
-                        className="d-flex align-items-center justify-content-center"
-                      >
-                        <FiPlus className="mr-2" />
-                        Nuevo Producto
-                      </Button>
-                    </div>
-                  </Col>
-                </Row>
-              </CardHeader>
-
-              <CardBody>
-                {productosFiltrados.length === 0 ? (
-                  <div className="text-center py-5">
-                    <div className="icon icon-shape bg-gradient-secondary text-white rounded-circle shadow mx-auto mb-4">
-                      <FiPackage size={28} />
-                    </div>
-
-                    <h4 className="text-muted">No hay productos registrados</h4>
-
-                    <p className="text-muted mb-4">
-                      Crea tu primer producto para comenzar.
-                    </p>
-
-                    <Button color="primary" onClick={handleCrear}>
-                      <FiPlus className="mr-2" />
-                      Crear Producto
-                    </Button>
+              {/* ── Header ── */}
+              <div style={S.cardHeader}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={S.iconWrap}>
+                    <FiPackage size={20} color="#534AB7" />
                   </div>
-                ) : (
-                  <>
-                    <TablaProductos
-                      productos={productosPaginados}
-                      columnas={columnas}
-                      acciones={acciones}
-                      onAccion={handleAccion}
+                  <div>
+                    <p style={S.title}>Gestión de Productos</p>
+                    <p style={S.subtitle}>Administra tu catálogo de ventas</p>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                  <div style={S.searchWrap}>
+                    <FiSearch size={14} style={S.searchIcon} />
+                    <input
+                      style={S.searchInput}
+                      placeholder="Buscar producto..."
+                      value={busqueda}
+                      onChange={(e) => { setBusqueda(e.target.value); setPaginaActual(1); }}
                     />
+                  </div>
+                  <button style={S.btnPrimary} onClick={handleCrear}>
+                    <FiPlus size={14} /> Nuevo producto
+                  </button>
+                </div>
+              </div>
 
-                    <div className="d-flex justify-content-between align-items-center mt-4 flex-column flex-md-row">
-                      <small className="text-muted mb-3 mb-md-0">
-                        Mostrando {productosPaginados.length} de{" "}
-                        {productosFiltrados.length} productos
-                      </small>
+              {/* ── Stats ── */}
+              <div style={S.statsGrid}>
+                {[
+                  { label: "Total", value: stats.total },
+                  { label: "Activos", value: stats.activos },
+                  { label: "Sin stock", value: stats.sinStock },
+                  { label: "Categorías", value: stats.categorias },
+                ].map((s) => (
+                  <div key={s.label} style={S.statCard}>
+                    <div style={S.statLabel}>{s.label}</div>
+                    <div style={S.statValue}>{s.value}</div>
+                  </div>
+                ))}
+              </div>
 
-                      <PaginacionProductos
-                        paginaActual={paginaActual}
-                        totalPaginas={totalPaginas}
-                        onPaginaChange={setPaginaActual}
-                      />
+              {/* ── Tabla o empty state ── */}
+              {productosFiltrados.length === 0 ? (
+                <div style={S.emptyState}>
+                  <div style={S.emptyIcon}>
+                    <FiPackage size={26} color="#534AB7" />
+                  </div>
+                  <p style={{ fontWeight: 600, color: "#1a1a2e", marginBottom: 4 }}>
+                    No hay productos registrados
+                  </p>
+                  <p style={{ fontSize: 13, color: "#8898aa", marginBottom: 16 }}>
+                    Crea tu primer producto para comenzar.
+                  </p>
+                  <button style={S.btnPrimary} onClick={handleCrear}>
+                    <FiPlus size={14} /> Crear producto
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div style={S.tableWrap}>
+                    <table style={S.table}>
+                      <thead>
+                        <tr>
+                          <th style={S.th}>Producto</th>
+                          <th style={S.th}>Precio</th>
+                          <th style={S.th}>Stock</th>
+                          <th style={S.th}>Estado</th>
+                          <th style={{ ...S.th, textAlign: "right" }}>Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {productosPaginados.map((producto) => (
+                          <tr key={producto._id}>
+                            <td style={S.td}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                <div style={S.productIcon}>
+                                  <FiPackage size={16} color="#534AB7" />
+                                </div>
+                                <div>
+                                  <div style={S.productName}>{producto.nombre}</div>
+                                  <div style={S.productCat}>{producto.categoria || "Sin categoría"}</div>
+                                </div>
+                              </div>
+                            </td>
+                            <td style={S.td}>
+                              <span style={S.price}>
+                                ${producto.precio?.toLocaleString("es-CL")}
+                              </span>
+                            </td>
+                            <td style={S.td}>
+                              <StockBadge stock={producto.stock} />
+                            </td>
+                            <td style={S.td}>
+                              <EstadoBadge activo={producto.activo} />
+                            </td>
+                            <td style={{ ...S.td, textAlign: "right" }}>
+                              <div style={S.actionsCell}>
+                                <BtnIcon onClick={() => handleEditar(producto)}>
+                                  <FiEye size={14} />
+                                </BtnIcon>
+                                <BtnIcon onClick={() => handleEditar(producto)}>
+                                  <FiEdit size={14} />
+                                </BtnIcon>
+                                <BtnIcon danger onClick={() => handleEliminar(producto)}>
+                                  <FiTrash2 size={14} />
+                                </BtnIcon>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* ── Footer / paginación ── */}
+                  <div style={S.footer}>
+                    <span style={S.footerText}>
+                      Mostrando {Math.min(indexInicio + ITEMS_POR_PAGINA, productosFiltrados.length)} de{" "}
+                      {productosFiltrados.length} productos
+                    </span>
+                    <div style={S.pagination}>
+                      {Array.from({ length: totalPaginas }, (_, i) => i + 1).map((n) => (
+                        <button
+                          key={n}
+                          style={{ ...S.pageBtn, ...(n === paginaActual ? S.pageBtnActive : {}) }}
+                          onClick={() => setPaginaActual(n)}
+                        >
+                          {n}
+                        </button>
+                      ))}
                     </div>
-                  </>
-                )}
-              </CardBody>
-            </Card>
+                  </div>
+                </>
+              )}
+            </div>
           </Col>
         </Row>
       </Container>

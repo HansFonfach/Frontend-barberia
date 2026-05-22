@@ -1,15 +1,7 @@
 import React from "react";
-import {
-  Table,
-  Button,
-} from "reactstrap";
+import { Table, Button } from "reactstrap";
 
-const TablaProductos = ({
-  productos,
-  columnas,
-  acciones,
-  onAccion,
-}) => {
+const TablaProductos = ({ productos, columnas, acciones, onAccion }) => {
   return (
     <div className="table-responsive">
       <Table className="align-items-center table-flush">
