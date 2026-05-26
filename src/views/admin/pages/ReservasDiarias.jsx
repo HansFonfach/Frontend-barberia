@@ -78,9 +78,7 @@ const GestionReservas = () => {
               <CardHeader className="bg-white border-0">
                 <Row className="align-items-center">
                   <Col md="8">
-                    <h3 className="mb-0">
-                      Gestión de Reservas
-                    </h3>
+                    <h3 className="mb-0">Gestión de Reservas</h3>
                   </Col>
 
                   <Col md="4">
@@ -117,6 +115,7 @@ const GestionReservas = () => {
         modal={modal}
         setModal={setModal}
         reservaSeleccionada={reservaSeleccionada}
+        setReservaSeleccionada={setReservaSeleccionada}
         vistaMobile={vistaMobile}
         cancelarReserva={cancelarReserva}
         marcarReservaNoAsistida={marcarReservaNoAsistida}

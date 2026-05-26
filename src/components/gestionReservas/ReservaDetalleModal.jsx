@@ -8,22 +8,54 @@ import ClienteInfoCard from "./ClienteInfoCard";
 import ReservaInfoCard from "./ReservaInfoCard";
 import ReservaProductosSection from "./ReservaProductosSection";
 import { useReserva } from "context/ReservaContext";
+import ModalNotaCliente from "./ModalNotaCliente";
+import { putActualizarNota } from "api/usuarios";
 
 const ReservaDetalleModal = ({
   modal,
   setModal,
   reservaSeleccionada,
   vistaMobile,
+  setReservaSeleccionada,
 
   cancelarReserva,
   marcarReservaNoAsistida,
   setModalReagendar,
 }) => {
   const [productosSeleccionados, setProductosSeleccionados] = useState([]);
+  const [modalNota, setModalNota] = useState(false);
 
   const [observacionReserva, setObservacionReserva] = useState("");
 
   const { actualizarReserva } = useReserva();
+
+  const handleGuardarNota = async (clienteId, notasProfesional) => {
+    try {
+     await putActualizarNota(clienteId, notasProfesional);
+
+      // actualizar localmente sin recargar
+      setReservaSeleccionada((prev) => ({
+        ...prev,
+        cliente: {
+          ...prev.cliente,
+          notasProfesional,
+        },
+      }));
+
+      Swal.fire({
+        icon: "success",
+        title: "Nota guardada",
+        timer: 1400,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "No se pudo guardar la nota.",
+      });
+    }
+  };
 
   const handleGuardarDetalle = async () => {
     const productosPayload = productosSeleccionados.map((p) => ({
@@ -156,7 +188,10 @@ const ReservaDetalleModal = ({
         <div className="modal-body">
           <Row>
             <Col md="6">
-              <ClienteInfoCard reservaSeleccionada={reservaSeleccionada} />
+              <ClienteInfoCard
+                reservaSeleccionada={reservaSeleccionada}
+                onEditarNota={() => setModalNota(true)}
+              />
             </Col>
 
             <Col md="6">
@@ -172,6 +207,13 @@ const ReservaDetalleModal = ({
             reservaSeleccionada={reservaSeleccionada}
           />
         </div>
+
+        <ModalNotaCliente
+          isOpen={modalNota}
+          toggle={() => setModalNota(false)}
+          cliente={reservaSeleccionada.cliente}
+          onGuardar={handleGuardarNota}
+        />
 
         {/* FOOTER */}
         <div className="modal-footer flex-wrap">

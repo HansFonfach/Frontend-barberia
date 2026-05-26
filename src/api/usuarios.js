@@ -65,3 +65,7 @@ export const updateEstadoUsuario = (id, estado) => {
 export const getBarberosPublico = (slug) => {
   return axiosPublic.get(`/usuarios/barbero/${slug}/barberos`);
 };
+
+export const putActualizarNota = (id, notasProfesional) => {
+  return axiosPrivate.put(`/usuarios/${id}/notas`, { notasProfesional });
+};

@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardHeader, CardBody, Badge } from "reactstrap";
 
-const ClienteInfoCard = ({ reservaSeleccionada }) => {
+const ClienteInfoCard = ({ reservaSeleccionada, onEditarNota }) => {
   const cliente = reservaSeleccionada.cliente;
   const esSuscriptor = reservaSeleccionada.suscripcion;
 
@@ -39,6 +39,32 @@ const ClienteInfoCard = ({ reservaSeleccionada }) => {
             </span>
           </div>
         )}
+
+        <hr className="my-2" />
+
+        <div className="d-flex align-items-start justify-content-between mt-2">
+          <div className="flex-grow-1">
+            {cliente?.notasProfesional ? (
+              <>
+                <small className="text-muted d-block mb-1">
+                  <i className="ni ni-pin-3 mr-1" /> Nota
+                </small>
+                <span className="text-sm">{cliente.notasProfesional}</span>
+              </>
+            ) : (
+              <small className="text-muted">Sin nota</small>
+            )}
+          </div>
+
+          <button
+            className="btn btn-sm btn-outline-secondary ml-2"
+            style={{ fontSize: 11, padding: "2px 8px", whiteSpace: "nowrap" }}
+            onClick={() => onEditarNota && onEditarNota(cliente)}
+          >
+            <i className="ni ni-ruler-pencil mr-1" />
+            {cliente?.notasProfesional ? "Editar" : "Agregar"}
+          </button>
+        </div>
       </CardBody>
     </Card>
   );
