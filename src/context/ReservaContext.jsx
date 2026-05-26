@@ -9,6 +9,7 @@ import {
   getResevasPorFecha,
   postMarcarReservaNoAsistida,
   patchReagendarReserva,
+  patchActualizarReserva,
 } from "../api/reservas";
 
 const ReservaContext = createContext();
@@ -151,9 +152,23 @@ export const ReservaProvider = ({ children }) => {
     }
   };
 
+  const actualizarReserva = async (reservaId, observacionFinal, productos) => {
+    try {
+      const res = await patchActualizarReserva(
+        reservaId,
+        observacionFinal,
+        productos,
+      );
+      return res.data;
+    } catch (error) {
+      console.error("Error al actualizar reserva.", error);
+      return null;
+    }
+  };
+
   const reagendarReserva = async (reservaId, fecha, hora) => {
     try {
-      const { data } = await patchReagendarReserva(reservaId, fecha, hora)
+      const { data } = await patchReagendarReserva(reservaId, fecha, hora);
       return data;
     } catch (error) {
       console.error("Error al reagendar:", error);
@@ -179,6 +194,7 @@ export const ReservaProvider = ({ children }) => {
         reservasActivas,
         getReservasPorFechaBarbero,
         marcarReservaNoAsistida,
+        actualizarReserva,
       }}
     >
       {children}

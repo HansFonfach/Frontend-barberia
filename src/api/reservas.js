@@ -49,3 +49,10 @@ export const patchReagendarReserva = (reservaId, fecha, hora) => {
     hora,
   });
 };
+
+export const patchActualizarReserva = (reservaId, observacionFinal, productos) => {
+  return axiosPrivate.patch(`/reservas/${reservaId}/actualizar`, {
+    observacionFinal,
+    productos,
+  });
+};

@@ -28,7 +28,7 @@ const ModalProducto = ({ isOpen, toggle, producto, onSave }) => {
     activo: true,
   });
 
-  const { crearProducto, loading } = useProducto();
+  const { crearProducto, actualizarProducto, loading } = useProducto();
 
   useEffect(() => {
     if (producto) {
@@ -65,44 +65,35 @@ const ModalProducto = ({ isOpen, toggle, producto, onSave }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     try {
       Swal.fire({
-        title: "Ingresando producto...",
-        text: "Por favor espera",
+        title: "Guardando...",
         allowOutsideClick: false,
-        allowEscapeKey: false,
-        didOpen: () => {
-          Swal.showLoading();
-        },
+        didOpen: () => Swal.showLoading(),
       });
 
-      const res = await crearProducto(formData);
+      if (producto) {
+        // ── editar ──
+        await actualizarProducto({ ...formData, id: producto._id });
+      } else {
+        // ── crear ──
+        await crearProducto(formData);
+      }
 
       Swal.fire({
         icon: "success",
-        title: "¡Producto creado!",
-        text: "El producto fue registrado correctamente.",
-        timer: 1800,
+        title: producto ? "Producto actualizado" : "Producto creado",
+        timer: 1600,
         showConfirmButton: false,
       });
 
       toggle();
-
-      setFormData({
-        nombre: "",
-        precio: "",
-        descripcion: "",
-        categoria: "",
-        stock: "",
-        imagen: "",
-        activo: true,
-      });
     } catch (error) {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: error?.response?.data?.message || "No se pudo crear el producto.",
+        text:
+          error?.response?.data?.message || "No se pudo guardar el producto.",
       });
     }
   };
