@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Modal, Button, Row, Col } from "reactstrap";
 
@@ -29,9 +29,24 @@ const ReservaDetalleModal = ({
 
   const { actualizarReserva } = useReserva();
 
+  useEffect(() => {
+    if (reservaSeleccionada) {
+      setObservacionReserva(reservaSeleccionada.observacionFinal || "");
+      setProductosSeleccionados(
+        reservaSeleccionada.productos?.map((p) => ({
+          _id: p.producto,
+          nombre: p.nombre,
+          precio: p.precio,
+          categoria: p.categoria,
+          cantidad: p.cantidad,
+        })) || [],
+      );
+    }
+  }, [reservaSeleccionada]);
+
   const handleGuardarNota = async (clienteId, notasProfesional) => {
     try {
-     await putActualizarNota(clienteId, notasProfesional);
+      await putActualizarNota(clienteId, notasProfesional);
 
       // actualizar localmente sin recargar
       setReservaSeleccionada((prev) => ({
@@ -83,8 +98,8 @@ const ReservaDetalleModal = ({
 
   if (!reservaSeleccionada) return null;
 
-  const esPendiente = (reserva) =>
-    reserva.estado === "pendiente" || reserva.estado === "confirmada";
+ const esPendiente = (reserva) =>
+  (reserva.estado === "pendiente" || reserva.estado === "confirmada");
 
   /* =========================
       CANCELAR
