@@ -387,6 +387,14 @@ const AdminDashboard = () => {
                   {formatPesos(infoIngresos.detalle.ingresoReservas)}
                 </small>
               </div>
+              <div className="d-flex justify-content-between align-items-center mb-1">
+                <small className="text-muted d-flex align-items-center">
+                  🛍️ Ingreso productos
+                </small>
+                <small className="font-weight-bold text-warning">
+                  {formatPesos(infoIngresos.detalle.ingresoProductos)}
+                </small>
+              </div>
 
               {/* Suscripciones */}
               <div className="d-flex justify-content-between align-items-center mb-1">

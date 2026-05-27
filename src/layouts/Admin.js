@@ -53,9 +53,19 @@ const AdminLayout = (props) => {
         />
 
         <Routes>
-          {routes.map((r, idx) => (
-            <Route key={idx} path={r.path} element={r.component} />
-          ))}
+          {routes.flatMap((r, idx) =>
+            r.children
+              ? r.children.map((child, cidx) => (
+                  <Route
+                    key={`${idx}-${cidx}`}
+                    path={child.path}
+                    element={child.component}
+                  />
+                ))
+              : [<Route key={idx} path={r.path} element={r.component} />],
+          )}
+
+
 
           {user?.rol === "barbero" ? (
             <Route
@@ -63,10 +73,7 @@ const AdminLayout = (props) => {
               element={<Navigate to="/admin/dashboard" replace />}
             />
           ) : (
-            <Route
-              path="*"
-              element={<Navigate to="/admin/index" replace />}
-            />
+            <Route path="*" element={<Navigate to="/admin/index" replace />} />
           )}
         </Routes>
 

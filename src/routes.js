@@ -37,17 +37,13 @@ import GestionVacaciones from "views/admin/pages/GestionVacaciones";
 import RegistrarNegocio from "views/publico/RegistrarNegocio";
 import ConfirmacionResultado from "views/publico/ConfirmacionResultado";
 import GestionProductos from "views/admin/pages/GestionProductos";
+import EstadisticasProductos from "views/admin/pages/EstadisticasProductos";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
 ========================= */
 export const publicRoutes = [
-  {
-    path: "/login",
-    component: <Login />,
-    layout: "/auth",
-    invisible: true,
-  },
+  { path: "/login", component: <Login />, layout: "/auth", invisible: true },
   {
     path: "/register",
     component: <Register />,
@@ -66,16 +62,8 @@ export const publicRoutes = [
     layout: "/auth",
     invisible: true,
   },
-  {
-    path: "/inicio",
-    component: <Landing />,
-    invisible: true,
-  },
-  {
-    path: "/reservar",
-    component: <ReservarHoraInvitado />,
-    invisible: true,
-  },
+  { path: "/inicio", component: <Landing />, invisible: true },
+  { path: "/reservar", component: <ReservarHoraInvitado />, invisible: true },
   {
     path: "/cancelar-reserva-invitado",
     component: <CancelarInvitado />,
@@ -105,82 +93,77 @@ export const clienteRoutes = [
   {
     path: "/index",
     name: "Inicio",
-    component: <Principal />,
     icon: "ni ni-shop text-primary",
+    component: <Principal />,
     layout: "/admin",
   },
   {
     path: "/reservar-hora",
     name: "Reservar hora",
-    component: <ReservarHora />,
     icon: "ni ni-calendar-grid-58 text-success",
+    component: <ReservarHora />,
     layout: "/admin",
   },
   {
     path: "/administrar-reservas",
     name: "Mis reservas",
-    component: <Administrar />,
     icon: "ni ni-folder-17 text-info",
+    component: <Administrar />,
     layout: "/admin",
   },
   {
     path: "/suscripcion",
     name: "Suscripción",
-    component: <Suscripcion />,
     icon: "ni ni-credit-card text-warning",
+    component: <Suscripcion />,
     layout: "/admin",
-    excludeSlugs: ["lumicabeauty"], // ✅
+    excludeSlugs: ["lumicabeauty"],
   },
   {
     path: "/profesionales",
     name: "Profesionales",
-    component: <BarberosPage />,
     icon: "ni ni-single-02 text-primary",
+    component: <BarberosPage />,
     layout: "/admin",
   },
   {
     path: "/servicios",
     name: "Servicios",
-    component: <PresentarServicios />,
     icon: "fas fa-cut text-danger",
+    component: <PresentarServicios />,
     layout: "/admin",
   },
   {
     path: "/catalogo-canjes",
     name: "Canjear puntos",
-    component: <CatalogoCanjes />,
     icon: "ni ni-trophy text-yellow",
+    component: <CatalogoCanjes />,
     layout: "/admin",
   },
   {
     path: "/centro-ayuda",
     name: "Centro de ayuda",
-    component: <CentroAyuda />,
     icon: "ni ni-support-16 text-purple",
+    component: <CentroAyuda />,
     layout: "/admin",
   },
   {
     path: "/politicas",
     name: "Políticas",
-    component: <Politicas />,
     icon: "ni ni-book-bookmark text-info",
+    component: <Politicas />,
     layout: "/admin",
   },
   {
     path: "/contacto",
     name: "Contacto",
-    component: <Contacto />,
     icon: "ni ni-email-83 text-info",
+    component: <Contacto />,
     layout: "/admin",
   },
 
   // ocultas
-  {
-    path: "/perfil",
-    component: <Perfil />,
-    layout: "/admin",
-    invisible: true,
-  },
+  { path: "/perfil", component: <Perfil />, layout: "/admin", invisible: true },
   {
     path: "/cambiar-contrasena",
     component: <CambiarContrasena />,
@@ -199,6 +182,7 @@ export const clienteRoutes = [
    ✂️ BARBERO / ADMIN
 ========================= */
 export const barberoRoutes = [
+  /* ── Principal ── */
   {
     path: "/dashboard",
     name: "Dashboard",
@@ -208,7 +192,7 @@ export const barberoRoutes = [
     section: "principal",
   },
 
-  /* Reservas */
+  /* ── Reservas ── */
   {
     path: "/reservar-hora-cliente",
     name: "Agendar cliente",
@@ -226,7 +210,7 @@ export const barberoRoutes = [
     section: "reservas",
   },
 
-  /* Gestión */
+  /* ── Gestión ── */
   {
     path: "/gestion-clientes",
     name: "Clientes",
@@ -244,47 +228,6 @@ export const barberoRoutes = [
     section: "gestion",
   },
   {
-    path: "/gestion-servicios",
-    name: "Servicios",
-    icon: "fas fa-scissors text-danger",
-    component: <GestionServicios />,
-    layout: "/admin",
-    section: "gestion",
-  },
-  {
-    path: "/asignar-servicios",
-    name: "Asignar servicios",
-    icon: "ni ni-settings text-info",
-    component: <AsignarServiciosBarberos />,
-    layout: "/admin",
-    section: "gestion",
-  },
-
-  {
-    path: "/asignar-horas",
-    name: "Asignar horarios",
-    icon: "fas fa-user-clock text-primary",
-    component: <WizardBarberoSemana />,
-    layout: "/admin",
-    section: "gestion",
-  },
-  {
-    path: "/gestion-horarios",
-    name: "Administrar Horarios",
-    icon: "fas fa-clock text-danger",
-    component: <GestionHorariosBarbero />,
-    layout: "/admin",
-    section: "gestion",
-  },
-  {
-    path: "/gestion-vacaciones",
-    name: "Administrar Vacaciones",
-    icon: "fas fa-umbrella-beach text-success",
-    component: <GestionVacaciones />,
-    layout: "/admin",
-    section: "gestion",
-  },
-  {
     path: "/gestion-canjes",
     name: "Canjes",
     icon: "ni ni-shop text-warning",
@@ -293,31 +236,110 @@ export const barberoRoutes = [
     section: "gestion",
   },
   {
-    path: "/gestion-productos",
-    name: "Productos",
-   icon: "ni ni-box-2 text-primary",
-    component: <GestionProductos />,
+    // submenu: Servicios
+    path: "/servicios-menu",
+    name: "Servicios",
+    icon: "fas fa-scissors text-danger",
     layout: "/admin",
     section: "gestion",
+    children: [
+      {
+        path: "/gestion-servicios",
+        name: "Catálogo",
+        icon: "fas fa-list text-danger",
+        component: <GestionServicios />,
+        layout: "/admin",
+      },
+      {
+        path: "/asignar-servicios",
+        name: "Asignar servicios",
+        icon: "ni ni-settings text-info",
+        component: <AsignarServiciosBarberos />,
+        layout: "/admin",
+      },
+    ],
+  },
+  {
+    // submenu: Horarios
+    path: "/horarios-menu",
+    name: "Horarios",
+    icon: "fas fa-clock text-danger",
+    layout: "/admin",
+    section: "gestion",
+    children: [
+      {
+        path: "/asignar-horas",
+        name: "Asignar horarios",
+        icon: "fas fa-user-clock text-primary",
+        component: <WizardBarberoSemana />,
+        layout: "/admin",
+      },
+      {
+        path: "/gestion-horarios",
+        name: "Administrar horarios",
+        icon: "fas fa-clock text-danger",
+        component: <GestionHorariosBarbero />,
+        layout: "/admin",
+      },
+      {
+        path: "/gestion-vacaciones",
+        name: "Vacaciones",
+        icon: "fas fa-umbrella-beach text-success",
+        component: <GestionVacaciones />,
+        layout: "/admin",
+      },
+    ],
   },
 
-  /* Otros */
   {
-    path: "/estadisticas",
-    name: "Estadísticas",
-    icon: "fas fa-chart-line text-info",
-    component: <Estadisticas />,
+    // submenu: Productos
+    path: "/productos-menu",
+    name: "Productos",
+    icon: "ni ni-box-2 text-primary",
+    layout: "/admin",
+    section: "gestion",
+    children: [
+      {
+        path: "/gestion-productos",
+        name: "Catálogo",
+        icon: "ni ni-bullet-list-67 text-primary",
+        component: <GestionProductos />,
+        layout: "/admin",
+      },
+      {
+        path: "/estadisticas-productos",
+        name: "Estadísticas",
+        icon: "ni ni-chart-bar-32 text-primary",
+        component: <EstadisticasProductos />,
+        layout: "/admin",
+      },
+    ],
+  },
+
+  /* ── Otros ── */
+  {
+    // submenu: Empresa
+    path: "/empresa-menu",
+    name: "Empresa",
+    icon: "ni ni-building text-purple",
     layout: "/admin",
     section: "otros",
     soloAdmin: true,
-  },
-  {
-    path: "/configuracion-empresa",
-    name: "Mi empresa",
-    icon: "ni ni-settings text-purple",
-    component: <ConfiguracionEmpresa />,
-    layout: "/admin",
-    section: "otros",
-    soloAdmin: true, // 👈 solo lo ve el admin
+    children: [
+      {
+        path: "/configuracion-empresa",
+        name: "Configuración",
+        icon: "ni ni-settings text-purple",
+        component: <ConfiguracionEmpresa />,
+        layout: "/admin",
+      },
+      {
+        path: "/estadisticas",
+        name: "Estadísticas",
+        icon: "fas fa-chart-line text-info",
+        component: <Estadisticas />,
+        layout: "/admin",
+      },
+    ],
   },
 ];

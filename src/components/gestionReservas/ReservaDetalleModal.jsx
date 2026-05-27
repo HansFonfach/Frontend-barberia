@@ -98,8 +98,10 @@ const ReservaDetalleModal = ({
 
   if (!reservaSeleccionada) return null;
 
- const esPendiente = (reserva) =>
-  (reserva.estado === "pendiente" || reserva.estado === "confirmada");
+  const esPendiente = (reserva) =>
+    reserva.estado === "pendiente" ||
+    reserva.estado === "confirmada" ||
+    reserva.estado === "completada";
 
   /* =========================
       CANCELAR

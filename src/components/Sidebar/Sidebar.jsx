@@ -45,6 +45,9 @@ const Sidebar = ({ routes, logo, usuario }) => {
 
   const toggleCollapse = () => setCollapseOpen(!collapseOpen);
   const closeCollapse = () => setCollapseOpen(false);
+  const [submenuAbierto, setSubmenuAbierto] = useState(null);
+  const toggleSubmenu = (name) =>
+    setSubmenuAbierto(submenuAbierto === name ? null : name);
 
   const handleLogout = async () => {
     const slug = user?.empresa?.slug;
@@ -67,8 +70,8 @@ const Sidebar = ({ routes, logo, usuario }) => {
   const renderGroupedLinks = (routes) => {
     const grouped = routes
       .filter((r) => !r.invisible)
-      .filter((r) => !r.excludeSlugs?.includes(slug)) // ✅ filtrar por slug
-      .filter((r) => !r.soloAdmin || user?.esAdmin) // 👈 agrega esto
+      .filter((r) => !r.excludeSlugs?.includes(slug))
+      .filter((r) => !r.soloAdmin || user?.esAdmin)
       .reduce((acc, route) => {
         const section = route.section || "otros";
         if (!acc[section]) acc[section] = [];
@@ -83,23 +86,67 @@ const Sidebar = ({ routes, logo, usuario }) => {
         </div>
 
         <Nav navbar>
-          {grouped[sectionKey].map((r, idx) => (
-            <NavItem key={idx}>
-              <NavLink
-                to={`/${slug}${r.layout}${r.path}`} // ✅ Ruta correcta con slug
-                tag={NavLinkRRD}
-                onClick={closeCollapse}
-                className={`sidebar-link ${activeRoute(`/${slug}${r.layout}${r.path}`)}`}
-              >
-                {r.icon && typeof r.icon !== "string" ? (
-                  r.icon
-                ) : (
-                  <i className={`${r.icon} sidebar-icon`} />
+          {grouped[sectionKey].map((r, idx) =>
+            r.children ? (
+              // ── con submenu ──
+              <NavItem key={idx}>
+                <div
+                  className="sidebar-link"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => toggleSubmenu(r.name)}
+                >
+                  {r.icon && typeof r.icon !== "string" ? (
+                    r.icon
+                  ) : (
+                    <i className={`${r.icon} sidebar-icon`} />
+                  )}
+                  <span style={{ flex: 1 }}>{r.name}</span>
+                  <i
+                    className={`fas fa-chevron-${submenuAbierto === r.name ? "up" : "down"}`}
+                    style={{ fontSize: 10, color: "#aaa" }}
+                  />
+                </div>
+
+                {submenuAbierto === r.name && (
+                  <Nav navbar style={{ paddingLeft: 16 }}>
+                    {r.children.map((child, cidx) => (
+                      <NavItem key={cidx}>
+                        <NavLink
+                          to={`/${slug}${child.layout}${child.path}`}
+                          tag={NavLinkRRD}
+                          onClick={closeCollapse}
+                          className={`sidebar-link ${activeRoute(`/${slug}${child.layout}${child.path}`)}`}
+                          style={{ fontSize: "0.88rem" }}
+                        >
+                          {child.icon && (
+                            <i className={`${child.icon} sidebar-icon`} />
+                          )}
+                          <span>{child.name}</span>
+                        </NavLink>
+                      </NavItem>
+                    ))}
+                  </Nav>
                 )}
-                <span>{r.name}</span>
-              </NavLink>
-            </NavItem>
-          ))}
+              </NavItem>
+            ) : (
+              // ── sin submenu ──
+              <NavItem key={idx}>
+                <NavLink
+                  to={`/${slug}${r.layout}${r.path}`}
+                  tag={NavLinkRRD}
+                  onClick={closeCollapse}
+                  className={`sidebar-link ${activeRoute(`/${slug}${r.layout}${r.path}`)}`}
+                >
+                  {r.icon && typeof r.icon !== "string" ? (
+                    r.icon
+                  ) : (
+                    <i className={`${r.icon} sidebar-icon`} />
+                  )}
+                  <span>{r.name}</span>
+                </NavLink>
+              </NavItem>
+            ),
+          )}
         </Nav>
       </div>
     ));
@@ -134,6 +181,10 @@ const Sidebar = ({ routes, logo, usuario }) => {
           color: #000 !important;
         }
 
+        .sidebar-submenu-link {
+  padding-left: 2rem;
+  font-size: 0.88rem;
+}
         .sidebar-icon {
           font-size: 0.95rem;
           min-width: 18px;

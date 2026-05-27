@@ -8,6 +8,7 @@ import { getServicioMasPopular } from "api/estadisticas";
 import { getTasaDeAsistencia } from "api/estadisticas";
 import { getTop5ClientesCanceladores } from "api/estadisticas";
 import { getDashboardResumen } from "api/estadisticas";
+import { getEstadisticasProductos } from "api/estadisticas";
 import { getDashboardAdmin } from "api/estadisticas";
 import { getTop5ClientesNoAsistidores } from "api/estadisticas";
 import { getTop5ClientesAsistentes } from "api/estadisticas";
@@ -216,7 +217,7 @@ export const EstadisticasProvider = ({ children }) => {
     }
   };
 
-   const DashboardResumenAdmin = async () => {
+  const DashboardResumenAdmin = async () => {
     try {
       const res = await getDashboardAdmin();
       return res.data.data; // ✅ retorna el array directamente
@@ -225,6 +226,14 @@ export const EstadisticasProvider = ({ children }) => {
     }
   };
 
+  const verEstadisticasProductos = async () => {
+    try {
+      const res = await getEstadisticasProductos();
+      return res.data.data;
+    } catch (error) {
+      throw error;
+    }
+  };
 
   return (
     <EstadisticasContext.Provider
@@ -247,9 +256,10 @@ export const EstadisticasProvider = ({ children }) => {
         servicioMasPopular,
         tasaDeCancelacion,
         tasaDeAsistencia,
-        top5ClientesAsistentes, // ← nombre correcto
+        top5ClientesAsistentes, 
         top5ClientesCanceladores,
         top5ClientesNoAsistidores,
+        verEstadisticasProductos
       }}
     >
       {children}

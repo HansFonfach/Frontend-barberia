@@ -72,3 +72,7 @@ export const getDashboardResumen = () => {
 export const getDashboardAdmin = () => {
   return axiosPrivate.get("/estadisticas/dashboard/resumenAdmin");
 };
+
+export const getEstadisticasProductos  = () =>{
+  return axiosPrivate.get("/estadisticas/productos");
+}
