@@ -1,4 +1,5 @@
 import { postCreateProducto } from "api/productos";
+import { putDeleteProducto } from "api/productos";
 import { putUpdateProductos } from "api/productos";
 import { getAllProductos } from "api/productos";
 import { createContext, useCallback, useContext, useState } from "react";
@@ -47,6 +48,7 @@ export const ProductoProvider = ({ children }) => {
       setLoading(true);
       const res = await postCreateProducto(data);
       setProductos((prev) => [...prev, res.data.producto]);
+      console.log("estoy aca");
       return res.data;
     } catch (error) {
       throw error;
@@ -76,7 +78,25 @@ export const ProductoProvider = ({ children }) => {
       setLoading(false);
     }
   };
-  const eliminarProducto = async (data) => {};
+
+  const eliminarProducto = async (data) => {
+    try {
+      const { id, estado } = data;
+
+      const res = await putDeleteProducto(id, estado);
+
+      setProductos((prev) =>
+        prev.map((p) =>
+          p._id === res.data.producto._id ? res.data.producto : p,
+        ),
+      );
+      return res.data;
+    } catch (error) {
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <ProductoContext.Provider
@@ -84,6 +104,7 @@ export const ProductoProvider = ({ children }) => {
         crearProducto,
         listarProductos,
         actualizarProducto,
+        eliminarProducto,
         productos,
         loading,
       }}

@@ -28,7 +28,8 @@ const ModalProducto = ({ isOpen, toggle, producto, onSave }) => {
     activo: true,
   });
 
-  const { crearProducto, actualizarProducto, loading } = useProducto();
+  const { crearProducto, actualizarProducto, eliminarProducto, loading } =
+    useProducto();
 
   useEffect(() => {
     if (producto) {
@@ -98,6 +99,8 @@ const ModalProducto = ({ isOpen, toggle, producto, onSave }) => {
     }
   };
 
+
+
   return (
     <Modal isOpen={isOpen} toggle={toggle} centered size="lg">
       <ModalHeader toggle={toggle}>
@@ -163,17 +166,6 @@ const ModalProducto = ({ isOpen, toggle, producto, onSave }) => {
               </FormGroup>
             </Col>
           </Row>
-
-          <FormGroup>
-            <Label>Imagen URL</Label>
-
-            <Input
-              name="imagen"
-              value={formData.imagen}
-              onChange={handleChange}
-              placeholder="https://..."
-            />
-          </FormGroup>
 
           <FormGroup>
             <Label>Descripción</Label>

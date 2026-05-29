@@ -19,3 +19,4 @@ export const getAllProductos = () => {
   return axiosPrivate.get("/productos/listarProductos");
 };
 
+  
