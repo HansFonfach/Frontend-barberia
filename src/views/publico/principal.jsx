@@ -838,7 +838,7 @@ const LandingPage = () => {
                         style={{ background: "#f8f9fa", borderRadius: "15px" }}
                       >
                         <h5 className="font-weight-bold mb-3">
-                          Hans Fonfach Rodriguez
+                          Agenda Fonfach
                         </h5>
 
                         <div className="d-flex align-items-center mb-3">
@@ -848,13 +848,13 @@ const LandingPage = () => {
                             size={20}
                           />
                           <a
-                            href="https://instagram.com/hans.fonfach"
+                            href="https://instagram.com/agendafonfach"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-dark"
                             style={{ textDecoration: "none" }}
                           >
-                            @hans.fonfach
+                            @Agendafonfach
                           </a>
                         </div>
 
