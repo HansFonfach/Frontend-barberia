@@ -36,7 +36,7 @@ const BannerSuspension = ({ isOpen }) => {
         <Button
           color="success"
           className="rounded-pill px-5"
-          href="https://wa.me/56988116970?text=Hola, quiero reactivar mi cuenta"
+          href="https://wa.me/56975297584?text=Hola, quiero reactivar mi cuenta"
           target="_blank"
         >
           Contactar ahora
