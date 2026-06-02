@@ -9,6 +9,7 @@ import { getTasaDeAsistencia } from "api/estadisticas";
 import { getTop5ClientesCanceladores } from "api/estadisticas";
 import { getDashboardResumen } from "api/estadisticas";
 import { getEstadisticasProductos } from "api/estadisticas";
+import { getEstadisticasHistorialIngresos } from "api/estadisticas";
 import { getDashboardAdmin } from "api/estadisticas";
 import { getTop5ClientesNoAsistidores } from "api/estadisticas";
 import { getTop5ClientesAsistentes } from "api/estadisticas";
@@ -235,6 +236,15 @@ export const EstadisticasProvider = ({ children }) => {
     }
   };
 
+  const verHistorialDeIngresos = async (mes, anio) => {
+    try {
+      const res = await getEstadisticasHistorialIngresos(mes, anio);
+      return res.data.data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   return (
     <EstadisticasContext.Provider
       value={{
@@ -256,10 +266,11 @@ export const EstadisticasProvider = ({ children }) => {
         servicioMasPopular,
         tasaDeCancelacion,
         tasaDeAsistencia,
-        top5ClientesAsistentes, 
+        top5ClientesAsistentes,
         top5ClientesCanceladores,
         top5ClientesNoAsistidores,
-        verEstadisticasProductos
+        verEstadisticasProductos,
+        verHistorialDeIngresos,
       }}
     >
       {children}

@@ -395,6 +395,14 @@ const AdminDashboard = () => {
                   {formatPesos(infoIngresos.detalle.ingresoProductos)}
                 </small>
               </div>
+                 <div className="d-flex justify-content-between align-items-center mb-1">
+                <small className="text-muted d-flex align-items-center">
+                  💰 Ingreso Extras
+                </small>
+                <small className="font-weight-bold text-yellow">
+                  {formatPesos(infoIngresos.detalle.ingresoExtras)}
+                </small>
+              </div>
 
               {/* Suscripciones */}
               <div className="d-flex justify-content-between align-items-center mb-1">

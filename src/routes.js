@@ -38,6 +38,7 @@ import RegistrarNegocio from "views/publico/RegistrarNegocio";
 import ConfirmacionResultado from "views/publico/ConfirmacionResultado";
 import GestionProductos from "views/admin/pages/GestionProductos";
 import EstadisticasProductos from "views/admin/pages/EstadisticasProductos";
+import HistorialIngresos from "views/admin/pages/HistorialIngresos";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -338,6 +339,13 @@ export const barberoRoutes = [
         name: "Estadísticas",
         icon: "fas fa-chart-line text-info",
         component: <Estadisticas />,
+        layout: "/admin",
+      },
+         {
+        path: "/HistorialIngresos",
+        name: "HistorialIngresos",
+        icon: "fas fa-chart-line text-info",
+        component: <HistorialIngresos />,
         layout: "/admin",
       },
     ],

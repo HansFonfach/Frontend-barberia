@@ -76,3 +76,9 @@ export const getDashboardAdmin = () => {
 export const getEstadisticasProductos  = () =>{
   return axiosPrivate.get("/estadisticas/productos");
 }
+
+export const getEstadisticasHistorialIngresos = (mes, anio) => {
+  return axiosPrivate.get("/estadisticas/ingresos/historial", {
+    params: { mes, anio }
+  });
+};
