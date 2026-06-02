@@ -165,13 +165,13 @@ export const ReservaProvider = ({ children }) => {
       return null;
     }
   };
-
   const reagendarReserva = async (reservaId, fecha, hora) => {
+    console.log("Enviando:", { reservaId, fecha, hora }); // ← qué sale aquí?
     try {
       const { data } = await patchReagendarReserva(reservaId, fecha, hora);
       return data;
     } catch (error) {
-      console.error("Error al reagendar:", error);
+      console.error("Respuesta del back:", error.response?.data); // ← mensaje exacto
       return null;
     }
   };

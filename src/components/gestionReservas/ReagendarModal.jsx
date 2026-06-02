@@ -1,10 +1,6 @@
 import React from "react";
-import {
-  Modal,
-  Button,
-  Input,
-  Badge,
-} from "reactstrap";
+import { Modal, Button, Input, Badge } from "reactstrap";
+import Swal from "sweetalert2";
 
 const ReagendarModal = ({
   modal,
@@ -24,42 +20,25 @@ const ReagendarModal = ({
   const handleFechaReagendar = async (fecha) => {
     setNuevaFecha(fecha);
     setHoraSeleccionada(null);
-
     if (!fecha || !reservaSeleccionada) return;
 
     const barberoId =
-      reservaSeleccionada?.barbero?._id ||
-      reservaSeleccionada?.barbero;
-
+      reservaSeleccionada?.barbero?._id || reservaSeleccionada?.barbero;
     const servicioId =
-      reservaSeleccionada?.servicio?._id ||
-      reservaSeleccionada?.servicio;
+      reservaSeleccionada?.servicio?._id || reservaSeleccionada?.servicio;
 
-    if (!barberoId || !servicioId) {
-      console.warn("Faltan datos:", {
-        barberoId,
-        servicioId,
-      });
-      return;
-    }
+    console.log("Pidiendo horas con:", { barberoId, servicioId, fecha }); // ← agrega
 
     try {
       setLoadingHoras(true);
-
-      const response =
-        await getHorasDisponiblesBarbero(
-          barberoId,
-          fecha,
-          servicioId,
-        );
-
+      const response = await getHorasDisponiblesBarbero(
+        barberoId,
+        fecha,
+        servicioId,
+      );
+      console.log("Horas recibidas:", response?.horas); // ← agrega
       setHorasDisponibles(response?.horas || []);
     } catch (error) {
-      console.error(
-        "Error cargando horas:",
-        error,
-      );
-
       setHorasDisponibles([]);
     } finally {
       setLoadingHoras(false);
@@ -78,6 +57,14 @@ const ReagendarModal = ({
     if (!result) return;
 
     setModal(false);
+
+    Swal.fire({
+      icon: "success",
+      title: "¡Reagendado!",
+      text: `Reserva reagendada para el ${nuevaFecha} a las ${horaSeleccionada}`,
+      timer: 2500,
+      showConfirmButton: false,
+    });
   };
 
   return (
@@ -94,10 +81,7 @@ const ReagendarModal = ({
             Reagendar reserva
           </h5>
 
-          <button
-            className="close text-white"
-            onClick={() => setModal(false)}
-          >
+          <button className="close text-white" onClick={() => setModal(false)}>
             <span>&times;</span>
           </button>
         </div>
@@ -114,42 +98,26 @@ const ReagendarModal = ({
             }}
           >
             <div>
-              <small className="text-muted d-block">
-                Cliente
-              </small>
+              <small className="text-muted d-block">Cliente</small>
 
               <strong>
                 {reservaSeleccionada?.cliente?.nombre}{" "}
-                {
-                  reservaSeleccionada?.cliente
-                    ?.apellido
-                }
+                {reservaSeleccionada?.cliente?.apellido}
               </strong>
             </div>
 
             <div>
-              <small className="text-muted d-block">
-                Servicio
-              </small>
+              <small className="text-muted d-block">Servicio</small>
 
-              <strong>
-                {
-                  reservaSeleccionada?.servicio
-                    ?.nombre
-                }
-              </strong>
+              <strong>{reservaSeleccionada?.servicio?.nombre}</strong>
             </div>
 
             <div>
-              <small className="text-muted d-block">
-                Hora actual
-              </small>
+              <small className="text-muted d-block">Hora actual</small>
 
               <Badge color="info" pill>
                 {reservaSeleccionada &&
-                  new Date(
-                    reservaSeleccionada.fecha,
-                  ).toLocaleTimeString([], {
+                  new Date(reservaSeleccionada.fecha).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
@@ -169,16 +137,8 @@ const ReagendarModal = ({
             <Input
               type="date"
               value={nuevaFecha}
-              min={
-                new Date()
-                  .toISOString()
-                  .split("T")[0]
-              }
-              onChange={(e) =>
-                handleFechaReagendar(
-                  e.target.value,
-                )
-              }
+              min={new Date().toISOString().split("T")[0]}
+              onChange={(e) => handleFechaReagendar(e.target.value)}
             />
           </div>
 
@@ -196,42 +156,24 @@ const ReagendarModal = ({
                 <div className="text-center py-3">
                   <div className="spinner-border spinner-border-sm text-primary" />
                 </div>
-              ) : horasDisponibles.length ===
-                0 ? (
+              ) : horasDisponibles.length === 0 ? (
                 <p className="text-muted text-sm text-center py-2">
                   No hay horas disponibles
                 </p>
               ) : (
-                <div
-                  className="d-flex flex-wrap"
-                  style={{ gap: "8px" }}
-                >
+                <div className="d-flex flex-wrap" style={{ gap: "8px" }}>
                   {horasDisponibles.map((h) => (
                     <Button
                       key={h.hora}
                       size="sm"
                       color={
-                        horaSeleccionada ===
-                        h.hora
-                          ? "primary"
-                          : "secondary"
+                        horaSeleccionada === h.hora ? "primary" : "secondary"
                       }
-                      disabled={
-                        h.estado !==
-                        "disponible"
-                      }
-                      onClick={() =>
-                        setHoraSeleccionada(
-                          h.hora,
-                        )
-                      }
+                      disabled={h.estado !== "disponible"}
+                      onClick={() => setHoraSeleccionada(h.hora)}
                       style={{
                         minWidth: "70px",
-                        opacity:
-                          h.estado !==
-                          "disponible"
-                            ? 0.4
-                            : 1,
+                        opacity: h.estado !== "disponible" ? 0.4 : 1,
                       }}
                     >
                       {h.hora}
@@ -245,22 +187,14 @@ const ReagendarModal = ({
 
         {/* FOOTER */}
         <div className="modal-footer">
-          <Button
-            color="secondary"
-            onClick={() => setModal(false)}
-          >
+          <Button color="secondary" onClick={() => setModal(false)}>
             Cancelar
           </Button>
 
           <Button
             color="primary"
-            disabled={
-              !horaSeleccionada ||
-              !nuevaFecha
-            }
-            onClick={
-              handleConfirmarReagendar
-            }
+            disabled={!horaSeleccionada || !nuevaFecha}
+            onClick={handleConfirmarReagendar}
           >
             <i className="ni ni-check-bold mr-1"></i>
             Confirmar reagendo

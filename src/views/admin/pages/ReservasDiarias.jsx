@@ -67,6 +67,14 @@ const GestionReservas = () => {
     setModal(true);
   };
 
+  // GestionReservas.jsx - agrega este handler
+  const handleAbrirReagendar = () => {
+    setNuevaFecha("");
+    setHorasDisponibles([]);
+    setHoraSeleccionada(null);
+    setModalReagendar(true);
+  };
+
   return (
     <>
       <UserHeader />
