@@ -47,6 +47,7 @@ const GestionReservas = () => {
   const [horasDisponibles, setHorasDisponibles] = useState([]);
   const [horaSeleccionada, setHoraSeleccionada] = useState(null);
   const [loadingHoras, setLoadingHoras] = useState(false);
+  const [extrasSeleccionados, setExtrasSeleccionados] = useState([]);
 
   useEffect(() => {
     getReservasPorFechaBarbero(filtroFecha);
@@ -128,6 +129,8 @@ const GestionReservas = () => {
         cancelarReserva={cancelarReserva}
         marcarReservaNoAsistida={marcarReservaNoAsistida}
         setModalReagendar={setModalReagendar}
+        extrasSeleccionados={extrasSeleccionados} 
+        setExtrasSeleccionados={setExtrasSeleccionados} 
       />
 
       <ReagendarModal

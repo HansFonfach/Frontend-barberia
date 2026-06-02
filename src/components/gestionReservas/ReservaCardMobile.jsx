@@ -78,17 +78,14 @@ const ReservaCardMobile = ({
     }
   };
 
-  const iconoCliente = (reserva) => {
-    if (reserva.suscripcion)
-      return "⭐";
+const iconoCliente = (reserva) => {
+  const tieneNota = reserva.cliente?.notasProfesional?.trim();
+  const nota = tieneNota ? " 📝" : "";
 
-    if (
-      empresa?.slug === "lumicabeauty"
-    )
-      return "🎀";
-
-    return "🧔🏻‍♂️";
-  };
+  if (reserva.suscripcion) return "⭐" + nota;
+  if (empresa?.slug === "lumicabeauty") return "🎀" + nota;
+  return "🧔🏻‍♂️" + nota;
+};
 
   const reservasFiltradas =
     reservas.filter(

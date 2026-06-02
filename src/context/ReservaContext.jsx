@@ -151,13 +151,18 @@ export const ReservaProvider = ({ children }) => {
       setLoading(false);
     }
   };
-
-  const actualizarReserva = async (reservaId, observacionFinal, productos) => {
+  const actualizarReserva = async (
+    reservaId,
+    observacionFinal,
+    productos,
+    extras,
+  ) => {
     try {
       const res = await patchActualizarReserva(
         reservaId,
         observacionFinal,
         productos,
+        extras, 
       );
       return res.data;
     } catch (error) {
@@ -165,6 +170,7 @@ export const ReservaProvider = ({ children }) => {
       return null;
     }
   };
+
   const reagendarReserva = async (reservaId, fecha, hora) => {
     console.log("Enviando:", { reservaId, fecha, hora }); // ← qué sale aquí?
     try {

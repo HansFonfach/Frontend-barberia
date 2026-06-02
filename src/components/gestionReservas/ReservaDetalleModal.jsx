@@ -24,7 +24,7 @@ const ReservaDetalleModal = ({
 }) => {
   const [productosSeleccionados, setProductosSeleccionados] = useState([]);
   const [modalNota, setModalNota] = useState(false);
-
+  const [extrasSeleccionados, setExtrasSeleccionados] = useState([]); // 👈
   const [observacionReserva, setObservacionReserva] = useState("");
 
   const { actualizarReserva } = useReserva();
@@ -39,6 +39,14 @@ const ReservaDetalleModal = ({
           precio: p.precio,
           categoria: p.categoria,
           cantidad: p.cantidad,
+        })) || [],
+      );
+      setExtrasSeleccionados(
+        reservaSeleccionada.extras?.map((e) => ({
+          id: Math.random().toString(36).substr(2, 9),
+          nombre: e.nombre,
+          precio: e.precio,
+          cantidad: e.cantidad,
         })) || [],
       );
     }
@@ -78,16 +86,22 @@ const ReservaDetalleModal = ({
       cantidad: p.cantidad,
     }));
 
+    // 👇 nuevo
+    const extrasPayload = extrasSeleccionados.map((e) => ({
+      nombre: e.nombre,
+      precio: e.precio,
+      cantidad: e.cantidad,
+    }));
+
     const res = await actualizarReserva(
       reservaSeleccionada._id,
       observacionReserva,
       productosPayload,
+      extrasPayload, // 👈
     );
 
     if (!res) return;
-
     setModal(false);
-
     Swal.fire({
       icon: "success",
       title: "Detalle guardado",
@@ -222,6 +236,8 @@ const ReservaDetalleModal = ({
             observacionReserva={observacionReserva}
             setObservacionReserva={setObservacionReserva}
             reservaSeleccionada={reservaSeleccionada}
+            extrasSeleccionados={extrasSeleccionados} // 👈
+            setExtrasSeleccionados={setExtrasSeleccionados} // 👈
           />
         </div>
 
