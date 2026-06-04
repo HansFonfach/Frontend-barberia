@@ -39,6 +39,7 @@ import ConfirmacionResultado from "views/publico/ConfirmacionResultado";
 import GestionProductos from "views/admin/pages/GestionProductos";
 import EstadisticasProductos from "views/admin/pages/EstadisticasProductos";
 import HistorialIngresos from "views/admin/pages/HistorialIngresos";
+import VentasDirectas from "views/admin/pages/VentasDirectas";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -308,6 +309,13 @@ export const barberoRoutes = [
         layout: "/admin",
       },
       {
+        path: "/ventas-directas",
+        name: "Ventas directas",
+        icon: "ni ni-bag-17 text-success",
+        component: <VentasDirectas />,
+        layout: "/admin",
+      },
+      {
         path: "/estadisticas-productos",
         name: "Estadísticas",
         icon: "ni ni-chart-bar-32 text-primary",
@@ -341,7 +349,7 @@ export const barberoRoutes = [
         component: <Estadisticas />,
         layout: "/admin",
       },
-         {
+      {
         path: "/HistorialIngresos",
         name: "HistorialIngresos",
         icon: "fas fa-chart-line text-info",

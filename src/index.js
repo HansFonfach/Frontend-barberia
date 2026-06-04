@@ -41,6 +41,7 @@ import VerificarCuenta from "views/publico/VerificarCuenta";
 import RegistrarNegocio from "views/publico/RegistrarNegocio";
 import ConfirmacionResultado from "views/publico/ConfirmacionResultado";
 import { ProductoProvider } from "context/ProductoContext";
+import { VentaDirectaProvider } from "context/VentaDirectaContext";
 
 // Wrapper por empresa (slug)
 const EmpresaWrapper = ({ children }) => {
@@ -50,23 +51,25 @@ const EmpresaWrapper = ({ children }) => {
 
 // Solo envuelve Providers que necesitan token (admin)
 const AdminProviders = ({ children }) => (
-  <ProductoProvider>
-    <UsuarioProvider>
-      <ServiciosProvider>
-        <HorarioProvider>
-          <ReservaProvider>
-            <EstadisticasProvider>
-              <NotificacionProvider>
-                <LookProvider>
-                  <CanjeProvider>{children}</CanjeProvider>
-                </LookProvider>
-              </NotificacionProvider>
-            </EstadisticasProvider>
-          </ReservaProvider>
-        </HorarioProvider>
-      </ServiciosProvider>
-    </UsuarioProvider>
-  </ProductoProvider>
+  <VentaDirectaProvider>
+    <ProductoProvider>
+      <UsuarioProvider>
+        <ServiciosProvider>
+          <HorarioProvider>
+            <ReservaProvider>
+              <EstadisticasProvider>
+                <NotificacionProvider>
+                  <LookProvider>
+                    <CanjeProvider>{children}</CanjeProvider>
+                  </LookProvider>
+                </NotificacionProvider>
+              </EstadisticasProvider>
+            </ReservaProvider>
+          </HorarioProvider>
+        </ServiciosProvider>
+      </UsuarioProvider>
+    </ProductoProvider>
+  </VentaDirectaProvider>
 );
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
