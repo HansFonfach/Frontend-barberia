@@ -12,3 +12,11 @@ export const patchActualizarEmpresa = (data) =>
 export const postRegistroEmpresa = (data) => {
   return axiosPublic.post("/empresa/registro-negocio", data);
 };
+
+export const postLogoEmpresa = (empresaId, formData) =>
+  axiosPrivate.put(`/empresa/${empresaId}/logo`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+export const postFotoPerfilEmpresa = (empresaId, formData) =>
+  axiosPrivate.post(`/empresa/${empresaId}/foto-perfil`, formData, {});
