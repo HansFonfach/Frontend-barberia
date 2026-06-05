@@ -1,16 +1,17 @@
 import { useEffect, useState } from "react";
 import {
   Badge, Button, Card, CardBody, CardHeader,
-  Col, Container, Form, FormGroup, Input, Label,
-  Modal, ModalBody, ModalFooter, ModalHeader,
+  Col, Container, Input, InputGroup, InputGroupText,
   Row, Spinner, Table,
 } from "reactstrap";
 import { useVentaDirecta } from "context/VentaDirectaContext";
 import { useProducto } from "context/ProductoContext";
-import Swal from "sweetalert2";
 import UserHeader from "components/Headers/UserHeader";
+import ModalNuevaVenta   from "components/ventasDirectas/ModalNuevaVenta";
+import ModalDetalleVenta from "components/ventasDirectas/ModalDetalleVenta";
+import ModalAnularVenta  from "components/ventasDirectas/ModalAnularVenta";
 
-// ─── Helpers ────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 const formatPeso = (n) =>
   new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP" }).format(n ?? 0);
@@ -19,116 +20,56 @@ const formatFecha = (d) =>
   new Date(d).toLocaleDateString("es-CL", {
     day: "2-digit", month: "2-digit", year: "numeric",
     hour: "2-digit", minute: "2-digit",
+    timeZone: "America/Santiago",
   });
 
-const METODOS = [
-  { value: "efectivo", label: "Efectivo" },
-  { value: "transferencia", label: "Transferencia" },
-  { value: "debito", label: "Débito" },
-  { value: "credito", label: "Crédito" },
-  { value: "otro", label: "Otro" },
-];
+const hoy = () => new Date().toISOString().slice(0, 10);
 
-// ─── Componente principal ────────────────────────────────────────────────────
+// ─── Componente ───────────────────────────────────────────────────────────────
 
 const VentasDirectas = () => {
-  const { ventas, loading, crearVenta, anularVenta, listarVentas } = useVentaDirecta();
-  const { productos, listarProductos } = useProducto();
+  const { ventas, loading, listarVentas } = useVentaDirecta();
+  const { listarProductos } = useProducto();
 
-  const [modalVenta, setModalVenta]     = useState(false);
-  const [modalAnular, setModalAnular]   = useState(false);
-  const [ventaSeleccionada, setVentaSeleccionada] = useState(null);
-  const [motivoAnulacion, setMotivoAnulacion]     = useState("");
+  const [modalNueva,   setModalNueva]   = useState(false);
+  const [modalDetalle, setModalDetalle] = useState(false);
+  const [modalAnular,  setModalAnular]  = useState(false);
+  const [ventaActiva,  setVentaActiva]  = useState(null);
 
-  // Form nueva venta
-  const [productosSeleccionados, setProductosSeleccionados] = useState([]);
-  const [productoId, setProductoId] = useState("");
-  const [cantidad, setCantidad]     = useState(1);
-  const [metodoPago, setMetodoPago] = useState("efectivo");
-  const [observacion, setObservacion] = useState("");
+  const [filtroDesde, setFiltroDesde] = useState("");
+  const [filtroHasta, setFiltroHasta] = useState("");
 
   useEffect(() => {
     listarVentas();
     listarProductos();
   }, []);
 
-  // ── Agregar producto al carrito ──
-  const agregarProducto = () => {
-    if (!productoId) return;
-    const prod = productos.find((p) => p._id === productoId);
-    if (!prod) return;
-
-    const existe = productosSeleccionados.find((p) => p.producto === productoId);
-    if (existe) {
-      setProductosSeleccionados((prev) =>
-        prev.map((p) =>
-          p.producto === productoId
-            ? { ...p, cantidad: p.cantidad + Number(cantidad) }
-            : p
-        )
-      );
-    } else {
-      setProductosSeleccionados((prev) => [
-        ...prev,
-        { producto: prod._id, nombre: prod.nombre, precio: prod.precio, cantidad: Number(cantidad) },
-      ]);
-    }
-    setProductoId("");
-    setCantidad(1);
+  const handleBuscar = () => {
+    listarVentas({
+      ...(filtroDesde && { desde: filtroDesde }),
+      ...(filtroHasta && { hasta: filtroHasta }),
+    });
   };
 
-  const quitarProducto = (id) =>
-    setProductosSeleccionados((prev) => prev.filter((p) => p.producto !== id));
-
-  const totalVenta = productosSeleccionados.reduce(
-    (acc, p) => acc + p.precio * p.cantidad, 0
-  );
-
-  const limpiarForm = () => {
-    setProductosSeleccionados([]);
-    setProductoId("");
-    setCantidad(1);
-    setMetodoPago("efectivo");
-    setObservacion("");
+  const handleLimpiar = () => {
+    setFiltroDesde("");
+    setFiltroHasta("");
+    listarVentas();
   };
 
-  // ── Registrar venta ──
-  const handleCrearVenta = async () => {
-    if (productosSeleccionados.length === 0) {
-      Swal.fire("Atención", "Agrega al menos un producto al carrito.", "warning");
-      return;
-    }
-    try {
-      await crearVenta({
-        productos: productosSeleccionados.map((p) => ({
-          producto: p.producto,
-          cantidad: p.cantidad,
-        })),
-        metodoPago,
-        observacion,
-      });
-      Swal.fire({ icon: "success", title: "¡Venta registrada!", timer: 1500, showConfirmButton: false });
-      setModalVenta(false);
-      limpiarForm();
-    } catch (error) {
-      Swal.fire("Error", error?.response?.data?.message || "No se pudo registrar la venta.", "error");
-    }
+  const abrirDetalle = (venta) => {
+    setVentaActiva(venta);
+    setModalDetalle(true);
   };
 
-  // ── Anular venta ──
-  const handleAnular = async () => {
-    try {
-      await anularVenta(ventaSeleccionada._id, motivoAnulacion);
-      Swal.fire({ icon: "success", title: "Venta anulada", text: "Stock restaurado.", timer: 1500, showConfirmButton: false });
-      setModalAnular(false);
-      setMotivoAnulacion("");
-      setVentaSeleccionada(null);
-    } catch (error) {
-      Swal.fire("Error", error?.response?.data?.message || "No se pudo anular la venta.", "error");
-    }
+  const abrirAnular = (venta) => {
+    setVentaActiva(venta);
+    setModalAnular(true);
   };
 
-  // ─── Render ──────────────────────────────────────────────────────────────
+  // Stats rápidas
+  const ventasActivas = ventas.filter((v) => !v.anulada);
+  const totalIngresos = ventasActivas.reduce((acc, v) => acc + v.totalFinal, 0);
 
   return (
     <>
@@ -138,125 +79,144 @@ const VentasDirectas = () => {
         <Row>
           <Col>
             <Card className="shadow">
-              <CardHeader className="border-0 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                <h3 className="mb-0">Historial de ventas directas</h3>
-                <Button color="primary" size="sm" onClick={() => setModalVenta(true)}>
-                  <i className="ni ni-bag-17 mr-2" />
-                  Nueva venta
-                </Button>
+
+              {/* ── Header ── */}
+              <CardHeader className="border-0">
+                <Row className="align-items-center">
+                  <Col>
+                    <h3 className="mb-0">Ventas directas</h3>
+                  </Col>
+                  <Col className="text-right">
+                    <Button color="primary" size="sm" onClick={() => setModalNueva(true)}>
+                      <i className="ni ni-bag-17 mr-2" />
+                      Nueva venta
+                    </Button>
+                  </Col>
+                </Row>
+
+                {/* Stats */}
+                <Row className="mt-3">
+                  {[
+                    { label: "Total ventas",  value: ventas.length },
+                    { label: "Completadas",   value: ventasActivas.length },
+                    { label: "Anuladas",      value: ventas.filter((v) => v.anulada).length },
+                    { label: "Ingresos",      value: formatPeso(totalIngresos) },
+                  ].map((s) => (
+                    <Col key={s.label} xs={6} md={3} className="mb-2 mb-md-0">
+                      <div
+                        className="rounded p-3"
+                        style={{ background: "#f8f9fa", border: "1px solid #e9ecef" }}
+                      >
+                        <p className="text-muted text-xs mb-1 text-uppercase font-weight-bold">
+                          {s.label}
+                        </p>
+                        <p className="mb-0 font-weight-bold h4">{s.value}</p>
+                      </div>
+                    </Col>
+                  ))}
+                </Row>
+
+                {/* Filtros */}
+                <Row className="mt-3 align-items-end">
+                  <Col xs={12} md={4} className="mb-2 mb-md-0">
+                    <small className="text-muted font-weight-bold d-block mb-1">DESDE</small>
+                    <Input
+                      type="date" bsSize="sm"
+                      value={filtroDesde} max={filtroHasta || hoy()}
+                      onChange={(e) => setFiltroDesde(e.target.value)}
+                    />
+                  </Col>
+                  <Col xs={12} md={4} className="mb-2 mb-md-0">
+                    <small className="text-muted font-weight-bold d-block mb-1">HASTA</small>
+                    <Input
+                      type="date" bsSize="sm"
+                      value={filtroHasta} min={filtroDesde} max={hoy()}
+                      onChange={(e) => setFiltroHasta(e.target.value)}
+                    />
+                  </Col>
+                  <Col xs={12} md={4}>
+                    <div className="d-flex gap-2" style={{ gap: 8 }}>
+                      <Button color="primary" size="sm" onClick={handleBuscar} disabled={!filtroDesde && !filtroHasta}>
+                        <i className="ni ni-zoom-split-in mr-1" /> Buscar
+                      </Button>
+                      {(filtroDesde || filtroHasta) && (
+                        <Button color="secondary" size="sm" onClick={handleLimpiar}>
+                          Limpiar
+                        </Button>
+                      )}
+                    </div>
+                  </Col>
+                </Row>
               </CardHeader>
 
+              {/* ── Tabla ── */}
               <CardBody className="p-0">
-                {ventas.length === 0 && !loading ? (
+                {loading ? (
+                  <div className="text-center py-5">
+                    <Spinner color="primary" />
+                  </div>
+                ) : ventas.length === 0 ? (
                   <div className="text-center py-5 text-muted">
                     <i className="ni ni-bag-17 fa-2x mb-3 d-block" />
-                    <p>Aún no hay ventas registradas.</p>
-                    <Button color="primary" size="sm" onClick={() => setModalVenta(true)}>
+                    <p className="mb-3">No hay ventas registradas.</p>
+                    <Button color="primary" size="sm" onClick={() => setModalNueva(true)}>
                       Nueva venta
                     </Button>
                   </div>
                 ) : (
-                  <>
-                    {/* Versión Desktop (oculta en mobile) */}
-                    <div className="d-none d-md-block">
-                      <Table className="align-items-center table-flush" responsive>
-                        <thead className="thead-light">
-                          <tr>
-                            <th>Fecha</th>
-                            <th>Productos</th>
-                            <th>Método de pago</th>
-                            <th>Total</th>
-                            <th>Estado</th>
-                            <th />
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {loading ? (
-                            <tr>
-                              <td colSpan={6} className="text-center py-4">
-                                <Spinner size="sm" color="primary" />
-                              </td>
-                            </tr>
-                          ) : (
-                            ventas.map((v) => (
-                              <tr key={v._id}>
-                                <td className="text-nowrap">{formatFecha(v.fecha)}</td>
-                                <td>
-                                  {v.productos.map((p) => (
-                                    <div key={p._id} className="text-sm">
-                                      {p.nombre}{" "}
-                                      <span className="text-muted">x{p.cantidad}</span>
-                                    </div>
-                                  ))}
-                                </td>
-                                <td className="text-capitalize">{v.metodoPago}</td>
-                                <td className="font-weight-bold">{formatPeso(v.totalFinal)}</td>
-                                <td>
-                                  {v.anulada
-                                    ? <Badge color="danger">Anulada</Badge>
-                                    : <Badge color="success">Completada</Badge>
-                                  }
-                                </td>
-                                <td className="text-right">
-                                  {!v.anulada && (
-                                    <Button
-                                      size="sm" color="danger" outline
-                                      onClick={() => { setVentaSeleccionada(v); setModalAnular(true); }}
-                                    >
-                                      Anular
-                                    </Button>
-                                  )}
-                                </td>
-                              </tr>
-                            ))
-                          )}
-                        </tbody>
-                      </Table>
-                    </div>
-
-                    {/* Versión Mobile (solo fecha, productos, total, anular) */}
-                    <div className="d-block d-md-none">
-                      {loading ? (
-                        <div className="text-center py-4">
-                          <Spinner size="sm" color="primary" />
-                        </div>
-                      ) : (
-                        ventas.map((v) => (
-                          <div key={v._id} className="border-bottom p-3">
-                            <div className="d-flex justify-content-between align-items-start mb-2">
-                              <div>
-                                <small className="text-muted">{formatFecha(v.fecha)}</small>
-                                <div className="mt-1">
-                                  {v.productos.map((p) => (
-                                    <div key={p._id} className="text-sm">
-                                      <span className="font-weight-bold">{p.nombre}</span>{" "}
-                                      <span className="text-muted">x{p.cantidad}</span>
-                                    </div>
-                                  ))}
-                                </div>
+                  <Table className="align-items-center table-flush" responsive>
+                    <thead className="thead-light">
+                      <tr>
+                        <th>Fecha</th>
+                        <th>Productos</th>
+                        <th>Método</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                        <th className="text-right">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ventas.map((v) => (
+                        <tr key={v._id}>
+                          <td className="text-nowrap text-sm text-muted">
+                            {formatFecha(v.fecha)}
+                          </td>
+                          <td>
+                            {v.productos.map((p) => (
+                              <div key={p._id} className="text-sm">
+                                <span className="font-weight-bold">{p.nombre}</span>{" "}
+                                <span className="text-muted">x{p.cantidad}</span>
                               </div>
-                              <div className="text-right">
-                                <div className="font-weight-bold">{formatPeso(v.totalFinal)}</div>
-                                <div className="mt-1">
-                                  {v.anulada
-                                    ? <Badge color="danger">Anulada</Badge>
-                                    : !v.anulada && (
-                                        <Button
-                                          size="sm" color="danger" outline
-                                          onClick={() => { setVentaSeleccionada(v); setModalAnular(true); }}
-                                        >
-                                          Anular
-                                        </Button>
-                                      )
-                                  }
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </>
+                            ))}
+                          </td>
+                          <td className="text-capitalize text-sm">{v.metodoPago}</td>
+                          <td className="font-weight-bold">{formatPeso(v.totalFinal)}</td>
+                          <td>
+                            {v.anulada
+                              ? <Badge color="danger">Anulada</Badge>
+                              : <Badge color="success">Completada</Badge>
+                            }
+                          </td>
+                          <td className="text-right">
+                            <Button
+                              size="sm" color="primary" outline className="mr-1"
+                              onClick={() => abrirDetalle(v)}
+                            >
+                              Ver
+                            </Button>
+                            {!v.anulada && (
+                              <Button
+                                size="sm" color="danger" outline
+                                onClick={() => abrirAnular(v)}
+                              >
+                                Anular
+                              </Button>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
                 )}
               </CardBody>
             </Card>
@@ -264,133 +224,26 @@ const VentasDirectas = () => {
         </Row>
       </Container>
 
-      {/* ── Modal: Nueva venta ── */}
-      <Modal isOpen={modalVenta} toggle={() => { setModalVenta(false); limpiarForm(); }} size="lg">
-        <ModalHeader toggle={() => { setModalVenta(false); limpiarForm(); }}>
-          Registrar venta directa
-        </ModalHeader>
-        <ModalBody>
-          <Form>
-            {/* Selector de producto */}
-            <Row>
-              <Col xs={12} sm={6}>
-                <FormGroup>
-                  <Label>Producto</Label>
-                  <Input type="select" value={productoId} onChange={(e) => setProductoId(e.target.value)}>
-                    <option value="">Selecciona un producto...</option>
-                    {productos.filter((p) => p.activo).map((p) => (
-                      <option key={p._id} value={p._id}>
-                        {p.nombre} — {formatPeso(p.precio)}
-                        {p.stock !== null ? ` (stock: ${p.stock})` : ""}
-                      </option>
-                    ))}
-                  </Input>
-                </FormGroup>
-              </Col>
-              <Col xs={6} sm={3}>
-                <FormGroup>
-                  <Label>Cantidad</Label>
-                  <Input
-                    type="number" min={1} value={cantidad}
-                    onChange={(e) => setCantidad(e.target.value)}
-                  />
-                </FormGroup>
-              </Col>
-              <Col xs={6} sm={3} className="d-flex align-items-end">
-                <FormGroup className="w-100">
-                  <Button color="primary" outline block onClick={agregarProducto} disabled={!productoId}>
-                    <i className="ni ni-fat-add mr-1" /> Agregar
-                  </Button>
-                </FormGroup>
-              </Col>
-            </Row>
+      {/* ── Modales ── */}
+      <ModalNuevaVenta
+        isOpen={modalNueva}
+        toggle={() => setModalNueva(false)}
+        onVentaCreada={() => listarVentas()}
+      />
 
-            {/* Carrito */}
-            {productosSeleccionados.length > 0 && (
-              <Card className="bg-secondary mb-3">
-                <CardBody className="p-3">
-                  {productosSeleccionados.map((p) => (
-                    <div key={p.producto} className="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
-                      <div className="flex-grow-1">
-                        <span className="font-weight-bold">{p.nombre}</span>
-                        <span className="text-muted d-block d-sm-inline ml-sm-2">
-                          x{p.cantidad} = {formatPeso(p.precio * p.cantidad)}
-                        </span>
-                      </div>
-                      <Button size="sm" color="danger" outline onClick={() => quitarProducto(p.producto)}>
-                        <i className="ni ni-fat-remove" />
-                      </Button>
-                    </div>
-                  ))}
-                  <hr className="my-2" />
-                  <div className="d-flex justify-content-between font-weight-bold">
-                    <span>Total</span>
-                    <span>{formatPeso(totalVenta)}</span>
-                  </div>
-                </CardBody>
-              </Card>
-            )}
+      <ModalDetalleVenta
+        isOpen={modalDetalle}
+        toggle={() => setModalDetalle(false)}
+        venta={ventaActiva}
+        onAnular={(v) => abrirAnular(v)}
+      />
 
-            {/* Método de pago y observación */}
-            <Row>
-              <Col xs={12} md={6}>
-                <FormGroup>
-                  <Label>Método de pago</Label>
-                  <Input type="select" value={metodoPago} onChange={(e) => setMetodoPago(e.target.value)}>
-                    {METODOS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
-                  </Input>
-                </FormGroup>
-              </Col>
-              <Col xs={12} md={6}>
-                <FormGroup>
-                  <Label>Observación (opcional)</Label>
-                  <Input
-                    type="textarea" rows={2} value={observacion}
-                    onChange={(e) => setObservacion(e.target.value)}
-                    placeholder="Ej: cliente frecuente, descuento acordado..."
-                  />
-                </FormGroup>
-              </Col>
-            </Row>
-          </Form>
-        </ModalBody>
-        <ModalFooter className="flex-wrap gap-2">
-          <Button color="secondary" onClick={() => { setModalVenta(false); limpiarForm(); }}>
-            Cancelar
-          </Button>
-          <Button
-            color="primary"
-            onClick={handleCrearVenta}
-            disabled={loading || productosSeleccionados.length === 0}
-          >
-            {loading ? <Spinner size="sm" /> : "Registrar venta"}
-          </Button>
-        </ModalFooter>
-      </Modal>
-
-      {/* ── Modal: Anular venta ── */}
-      <Modal isOpen={modalAnular} toggle={() => setModalAnular(false)}>
-        <ModalHeader toggle={() => setModalAnular(false)}>Anular venta</ModalHeader>
-        <ModalBody>
-          <p className="text-muted mb-3">
-            ¿Seguro que quieres anular esta venta? El stock de los productos será restaurado.
-          </p>
-          <FormGroup>
-            <Label>Motivo de anulación (opcional)</Label>
-            <Input
-              type="textarea" rows={3} value={motivoAnulacion}
-              onChange={(e) => setMotivoAnulacion(e.target.value)}
-              placeholder="Ej: error de registro, cliente devolvió el producto..."
-            />
-          </FormGroup>
-        </ModalBody>
-        <ModalFooter className="flex-wrap gap-2">
-          <Button color="secondary" onClick={() => setModalAnular(false)}>Cancelar</Button>
-          <Button color="danger" onClick={handleAnular} disabled={loading}>
-            {loading ? <Spinner size="sm" /> : "Sí, anular"}
-          </Button>
-        </ModalFooter>
-      </Modal>
+      <ModalAnularVenta
+        isOpen={modalAnular}
+        toggle={() => setModalAnular(false)}
+        venta={ventaActiva}
+        onAnulada={() => listarVentas()}
+      />
     </>
   );
 };
