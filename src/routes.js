@@ -40,6 +40,7 @@ import GestionProductos from "views/admin/pages/GestionProductos";
 import EstadisticasProductos from "views/admin/pages/EstadisticasProductos";
 import HistorialIngresos from "views/admin/pages/HistorialIngresos";
 import VentasDirectas from "views/admin/pages/VentasDirectas";
+import GestionSuscripciones from "views/admin/pages/GestionSuscripciones";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -135,6 +136,7 @@ export const clienteRoutes = [
     component: <PresentarServicios />,
     layout: "/admin",
   },
+
   {
     path: "/catalogo-canjes",
     name: "Canjear puntos",
@@ -229,6 +231,17 @@ export const barberoRoutes = [
     layout: "/admin",
     section: "gestion",
   },
+
+  {
+    path: "/suscripciones",
+    name: "Suscripciones",
+    icon: "ni ni-credit-card text-warning",
+    component: <GestionSuscripciones />,
+    layout: "/admin",
+    excludeSlugs: ["lumicabeauty", "DerikBarberVip"],
+     section: "gestion",
+  },
+
   {
     path: "/gestion-canjes",
     name: "Canjes",

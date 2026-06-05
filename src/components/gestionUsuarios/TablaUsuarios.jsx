@@ -1,6 +1,11 @@
-import React from 'react';
-import { Table, Button } from 'reactstrap';
-import { FiUserCheck, FiEdit2, FiTrash2, FiUserPlus } from 'react-icons/fi';
+import React from "react";
+import { Table, Button } from "reactstrap";
+import {
+  FiUserCheck,
+  FiEdit2,
+  FiTrash2,
+  FiUserPlus,
+} from "react-icons/fi";
 
 const TablaUsuarios = ({
   usuarios,
@@ -10,83 +15,66 @@ const TablaUsuarios = ({
   emptyMessage = "No hay usuarios",
   compact = false,
 }) => {
-  if (usuarios.length === 0) {
+  if (!usuarios?.length) {
     return (
-      <div className="text-center py-6">
+      <div className="text-center py-5">
         <div className="icon icon-shape icon-shape-primary icon-lg rounded-circle mb-4">
-          <i className="ni ni-single-02"></i>
+          <i className="ni ni-single-02" />
         </div>
-        <h4 className="display-4 mb-2">No hay usuarios</h4>
-        <p className="lead text-muted mb-4">{emptyMessage}</p>
+
+        <h4 className="mb-2">No hay usuarios</h4>
+
+        <p className="text-muted mb-0">{emptyMessage}</p>
       </div>
     );
   }
 
-  // Vista móvil: cards en vez de tabla
+  // =========================
+  // MOBILE
+  // =========================
   if (compact) {
     return (
       <div>
         {usuarios.map((usuario) => (
           <div
             key={usuario._id}
-            style={{
-              background: '#fff',
-              borderRadius: '12px',
-              border: '1px solid #e9ecef',
-              padding: '12px 14px',
-              marginBottom: '10px',
-              boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-            }}
+            className="card shadow-sm border-0 mb-3"
           >
-            <div className="d-flex justify-content-between align-items-center">
-              {/* Contenido de las columnas */}
-              <div style={{ flex: 1, minWidth: 0 }}>
-                {columns.map((col) => (
-                  <div key={col.key}>
+            <div className="card-body py-3">
+              {columns.map((col) => (
+                <div
+                  key={col.key}
+                  className="d-flex justify-content-between align-items-start mb-2"
+                >
+                  <small
+                    className="text-muted font-weight-bold mr-2"
+                    style={{ minWidth: "90px" }}
+                  >
+                    {col.label}
+                  </small>
+
+                  <div className="text-right flex-grow-1">
                     {col.render
                       ? col.render(usuario[col.key], usuario)
                       : usuario[col.key]}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
 
-              {/* Acciones */}
-              <div className="d-flex align-items-center ml-2" style={{ gap: '6px', flexShrink: 0 }}>
+              <hr className="my-3" />
+
+              <div className="d-flex justify-content-end flex-wrap">
                 {acciones.map((accion) => (
-                  <button
+                  <Button
                     key={accion.id}
+                    color={accion.color}
+                    size="sm"
+                    className="btn-icon-only mr-2 mb-2"
                     onClick={() => onAccion(accion.id, usuario)}
                     title={accion.title}
-                    style={{
-                      width: '32px',
-                      height: '32px',
-                      borderRadius: '8px',
-                      border: 'none',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      flexShrink: 0,
-                      background:
-                        accion.color === 'info'
-                          ? '#e3f2fd'
-                          : accion.color === 'warning'
-                          ? '#fff8e1'
-                          : accion.color === 'danger'
-                          ? '#ffebee'
-                          : '#f5f5f5',
-                      color:
-                        accion.color === 'info'
-                          ? '#0288d1'
-                          : accion.color === 'warning'
-                          ? '#f57c00'
-                          : accion.color === 'danger'
-                          ? '#c62828'
-                          : '#555',
-                    }}
                   >
                     {accion.icon}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -96,49 +84,57 @@ const TablaUsuarios = ({
     );
   }
 
-  // Vista desktop: tabla normal
+  // =========================
+  // DESKTOP
+  // =========================
   return (
-    <div className="table-responsive">
-      <Table className="align-items-center table-flush" responsive>
-        <thead className="thead-light">
-          <tr>
-            {columns.map((col) => (
-              <th key={col.key}>{col.label}</th>
-            ))}
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          {usuarios.map((usuario) => (
-            <tr key={usuario._id}>
-              {columns.map((col) => (
-                <td key={col.key}>
-                  {col.render
-                    ? col.render(usuario[col.key], usuario)
-                    : usuario[col.key]}
-                </td>
-              ))}
-              <td className="text-right">
-                <div className="d-flex align-items-center">
-                  {acciones.map((accion) => (
-                    <Button
-                      key={accion.id}
-                      color={accion.color}
-                      size="sm"
-                      className="btn-icon-only mr-2"
-                      onClick={() => onAccion(accion.id, usuario)}
-                      title={accion.title}
-                    >
-                      {accion.icon}
-                    </Button>
-                  ))}
-                </div>
-              </td>
-            </tr>
+    <Table
+      responsive
+      className="align-items-center table-flush mb-0"
+    >
+      <thead className="thead-light">
+        <tr>
+          {columns.map((col) => (
+            <th key={col.key}>{col.label}</th>
           ))}
-        </tbody>
-      </Table>
-    </div>
+
+          <th className="text-center" style={{ width: "140px" }}>
+            Acciones
+          </th>
+        </tr>
+      </thead>
+
+      <tbody>
+        {usuarios.map((usuario) => (
+          <tr key={usuario._id}>
+            {columns.map((col) => (
+              <td key={col.key}>
+                {col.render
+                  ? col.render(usuario[col.key], usuario)
+                  : usuario[col.key]}
+              </td>
+            ))}
+
+            <td className="text-center">
+              <div className="d-flex justify-content-center flex-wrap">
+                {acciones.map((accion) => (
+                  <Button
+                    key={accion.id}
+                    color={accion.color}
+                    size="sm"
+                    className="btn-icon-only mr-2 mb-1"
+                    onClick={() => onAccion(accion.id, usuario)}
+                    title={accion.title}
+                  >
+                    {accion.icon}
+                  </Button>
+                ))}
+              </div>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </Table>
   );
 };
 
