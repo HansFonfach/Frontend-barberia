@@ -278,7 +278,6 @@ const Landing = () => {
           backgroundColor: "#FFFFFF",
         }}
       >
-  
         <ServiciosSection
           servicios={servicios}
           onReservar={() => navigate(`/${slug}/reservar`)}
@@ -576,25 +575,26 @@ const Landing = () => {
                   {/* Botón de Instagram con imagen real */}
                   <Button
                     style={{
-                      backgroundColor: "transparent",
+                      background:
+                        "linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)",
                       border: "none",
-                      padding: "0",
                       width: "40px",
                       height: "40px",
-                      overflow: "hidden",
                       borderRadius: "50%",
+                      padding: 0,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                     onClick={() =>
-                      window.open(`${empresa.redes.instagram}`, "_blank")
+                      window.open(empresa.redes.instagram, "_blank")
                     }
                   >
-                    <img
-                      src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e7/Instagram_logo_2016.svg/2048px-Instagram_logo_2016.svg.png"
-                      alt="Instagram"
+                    <i
+                      className="fab fa-instagram"
                       style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
+                        color: "#fff",
+                        fontSize: "20px",
                       }}
                     />
                   </Button>
