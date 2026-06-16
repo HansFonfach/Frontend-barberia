@@ -11,7 +11,7 @@ const UserHeader = () => {
 
   if (empresa.tipo === "barberia") {
     backgroundImg = require("../../assets/img/theme/profile-cover.jpg");
-  } else if (empresa.tipo === "salon_belleza") {
+  } else if (empresa.tipo || empresa.rubro === "salon_belleza") {
     backgroundImg = require("../../assets/img/theme/lifting-pestanas.png");
   } else {
     // Imagen por defecto
