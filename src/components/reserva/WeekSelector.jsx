@@ -59,7 +59,7 @@ const WeekSelector = ({
         <div className="alert alert-warning text-center py-3">
           <strong>Selecciona un barbero primero</strong>
           <p className="mb-0 small mt-1">
-            Elige un barbero para ver los días disponibles
+           Elige un profesional
           </p>
         </div>
       </FormGroup>

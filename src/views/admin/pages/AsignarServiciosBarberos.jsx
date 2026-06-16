@@ -166,7 +166,7 @@ const AsignarServiciosBarbero = () => {
                           onChange={(e) => setBarberoId(e.target.value)}
                           className={isMobile ? "form-control-sm" : ""}
                         >
-                          <option value="">-- Elige un barbero --</option>
+                          <option value="">-- Elige un profesional --</option>
                           {barberos.map((b) => (
                             <option key={b._id} value={b._id}>
                               {b.nombre} {b.apellido}
