@@ -29,19 +29,42 @@ import { useRutValidator } from "hooks/useRutValidador";
 import { useEmpresa } from "context/EmpresaContext";
 import { getUsuarioByRutPublico } from "api/usuarios";
 
-const ReservarHoraInvitado = () => {
-  const { slug } = useParams();
-  const { empresa } = useEmpresa();
-
-  const isLumica = slug === "lumicabeauty";
-  const lumicaTheme = {
+const themes = {
+  lumicabeauty: {
     primary: "#FF5DA1",
     primaryLight: "#FFE4F0",
     primaryDark: "#E64D8F",
     heroBg: "linear-gradient(135deg, #FFFFFF 0%, #FFF5FA 100%)",
     textDark: "#2D3748",
     textMuted: "#718096",
-  };
+    variant: "light",
+  },
+  "danails-studio": {
+    primary: "#F2A7C3",
+    primaryLight: "#FEF0F5",
+    primaryDark: "#D4819F",
+    heroBg: "linear-gradient(135deg, #FFFFFF 0%, #FEF0F5 80%, #FFF8FB 100%)",
+    textDark: "#3A2E32",
+    textMuted: "#B09AA0",
+    variant: "light",
+  },
+  default: {
+    primary: "#5e72e4",
+    primaryLight: "#eaecfe",
+    primaryDark: "#324cdd",
+    heroBg: "linear-gradient(150deg, #172b4d 0%, #1a174d 100%)",
+    textDark: "#ffffff",
+    textMuted: "rgba(255,255,255,0.9)",
+    variant: "dark",
+  },
+};
+
+const ReservarHoraInvitado = () => {
+  const { slug } = useParams();
+  const { empresa } = useEmpresa();
+
+  const theme = themes[slug] || themes.default;
+  const isLightTheme = theme.variant === "light";
 
   const {
     servicios,
@@ -146,7 +169,11 @@ const ReservarHoraInvitado = () => {
   if (loadingServicios) {
     return (
       <Container className="mt-7 py-5 text-center">
-        <div className="spinner-border text-success mb-3" role="status" />
+        <div
+          className="spinner-border mb-3"
+          role="status"
+          style={{ color: theme.primary }}
+        />
         <h5>Cargando disponibilidad</h5>
       </Container>
     );
@@ -157,9 +184,7 @@ const ReservarHoraInvitado = () => {
       <div
         className="position-relative py-7 py-lg-8"
         style={{
-          background: isLumica
-            ? lumicaTheme.heroBg
-            : "linear-gradient(150deg, #172b4d 0%, #1a174d 100%)",
+          background: theme.heroBg,
           minHeight: "40vh",
           display: "flex",
           alignItems: "center",
@@ -168,7 +193,7 @@ const ReservarHoraInvitado = () => {
         <Container>
           <Row className="justify-content-center text-center">
             <Col lg="8">
-              {!isLumica && (
+              {!isLightTheme && (
                 <img
                   src={empresa?.logo || logo}
                   alt={empresa?.nombre || "Logo"}
@@ -182,19 +207,19 @@ const ReservarHoraInvitado = () => {
               <div
                 style={{
                   display: "inline-block",
-                  backgroundColor: isLumica
-                    ? lumicaTheme.primaryLight
+                  backgroundColor: isLightTheme
+                    ? theme.primaryLight
                     : "rgba(255,255,255,0.2)",
-                  color: isLumica ? lumicaTheme.primary : "#ffffff",
+                  color: isLightTheme ? theme.primary : "#ffffff",
                   padding: "8px 20px",
                   borderRadius: "50px",
                   fontSize: "0.95rem",
                   marginBottom: "1.5rem",
                   fontWeight: 500,
-                  border: isLumica
-                    ? `1px solid ${lumicaTheme.primary}30`
+                  border: isLightTheme
+                    ? `1px solid ${theme.primary}30`
                     : "1px solid rgba(255,255,255,0.1)",
-                  backdropFilter: isLumica ? "none" : "blur(10px)",
+                  backdropFilter: isLightTheme ? "none" : "blur(10px)",
                 }}
               >
                 ✨ {empresa?.nombre || "Bienvenido"}
@@ -202,9 +227,11 @@ const ReservarHoraInvitado = () => {
               <h1
                 className="display-2 font-weight-bold mb-2"
                 style={{
-                  color: isLumica ? lumicaTheme.textDark : "#ffffff",
+                  color: isLightTheme ? theme.textDark : "#ffffff",
                   fontSize: "clamp(2.5rem, 6vw, 4rem)",
-                  textShadow: isLumica ? "none" : "0 2px 10px rgba(0,0,0,0.2)",
+                  textShadow: isLightTheme
+                    ? "none"
+                    : "0 2px 10px rgba(0,0,0,0.2)",
                 }}
               >
                 Reserva tu hora
@@ -212,8 +239,8 @@ const ReservarHoraInvitado = () => {
               <p
                 className="lead"
                 style={{
-                  color: isLumica
-                    ? lumicaTheme.textMuted
+                  color: isLightTheme
+                    ? theme.textMuted
                     : "rgba(255,255,255,0.9)",
                   fontSize: "1.25rem",
                   maxWidth: "600px",
@@ -233,14 +260,20 @@ const ReservarHoraInvitado = () => {
         <div className="mb-4">
           <div className="d-flex justify-content-between">
             <span className="small text-muted">Progreso</span>
-            <span className="small fw-bold text-success">
+            <span
+              className="small fw-bold"
+              style={{ color: theme.primary }}
+            >
               {Math.round(progresoPasos)}%
             </span>
           </div>
           <div className="progress" style={{ height: 6 }}>
             <div
-              className="progress-bar bg-success"
-              style={{ width: `${progresoPasos}%` }}
+              className="progress-bar"
+              style={{
+                width: `${progresoPasos}%`,
+                backgroundColor: theme.primary,
+              }}
             />
           </div>
         </div>
@@ -248,7 +281,12 @@ const ReservarHoraInvitado = () => {
         <StepIndicator pasoActual={pasoActual} />
 
         <Card className="shadow-lg border-0">
-          <div className="bg-success p-4 text-white">
+          <div
+            className="p-4 text-white"
+            style={{
+              background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.primaryDark} 100%)`,
+            }}
+          >
             <h3 className="mb-1">Reserva tu hora</h3>
             <small>Sin cuenta, sin complicaciones</small>
           </div>
@@ -297,7 +335,7 @@ const ReservarHoraInvitado = () => {
                 )}
                 {(!servicio || !barbero || !fecha || !hora) && (
                   <div className="mt-4 d-flex">
-                    <Info className="me-2 text-success" />
+                    <Info className="me-2" style={{ color: theme.primary }} />
                     <small className="text-muted">
                       Sigue los pasos para completar tu reserva
                     </small>
@@ -319,17 +357,13 @@ const ReservarHoraInvitado = () => {
           </CardBody>
         </Card>
 
-        {/* ...todo tu código igual arriba */}
-
         <Modal isOpen={modalInvitado} toggle={toggleModalInvitado} centered>
           <ModalHeader toggle={toggleModalInvitado}>
             Datos del cliente
           </ModalHeader>
 
-          {/* 👇 IMPORTANTE */}
           <ModalBody autoComplete="off">
             <form autoComplete="off">
-              {/* RUT */}
               <Input
                 className={`mb-2 ${rutError ? "is-invalid" : ""}`}
                 placeholder="Ingrese RUT sin puntos ni guión"
@@ -355,7 +389,6 @@ const ReservarHoraInvitado = () => {
                 </small>
               )}
 
-              {/* Nombre */}
               <Input
                 className="mb-2"
                 placeholder="Nombre"
@@ -368,7 +401,6 @@ const ReservarHoraInvitado = () => {
                 }}
               />
 
-              {/* Apellido */}
               <Input
                 className="mb-2"
                 placeholder="Apellido"
@@ -380,7 +412,6 @@ const ReservarHoraInvitado = () => {
                 }
               />
 
-              {/* Teléfono */}
               <div className="mb-2">
                 <div
                   className="d-flex align-items-center rounded input-group-alternative"
@@ -397,10 +428,14 @@ const ReservarHoraInvitado = () => {
                       whiteSpace: "nowrap",
                     }}
                   >
-                    <FaPhone size={13} className="text-success me-2" />
+                    <FaPhone
+                      size={13}
+                      className="me-2"
+                      style={{ color: theme.primary }}
+                    />
                     <span
-                      className="text-muted fw-bold"
-                      style={{ fontSize: "0.85rem" }}
+                      className="fw-bold"
+                      style={{ fontSize: "0.85rem", color: theme.textMuted }}
                     >
                       +569
                     </span>
@@ -408,10 +443,9 @@ const ReservarHoraInvitado = () => {
 
                   <input
                     placeholder="Teléfono"
-                  
                     type="text"
-                    name="telefono_random" // 👈 clave
-                    autoComplete="new-password" // 👈 hack anti-autocomplete
+                    name="telefono_random"
+                    autoComplete="new-password"
                     inputMode="numeric"
                     value={invitado.telefono}
                     onChange={(e) => {
@@ -432,7 +466,7 @@ const ReservarHoraInvitado = () => {
                   {invitado.telefono && (
                     <div className="px-2">
                       {invitado.telefono.length === 8 ? (
-                        <span className="text-success fw-bold">✓</span>
+                        <span className="fw-bold" style={{ color: theme.primary }}>✓</span>
                       ) : (
                         <span className="text-muted small">
                           {invitado.telefono.length}/8
@@ -449,23 +483,28 @@ const ReservarHoraInvitado = () => {
                 )}
               </div>
 
-              {/* Email */}
               <Input
                 className="mb-3"
                 placeholder="Email"
                 type="email"
                 value={invitado.email}
                 name="email_random"
-                autoComplete="new-password" // 👈 evita autofill también
+                autoComplete="new-password"
                 onChange={(e) =>
                   setInvitado({ ...invitado, email: e.target.value })
                 }
               />
 
               <Button
-                color="success"
                 block
                 disabled={!invitadoValido || reservando}
+                style={{
+                  backgroundColor: theme.primary,
+                  border: "none",
+                  fontWeight: 600,
+                  borderRadius: "8px",
+                  color: "#FFFFFF",
+                }}
                 onClick={async () => {
                   await reservarComoInvitado();
                   toggleModalInvitado();
