@@ -238,7 +238,7 @@ export const barberoRoutes = [
     icon: "ni ni-credit-card text-warning",
     component: <GestionSuscripciones />,
     layout: "/admin",
-    excludeSlugs: ["lumicabeauty", "DerikBarberVip"],
+    excludeSlugs: ["lumicabeauty", "DerikBarberVip" , "danails-studio"],
      section: "gestion",
   },
 
@@ -364,8 +364,8 @@ export const barberoRoutes = [
       },
       {
         path: "/HistorialIngresos",
-        name: "HistorialIngresos",
-        icon: "fas fa-chart-line text-info",
+        name: "Historial Ingresos",
+        icon: "fas fa-chart-line text-success",
         component: <HistorialIngresos />,
         layout: "/admin",
       },
