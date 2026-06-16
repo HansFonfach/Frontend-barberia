@@ -28,6 +28,8 @@ const Auth = () => {
   const { empresa } = useEmpresa();
 
   const isLumica = slug === "lumicabeauty";
+  const isDanails = slug === "danails-studio";
+  const isCustomTheme = isLumica || isDanails;
 
   const theme = isLumica
     ? {
@@ -35,7 +37,16 @@ const Auth = () => {
         primaryLight: "#FFE4F0",
         primaryDark: "#E64D8F",
         heroBg: "linear-gradient(135deg, #FF5DA1 0%, #E64D8F 100%)",
-        fillColor: "#FFFFFF",
+        fillColor: "#FFF5FA",
+        headerClass: null,
+      }
+    : isDanails
+    ? {
+        primary: "#F2A7C3",
+        primaryLight: "#FEF0F5",
+        primaryDark: "#D4819F",
+        heroBg: "linear-gradient(135deg, #F2A7C3 0%, #D4819F 100%)",
+        fillColor: "#FFF8FB",
         headerClass: null,
       }
     : {
@@ -48,9 +59,9 @@ const Auth = () => {
       };
 
   React.useEffect(() => {
-    if (isLumica) {
+    if (isCustomTheme) {
       document.body.classList.remove("bg-default");
-      document.body.style.backgroundColor = "#FFF5FA";
+      document.body.style.backgroundColor = theme.fillColor;
     } else {
       document.body.classList.add("bg-default");
       document.body.style.backgroundColor = "";
@@ -59,7 +70,7 @@ const Auth = () => {
       document.body.classList.remove("bg-default");
       document.body.style.backgroundColor = "";
     };
-  }, [isLumica]);
+  }, [isCustomTheme]);
 
   React.useEffect(() => {
     window.scrollTo(0, 0);
@@ -81,17 +92,17 @@ const Auth = () => {
 
         {/* HEADER */}
         <div
-          className={!isLumica ? "header bg-gradient-info py-7 py-lg-8" : "header py-7 py-lg-8"}
-          style={isLumica ? { background: theme.heroBg } : {}}
+          className={!isCustomTheme ? "header bg-gradient-info py-7 py-lg-8" : "header py-7 py-lg-8"}
+          style={isCustomTheme ? { background: theme.heroBg } : {}}
         >
           <Container>
             <div className="header-body text-center mb-7">
               <Row className="justify-content-center">
                 <Col lg="5" md="6">
                   <h1 className="text-white">¡Bienvenido!</h1>
-                  {isLumica && (
+                  {isCustomTheme && (
                     <p className="text-white" style={{ opacity: 0.9 }}>
-                      ✨ {empresa?.nombre || "Lumica Beauty"}
+                      ✨ {empresa?.nombre}
                     </p>
                   )}
                 </Col>
@@ -102,8 +113,8 @@ const Auth = () => {
           <div className="separator separator-bottom separator-skew zindex-100">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2560 100">
               <polygon
-                style={isLumica ? { fill: "#FFF5FA" } : {}}
-                className={!isLumica ? "fill-default" : ""}
+                style={isCustomTheme ? { fill: theme.fillColor } : {}}
+                className={!isCustomTheme ? "fill-default" : ""}
                 points="2560 0 2560 100 0 100"
               />
             </svg>

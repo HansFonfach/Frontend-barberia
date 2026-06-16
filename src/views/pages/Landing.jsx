@@ -24,34 +24,51 @@ const Landing = () => {
     loading: loadingLanding,
   } = useLandingData(slug);
 
-  const isLumica = slug === "lumicabeauty";
+  const themes = {
+    lumicabeauty: {
+      primary: "#FF5DA1",
+      primaryLight: "#FFE4F0",
+      primaryDark: "#E64D8F",
+      secondary: "#BA68C8",
+      softBg: "#FFFFFF",
+      heroBg: "linear-gradient(135deg, #FFFFFF 0%, #FFF5FA 100%)",
+      textDark: "#2D3748",
+      textMuted: "#718096",
+      variant: "light",
+    },
+    "danails-studio": {
+      primary: "#F2A7C3", // rosa pastel del logo — botones, íconos, badges
+      primaryLight: "#FEF0F5", // rosa muy pálido — fondos de cards, badges
+      primaryDark: "#D4819F", // rosa más intenso — hover de botones
 
-  // Definir tema basado en el slug
-  const theme = isLumica
-    ? {
-        // Tema especial para lumicabeauty con rosado #FF5DA1
-        primary: "#FF5DA1",
-        primaryLight: "#FFE4F0",
-        primaryDark: "#E64D8F",
-        secondary: "#BA68C8",
-        softBg: "#FFFFFF",
-        heroBg: "linear-gradient(135deg, #FFFFFF 0%, #FFF5FA 100%)",
-        textDark: "#2D3748",
-        textMuted: "#718096",
-        isLumica: true,
-      }
-    : {
-        // Tema original para otras empresas
-        primary: "#5e72e4",
-        primaryLight: "#eaecfe",
-        primaryDark: "#324cdd",
-        secondary: "#2dce89",
-        softBg: "#f6f9fc",
-        heroBg: "linear-gradient(150deg, #172b4d 0%, #1a174d 100%)",
-        textDark: "#172b4d",
-        textMuted: "#8898aa",
-        isLumica: false,
-      };
+      secondary: "#D4AF37", // dorado — solo para detalles puntuales
+
+      softBg: "#FFF8FB", // blanco rosado suavísimo
+
+      heroBg: "linear-gradient(135deg, #FFFFFF 0%, #FEF0F5 50%, #FFF8FB 100%)",
+
+      textDark: "#3A2E32", // casi negro cálido
+      textMuted: "#B09AA0", // gris rosado para subtítulos
+
+      variant: "light",
+    },
+
+    default: {
+      primary: "#5e72e4",
+      primaryLight: "#eaecfe",
+      primaryDark: "#324cdd",
+      secondary: "#2dce89",
+      softBg: "#f6f9fc",
+      heroBg: "linear-gradient(150deg, #172b4d 0%, #1a174d 100%)",
+      textDark: "#172b4d",
+      textMuted: "#8898aa",
+      variant: "dark",
+    },
+  };
+
+  const theme = themes[slug] || themes.default;
+
+  const isLightTheme = theme.variant === "light";
 
   if (loading || loadingLanding) {
     return (
@@ -105,13 +122,13 @@ const Landing = () => {
           display: "flex",
           alignItems: "center",
           position: "relative",
-          color: theme.isLumica ? theme.textDark : "#fff",
+          color: isLightTheme ? theme.textDark : "#fff",
         }}
       >
         <Container className="position-relative">
           <Row className="justify-content-center">
             <Col lg="8" className="text-center">
-              {theme.isLumica && (
+              {isLightTheme && (
                 <div
                   style={{
                     position: "relative",
@@ -137,14 +154,14 @@ const Landing = () => {
               <Badge
                 pill
                 style={{
-                  backgroundColor: theme.isLumica
+                  backgroundColor: isLightTheme
                     ? theme.primaryLight
                     : "rgba(255,255,255,0.2)",
-                  color: theme.isLumica ? theme.primary : "#fff",
+                  color: isLightTheme ? theme.primary : "#fff",
                   padding: "8px 16px",
                   fontSize: "0.85rem",
                   marginBottom: "2rem",
-                  ...(theme.isLumica
+                  ...(isLightTheme
                     ? { border: `1px solid ${theme.primary}20` }
                     : {
                         backdropFilter: "blur(10px)",
@@ -159,8 +176,8 @@ const Landing = () => {
                 className="display-3 font-weight-bold mb-4"
                 style={{
                   fontSize: "clamp(2.5rem, 5vw, 4rem)",
-                  color: theme.isLumica ? theme.textDark : "#fff",
-                  ...(theme.isLumica
+                  color: isLightTheme ? theme.textDark : "#fff",
+                  ...(isLightTheme
                     ? {}
                     : { textShadow: "0 2px 10px rgba(0,0,0,0.1)" }),
                 }}
@@ -172,8 +189,8 @@ const Landing = () => {
                 className="lead mb-5"
                 style={{
                   fontSize: "1.25rem",
-                  color: theme.isLumica ? theme.textMuted : "#fff",
-                  opacity: theme.isLumica ? 1 : 0.95,
+                  color: isLightTheme ? theme.textMuted : "#fff",
+                  opacity: isLightTheme ? 1 : 0.95,
                   maxWidth: "600px",
                   marginLeft: "auto",
                   marginRight: "auto",
@@ -188,19 +205,19 @@ const Landing = () => {
                 <Button
                   size="lg"
                   style={{
-                    backgroundColor: theme.isLumica ? "#FFFFFF" : "#ffffff",
+                    backgroundColor: isLightTheme ? "#FFFFFF" : "#ffffff",
                     color: theme.primary,
                     border: "none",
                     fontWeight: 600,
                     padding: "14px 32px",
                     borderRadius: "50px",
-                    boxShadow: theme.isLumica
+                    boxShadow: isLightTheme
                       ? `0 10px 20px ${theme.primary}40`
                       : "0 10px 20px rgba(0,0,0,0.1)",
                     transition: "all 0.3s ease",
                   }}
                   onMouseEnter={(e) => {
-                    if (theme.isLumica) {
+                    if (isLightTheme) {
                       e.target.style.backgroundColor = "#FFFFFF";
                       e.target.style.transform = "translateY(-2px)";
                       e.target.style.boxShadow = `0 15px 30px ${theme.primary}60`;
@@ -210,7 +227,7 @@ const Landing = () => {
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (theme.isLumica) {
+                    if (isLightTheme) {
                       e.target.style.backgroundColor = "#FFFFFF";
                       e.target.style.transform = "translateY(0)";
                       e.target.style.boxShadow = `0 10px 20px ${theme.primary}40`;
@@ -229,21 +246,21 @@ const Landing = () => {
                   outline
                   size="lg"
                   style={{
-                    borderColor: theme.isLumica
+                    borderColor: isLightTheme
                       ? theme.primary
                       : "rgba(255,255,255,0.5)",
-                    color: theme.isLumica ? theme.primary : "#ffffff",
+                    color: isLightTheme ? theme.primary : "#ffffff",
                     fontWeight: 500,
                     padding: "14px 32px",
                     borderRadius: "50px",
-                    backgroundColor: theme.isLumica
+                    backgroundColor: isLightTheme
                       ? "transparent"
                       : "transparent",
-                    backdropFilter: theme.isLumica ? "none" : "blur(5px)",
+                    backdropFilter: isLightTheme ? "none" : "blur(5px)",
                     transition: "all 0.3s ease",
                   }}
                   onMouseEnter={(e) => {
-                    if (theme.isLumica) {
+                    if (isLightTheme) {
                       e.target.style.backgroundColor = theme.primaryLight;
                       e.target.style.borderColor = theme.primaryDark;
                     } else {
@@ -252,7 +269,7 @@ const Landing = () => {
                     }
                   }}
                   onMouseLeave={(e) => {
-                    if (theme.isLumica) {
+                    if (isLightTheme) {
                       e.target.style.backgroundColor = "transparent";
                       e.target.style.borderColor = theme.primary;
                     } else {
@@ -290,7 +307,7 @@ const Landing = () => {
         style={{
           paddingTop: "3rem",
           paddingBottom: "5rem",
-          backgroundColor: theme.isLumica ? theme.primaryLight : theme.softBg,
+          backgroundColor: isLightTheme ? theme.primaryLight : theme.softBg,
           position: "relative",
         }}
       >
@@ -300,14 +317,14 @@ const Landing = () => {
               <Badge
                 pill
                 style={{
-                  backgroundColor: theme.isLumica
+                  backgroundColor: isLightTheme
                     ? "#FFFFFF"
                     : theme.primaryLight,
                   color: theme.primary,
                   padding: "8px 16px",
                   fontSize: "0.85rem",
                   marginBottom: "1rem",
-                  ...(theme.isLumica
+                  ...(isLightTheme
                     ? { border: `1px solid ${theme.primary}20` }
                     : {}),
                 }}
@@ -337,7 +354,7 @@ const Landing = () => {
       <section
         style={{
           padding: "4rem 0",
-          background: theme.isLumica
+          background: isLightTheme
             ? `linear-gradient(135deg, ${theme.primary} 0%, ${theme.primaryDark} 100%)`
             : `linear-gradient(135deg, ${theme.primary} 0%, ${theme.primaryDark} 100%)`,
         }}
@@ -423,10 +440,10 @@ const Landing = () => {
                   borderRadius: "24px",
                   padding: "2.5rem",
                   height: "100%",
-                  boxShadow: theme.isLumica
+                  boxShadow: isLightTheme
                     ? `0 10px 30px ${theme.primary}20`
                     : "0 10px 30px rgba(0,0,0,0.05)",
-                  border: theme.isLumica
+                  border: isLightTheme
                     ? `1px solid ${theme.primaryLight}`
                     : "1px solid rgba(0,0,0,0.05)",
                 }}
@@ -609,10 +626,10 @@ const Landing = () => {
                   backgroundColor: "#FFFFFF",
                   padding: "2.5rem",
                   borderRadius: "24px",
-                  boxShadow: theme.isLumica
+                  boxShadow: isLightTheme
                     ? `0 10px 30px ${theme.primary}20`
                     : "0 10px 30px rgba(0,0,0,0.05)",
-                  border: theme.isLumica
+                  border: isLightTheme
                     ? `1px solid ${theme.primaryLight}`
                     : "1px solid rgba(0,0,0,0.05)",
                   height: "100%",
@@ -729,7 +746,7 @@ const Landing = () => {
                     onMouseEnter={(e) => {
                       e.target.style.backgroundColor = theme.primaryDark;
                       e.target.style.transform = "translateY(-2px)";
-                      e.target.style.boxShadow = theme.isLumica
+                      e.target.style.boxShadow = isLightTheme
                         ? `0 10px 20px ${theme.primary}40`
                         : "0 10px 20px rgba(0,0,0,0.1)";
                     }}

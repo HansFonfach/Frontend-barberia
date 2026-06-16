@@ -33,7 +33,7 @@ const Footer = () => {
               rel="noopener noreferrer"
               target="_blank"
             >
-              Hans Fonfach
+              Agenda Fonfach
             </a>
           </div>
         </Col>

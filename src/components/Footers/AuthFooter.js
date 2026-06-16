@@ -34,7 +34,7 @@ const Login = () => {
                   href="https://www.creative-tim.com?ref=adr-auth-footer"
                   target="_blank"
                 >
-                  Hans Fonfach
+                  Agenda Fonfach
                 </a>
               </div>
             </Col>
