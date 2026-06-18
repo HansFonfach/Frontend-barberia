@@ -64,9 +64,9 @@ export const ServiciosProvider = ({ children }) => {
   // Crear un nuevo servicio
   // ────────────────────────────────
   const crearServicio = useCallback(
-    async (nombre, precio, descripcion, slug) => {
+    async (nombre, precio, descripcion, instrucciones,  slug) => {
       try {
-        const res = await postCreateServicios({ nombre, precio, descripcion, slug });
+        const res = await postCreateServicios({ nombre, precio, descripcion, instrucciones, slug });
         await getAllServicios();
         return res.data;
       } catch (err) {

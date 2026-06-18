@@ -45,6 +45,7 @@ const GestionServicios = () => {
       nombre: "",
       precio: "",
       descripcion: "",
+      instrucciones: "",
     });
     setModal(true);
   };
@@ -72,12 +73,14 @@ const GestionServicios = () => {
           nombre: form.nombre.trim(),
           precio: parseFloat(form.precio),
           descripcion: form.descripcion.trim(),
+          instrucciones: form.instrucciones?.trim() || "",
         });
       } else {
         await crearServicio(
           form.nombre.trim(),
           parseFloat(form.precio),
-          form.descripcion.trim()
+          form.descripcion.trim(),
+          form.instrucciones?.trim() || "",
         );
       }
 
@@ -106,7 +109,7 @@ const GestionServicios = () => {
   const serviciosFiltrados = servicios.filter(
     (s) =>
       s.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
-      s.descripcion.toLowerCase().includes(busqueda.toLowerCase())
+      s.descripcion.toLowerCase().includes(busqueda.toLowerCase()),
   );
 
   const sinServicios = serviciosFiltrados.length === 0;
@@ -285,6 +288,19 @@ const GestionServicios = () => {
                 name="descripcion"
                 value={form.descripcion}
                 onChange={handleChange}
+              />
+            </FormGroup>
+            <FormGroup>
+              <label>Instrucciones para el cliente</label>
+              <Input
+                type="textarea"
+                rows="6"
+                name="instrucciones"
+                value={form.instrucciones || ""}
+                onChange={handleChange}
+                placeholder={`• Venir sin maquillaje
+• No venir con acompañantes
+• Llegar 10 minutos antes`}
               />
             </FormGroup>
 
