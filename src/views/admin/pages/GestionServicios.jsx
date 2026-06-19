@@ -46,6 +46,7 @@ const GestionServicios = () => {
       precio: "",
       descripcion: "",
       instrucciones: "",
+      cuidados: "",
     });
     setModal(true);
   };
@@ -74,6 +75,7 @@ const GestionServicios = () => {
           precio: parseFloat(form.precio),
           descripcion: form.descripcion.trim(),
           instrucciones: form.instrucciones?.trim() || "",
+          cuidados: form.cuidados?.trim() || "",
         });
       } else {
         await crearServicio(
@@ -81,6 +83,7 @@ const GestionServicios = () => {
           parseFloat(form.precio),
           form.descripcion.trim(),
           form.instrucciones?.trim() || "",
+          form.cuidados?.trim() || "",
         );
       }
 
@@ -301,6 +304,17 @@ const GestionServicios = () => {
                 placeholder={`• Venir sin maquillaje
 • No venir con acompañantes
 • Llegar 10 minutos antes`}
+              />
+            </FormGroup>
+            <FormGroup>
+              <label>Cuidados post servicio</label>
+              <Input
+                type="textarea"
+                rows="6"
+                name="cuidados"
+                value={form.cuidados || ""}
+                onChange={handleChange}
+                placeholder={`• No mojar pestañas en 24 hrs`}
               />
             </FormGroup>
 
