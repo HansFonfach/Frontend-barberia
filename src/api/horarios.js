@@ -96,6 +96,7 @@ export const postAgregarHoraExtraDiaria = async (
   barberoId,
   fecha,
   horaInicio,
+  horaFin,
 ) => {
   try {
     const res = await axiosPrivate.post(
@@ -104,6 +105,7 @@ export const postAgregarHoraExtraDiaria = async (
         barbero: barberoId,
         fecha,
         horaInicio,
+        horaFin,
       },
     );
     return res.data;

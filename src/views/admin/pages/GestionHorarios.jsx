@@ -269,6 +269,7 @@ const GestionHorarios = () => {
     new Date().toISOString().split("T")[0],
   );
   const [nuevaHora, setNuevaHora] = useState("");
+  const [nuevaHoraFin, setNuevaHoraFin] = useState(""); // 👈 nuevo
   const [mensaje, setMensaje] = useState("");
   const [mensajeError, setMensajeError] = useState("");
 
@@ -288,7 +289,6 @@ const GestionHorarios = () => {
     return fechaSeleccionada === hoy;
   }, [fechaSeleccionada]);
 
-  
   const filtrarHorasFuturas = (horas) => {
     if (!esHoy) return horas;
     const ahora = new Date();
@@ -357,8 +357,12 @@ const GestionHorarios = () => {
   };
 
   const onAgregarHoraExtra = async () => {
-    if (!nuevaHora) {
-      setMensajeError("Selecciona una hora");
+    if (!nuevaHora || !nuevaHoraFin) {
+      setMensajeError("Selecciona hora de inicio y de fin");
+      return;
+    }
+    if (nuevaHoraFin <= nuevaHora) {
+      setMensajeError("La hora de fin debe ser posterior a la hora de inicio");
       return;
     }
     if (horasExtraSet.has(nuevaHora)) {
@@ -367,9 +371,17 @@ const GestionHorarios = () => {
     }
     try {
       setMensajeError("");
-      await agregarHoraExtraDiaria(barbero, fechaSeleccionada, nuevaHora);
+      await agregarHoraExtraDiaria(
+        barbero,
+        fechaSeleccionada,
+        nuevaHora,
+        nuevaHoraFin,
+      ); // 👈
       setNuevaHora("");
-      setMensaje(`Hora extra ${nuevaHora} agregada correctamente`);
+      setNuevaHoraFin(""); // 👈
+      setMensaje(
+        `Hora extra ${nuevaHora} a ${nuevaHoraFin} agregada correctamente`,
+      );
       await refetch();
     } catch (err) {
       setMensajeError(`Error al agregar hora extra ${nuevaHora}`);
@@ -637,10 +649,19 @@ const GestionHorarios = () => {
                       onChange={(e) => setNuevaHora(e.target.value)}
                       style={{ borderRadius: "8px", maxWidth: "160px" }}
                     />
+                    <span style={{ color: "#64748b", fontSize: "0.85rem" }}>
+                      hasta
+                    </span>
+                    <Input
+                      type="time"
+                      value={nuevaHoraFin}
+                      onChange={(e) => setNuevaHoraFin(e.target.value)}
+                      style={{ borderRadius: "8px", maxWidth: "160px" }}
+                    />
                     <Button
                       onClick={onAgregarHoraExtra}
                       color="primary"
-                      disabled={!nuevaHora}
+                      disabled={!nuevaHora || !nuevaHoraFin}
                       style={{ borderRadius: "8px" }}
                     >
                       <PlusCircle size={14} className="me-1" />

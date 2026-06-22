@@ -126,9 +126,15 @@ export const HorarioProvider = ({ children }) => {
     }
   };
 
-  const agregarHoraExtraDiaria = async (barbero, fecha, hora) => {
+  const agregarHoraExtraDiaria = async (barbero, fecha, hora, horaFin) => {
+ 
     try {
-      const res = await postAgregarHoraExtraDiaria(barbero, fecha, hora);
+      const res = await postAgregarHoraExtraDiaria(
+        barbero,
+        fecha,
+        hora,
+        horaFin,
+      );
       return res;
     } catch (error) {
       throw error;
@@ -155,15 +161,20 @@ export const HorarioProvider = ({ children }) => {
   };
 
   // Dentro del provider:
-const crearVacaciones = async (barbero, fechaInicio, fechaFin, motivo) => {
-  const res = await postCrearVacaciones({ barbero, fechaInicio, fechaFin, motivo });
-  return res;
-};
+  const crearVacaciones = async (barbero, fechaInicio, fechaFin, motivo) => {
+    const res = await postCrearVacaciones({
+      barbero,
+      fechaInicio,
+      fechaFin,
+      motivo,
+    });
+    return res;
+  };
 
-const eliminarVacaciones = async (id) => {
-  const res = await deleteVacaciones(id);
-  return res;
-};
+  const eliminarVacaciones = async (id) => {
+    const res = await deleteVacaciones(id);
+    return res;
+  };
 
   const obtenerVacacionesBarbero = async (barberoId) => {
     const res = await getVacaciones(barberoId);
@@ -186,7 +197,7 @@ const eliminarVacaciones = async (id) => {
         obtenerHorarioBasePorDia,
         crearVacaciones,
         eliminarVacaciones,
-        obtenerVacacionesBarbero
+        obtenerVacacionesBarbero,
       }}
     >
       {children}
