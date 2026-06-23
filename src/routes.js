@@ -41,6 +41,7 @@ import EstadisticasProductos from "views/admin/pages/EstadisticasProductos";
 import HistorialIngresos from "views/admin/pages/HistorialIngresos";
 import VentasDirectas from "views/admin/pages/VentasDirectas";
 import GestionSuscripciones from "views/admin/pages/GestionSuscripciones";
+import GestionCategorias from "views/admin/pages/GestionCategorias";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -238,8 +239,8 @@ export const barberoRoutes = [
     icon: "ni ni-credit-card text-warning",
     component: <GestionSuscripciones />,
     layout: "/admin",
-    excludeSlugs: ["lumicabeauty", "DerikBarberVip" , "danails-studio"],
-     section: "gestion",
+    excludeSlugs: ["lumicabeauty", "DerikBarberVip", "danails-studio"],
+    section: "gestion",
   },
 
   {
@@ -247,6 +248,14 @@ export const barberoRoutes = [
     name: "Canjes",
     icon: "ni ni-shop text-warning",
     component: <GestionCanjes />,
+    layout: "/admin",
+    section: "gestion",
+  },
+  {
+    path: "/gestion-categorias",
+    name: "Categorias",
+    icon: "ni ni-shop text-yellow",
+    component: <GestionCategorias />,
     layout: "/admin",
     section: "gestion",
   },

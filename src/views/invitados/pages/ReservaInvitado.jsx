@@ -137,7 +137,7 @@ const ReservarHoraInvitado = () => {
       };
       buscar();
     }
-  }, [rutInvitado, rutError]);
+  }, [rutInvitado, rutError]); // 👈 NO incluyas setInvitado aquí
 
   const invitadoValido =
     invitado.nombre &&
@@ -165,6 +165,8 @@ const ReservarHoraInvitado = () => {
     if (hora) pasos++;
     return (pasos / 4) * 100;
   }, [servicio, barbero, fecha, hora]);
+
+
 
   if (loadingServicios) {
     return (
@@ -260,10 +262,7 @@ const ReservarHoraInvitado = () => {
         <div className="mb-4">
           <div className="d-flex justify-content-between">
             <span className="small text-muted">Progreso</span>
-            <span
-              className="small fw-bold"
-              style={{ color: theme.primary }}
-            >
+            <span className="small fw-bold" style={{ color: theme.primary }}>
               {Math.round(progresoPasos)}%
             </span>
           </div>
@@ -297,6 +296,7 @@ const ReservarHoraInvitado = () => {
                   servicios={servicios}
                   servicio={servicio}
                   onSeleccionarServicio={handleSeleccionarServicio}
+                  slug={slug}
                 />
                 {servicio && (
                   <BarberoSelector
@@ -466,7 +466,12 @@ const ReservarHoraInvitado = () => {
                   {invitado.telefono && (
                     <div className="px-2">
                       {invitado.telefono.length === 8 ? (
-                        <span className="fw-bold" style={{ color: theme.primary }}>✓</span>
+                        <span
+                          className="fw-bold"
+                          style={{ color: theme.primary }}
+                        >
+                          ✓
+                        </span>
                       ) : (
                         <span className="text-muted small">
                           {invitado.telefono.length}/8

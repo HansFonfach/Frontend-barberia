@@ -1,5 +1,5 @@
 // src/hooks/useReservaInvitado.js
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import Swal from "sweetalert2";
 import { getServiciosPublicos, getServiciosBarbero } from "api/servicios";
 import { getBarberosPublico } from "api/usuarios";
@@ -61,17 +61,21 @@ export const useReservaInvitado = (slug) => {
   // ────────────────────────────────
   // UTILIDADES FECHA
   // ────────────────────────────────
-  const isoDate = (d) =>
-    `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(
-      d.getDate(),
-    ).padStart(2, "0")}`;
+  const isoDate = useCallback(
+    (d) =>
+      `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
+    [],
+  );
 
-  const formatDayLabel = (d) =>
-    d.toLocaleDateString("es-CL", {
-      weekday: "short",
-      day: "numeric",
-      month: "short",
-    });
+  const formatDayLabel = useCallback(
+    (d) =>
+      d.toLocaleDateString("es-CL", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+      }),
+    [],
+  );
 
   const buildWeekDates = useCallback((start) => {
     const dates = [];
@@ -123,48 +127,55 @@ export const useReservaInvitado = (slug) => {
   // ────────────────────────────────
   // CARGAR SERVICIOS DE UN BARBERO (CACHE)
   // ────────────────────────────────
-  const cargarServiciosBarbero = useCallback(
-    async (barberoId) => {
-      if (!barberoId || serviciosBarberos[barberoId]) return;
+  const serviciosBarberosRef = useRef({});
 
-      try {
-        const data = await getServiciosBarbero(barberoId);
+  const cargarServiciosBarbero = useCallback(async (barberoId) => {
+    if (!barberoId) return;
 
-        setServiciosBarberos((prev) => ({
-          ...prev,
-          [barberoId]: Array.isArray(data?.data) ? data.data : [],
-        }));
-      } catch (e) {
-        console.error("❌ Error servicios barbero:", e);
-        setServiciosBarberos((prev) => ({ ...prev, [barberoId]: [] }));
-      }
-    },
-    [serviciosBarberos],
-  );
+    // ✅ Chequea la ref, no el estado
+    if (serviciosBarberosRef.current[barberoId]) return;
+
+    try {
+      const data = await getServiciosBarbero(barberoId);
+      const result = Array.isArray(data?.data) ? data.data : [];
+
+      // Guarda en la ref Y en el estado
+      serviciosBarberosRef.current[barberoId] = result;
+      setServiciosBarberos((prev) => ({ ...prev, [barberoId]: result }));
+    } catch (e) {
+      console.error("❌ Error servicios barbero:", e);
+      serviciosBarberosRef.current[barberoId] = [];
+      setServiciosBarberos((prev) => ({ ...prev, [barberoId]: [] }));
+    }
+  }, []); // ← sin dependencias, estable para siempre
 
   // ────────────────────────────────
   // FILTRAR BARBEROS SEGÚN SERVICIO SELECCIONADO
   // ────────────────────────────────
-  const barberosFiltrados = servicio
-    ? barberos.filter((b) => {
-        const serviciosB = serviciosBarberos[b._id] || [];
-        return serviciosB.some(
-          (s) => String(s.servicioId) === String(servicio),
-        );
-      })
-    : [];
+  const barberosFiltrados = useMemo(
+    () =>
+      servicio
+        ? barberos.filter((b) => {
+            const serviciosB = serviciosBarberos[b._id] || [];
+            return serviciosB.some(
+              (s) => String(s.servicioId) === String(servicio),
+            );
+          })
+        : [],
+    [servicio, barberos, serviciosBarberos],
+  );
 
   // ────────────────────────────────
   // DURACIÓN DEL SERVICIO
   // ────────────────────────────────
-  const duracionServicio = (() => {
+  const duracionServicio = useMemo(() => {
     if (!barbero || !servicio) return 60;
     const serviciosB = serviciosBarberos[barbero] || [];
     const match = serviciosB.find(
       (s) => String(s.servicioId) === String(servicio),
     );
     return match?.duracion || 60;
-  })();
+  }, [barbero, servicio, serviciosBarberos]);
 
   // ────────────────────────────────
   // CARGAR DISPONIBILIDAD SEMANAL
@@ -201,7 +212,7 @@ export const useReservaInvitado = (slug) => {
       }
       fetchingWeekRef.current = true;
       setLoadingWeek(true);
-      setWeekDays([]); 
+      setWeekDays([]);
 
       try {
         const results = await Promise.all(

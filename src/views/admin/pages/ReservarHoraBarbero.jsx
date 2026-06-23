@@ -29,6 +29,7 @@ import HorasDisponibles from "../../../components/reserva/HorasDisponibles";
 import ResumenReserva from "../../../components/reserva/ResumenReserva";
 import ModalHorasBase from "../../../components/reserva/ModalHorasBase";
 import { useAuth } from "context/AuthContext";
+import { useParams } from "react-router-dom";
 
 const ReservarHoraBarbero = () => {
   const {
@@ -78,8 +79,8 @@ const ReservarHoraBarbero = () => {
     setHora,
   } = useReservaBarbero();
 
-  const {user } = useAuth();
-
+  const { user } = useAuth();
+  const { slug } = useParams();
 
   const servicioSeleccionado = servicios.find((s) => s._id === servicio);
   const duracionSeleccionado = servicioSeleccionado?.duracion || 60;
@@ -257,6 +258,7 @@ const ReservarHoraBarbero = () => {
                       servicios={servicios}
                       servicio={servicio}
                       onSeleccionarServicio={handleSeleccionarServicio}
+                      slug={slug}
                     />
 
                     {servicio && (

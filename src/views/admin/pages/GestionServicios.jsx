@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Button,
   Card,
@@ -18,6 +18,8 @@ import {
 import UserHeader from "components/Headers/UserHeader.js";
 import ServiciosContext from "context/ServiciosContext";
 import Swal from "sweetalert2";
+import { useParams } from "react-router-dom";
+import { listarCategoriasPublico } from "api/categoria";
 
 const GestionServicios = () => {
   const [modal, setModal] = useState(false);
@@ -28,7 +30,21 @@ const GestionServicios = () => {
     nombre: "",
     precio: "",
     descripcion: "",
+    categoriaId: "",
   });
+
+  const [categorias, setCategorias] = useState([]);
+
+  const { slug } = useParams();
+
+  useEffect(() => {
+    const cargarCategorias = async () => {
+      const res = await listarCategoriasPublico(slug);
+      setCategorias(res);
+    };
+
+    if (slug) cargarCategorias();
+  }, [slug]);
 
   const { servicios, crearServicio, deleteServicio, updateServicio } =
     useContext(ServiciosContext);
@@ -47,13 +63,26 @@ const GestionServicios = () => {
       descripcion: "",
       instrucciones: "",
       cuidados: "",
+      categoriaId: "",
     });
     setModal(true);
   };
 
   const handleEditar = (servicio) => {
     setEditando(true);
-    setForm(servicio);
+
+    setForm({
+      _id: servicio._id,
+      nombre: servicio.nombre || "",
+      precio: servicio.precio || "",
+      descripcion: servicio.descripcion || "",
+      instrucciones: servicio.instrucciones || "",
+      cuidados: servicio.cuidados || "",
+
+      // 👇 ESTE ES EL FIX CLAVE
+      categoriaId: servicio.categoria || "",
+    });
+
     setModal(true);
   };
 
@@ -76,6 +105,7 @@ const GestionServicios = () => {
           descripcion: form.descripcion.trim(),
           instrucciones: form.instrucciones?.trim() || "",
           cuidados: form.cuidados?.trim() || "",
+          categoriaId: form.categoriaId,
         });
       } else {
         await crearServicio(
@@ -84,6 +114,7 @@ const GestionServicios = () => {
           form.descripcion.trim(),
           form.instrucciones?.trim() || "",
           form.cuidados?.trim() || "",
+          form.categoriaId, // 👈 FALTABA
         );
       }
 
@@ -292,6 +323,24 @@ const GestionServicios = () => {
                 value={form.descripcion}
                 onChange={handleChange}
               />
+            </FormGroup>
+            <FormGroup>
+              <label>Categoría</label>
+
+              <Input
+                type="select"
+                name="categoriaId"
+                value={form.categoriaId}
+                onChange={handleChange}
+              >
+                <option value="">Seleccione una categoría</option>
+
+                {categorias.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.nombre}
+                  </option>
+                ))}
+              </Input>
             </FormGroup>
             <FormGroup>
               <label>Instrucciones para el cliente</label>

@@ -1,6 +1,5 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState, useEffect, useMemo, useCallback } from "react";
 import { getEmpresaPorSlug, patchActualizarEmpresa } from "api/empresa";
-import { useParams } from "react-router-dom";
 
 export const EmpresaContext = createContext();
 
@@ -25,16 +24,21 @@ const aplicarColores = (colores) => {
   const root = document.documentElement;
 
   root.style.setProperty("--color-primary", colores.primario);
-  root.style.setProperty("--color-primary-light", getLightVariant(colores.primario));
-  root.style.setProperty("--color-primary-dark", getDarkVariant(colores.primario));
+  root.style.setProperty(
+    "--color-primary-light",
+    getLightVariant(colores.primario),
+  );
+  root.style.setProperty(
+    "--color-primary-dark",
+    getDarkVariant(colores.primario),
+  );
   root.style.setProperty("--color-secondary", colores.secundario);
   root.style.setProperty("--color-bg", colores.fondo);
   root.style.setProperty("--color-text", colores.texto);
   root.style.setProperty("--color-text-muted", colores.textoMuted);
 };
 
-export const EmpresaProvider = ({ children }) => {
-  const { slug } = useParams();
+export const EmpresaProvider = ({ children, slug }) => {
   const [empresa, setEmpresa] = useState(null);
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -45,23 +49,23 @@ export const EmpresaProvider = ({ children }) => {
       try {
         const res = await getEmpresaPorSlug(slug);
         setEmpresa(res.data);
-        aplicarColores(res.data.colores); // 👈 inyecta al cargar
+        aplicarColores(res.data.colores);
       } catch (error) {
         console.error("Error cargando empresa pública:", error);
       } finally {
         setLoading(false);
       }
     };
-
     fetchEmpresa();
   }, [slug]);
 
-  const actualizarEmpresa = async (datos) => {
+  // ✅ useCallback para que no se recree en cada render
+  const actualizarEmpresa = useCallback(async (datos) => {
     setGuardando(true);
     try {
       const res = await patchActualizarEmpresa(datos);
       setEmpresa(res.data);
-      aplicarColores(res.data.colores); // 👈 inyecta al guardar cambios
+      aplicarColores(res.data.colores);
       return res.data;
     } catch (error) {
       console.error("Error actualizando empresa:", error);
@@ -69,12 +73,21 @@ export const EmpresaProvider = ({ children }) => {
     } finally {
       setGuardando(false);
     }
-  };
+  }, []);
+
+  // ✅ useMemo para que el value no sea un objeto nuevo en cada render
+  const value = useMemo(
+    () => ({
+      empresa,
+      loading,
+      guardando,
+      actualizarEmpresa,
+    }),
+    [empresa, loading, guardando, actualizarEmpresa],
+  );
 
   return (
-    <EmpresaContext.Provider value={{ empresa, loading, guardando, actualizarEmpresa }}>
-      {children}
-    </EmpresaContext.Provider>
+    <EmpresaContext.Provider value={value}>{children}</EmpresaContext.Provider>
   );
 };
 
