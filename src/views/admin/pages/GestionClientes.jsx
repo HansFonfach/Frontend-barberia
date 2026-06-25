@@ -14,7 +14,9 @@ import Swal from "sweetalert2";
 
 import UserHeader from "components/Headers/UserHeader";
 import SearchBar from "components/gestionUsuarios/BarraBusqueda";
-import UserTable, { AccionIcons } from "components/gestionUsuarios/TablaUsuarios";
+import UserTable, {
+  AccionIcons,
+} from "components/gestionUsuarios/TablaUsuarios";
 import Pagination from "components/gestionUsuarios/Paginacion";
 import GestionUsuariosModal from "components/gestionUsuarios/GestionUsuarioModal";
 import UserModal from "components/gestionUsuarios/UsuariosModel";
@@ -42,7 +44,7 @@ const GestionClientes = () => {
     handleEliminarUsuario,
     toggleModal,
     toggleModalGestion,
-    getAllUsers
+    getAllUsers,
   } = useUsuarios("cliente");
 
   // Estados para el nuevo modal de detalles
@@ -55,8 +57,8 @@ const GestionClientes = () => {
       setVistaMobile(window.innerWidth < 768);
     };
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
   }, []);
 
   const toggleModalDetalles = () => {
@@ -83,7 +85,11 @@ const GestionClientes = () => {
             </Badge>
           );
         }
-        return <Badge color="danger" pill className="px-3">Inactiva</Badge>;
+        return (
+          <Badge color="danger" pill className="px-3">
+            Inactiva
+          </Badge>
+        );
       },
     },
   ];
@@ -109,7 +115,6 @@ const GestionClientes = () => {
         </div>
       ),
     },
- 
   ];
 
   const acciones = [
@@ -118,15 +123,17 @@ const GestionClientes = () => {
       icon: <FiEye size={vistaMobile ? 14 : 16} />,
       color: "info",
       title: "Ver detalles",
-      className: vistaMobile ? "btn-sm btn-outline-info" : "btn-outline-info"
+      className: vistaMobile ? "btn-sm btn-outline-info" : "btn-outline-info",
     },
     {
       id: "editar",
       icon: <FiEdit size={vistaMobile ? 14 : 16} />,
       color: "warning",
       title: "Editar",
-      className: vistaMobile ? "btn-sm btn-outline-warning" : "btn-outline-warning"
-    }
+      className: vistaMobile
+        ? "btn-sm btn-outline-warning"
+        : "btn-outline-warning",
+    },
   ];
 
   const handleAccion = async (accionId, usuario) => {
@@ -153,7 +160,7 @@ const GestionClientes = () => {
         showConfirmButton: false,
         timer: 1500,
         toast: vistaMobile,
-        position: vistaMobile ? 'top-end' : 'center'
+        position: vistaMobile ? "top-end" : "center",
       });
       getAllUsers();
     } catch (error) {
@@ -162,34 +169,65 @@ const GestionClientes = () => {
         title: "Error",
         text: error.message,
         toast: vistaMobile,
-        position: vistaMobile ? 'top-end' : 'center'
+        position: vistaMobile ? "top-end" : "center",
       });
     }
   };
 
+  const [loadingSuscripcion, setLoadingSuscripcion] = useState(false);
+
   const handleSuscribirModal = async (tipoPlan) => {
-    await handleSuscribir(usuarioEdit._id, "suscribir", tipoPlan);
+    setLoadingSuscripcion(true);
     Swal.fire({
-      icon: "success",
-      title: "¡Suscripción activada!",
+      title: "Activando suscripción...",
+      allowOutsideClick: false,
       showConfirmButton: false,
-      timer: 1500,
-      toast: vistaMobile,
-      position: vistaMobile ? 'top-end' : 'center'
+      didOpen: () => Swal.showLoading(),
     });
-    toggleModalDetalles();
-    getAllUsers();
+
+    try {
+      await handleSuscribir(usuarioEdit._id, "suscribir", tipoPlan);
+      Swal.fire({
+        icon: "success",
+        title: "¡Suscripción activada!",
+        showConfirmButton: false,
+        timer: 1500,
+        toast: vistaMobile,
+        position: vistaMobile ? "top-end" : "center",
+      });
+      toggleModalDetalles();
+      getAllUsers();
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error al activar",
+        text: error?.response?.data?.message || "Ocurrió un error inesperado",
+        confirmButtonText: "Cerrar",
+      });
+    } finally {
+      setLoadingSuscripcion(false);
+    }
   };
 
   const handleCancelarSuscripcionModal = async () => {
+    setLoadingSuscripcion(true);
+    Swal.fire({
+      title: "Desactivando suscripción...",
+      allowOutsideClick: false,
+      showConfirmButton: false,
+      didOpen: () => Swal.showLoading(),
+    });
+
     await handleSuscribir(usuarioEdit._id, "cancelar");
+    setLoadingSuscripcion(false);
+
     Swal.fire({
       icon: "info",
       title: "Suscripción cancelada",
       showConfirmButton: false,
       timer: 1500,
       toast: vistaMobile,
-      position: vistaMobile ? 'top-end' : 'center'
+      position: vistaMobile ? "top-end" : "center",
     });
     toggleModalDetalles();
     getAllUsers();
@@ -207,13 +245,13 @@ const GestionClientes = () => {
       cancelButtonText: "Cancelar",
       ...(vistaMobile && {
         toast: true,
-        position: 'top',
+        position: "top",
         timer: undefined,
         showConfirmButton: true,
         showCancelButton: true,
         confirmButtonText: "Eliminar",
-        cancelButtonText: "No"
-      })
+        cancelButtonText: "No",
+      }),
     });
 
     if (!confirm.isConfirmed) return;
@@ -226,7 +264,7 @@ const GestionClientes = () => {
       showConfirmButton: false,
       timer: 1500,
       toast: vistaMobile,
-      position: vistaMobile ? 'top-end' : 'center'
+      position: vistaMobile ? "top-end" : "center",
     });
     toggleModalDetalles();
     getAllUsers();
@@ -237,7 +275,8 @@ const GestionClientes = () => {
     <div className="d-flex justify-content-between align-items-center mt-3 mt-md-0">
       <small className="text-muted">
         <FiUsers size={14} className="mr-1" />
-        {usuarios.length} {usuarios.length === 1 ? 'cliente' : 'clientes'} encontrados
+        {usuarios.length} {usuarios.length === 1 ? "cliente" : "clientes"}{" "}
+        encontrados
       </small>
       {vistaMobile && usuarios.length > 0 && (
         <small className="text-muted">
@@ -295,7 +334,7 @@ const GestionClientes = () => {
                 {renderResultados()}
               </CardHeader>
 
-              <CardBody className={vistaMobile ? 'px-2 py-3' : ''}>
+              <CardBody className={vistaMobile ? "px-2 py-3" : ""}>
                 {usuarios.length === 0 ? (
                   <div className="text-center py-5">
                     <div className="bg-light rounded-circle d-inline-flex p-3 mb-3">
@@ -303,7 +342,7 @@ const GestionClientes = () => {
                     </div>
                     <h5 className="text-muted">No hay clientes</h5>
                     <p className="text-muted mb-0">
-                      {busqueda 
+                      {busqueda
                         ? "No se encontraron resultados para tu búsqueda"
                         : "Los clientes aparecerán aquí cuando se registren"}
                     </p>
@@ -383,16 +422,16 @@ const GestionClientes = () => {
           .card-body {
             padding: 1rem !important;
           }
-          
+
           .table-responsive {
             margin: 0 -0.5rem;
           }
-          
+
           /* Mejorar scroll en móvil */
           .table-responsive::-webkit-scrollbar {
             height: 3px;
           }
-          
+
           .table-responsive::-webkit-scrollbar-thumb {
             background-color: #adb5bd;
             border-radius: 3px;

@@ -38,9 +38,25 @@ const PLANES = [
     id: "combo_visita_corte_barba",
     nombre: "La Santa Dupla",
     emoji: "👑",
-    precio: "$40.000",
+    precio: "$45.000",
     desc: "2 visitas · Corte + barba",
     color: "#fb6340",
+  },
+  {
+    id: "padre_e_hijo",
+    nombre: "En el nombre del padre y del hijo",
+    emoji: "👨‍👦",
+    precio: "$22.000",
+    desc: "2 visitas · 2 Cortes",
+    color: "#5e72e4",
+  },
+  {
+    id: "barba",
+    nombre: "La Santa Barba",
+    emoji: "🧔",
+    precio: "$40.000",
+    desc: "4 visitas · 1 Barba por semana",
+    color: "#11cdef",
   },
 ];
 
@@ -134,11 +150,22 @@ const ClienteDetallesModal = ({
           >
             <span style={{ fontSize: "1.6rem" }}>{plan.emoji}</span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: "13px", color: "#32325d" }}>
+              <div
+                style={{ fontWeight: 700, fontSize: "13px", color: "#32325d" }}
+              >
                 {plan.nombre}
               </div>
-              <div style={{ fontSize: "11px", color: "#8898aa" }}>{plan.desc}</div>
-              <div style={{ fontWeight: 800, fontSize: "14px", color: plan.color, marginTop: "2px" }}>
+              <div style={{ fontSize: "11px", color: "#8898aa" }}>
+                {plan.desc}
+              </div>
+              <div
+                style={{
+                  fontWeight: 800,
+                  fontSize: "14px",
+                  color: plan.color,
+                  marginTop: "2px",
+                }}
+              >
                 {plan.precio}
               </div>
             </div>
@@ -164,17 +191,34 @@ const ClienteDetallesModal = ({
     if (eligiendoPlan) return renderSelectorPlanes();
 
     return (
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", width: "100%" }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gap: "8px",
+          width: "100%",
+        }}
+      >
         <Button color="warning" size="sm" onClick={onEditar} block>
           <FiEdit size={12} className="mr-1" /> Editar
         </Button>
 
         {tieneSuscripcion ? (
-          <Button color="secondary" size="sm" onClick={onCancelarSuscripcion} block>
+          <Button
+            color="secondary"
+            size="sm"
+            onClick={onCancelarSuscripcion}
+            block
+          >
             <FiX size={12} className="mr-1" /> Cancelar sus.
           </Button>
         ) : (
-          <Button color="success" size="sm" onClick={() => setEligiendoPlan(true)} block>
+          <Button
+            color="success"
+            size="sm"
+            onClick={() => setEligiendoPlan(true)}
+            block
+          >
             <FiStar size={12} className="mr-1" /> Suscribir
           </Button>
         )}
@@ -230,7 +274,9 @@ const ClienteDetallesModal = ({
     <Modal
       isOpen={isOpen}
       toggle={toggle}
-      className={vistaMobile ? "modal-fullscreen" : "modal-dialog-centered modal-lg"}
+      className={
+        vistaMobile ? "modal-fullscreen" : "modal-dialog-centered modal-lg"
+      }
       contentClassName={vistaMobile ? "h-100" : ""}
     >
       {/* HEADER */}
@@ -256,7 +302,13 @@ const ClienteDetallesModal = ({
             <FiUser size={vistaMobile ? 14 : 18} color="#fff" />
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: vistaMobile ? "14px" : "16px", color: "#fff" }}>
+            <div
+              style={{
+                fontWeight: 700,
+                fontSize: vistaMobile ? "14px" : "16px",
+                color: "#fff",
+              }}
+            >
               {usuario.nombre} {usuario.apellido}
             </div>
             <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.75)" }}>
@@ -267,7 +319,9 @@ const ClienteDetallesModal = ({
       </ModalHeader>
 
       {/* BODY */}
-      <ModalBody style={{ padding: vistaMobile ? "10px" : "20px", overflowY: "auto" }}>
+      <ModalBody
+        style={{ padding: vistaMobile ? "10px" : "20px", overflowY: "auto" }}
+      >
         <Row>
           {/* INFO PERSONAL */}
           <Col xs="12" md="6" className="mb-3">
@@ -283,16 +337,29 @@ const ClienteDetallesModal = ({
                 <ListGroup flush>
                   {[
                     { label: "RUT", value: usuario.rut || "No registrado" },
-                    { label: "Teléfono", value: usuario.telefono || "No registrado", icon: <FiPhone size={11} className="mr-1" /> },
-                    { label: "Email", value: usuario.email || "No registrado", icon: <FiMail size={11} className="mr-1" />, small: true },
+                    {
+                      label: "Teléfono",
+                      value: usuario.telefono || "No registrado",
+                      icon: <FiPhone size={11} className="mr-1" />,
+                    },
+                    {
+                      label: "Email",
+                      value: usuario.email || "No registrado",
+                      icon: <FiMail size={11} className="mr-1" />,
+                      small: true,
+                    },
                   ].map(({ label, value, icon, small }) => (
                     <ListGroupItem
                       key={label}
                       className="d-flex justify-content-between align-items-center px-0 border-0"
-                      style={{ padding: "5px 0", fontSize: vistaMobile ? "12px" : "13px" }}
+                      style={{
+                        padding: "5px 0",
+                        fontSize: vistaMobile ? "12px" : "13px",
+                      }}
                     >
                       <span className="text-muted d-flex align-items-center">
-                        {icon}{label}:
+                        {icon}
+                        {label}:
                       </span>
                       <span
                         className="font-weight-bold text-right ml-2"
@@ -326,11 +393,19 @@ const ClienteDetallesModal = ({
 
                 <div className="text-center mb-2">
                   {tieneSuscripcion ? (
-                    <Badge color="success" pill style={{ padding: "6px 14px", fontSize: "12px" }}>
+                    <Badge
+                      color="success"
+                      pill
+                      style={{ padding: "6px 14px", fontSize: "12px" }}
+                    >
                       <FiCheck className="mr-1" size={11} /> Activa
                     </Badge>
                   ) : (
-                    <Badge color="secondary" pill style={{ padding: "6px 14px", fontSize: "12px" }}>
+                    <Badge
+                      color="secondary"
+                      pill
+                      style={{ padding: "6px 14px", fontSize: "12px" }}
+                    >
                       <FiX className="mr-1" size={11} /> Sin suscripción
                     </Badge>
                   )}
@@ -339,15 +414,32 @@ const ClienteDetallesModal = ({
                 {tieneSuscripcion && suscripcionData ? (
                   <ListGroup flush>
                     {[
-                      { label: "Plan", value: PLANES.find(p => p.id === suscripcionData.tipoPlan)?.nombre || suscripcionData.tipoPlan },
-                      { label: "Servicios usados", value: `${suscripcionData.serviciosUsados || 0} / ${suscripcionData.serviciosTotales || 0}` },
-                      { label: "Inicio", value: formatFecha(suscripcionData.fechaInicio) },
-                      { label: "Vencimiento", value: formatFecha(suscripcionData.fechaFin) },
+                      {
+                        label: "Plan",
+                        value:
+                          PLANES.find((p) => p.id === suscripcionData.tipoPlan)
+                            ?.nombre || suscripcionData.tipoPlan,
+                      },
+                      {
+                        label: "Servicios usados",
+                        value: `${suscripcionData.serviciosUsados || 0} / ${suscripcionData.serviciosTotales || 0}`,
+                      },
+                      {
+                        label: "Inicio",
+                        value: formatFecha(suscripcionData.fechaInicio),
+                      },
+                      {
+                        label: "Vencimiento",
+                        value: formatFecha(suscripcionData.fechaFin),
+                      },
                     ].map(({ label, value }) => (
                       <ListGroupItem
                         key={label}
                         className="d-flex justify-content-between align-items-center px-0 border-0"
-                        style={{ padding: "5px 0", fontSize: vistaMobile ? "12px" : "13px" }}
+                        style={{
+                          padding: "5px 0",
+                          fontSize: vistaMobile ? "12px" : "13px",
+                        }}
                       >
                         <span className="text-muted">{label}:</span>
                         <span className="font-weight-bold">{value}</span>
