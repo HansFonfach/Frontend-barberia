@@ -117,7 +117,7 @@ const ReservarHoraInvitado = () => {
       const buscar = async () => {
         setBuscandoUsuario(true);
         try {
-          const usuario = await getUsuarioByRutPublico(rutInvitado);
+          const usuario = await getUsuarioByRutPublico(slug, rutInvitado);
           if (usuario) {
             setUsuarioData(usuario);
             setInvitado({
@@ -165,8 +165,6 @@ const ReservarHoraInvitado = () => {
     if (hora) pasos++;
     return (pasos / 4) * 100;
   }, [servicio, barbero, fecha, hora]);
-
-
 
   if (loadingServicios) {
     return (
