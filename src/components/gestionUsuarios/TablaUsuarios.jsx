@@ -12,9 +12,35 @@ const TablaUsuarios = ({
   columns,
   acciones,
   onAccion,
+  loading = false,
   emptyMessage = "No hay usuarios",
   compact = false,
 }) => {
+  // =========================
+  // LOADING
+  // =========================
+  if (loading) {
+    return (
+      <div className="text-center py-5">
+        <div
+          className="spinner-border text-primary mb-3"
+          role="status"
+        >
+          <span className="sr-only">Loading...</span>
+        </div>
+
+        <h4>Cargando usuarios...</h4>
+
+        <p className="text-muted mb-0">
+          Estamos obteniendo la información.
+        </p>
+      </div>
+    );
+  }
+
+  // =========================
+  // EMPTY
+  // =========================
   if (!usuarios?.length) {
     return (
       <div className="text-center py-5">
@@ -88,53 +114,64 @@ const TablaUsuarios = ({
   // DESKTOP
   // =========================
   return (
-    <Table
-      responsive
-      className="align-items-center table-flush mb-0"
-    >
-      <thead className="thead-light">
-        <tr>
-          {columns.map((col) => (
-            <th key={col.key}>{col.label}</th>
-          ))}
-
-          <th className="text-center" style={{ width: "140px" }}>
-            Acciones
-          </th>
-        </tr>
-      </thead>
-
-      <tbody>
-        {usuarios.map((usuario) => (
-          <tr key={usuario._id}>
+    <div className="table-responsive">
+      <Table className="align-items-center table-flush mb-0">
+        <thead className="thead-light">
+          <tr>
             {columns.map((col) => (
-              <td key={col.key}>
-                {col.render
-                  ? col.render(usuario[col.key], usuario)
-                  : usuario[col.key]}
-              </td>
+              <th key={col.key}>{col.label}</th>
             ))}
 
-            <td className="text-center">
-              <div className="d-flex justify-content-center flex-wrap">
-                {acciones.map((accion) => (
-                  <Button
-                    key={accion.id}
-                    color={accion.color}
-                    size="sm"
-                    className="btn-icon-only mr-2 mb-1"
-                    onClick={() => onAccion(accion.id, usuario)}
-                    title={accion.title}
-                  >
-                    {accion.icon}
-                  </Button>
-                ))}
-              </div>
-            </td>
+            <th
+              className="text-center"
+              style={{
+                width: "1%",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Acciones
+            </th>
           </tr>
-        ))}
-      </tbody>
-    </Table>
+        </thead>
+
+        <tbody>
+          {usuarios.map((usuario) => (
+            <tr key={usuario._id}>
+              {columns.map((col) => (
+                <td key={col.key}>
+                  {col.render
+                    ? col.render(usuario[col.key], usuario)
+                    : usuario[col.key]}
+                </td>
+              ))}
+
+              <td className="text-center">
+                <div
+                  className="d-flex justify-content-center"
+                  style={{
+                    gap: "6px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {acciones.map((accion) => (
+                    <Button
+                      key={accion.id}
+                      color={accion.color}
+                      size="sm"
+                      className="btn-icon-only"
+                      onClick={() => onAccion(accion.id, usuario)}
+                      title={accion.title}
+                    >
+                      {accion.icon}
+                    </Button>
+                  ))}
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </div>
   );
 };
 
