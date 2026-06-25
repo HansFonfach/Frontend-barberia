@@ -38,7 +38,7 @@ const PLANES = [
     id: "combo_visita_corte_barba",
     nombre: "La Santa Dupla",
     emoji: "👑",
-    precio: "$45.000",
+    precio: "$40.000",
     desc: "2 visitas · Corte + barba",
     color: "#fb6340",
   },
