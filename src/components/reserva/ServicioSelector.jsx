@@ -42,7 +42,7 @@ const useCategoriasPublicas = (slug) => {
     return () => {
       activo = false;
     };
-  }, [slug]); // 👈 Si el padre cambia el string del slug, esto se dispara.
+  }, [slug]);
 
   return { categorias, cargandoCategorias: cargando };
 };
@@ -53,42 +53,78 @@ const ChipsCategoria = ({
   setCategoriaActiva,
   hayServiciosSinCategoria,
 }) => (
-  <div className="d-flex flex-wrap gap-2 mb-3">
-    <Button
-      size="sm"
-      color={categoriaActiva === null ? "success" : "outline-success"}
-      onClick={() => setCategoriaActiva(null)}
-      style={{ borderRadius: "20px", fontSize: "13px" }}
+  <div
+    style={{
+      overflowX: "auto",
+      WebkitOverflowScrolling: "touch",
+      scrollbarWidth: "none",
+      msOverflowStyle: "none",
+      paddingBottom: "4px",
+      marginBottom: "12px",
+    }}
+  >
+    <div
+      style={{
+        display: "flex",
+        gap: "8px",
+        width: "max-content",
+        padding: "2px 2px 4px",
+      }}
     >
-      Todos
-    </Button>
-
-    {categorias.map((c) => (
-      <Button
-        key={c._id}
-        size="sm"
-        color={categoriaActiva === c._id ? "success" : "outline-success"}
-        onClick={() => setCategoriaActiva(c._id)}
-        style={{ borderRadius: "20px", fontSize: "13px" }}
-      >
-        {c.nombre}
-      </Button>
-    ))}
-
-    {hayServiciosSinCategoria && (
       <Button
         size="sm"
-        color={
-          categoriaActiva === "SIN_CATEGORIA"
-            ? "success"
-            : "outline-success"
-        }
-        onClick={() => setCategoriaActiva("SIN_CATEGORIA")}
-        style={{ borderRadius: "20px", fontSize: "13px" }}
+        color={categoriaActiva === null ? "success" : "outline-success"}
+        onClick={() => setCategoriaActiva(null)}
+        style={{
+          borderRadius: "8px",
+          fontSize: "13px",
+          whiteSpace: "nowrap",
+          minHeight: "36px",
+        }}
       >
-        Otros
+        Todos
       </Button>
-    )}
+
+      {categorias.map((c) => (
+        <Button
+          key={c._id}
+          size="sm"
+          color={categoriaActiva === c._id ? "success" : "outline-success"}
+          onClick={() => setCategoriaActiva(c._id)}
+          style={{
+            borderRadius: "8px",
+            fontSize: "13px",
+            whiteSpace: "nowrap",
+            minHeight: "36px",
+          }}
+        >
+          {c.nombre}
+        </Button>
+      ))}
+
+      {hayServiciosSinCategoria && (
+        <Button
+          size="sm"
+          color={
+            categoriaActiva === "SIN_CATEGORIA" ? "success" : "outline-success"
+          }
+          onClick={() => setCategoriaActiva("SIN_CATEGORIA")}
+          style={{
+            borderRadius: "8px",
+            fontSize: "13px",
+            whiteSpace: "nowrap",
+            minHeight: "36px",
+          }}
+        >
+          Otros
+        </Button>
+      )}
+    </div>
+
+    {/* Ocultar scrollbar en webkit */}
+    <style>{`
+      .chips-scroll::-webkit-scrollbar { display: none; }
+    `}</style>
   </div>
 );
 
@@ -173,7 +209,6 @@ const ServicioSelector = ({
         )}
       </Row>
 
-      {/* Estilos para mantener consistencia en móvil */}
       <style>
         {`
           @media (max-width: 576px) {
