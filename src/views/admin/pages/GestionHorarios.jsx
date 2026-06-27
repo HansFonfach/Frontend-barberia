@@ -1,5 +1,5 @@
 // src/views/admin/pages/GestionHorarios.jsx
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   Button,
   Card,
@@ -31,6 +31,7 @@ import UserHeader from "components/Headers/UserHeader";
 import { useAuth } from "context/AuthContext";
 import { useHorario } from "context/HorarioContext";
 import { useGestionHorariosAdmin } from "hooks/useGestionHorariosAdmin";
+import { useServicios } from "context/ServiciosContext";
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 const sumarMinutos = (horaStr, minutos) => {
@@ -272,6 +273,19 @@ const GestionHorarios = () => {
   const [nuevaHoraFin, setNuevaHoraFin] = useState(""); // 👈 nuevo
   const [mensaje, setMensaje] = useState("");
   const [mensajeError, setMensajeError] = useState("");
+  const { cargarServiciosBarbero } = useServicios();
+  const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
+  const [serviciosSeleccionados, setServiciosSeleccionados] = useState([]); // ids
+
+  // Cargar servicios al montar
+  useEffect(() => {
+    if (barbero) {
+      cargarServiciosBarbero(barbero).then((data) => {
+        console.log("serviciosDisponibles:", data);
+        setServiciosDisponibles(data);
+      });
+    }
+  }, [barbero]);
 
   const {
     todasLasHoras,
@@ -376,9 +390,11 @@ const GestionHorarios = () => {
         fechaSeleccionada,
         nuevaHora,
         nuevaHoraFin,
-      ); // 👈
+        serviciosSeleccionados, // ✅ nuevo parámetro
+      );
       setNuevaHora("");
-      setNuevaHoraFin(""); // 👈
+      setNuevaHoraFin("");
+      setServiciosSeleccionados([]); // ✅ limpiar selección
       setMensaje(
         `Hora extra ${nuevaHora} a ${nuevaHoraFin} agregada correctamente`,
       );
@@ -387,7 +403,6 @@ const GestionHorarios = () => {
       setMensajeError(`Error al agregar hora extra ${nuevaHora}`);
     }
   };
-
   const onEliminarHoraExtra = async (hora) => {
     try {
       setMensajeError("");
@@ -626,6 +641,7 @@ const GestionHorarios = () => {
                 )}
 
                 {/* Agregar hora extra */}
+                {/* Agregar hora extra */}
                 <div
                   style={{
                     marginTop: "24px",
@@ -642,7 +658,8 @@ const GestionHorarios = () => {
                     <PlusCircle size={16} />
                     Agregar Hora Extra
                   </h6>
-                  <div className="d-flex gap-2 align-items-center flex-wrap">
+
+                  <div className="d-flex gap-2 align-items-center flex-wrap mb-3">
                     <Input
                       type="time"
                       value={nuevaHora}
@@ -658,16 +675,78 @@ const GestionHorarios = () => {
                       onChange={(e) => setNuevaHoraFin(e.target.value)}
                       style={{ borderRadius: "8px", maxWidth: "160px" }}
                     />
-                    <Button
-                      onClick={onAgregarHoraExtra}
-                      color="primary"
-                      disabled={!nuevaHora || !nuevaHoraFin}
-                      style={{ borderRadius: "8px" }}
-                    >
-                      <PlusCircle size={14} className="me-1" />
-                      Agregar
-                    </Button>
                   </div>
+
+                  {/* Servicios permitidos */}
+                  <div className="mb-3">
+                    <Label
+                      style={{
+                        fontWeight: 600,
+                        fontSize: "0.85rem",
+                        color: "#374151",
+                      }}
+                    >
+                      Servicios permitidos en esta hora
+                      <span
+                        style={{
+                          fontWeight: 400,
+                          color: "#94a3b8",
+                          marginLeft: "6px",
+                        }}
+                      >
+                        (vacío = todos)
+                      </span>
+                    </Label>
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: "8px",
+                        marginTop: "6px",
+                      }}
+                    >
+                      jsx
+                      {serviciosDisponibles.map((s) => {
+                        const seleccionado = serviciosSeleccionados.includes(
+                          s.servicioId,
+                        );
+                        return (
+                          <button
+                            key={s.servicioId}
+                            onClick={() =>
+                              setServiciosSeleccionados((prev) =>
+                                seleccionado
+                                  ? prev.filter((id) => id !== s.servicioId)
+                                  : [...prev, s.servicioId],
+                              )
+                            }
+                            style={{
+                              padding: "5px 12px",
+                              borderRadius: "999px",
+                              fontSize: "13px",
+                              border: `1.5px solid ${seleccionado ? "#2563eb" : "#d1d5db"}`,
+                              background: seleccionado ? "#2563eb" : "#fff",
+                              color: seleccionado ? "#fff" : "#374151",
+                              cursor: "pointer",
+                              transition: "all 0.15s",
+                            }}
+                          >
+                            {s.nombre}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <Button
+                    onClick={onAgregarHoraExtra}
+                    color="primary"
+                    disabled={!nuevaHora || !nuevaHoraFin}
+                    style={{ borderRadius: "8px" }}
+                  >
+                    <PlusCircle size={14} className="me-1" />
+                    Agregar
+                  </Button>
                 </div>
 
                 {/* Leyenda */}

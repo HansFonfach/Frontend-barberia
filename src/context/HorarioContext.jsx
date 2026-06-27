@@ -126,14 +126,20 @@ export const HorarioProvider = ({ children }) => {
     }
   };
 
-  const agregarHoraExtraDiaria = async (barbero, fecha, hora, horaFin) => {
- 
+  const agregarHoraExtraDiaria = async (
+    barbero,
+    fecha,
+    hora,
+    horaFin,
+    serviciosPermitidos = [],
+  ) => {
     try {
       const res = await postAgregarHoraExtraDiaria(
         barbero,
         fecha,
         hora,
         horaFin,
+        serviciosPermitidos, // ✅ nuevo parámetro
       );
       return res;
     } catch (error) {
