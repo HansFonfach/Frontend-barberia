@@ -13,13 +13,9 @@ export const LookProvider = ({ children }) => {
       setLoadingLook(true);
       setErrorLook(null);
 
-      const res = await getEstadoLookCliente(userId);
-
-      // 👇 SOLO guardamos corte y barba
-      setLookData(res.data.data);
-
-      return res.data.data;
-
+      const data = await getEstadoLookCliente(userId); // ya es { corte, barba }
+      setLookData(data);
+      return data;
     } catch (err) {
       console.error("❌ Error al obtener estado del look:", err);
       setErrorLook(err);

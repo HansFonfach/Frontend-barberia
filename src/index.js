@@ -42,6 +42,7 @@ import RegistrarNegocio from "views/publico/RegistrarNegocio";
 import ConfirmacionResultado from "views/publico/ConfirmacionResultado";
 import { ProductoProvider } from "context/ProductoContext";
 import { VentaDirectaProvider } from "context/VentaDirectaContext";
+import ConfirmarReserva from "views/publico/ConfirmarReserva";
 
 // Wrapper por empresa (slug)
 const EmpresaWrapper = ({ children }) => {
@@ -119,6 +120,15 @@ root.render(
             element={
               <EmpresaWrapper>
                 <VerificarCuenta />
+              </EmpresaWrapper>
+            }
+          />
+
+          <Route
+            path="/:slug/agendar-directo"
+            element={
+              <EmpresaWrapper>
+                <ConfirmarReserva />
               </EmpresaWrapper>
             }
           />
