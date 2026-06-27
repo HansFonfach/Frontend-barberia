@@ -705,7 +705,6 @@ const GestionHorarios = () => {
                         marginTop: "6px",
                       }}
                     >
-                      jsx
                       {serviciosDisponibles.map((s) => {
                         const seleccionado = serviciosSeleccionados.includes(
                           s.servicioId,
