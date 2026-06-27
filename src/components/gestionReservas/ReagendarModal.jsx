@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Modal, Button, Input, Badge } from "reactstrap";
 import Swal from "sweetalert2";
 
@@ -17,17 +17,17 @@ const ReagendarModal = ({
   getHorasDisponiblesBarbero,
   reagendarReserva,
 }) => {
+  const [loadingReagendar, setLoadingReagendar] = useState(false);
   const handleFechaReagendar = async (fecha) => {
     setNuevaFecha(fecha);
     setHoraSeleccionada(null);
+
     if (!fecha || !reservaSeleccionada) return;
 
     const barberoId =
       reservaSeleccionada?.barbero?._id || reservaSeleccionada?.barbero;
     const servicioId =
       reservaSeleccionada?.servicio?._id || reservaSeleccionada?.servicio;
-
-    console.log("Pidiendo horas con:", { barberoId, servicioId, fecha }); // ← agrega
 
     try {
       setLoadingHoras(true);
@@ -36,7 +36,7 @@ const ReagendarModal = ({
         fecha,
         servicioId,
       );
-      console.log("Horas recibidas:", response?.horas); // ← agrega
+
       setHorasDisponibles(response?.horas || []);
     } catch (error) {
       setHorasDisponibles([]);
@@ -48,11 +48,15 @@ const ReagendarModal = ({
   const handleConfirmarReagendar = async () => {
     if (!horaSeleccionada || !nuevaFecha) return;
 
+    setLoadingReagendar(true);
+
     const result = await reagendarReserva(
       reservaSeleccionada._id,
       nuevaFecha,
       horaSeleccionada,
     );
+
+    setLoadingReagendar(false);
 
     if (!result) return;
 
@@ -193,11 +197,20 @@ const ReagendarModal = ({
 
           <Button
             color="primary"
-            disabled={!horaSeleccionada || !nuevaFecha}
+            disabled={!horaSeleccionada || !nuevaFecha || loadingReagendar}
             onClick={handleConfirmarReagendar}
           >
-            <i className="ni ni-check-bold mr-1"></i>
-            Confirmar reagendo
+            {loadingReagendar ? (
+              <>
+                <span className="spinner-border spinner-border-sm mr-2" />
+                Reagendando...
+              </>
+            ) : (
+              <>
+                <i className="ni ni-check-bold mr-1"></i>
+                Confirmar reagendo
+              </>
+            )}
           </Button>
         </div>
       </div>

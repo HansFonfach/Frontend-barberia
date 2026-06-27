@@ -281,7 +281,7 @@ const GestionHorarios = () => {
   useEffect(() => {
     if (barbero) {
       cargarServiciosBarbero(barbero).then((data) => {
-        console.log("serviciosDisponibles:", data);
+       
         setServiciosDisponibles(data);
       });
     }
@@ -326,12 +326,11 @@ const GestionHorarios = () => {
   );
 
   const horasAgrupadas = useMemo(() => {
-    console.log("📦 horasAdmin:", horasAdmin);
-    console.log("📦 horasAdmin.length:", horasAdmin?.length);
+  
     const horasFiltradas = filtrarHorasFuturas(horasAdmin);
-    console.log("📦 horasFiltradas:", horasFiltradas);
+ 
     const agrupadas = agruparBloques(horasFiltradas);
-    console.log("📦 horasAgrupadas:", agrupadas);
+   
     return agrupadas;
   }, [horasAdmin, esHoy]);
 

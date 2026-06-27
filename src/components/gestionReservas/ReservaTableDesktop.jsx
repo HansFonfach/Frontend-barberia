@@ -1,7 +1,7 @@
 import React from "react";
 import { Table, Button, Badge } from "reactstrap";
 
-const ReservaTableDesktop = ({ reservas, empresa, onVer }) => {
+const ReservaTableDesktop = ({ reservas, empresa, onVer, isLoading }) => {
   const getEstado = (reserva) => {
     if (reserva.estado === "cancelada") return "Cancelada";
 
@@ -71,6 +71,14 @@ const ReservaTableDesktop = ({ reservas, empresa, onVer }) => {
   const reservasFiltradas = reservas.filter(
     (reserva) => getEstado(reserva) !== "Reagendada",
   );
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-5">
+        <span className="text-muted">Cargando reservas...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="table-responsive">

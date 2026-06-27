@@ -106,12 +106,14 @@ const GestionReservas = () => {
                     reservas={reservas}
                     empresa={empresa}
                     onVer={handleVerReserva}
+                    isLoading={loading}
                   />
                 ) : (
                   <ReservaTableDesktop
                     reservas={reservas}
                     empresa={empresa}
                     onVer={handleVerReserva}
+                    isLoading={loading}
                   />
                 )}
               </CardBody>
@@ -129,8 +131,8 @@ const GestionReservas = () => {
         cancelarReserva={cancelarReserva}
         marcarReservaNoAsistida={marcarReservaNoAsistida}
         setModalReagendar={setModalReagendar}
-        extrasSeleccionados={extrasSeleccionados} 
-        setExtrasSeleccionados={setExtrasSeleccionados} 
+        extrasSeleccionados={extrasSeleccionados}
+        setExtrasSeleccionados={setExtrasSeleccionados}
       />
 
       <ReagendarModal
