@@ -51,7 +51,7 @@ const GestionCategorias = () => {
     if (slug) cargarCategorias();
   }, [slug]);
 
-  console.log(categorias);
+
 
   const toggle = () => setModal(!modal);
 
