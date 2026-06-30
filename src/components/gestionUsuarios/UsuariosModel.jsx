@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Modal,
   ModalBody,
@@ -7,57 +7,69 @@ import {
   Label,
   Input,
   Button,
-  Badge,
 } from "reactstrap";
-import { FiEdit2, FiPlus, FiX } from "react-icons/fi";
-
-// Resuelve "perfilProfesional.especialidades" → obj.perfilProfesional.especialidades
-const getValor = (obj, path) =>
-  path.split(".").reduce((acc, key) => acc?.[key] ?? "", obj);
+import { FiEdit2 } from "react-icons/fi";
+import { useUsuario } from "context/usuariosContext";
+import { updateUsuarioDesdeAdmin } from "api/usuarios";
+import Swal from "sweetalert2";
 
 const UsuarioModal = ({
   isOpen,
   toggle,
   usuario,
   onSave,
-  onFieldChange,
   tipoUsuario = "usuario",
-  camposAdicionales = [],
 }) => {
-  const [espInput, setEspInput] = useState("");
+  const [formData, setFormData] = useState({
+    nombre: "",
+    apellido: "",
+    email: "",
+    telefono: "",
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    onSave();
-  };
-
-  const camposBase = [
-    { name: "nombre", label: "Nombre", type: "text" },
-    { name: "apellido", label: "Apellido", type: "text" },
-    { name: "email", label: "Email", type: "email" },
-    { name: "telefono", label: "Teléfono", type: "text" },
-  ];
-
-  const todosLosCampos = [...camposBase, ...camposAdicionales];
-
-  // ── helpers chips especialidades ──
-  const agregarEsp = (fieldName) => {
-    const val = espInput.trim();
-    if (!val) return;
-    const actuales = getValor(usuario, fieldName);
-    const arr = Array.isArray(actuales) ? actuales : [];
-    if (!arr.includes(val)) {
-      onFieldChange({ target: { name: fieldName, value: [...arr, val] } });
+  useEffect(() => {
+    if (usuario) {
+      setFormData({
+        nombre: usuario.nombre || "",
+        apellido: usuario.apellido || "",
+        email: usuario.email || "",
+        telefono: usuario.telefono || "",
+      });
+      setError(null);
     }
-    setEspInput("");
+  }, [usuario, isOpen]);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  const quitarEsp = (fieldName, esp) => {
-    const actuales = getValor(usuario, fieldName);
-    const arr = Array.isArray(actuales) ? actuales : [];
-    onFieldChange({
-      target: { name: fieldName, value: arr.filter((e) => e !== esp) },
-    });
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      // ✅ FORMA SIMPLE Y LIMPIA
+
+      const res = await updateUsuarioDesdeAdmin(usuario._id, formData);
+      Swal.fire({
+        icon: "success",
+        title: "¡Cliente actualizado!",
+        text: `Los datos del cliente han sido modificados correctamente`,
+        timer: 2500,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      setError(error.message || "Error al actualizar el usuario");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -65,7 +77,7 @@ const UsuarioModal = ({
       isOpen={isOpen}
       toggle={toggle}
       className="modal-dialog-centered"
-      size="lg"
+      size="md"
     >
       <div className="modal-header">
         <h6 className="modal-title">
@@ -79,6 +91,12 @@ const UsuarioModal = ({
 
       <Form onSubmit={handleSubmit}>
         <ModalBody>
+          {error && (
+            <div className="alert alert-danger" role="alert">
+              {error}
+            </div>
+          )}
+
           <div
             style={{
               display: "grid",
@@ -86,151 +104,61 @@ const UsuarioModal = ({
               gap: "0 16px",
             }}
           >
-            {todosLosCampos.map((campo) => {
-              // ── Chips de especialidades ──
-              if (campo.type === "especialidades") {
-                const arr = getValor(usuario, campo.name);
-                const lista = Array.isArray(arr) ? arr : [];
-                return (
-                  <FormGroup key={campo.name} style={{ gridColumn: "1 / -1" }}>
-                    <Label>{campo.label}</Label>
-                    <div className="d-flex" style={{ gap: 8 }}>
-                      <Input
-                        value={espInput}
-                        onChange={(e) => setEspInput(e.target.value)}
-                        onKeyDown={(e) =>
-                          e.key === "Enter" &&
-                          (e.preventDefault(), agregarEsp(campo.name))
-                        }
-                        placeholder="Ej: Degradado, Barba..."
-                      />
-                      <Button
-                        type="button"
-                        color="secondary"
-                        onClick={() => agregarEsp(campo.name)}
-                      >
-                        <FiPlus />
-                      </Button>
-                    </div>
-                    <div className="mt-2 d-flex flex-wrap" style={{ gap: 6 }}>
-                      {lista.map((esp) => (
-                        <Badge
-                          key={esp}
-                          color="dark"
-                          pill
-                          className="d-flex align-items-center px-3 py-2"
-                          style={{ fontSize: 13, gap: 6 }}
-                        >
-                          {esp}
-                          <FiX
-                            style={{ cursor: "pointer", marginLeft: 4 }}
-                            onClick={() => quitarEsp(campo.name, esp)}
-                          />
-                        </Badge>
-                      ))}
-                    </div>
-                  </FormGroup>
-                );
-              }
+            <FormGroup>
+              <Label>Nombre</Label>
+              <Input
+                name="nombre"
+                type="text"
+                value={formData.nombre}
+                onChange={handleChange}
+                placeholder="Nombre"
+                required
+              />
+            </FormGroup>
 
-              // ── Textarea ──
-              if (campo.type === "textarea") {
-                return (
-                  <FormGroup key={campo.name} style={{ gridColumn: "1 / -1" }}>
-                    <Label>{campo.label}</Label>
-                    <Input
-                      type="textarea"
-                      name={campo.name}
-                      rows={3}
-                      value={getValor(usuario, campo.name)}
-                      onChange={onFieldChange}
-                      placeholder={campo.placeholder || campo.label}
-                    />
-                  </FormGroup>
-                );
-              }
+            <FormGroup>
+              <Label>Apellido</Label>
+              <Input
+                name="apellido"
+                type="text"
+                value={formData.apellido}
+                onChange={handleChange}
+                placeholder="Apellido"
+                required
+              />
+            </FormGroup>
 
-              if (campo.type === "foto") {
-                const fotoActual = getValor(
-                  usuario,
-                  "perfilProfesional.fotoPerfil.url",
-                );
-                return (
-                  <FormGroup key={campo.name} style={{ gridColumn: "1 / -1" }}>
-                    <Label>{campo.label}</Label>
-                    <div
-                      className="d-flex align-items-center"
-                      style={{ gap: 16 }}
-                    >
-                      {/* Preview */}
-                      <div
-                        style={{
-                          width: 72,
-                          height: 72,
-                          borderRadius: "50%",
-                          overflow: "hidden",
-                          background: "#f0f0f0",
-                          flexShrink: 0,
-                          border: "2px dashed #dee2e6",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                        }}
-                      >
-                        {campo.preview || fotoActual ? (
-                          <img
-                            src={campo.preview || fotoActual}
-                            style={{
-                              width: "100%",
-                              height: "100%",
-                              objectFit: "cover",
-                              objectPosition: "center top",
-                            }}
-                          />
-                        ) : (
-                          <span style={{ fontSize: 24 }}>📷</span>
-                        )}
-                      </div>
-                      {/* Input */}
-                      <div>
-                        <Input
-                          type="file"
-                          accept="image/*"
-                          onChange={campo.onFotoChange}
-                          style={{ borderRadius: 8 }}
-                        />
-                        <small className="text-muted">
-                          JPG, PNG. Recomendado: foto de cara
-                        </small>
-                      </div>
-                    </div>
-                  </FormGroup>
-                );
-              }
+            <FormGroup>
+              <Label>Email</Label>
+              <Input
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Email"
+                required
+              />
+            </FormGroup>
 
-              // ── Input normal ──
-              return (
-                <FormGroup key={campo.name}>
-                  <Label>{campo.label}</Label>
-                  <Input
-                    name={campo.name}
-                    type={campo.type || "text"}
-                    value={getValor(usuario, campo.name)}
-                    onChange={onFieldChange}
-                    placeholder={campo.placeholder || campo.label}
-                  />
-                </FormGroup>
-              );
-            })}
+            <FormGroup>
+              <Label>Teléfono</Label>
+              <Input
+                name="telefono"
+                type="text"
+                value={formData.telefono}
+                onChange={handleChange}
+                placeholder="Teléfono"
+              />
+            </FormGroup>
           </div>
         </ModalBody>
 
         <div className="modal-footer">
-          <Button color="link" onClick={toggle}>
+          <Button color="link" onClick={toggle} disabled={loading}>
             Cancelar
           </Button>
-          <Button color="primary" type="submit">
-            Guardar Cambios
+          <Button color="primary" type="submit" disabled={loading}>
+            {loading ? "Guardando..." : "Guardar Cambios"}
           </Button>
         </div>
       </Form>

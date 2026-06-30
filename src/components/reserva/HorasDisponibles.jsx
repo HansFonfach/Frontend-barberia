@@ -122,12 +122,7 @@ const HorasDisponibles = ({
   };
 
   const handleConfirmarNotifInvitado = async () => {
-    console.log("🔔 handleConfirmarNotifInvitado ejecutado");
-    console.log("📧 email:", emailInvitado);
-    console.log("⏰ hora:", horaParaNotificar);
-    console.log("📅 fecha:", fecha);
-    console.log("💈 barberoId:", barberoId);
-    console.log("contexto:", notificacionContext);
+   
 
     if (!validarEmail(emailInvitado)) {
       setEmailError("Ingresa un correo válido");

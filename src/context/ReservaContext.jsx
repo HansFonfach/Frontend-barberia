@@ -172,7 +172,7 @@ export const ReservaProvider = ({ children }) => {
   };
 
   const reagendarReserva = async (reservaId, fecha, hora) => {
-    console.log("Enviando:", { reservaId, fecha, hora }); // ← qué sale aquí?
+   
     try {
       const { data } = await patchReagendarReserva(reservaId, fecha, hora);
       return data;

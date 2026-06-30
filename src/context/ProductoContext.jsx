@@ -48,7 +48,7 @@ export const ProductoProvider = ({ children }) => {
       setLoading(true);
       const res = await postCreateProducto(data);
       setProductos((prev) => [...prev, res.data.producto]);
-      console.log("estoy aca");
+    
       return res.data;
     } catch (error) {
       throw error;

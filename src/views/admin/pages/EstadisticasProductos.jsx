@@ -113,7 +113,7 @@ const EstadisticasProductos = () => {
     const cargar = async () => {
       try {
         const res = await verEstadisticasProductos();
-        console.log("estadisticas:", res);
+     
         setData(res);
       } catch (e) {
         console.error(e);

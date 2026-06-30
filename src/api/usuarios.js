@@ -69,3 +69,7 @@ export const getBarberosPublico = (slug) => {
 export const putActualizarNota = (id, notasProfesional) => {
   return axiosPrivate.put(`/usuarios/${id}/notas`, { notasProfesional });
 };
+
+export const updateUsuarioDesdeAdmin = (id, data) => {
+  return axiosPrivate.put(`/usuarios/${id}/actualizarUsuario`, data);
+};

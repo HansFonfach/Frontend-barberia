@@ -130,7 +130,7 @@ const ReservarHoraInvitado = () => {
             setUsuarioEncontrado(true);
           }
         } catch (err) {
-          console.log("❌ Error al buscar:", err.message);
+         
         } finally {
           setBuscandoUsuario(false);
         }

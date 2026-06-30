@@ -80,7 +80,7 @@ export const UsuarioProvider = ({ children }) => {
   const subscribeUser = async (_id, tipoPlan) => {
     try {
       const res = await postSubscribeUserById(_id, tipoPlan);
-      console.log(tipoPlan)
+     
       setErrors(null);
       return res.data;
     } catch (error) {
