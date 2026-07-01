@@ -42,6 +42,7 @@ import HistorialIngresos from "views/admin/pages/HistorialIngresos";
 import VentasDirectas from "views/admin/pages/VentasDirectas";
 import GestionSuscripciones from "views/admin/pages/GestionSuscripciones";
 import GestionCategorias from "views/admin/pages/GestionCategorias";
+import GestionServiciosPorHora from "views/admin/pages/GestionServiciosPorHora";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -281,6 +282,13 @@ export const barberoRoutes = [
         component: <AsignarServiciosBarberos />,
         layout: "/admin",
       },
+      {
+        path: "/gestion-servicios-horas",
+        name: "Restringir horarios servicios",
+        icon: "fas fa-clock text-warning",
+        component: <GestionServiciosPorHora />,
+        layout: "/admin",
+      },
     ],
   },
   {
@@ -305,6 +313,7 @@ export const barberoRoutes = [
         component: <GestionHorariosBarbero />,
         layout: "/admin",
       },
+
       {
         path: "/gestion-vacaciones",
         name: "Vacaciones",

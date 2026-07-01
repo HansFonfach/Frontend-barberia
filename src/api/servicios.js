@@ -25,3 +25,20 @@ export const getServiciosPublicos = (slug) => {
   return axiosPublic.get(`servicios/${slug}/serviciosPublicos`);
 };
 
+export const patchHorasPermitidas = (
+  barberoId,
+  servicioId,
+  horasPermitidas,
+) => {
+  return axiosPrivate.patch(
+    `/barberoServicio/barberos/${barberoId}/servicios/${servicioId}/horas-permitidas`,
+    { horasPermitidas },
+  );
+};
+
+export const patchHorasPermitidasBatch = (barberoId, actualizaciones) => {
+  return axiosPrivate.patch(
+    `/barberoServicio/barberos/${barberoId}/horas-permitidas`,
+    { actualizaciones },
+  );
+};
