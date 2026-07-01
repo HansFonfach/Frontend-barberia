@@ -27,7 +27,7 @@ const ReservaDetalleModal = ({
   const [extrasSeleccionados, setExtrasSeleccionados] = useState([]); // 👈
   const [observacionReserva, setObservacionReserva] = useState("");
 
-  const { actualizarReserva } = useReserva();
+  const { actualizarReserva, marcarAbono, revertirAbono } = useReserva();
 
   useEffect(() => {
     if (reservaSeleccionada) {
@@ -51,6 +51,71 @@ const ReservaDetalleModal = ({
       );
     }
   }, [reservaSeleccionada]);
+
+  const handleMarcarAbono = async () => {
+    const { value: monto, isConfirmed } = await Swal.fire({
+      title: "¿Cuánto abonó?",
+      input: "number",
+      inputLabel: "Monto abonado",
+      inputPlaceholder: "Ej: 10000",
+      inputAttributes: {
+        min: 0,
+        step: 1,
+      },
+      showCancelButton: true,
+      confirmButtonText: "Guardar",
+      cancelButtonText: "Cancelar",
+      inputValidator: (value) => {
+        if (!value || isNaN(value) || Number(value) <= 0) {
+          return "Ingresa un monto válido";
+        }
+      },
+    });
+
+    if (!isConfirmed) return;
+
+    const reservaActualizada = await marcarAbono(
+      reservaSeleccionada._id,
+      Number(monto),
+    );
+
+    if (!reservaActualizada) return;
+
+    setReservaSeleccionada(reservaActualizada);
+
+    Swal.fire({
+      icon: "success",
+      title: "Abono registrado",
+      timer: 1600,
+      showConfirmButton: false,
+    });
+  };
+
+  const handleRevertirAbono = async () => {
+    const { isConfirmed } = await Swal.fire({
+      title: "¿Revertir abono?",
+      text: "Esto dejará la reserva sin abono registrado.",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Sí, revertir",
+      cancelButtonText: "Cancelar",
+      confirmButtonColor: "#d33",
+    });
+
+    if (!isConfirmed) return;
+
+    const reservaActualizada = await revertirAbono(reservaSeleccionada._id);
+    if (!reservaActualizada) return;
+
+    setReservaSeleccionada(reservaActualizada);
+
+    Swal.fire({
+      icon: "success",
+      title: "Abono revertido",
+      timer: 1400,
+      showConfirmButton: false,
+    });
+  };
 
   const handleGuardarNota = async (clienteId, notasProfesional) => {
     try {
@@ -226,7 +291,11 @@ const ReservaDetalleModal = ({
             </Col>
 
             <Col md="6">
-              <ReservaInfoCard reservaSeleccionada={reservaSeleccionada} />
+              <ReservaInfoCard
+                reservaSeleccionada={reservaSeleccionada}
+                onMarcarAbono={handleMarcarAbono}
+                onRevertirAbono={handleRevertirAbono}
+              />
             </Col>
           </Row>
 

@@ -1,6 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  Card, CardHeader, CardBody, Row, Col, Input, Button, Badge,
+  Card,
+  CardHeader,
+  CardBody,
+  Row,
+  Col,
+  Input,
+  Button,
+  Badge,
 } from "reactstrap";
 import { useProducto } from "context/ProductoContext";
 
@@ -17,9 +24,15 @@ const ReservaProductosSection = ({
 
   const [productoSeleccionado, setProductoSeleccionado] = useState("");
   const [cantidadProducto, setCantidadProducto] = useState(1);
-  const [nuevoExtra, setNuevoExtra] = useState({ nombre: "", precio: "", cantidad: 1 });
+  const [nuevoExtra, setNuevoExtra] = useState({
+    nombre: "",
+    precio: "",
+    cantidad: 1,
+  });
 
-  useEffect(() => { listarProductos(); }, []);
+  useEffect(() => {
+    listarProductos();
+  }, []);
 
   // cargar productos existentes
   useEffect(() => {
@@ -31,7 +44,7 @@ const ReservaProductosSection = ({
           precio: p.precio,
           categoria: p.categoria,
           cantidad: p.cantidad,
-        }))
+        })),
       );
     } else {
       setProductosSeleccionados([]);
@@ -47,7 +60,7 @@ const ReservaProductosSection = ({
           nombre: e.nombre,
           precio: e.precio,
           cantidad: e.cantidad,
-        }))
+        })),
       );
     } else {
       setExtrasSeleccionados([]);
@@ -66,8 +79,8 @@ const ReservaProductosSection = ({
         prev.map((p) =>
           p._id === producto._id
             ? { ...p, cantidad: p.cantidad + Number(cantidadProducto) }
-            : p
-        )
+            : p,
+        ),
       );
     } else {
       setProductosSeleccionados((prev) => [
@@ -86,7 +99,9 @@ const ReservaProductosSection = ({
   const cambiarCantidad = (_id, cantidad) => {
     if (cantidad < 1) return;
     setProductosSeleccionados((prev) =>
-      prev.map((p) => p._id === _id ? { ...p, cantidad: Number(cantidad) } : p)
+      prev.map((p) =>
+        p._id === _id ? { ...p, cantidad: Number(cantidad) } : p,
+      ),
     );
   };
 
@@ -111,13 +126,15 @@ const ReservaProductosSection = ({
 
   /* ── TOTALES ── */
   const totalProductos = useMemo(
-    () => productosSeleccionados.reduce((acc, p) => acc + p.precio * p.cantidad, 0),
-    [productosSeleccionados]
+    () =>
+      productosSeleccionados.reduce((acc, p) => acc + p.precio * p.cantidad, 0),
+    [productosSeleccionados],
   );
 
   const totalExtras = useMemo(
-    () => extrasSeleccionados.reduce((acc, e) => acc + e.precio * e.cantidad, 0),
-    [extrasSeleccionados]
+    () =>
+      extrasSeleccionados.reduce((acc, e) => acc + e.precio * e.cantidad, 0),
+    [extrasSeleccionados],
   );
 
   const totalServicio =
@@ -137,7 +154,9 @@ const ReservaProductosSection = ({
               <i className="ni ni-shop text-primary mr-2"></i>
               Productos y Extras
             </h5>
-            <small className="text-muted">Agrega productos y servicios adicionales</small>
+            <small className="text-muted">
+              Agrega productos y servicios adicionales
+            </small>
           </div>
           <Badge color="primary" pill>
             {productosSeleccionados.length} productos
@@ -146,7 +165,6 @@ const ReservaProductosSection = ({
       </CardHeader>
 
       <CardBody>
-
         {/* ── SECCIÓN PRODUCTOS ── */}
         <Row className="align-items-end">
           <Col md="6" className="mb-2">
@@ -161,7 +179,9 @@ const ReservaProductosSection = ({
                 .filter((p) => p.activo !== false && p.stock > 0)
                 .map((producto) => (
                   <option key={producto._id} value={producto._id}>
-                    {producto.nombre} • ${Number(producto.precio).toLocaleString("es-CL")} • Stock: {producto.stock}
+                    {producto.nombre} • $
+                    {Number(producto.precio).toLocaleString("es-CL")} • Stock:{" "}
+                    {producto.stock}
                   </option>
                 ))}
             </Input>
@@ -178,7 +198,12 @@ const ReservaProductosSection = ({
           </Col>
 
           <Col md="4" className="mb-2">
-            <Button color="primary" block disabled={!productoSeleccionado} onClick={agregarProducto}>
+            <Button
+              color="primary"
+              block
+              disabled={!productoSeleccionado}
+              onClick={agregarProducto}
+            >
               <i className="ni ni-fat-add mr-1"></i>
               Agregar Producto
             </Button>
@@ -189,7 +214,10 @@ const ReservaProductosSection = ({
         <div className="mt-4">
           {productosSeleccionados.length === 0 ? (
             <div className="text-center py-5 border rounded bg-light">
-              <i className="ni ni-box-2 text-muted" style={{ fontSize: "2.5rem" }}></i>
+              <i
+                className="ni ni-box-2 text-muted"
+                style={{ fontSize: "2.5rem" }}
+              ></i>
               <p className="text-muted mt-3 mb-0">No hay productos agregados</p>
             </div>
           ) : (
@@ -197,7 +225,10 @@ const ReservaProductosSection = ({
               {productosSeleccionados.map((producto) => {
                 const subtotal = producto.precio * producto.cantidad;
                 return (
-                  <div key={producto._id} className="border rounded p-3 mb-3 bg-white shadow-sm">
+                  <div
+                    key={producto._id}
+                    className="border rounded p-3 mb-3 bg-white shadow-sm"
+                  >
                     <div className="d-flex justify-content-between flex-wrap">
                       <div className="flex-grow-1">
                         <div className="d-flex align-items-center">
@@ -205,25 +236,37 @@ const ReservaProductosSection = ({
                           <strong>{producto.nombre}</strong>
                         </div>
                         <small className="text-muted d-block mt-2">
-                          Precio: ${Number(producto.precio).toLocaleString("es-CL")}
+                          Precio: $
+                          {Number(producto.precio).toLocaleString("es-CL")}
                         </small>
                         <div className="mt-2">
-                          <small className="text-muted d-block mb-1">Cantidad</small>
+                          <small className="text-muted d-block mb-1">
+                            Cantidad
+                          </small>
                           <Input
                             type="number"
                             min="1"
                             style={{ width: "100px" }}
                             value={producto.cantidad}
-                            onChange={(e) => cambiarCantidad(producto._id, e.target.value)}
+                            onChange={(e) =>
+                              cambiarCantidad(producto._id, e.target.value)
+                            }
                           />
                         </div>
                       </div>
                       <div className="text-right d-flex flex-column justify-content-between">
                         <div>
                           <small className="text-muted d-block">Subtotal</small>
-                          <h5 className="text-primary mb-0">${Number(subtotal).toLocaleString("es-CL")}</h5>
+                          <h5 className="text-primary mb-0">
+                            ${Number(subtotal).toLocaleString("es-CL")}
+                          </h5>
                         </div>
-                        <Button color="danger" size="sm" className="mt-3" onClick={() => eliminarProducto(producto._id)}>
+                        <Button
+                          color="danger"
+                          size="sm"
+                          className="mt-3"
+                          onClick={() => eliminarProducto(producto._id)}
+                        >
                           <i className="ni ni-fat-remove"></i>
                         </Button>
                       </div>
@@ -249,7 +292,9 @@ const ReservaProductosSection = ({
               type="text"
               placeholder="Ej: Diseño de uñas, Degradado..."
               value={nuevoExtra.nombre}
-              onChange={(e) => setNuevoExtra((prev) => ({ ...prev, nombre: e.target.value }))}
+              onChange={(e) =>
+                setNuevoExtra((prev) => ({ ...prev, nombre: e.target.value }))
+              }
             />
           </Col>
 
@@ -260,7 +305,9 @@ const ReservaProductosSection = ({
               min="0"
               placeholder="$0"
               value={nuevoExtra.precio}
-              onChange={(e) => setNuevoExtra((prev) => ({ ...prev, precio: e.target.value }))}
+              onChange={(e) =>
+                setNuevoExtra((prev) => ({ ...prev, precio: e.target.value }))
+              }
             />
           </Col>
 
@@ -280,7 +327,10 @@ const ReservaProductosSection = ({
         {extrasSeleccionados.length > 0 && (
           <div className="mt-3">
             {extrasSeleccionados.map((extra) => (
-              <div key={extra.id} className="border rounded p-3 mb-2 bg-white shadow-sm">
+              <div
+                key={extra.id}
+                className="border rounded p-3 mb-2 bg-white shadow-sm"
+              >
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
                     <i className="ni ni-tag text-warning mr-2"></i>
@@ -291,9 +341,16 @@ const ReservaProductosSection = ({
                   </div>
                   <div className="d-flex align-items-center">
                     <h5 className="text-warning mb-0 mr-3">
-                      ${Number(extra.precio * extra.cantidad).toLocaleString("es-CL")}
+                      $
+                      {Number(extra.precio * extra.cantidad).toLocaleString(
+                        "es-CL",
+                      )}
                     </h5>
-                    <Button color="danger" size="sm" onClick={() => eliminarExtra(extra.id)}>
+                    <Button
+                      color="danger"
+                      size="sm"
+                      onClick={() => eliminarExtra(extra.id)}
+                    >
                       <i className="ni ni-fat-remove"></i>
                     </Button>
                   </div>
@@ -305,7 +362,9 @@ const ReservaProductosSection = ({
 
         {/* ── OBSERVACIONES ── */}
         <div className="mt-4">
-          <label className="form-control-label">Observaciones de la Reserva</label>
+          <label className="form-control-label">
+            Observaciones de la Reserva
+          </label>
           <Input
             type="textarea"
             rows="4"
@@ -336,14 +395,44 @@ const ReservaProductosSection = ({
 
           <hr />
 
-          <div className="d-flex justify-content-between align-items-center">
+          <div className="d-flex justify-content-between align-items-center mb-2">
             <h5 className="mb-0 font-weight-bold">Total General</h5>
             <h3 className="text-primary mb-0 font-weight-bold">
               ${Number(totalGeneral).toLocaleString("es-CL")}
             </h3>
           </div>
-        </div>
 
+          {reservaSeleccionada?.abono?.estado === "pagado" && (
+            <>
+              <hr />
+
+              <div className="d-flex justify-content-between mb-2">
+                <span className="text-success">
+                  <i className="ni ni-check-bold mr-1"></i>
+                  Abonado
+                </span>
+                <strong className="text-success">
+                  $
+                  {Number(reservaSeleccionada.abono.monto || 0).toLocaleString(
+                    "es-CL",
+                  )}
+                </strong>
+              </div>
+
+              <div className="d-flex justify-content-between align-items-center">
+                <span className="text-muted">Pendiente</span>
+                <h4 className="mb-0 font-weight-bold">
+                  $
+                  {Number(
+                    totalGeneral - (reservaSeleccionada.abono.monto || 0) > 0
+                      ? totalGeneral - (reservaSeleccionada.abono.monto || 0)
+                      : 0,
+                  ).toLocaleString("es-CL")}
+                </h4>
+              </div>
+            </>
+          )}
+        </div>
       </CardBody>
     </Card>
   );

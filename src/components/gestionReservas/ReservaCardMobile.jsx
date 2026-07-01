@@ -80,6 +80,31 @@ const ReservaCardMobile = ({ reservas, empresa, onVer, isLoading }) => {
     );
   }
 
+  const infoAbono = (reserva) => {
+    const totalServicio =
+      reserva.servicioSnapshot?.precio || reserva.servicio?.precio || 0;
+    const totalExtras = reserva.totalExtras || 0;
+    const totalProductos = reserva.totalProductos || 0;
+    const totalGeneral = totalServicio + totalExtras + totalProductos;
+
+    const abonado =
+      reserva.abono?.estado === "pagado" ? reserva.abono.monto || 0 : 0;
+
+    const pendiente = totalGeneral - abonado;
+
+    if (abonado === 0) {
+      return { texto: "Sin abono", color: "text-muted", icono: "⏳" };
+    }
+    if (pendiente <= 0) {
+      return { texto: "Pagado completo", color: "text-success", icono: "✅" };
+    }
+    return {
+      texto: `Pendiente: $${pendiente.toLocaleString("es-CL")}`,
+      color: "text-warning",
+      icono: "💰",
+    };
+  };
+
   return (
     <div className="reservas-mobile">
       {reservasFiltradas.map((reserva) => (
@@ -108,10 +133,10 @@ const ReservaCardMobile = ({ reservas, empresa, onVer, isLoading }) => {
             </div>
 
             {/* INFO */}
+            {/* INFO */}
             <div className="pl-4 mb-3">
               <div className="d-flex justify-content-between mb-1">
                 <small className="text-muted">Servicio</small>
-
                 <small className="font-weight-bold">
                   {reserva.servicio?.nombre}
                 </small>
@@ -119,7 +144,6 @@ const ReservaCardMobile = ({ reservas, empresa, onVer, isLoading }) => {
 
               <div className="d-flex justify-content-between mb-1">
                 <small className="text-muted">Hora</small>
-
                 <small className="font-weight-bold">
                   {new Date(reserva.fecha).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -128,10 +152,19 @@ const ReservaCardMobile = ({ reservas, empresa, onVer, isLoading }) => {
                 </small>
               </div>
 
+              {/* 👇 NUEVO: estado de abono */}
+              <div className="d-flex justify-content-between mb-1">
+                <small className="text-muted">Abono</small>
+                <small
+                  className={`font-weight-bold ${infoAbono(reserva).color}`}
+                >
+                  {infoAbono(reserva).icono} {infoAbono(reserva).texto}
+                </small>
+              </div>
+
               {reserva.suscripcion && (
                 <div className="d-flex justify-content-between">
                   <small className="text-muted">Suscripción</small>
-
                   <Badge color="success" pill>
                     {reserva.suscripcion.posicion}/{reserva.suscripcion.limite}
                   </Badge>

@@ -10,7 +10,10 @@ import {
   postMarcarReservaNoAsistida,
   patchReagendarReserva,
   patchActualizarReserva,
+  patchMarcarAbono,
+  patchRevertirAbono,
 } from "../api/reservas";
+import Swal from "sweetalert2";
 
 const ReservaContext = createContext();
 
@@ -162,7 +165,7 @@ export const ReservaProvider = ({ children }) => {
         reservaId,
         observacionFinal,
         productos,
-        extras, 
+        extras,
       );
       return res.data;
     } catch (error) {
@@ -172,12 +175,39 @@ export const ReservaProvider = ({ children }) => {
   };
 
   const reagendarReserva = async (reservaId, fecha, hora) => {
-   
     try {
       const { data } = await patchReagendarReserva(reservaId, fecha, hora);
       return data;
     } catch (error) {
       console.error("Respuesta del back:", error.response?.data); // ← mensaje exacto
+      return null;
+    }
+  };
+
+  const marcarAbono = async (reservaId, monto) => {
+    try {
+      const { data } = await patchMarcarAbono(reservaId, monto);
+      return data.reserva;
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.response?.data?.message || "No se pudo registrar el abono",
+      });
+      return null;
+    }
+  };
+
+  const revertirAbono = async (reservaId) => {
+    try {
+      const { data } = await patchRevertirAbono(reservaId);
+      return data.reserva;
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: error.response?.data?.message || "No se pudo revertir el abono",
+      });
       return null;
     }
   };
@@ -201,6 +231,8 @@ export const ReservaProvider = ({ children }) => {
         getReservasPorFechaBarbero,
         marcarReservaNoAsistida,
         actualizarReserva,
+        marcarAbono,
+        revertirAbono,
       }}
     >
       {children}
