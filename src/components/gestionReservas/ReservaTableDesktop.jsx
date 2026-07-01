@@ -52,7 +52,7 @@ const ReservaTableDesktop = ({ reservas, empresa, onVer, isLoading }) => {
 
     if (reserva.suscripcion) return "⭐" + nota;
     if (empresa?.slug === "lumicabeauty") return "🎀" + nota;
-    return "🧔🏻‍♂️" + nota;
+    return  nota;
   };
 
   // 👇 NUEVO: mismo cálculo que en la card mobile

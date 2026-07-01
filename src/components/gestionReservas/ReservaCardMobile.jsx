@@ -65,7 +65,7 @@ const ReservaCardMobile = ({ reservas, empresa, onVer, isLoading }) => {
 
     if (reserva.suscripcion) return "⭐" + nota;
     if (empresa?.slug === "lumicabeauty") return "🎀" + nota;
-    return "🧔🏻‍♂️" + nota;
+    return nota;
   };
 
   const reservasFiltradas = reservas.filter(
