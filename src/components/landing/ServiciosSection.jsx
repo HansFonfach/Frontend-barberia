@@ -11,6 +11,26 @@ const ServiciosSection = ({ servicios, onReservar, theme }) => {
   const primaryLight = theme?.primaryLight || "#eaecfe";
   const primaryDark = theme?.primaryDark || "#324cdd";
 
+  const formatearFechaPromo = (fechaISO) => {
+    if (!fechaISO) return null;
+    const fecha = new Date(fechaISO);
+    const meses = [
+      "enero",
+      "febrero",
+      "marzo",
+      "abril",
+      "mayo",
+      "junio",
+      "julio",
+      "agosto",
+      "septiembre",
+      "octubre",
+      "noviembre",
+      "diciembre",
+    ];
+    return `${fecha.getDate()} de ${meses[fecha.getMonth()]}`;
+  };
+
   return (
     <section
       className="py-6"
@@ -130,15 +150,41 @@ const ServiciosSection = ({ servicios, onReservar, theme }) => {
                     {/* FOOTER */}
                     <div className="d-flex justify-content-between align-items-center mt-auto">
                       {/* PRECIO */}
-                      <span
-                        style={{
-                          fontWeight: 700,
-                          fontSize: "1.2rem",
-                          color: primaryColor,
-                        }}
-                      >
-                        ${servicio.precio.toLocaleString("es-CL")}
-                      </span>
+                      {servicio.precioFinal < servicio.precio ? (
+                        <>
+                          <span
+                            style={{
+                              fontWeight: 500,
+                              fontSize: "0.95rem",
+                              color: "#888",
+                              textDecoration: "line-through",
+                              marginRight: "8px",
+                            }}
+                          >
+                            ${servicio.precio.toLocaleString("es-CL")}
+                          </span>
+
+                          <span
+                            style={{
+                              fontWeight: 700,
+                              fontSize: "1.2rem",
+                              color: primaryColor,
+                            }}
+                          >
+                            ${servicio.precioFinal.toLocaleString("es-CL")}
+                          </span>
+                        </>
+                      ) : (
+                        <span
+                          style={{
+                            fontWeight: 700,
+                            fontSize: "1.2rem",
+                            color: primaryColor,
+                          }}
+                        >
+                          ${servicio.precio.toLocaleString("es-CL")}
+                        </span>
+                      )}
 
                       {/* BOTÓN */}
                       <Button
@@ -168,6 +214,33 @@ const ServiciosSection = ({ servicios, onReservar, theme }) => {
                         Reservar
                       </Button>
                     </div>
+
+                    {servicio.precioFinal < servicio.precio &&
+                      servicio.descuento?.fechaFin && (
+                        <div
+                          className="d-inline-flex align-items-center mb-3"
+                          style={{
+                            gap: "6px",
+                            background: "#fff5f5",
+                            border: "1px solid #ffd6d6",
+                            borderRadius: "10px",
+                            padding: "6px 10px",
+                            width: "fit-content",
+                          }}
+                        >
+                          <MdAccessTime size={14} color="#e63757" />
+                          <span
+                            style={{
+                              fontSize: "0.75rem",
+                              color: "#e63757",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Promo hasta el{" "}
+                            {formatearFechaPromo(servicio.descuento.fechaFin)}
+                          </span>
+                        </div>
+                      )}
                   </CardBody>
                 </Card>
               </Col>

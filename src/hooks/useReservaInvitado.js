@@ -101,7 +101,7 @@ export const useReservaInvitado = (slug) => {
         setLoadingBarberos(true);
 
         const [serviciosRes, barberosRes] = await Promise.all([
-          getServiciosPublicos(slug),
+          getServiciosPublicos(slug), // 👈 ya no necesitas pasar fecha acá
           getBarberosPublico(slug),
         ]);
 
@@ -122,7 +122,7 @@ export const useReservaInvitado = (slug) => {
     };
 
     fetchInicial();
-  }, [slug]);
+  }, [slug]); // 👈 solo slug
 
   // ────────────────────────────────
   // CARGAR SERVICIOS DE UN BARBERO (CACHE)

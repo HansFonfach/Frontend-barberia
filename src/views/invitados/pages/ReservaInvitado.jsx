@@ -29,6 +29,8 @@ import { useRutValidator } from "hooks/useRutValidador";
 import { useEmpresa } from "context/EmpresaContext";
 import { getUsuarioByRutPublico } from "api/usuarios";
 
+import { calcularPrecioFinal } from "utils/preciosServicios.js";
+
 const themes = {
   lumicabeauty: {
     primary: "#FF5DA1",
@@ -130,7 +132,6 @@ const ReservarHoraInvitado = () => {
             setUsuarioEncontrado(true);
           }
         } catch (err) {
-         
         } finally {
           setBuscandoUsuario(false);
         }
@@ -153,9 +154,15 @@ const ReservarHoraInvitado = () => {
   }, [servicio, servicios]);
 
   const barberoSeleccionado = useMemo(() => {
+    // 👈 esto falta, agregalo
     if (!barbero) return null;
     return barberosFiltrados.find((b) => b._id === barbero) || null;
   }, [barbero, barberosFiltrados]);
+
+  const precioFinalCalculado = useMemo(() => {
+    if (!servicioSeleccionado) return null;
+    return calcularPrecioFinal(servicioSeleccionado, fecha);
+  }, [servicioSeleccionado, fecha]);
 
   const progresoPasos = useMemo(() => {
     let pasos = 0;
@@ -343,6 +350,7 @@ const ReservarHoraInvitado = () => {
               <Col lg={5}>
                 <ResumenReserva
                   servicioSeleccionado={servicioSeleccionado}
+                  precioFinalCalculado={precioFinalCalculado} // 👈 nuevo prop
                   barberoSeleccionado={barberoSeleccionado}
                   fecha={fecha}
                   hora={hora}

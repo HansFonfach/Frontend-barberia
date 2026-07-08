@@ -21,6 +21,9 @@ import Swal from "sweetalert2";
 import { useParams } from "react-router-dom";
 import { listarCategoriasPublico } from "api/categoria";
 
+import { Tag } from "lucide-react"; // 👈 agregar al import existente de lucide-react
+import ModalPromocionServicio from "components/servicios/ModalPromocionServicios";
+
 const GestionServicios = () => {
   const [modal, setModal] = useState(false);
   const [editando, setEditando] = useState(false);
@@ -34,6 +37,10 @@ const GestionServicios = () => {
   });
 
   const [categorias, setCategorias] = useState([]);
+  const [modalPromocion, setModalPromocion] = useState({
+    abierto: false,
+    servicio: null,
+  });
 
   const { slug } = useParams();
 
@@ -140,6 +147,25 @@ const GestionServicios = () => {
     }
   };
 
+  const abrirModalPromocion = (servicio) => {
+    setModalPromocion({ abierto: true, servicio });
+  };
+
+  const cerrarModalPromocion = () => {
+    setModalPromocion({ abierto: false, servicio: null });
+  };
+
+  const guardarPromocion = async (descuentoData) => {
+    try {
+      await updateServicio(modalPromocion.servicio._id, {
+        descuento: descuentoData,
+      });
+      Swal.fire("Listo", "Promoción actualizada", "success");
+    } catch (error) {
+      Swal.fire("Error", "No se pudo guardar la promoción", "error");
+    }
+  };
+
   const serviciosFiltrados = servicios.filter(
     (s) =>
       s.nombre.toLowerCase().includes(busqueda.toLowerCase()) ||
@@ -238,6 +264,16 @@ const GestionServicios = () => {
                             >
                               Eliminar
                             </Button>
+                            <Button
+                              size="sm"
+                              color="danger"
+                              outline
+                              className="mr-2"
+                              onClick={() => abrirModalPromocion(s)}
+                            >
+                              <Tag size={13} className="mr-1" />
+                              Promoción
+                            </Button>
                           </div>
                         </CardBody>
                       </Card>
@@ -261,7 +297,26 @@ const GestionServicios = () => {
                         {serviciosFiltrados.map((s) => (
                           <tr key={s._id}>
                             <td>{s.nombre}</td>
-                            <td>${s.precio}</td>
+                            <td>
+                              {s.descuento?.activo ? (
+                                <div>
+                                  <span
+                                    style={{
+                                      textDecoration: "line-through",
+                                      color: "#94a3b8",
+                                      fontSize: "0.8rem",
+                                    }}
+                                  >
+                                    ${s.precio}
+                                  </span>{" "}
+                                  <Badge color="danger" pill>
+                                    -{s.descuento.porcentaje}%
+                                  </Badge>
+                                </div>
+                              ) : (
+                                <span>${s.precio}</span>
+                              )}
+                            </td>
                             <td className="text-right">
                               <Button
                                 size="sm"
@@ -278,6 +333,16 @@ const GestionServicios = () => {
                                 onClick={() => handleEliminar(s)}
                               >
                                 Eliminar
+                              </Button>
+                              <Button
+                                size="sm"
+                                color="danger"
+                                outline
+                                className="mr-2"
+                                onClick={() => abrirModalPromocion(s)}
+                              >
+                                <Tag size={13} className="mr-1" />
+                                Promoción
                               </Button>
                             </td>
                           </tr>
@@ -373,6 +438,12 @@ const GestionServicios = () => {
           </Form>
         </ModalBody>
       </Modal>
+      <ModalPromocionServicio
+        isOpen={modalPromocion.abierto}
+        toggle={cerrarModalPromocion}
+        servicio={modalPromocion.servicio}
+        onGuardar={guardarPromocion}
+      />
     </>
   );
 };

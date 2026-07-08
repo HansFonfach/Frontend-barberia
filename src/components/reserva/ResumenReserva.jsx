@@ -8,6 +8,7 @@ const ResumenReserva = ({
   usuarioEncontrado,
   rut,
   servicioSeleccionado,
+  precioFinalCalculado,
   barberoSeleccionado,
   fecha,
   hora,
@@ -25,7 +26,6 @@ const ResumenReserva = ({
 }) => {
   const nombreServicio = servicioSeleccionado?.nombre || "—";
   const duracionServicio = servicioSeleccionado?.duracion;
-  const precioServicio = servicioSeleccionado?.precio;
   const { empresa } = useEmpresa();
 
   const serviciosLuegoReserva = Math.max(
@@ -34,7 +34,7 @@ const ResumenReserva = ({
   );
 
   const obtenerIconoServicio = () => {
-    if (!empresa?.tipo) return "🛠"; // fallback genérico
+    if (!empresa?.tipo) return "🛠";
 
     switch (empresa.tipo) {
       case "barberia":
@@ -42,12 +42,12 @@ const ResumenReserva = ({
       case "salon_belleza":
         return "💅";
       default:
-        return "🛠"; // icono genérico para otros servicios
+        return "🛠";
     }
   };
 
-    const obtenerIconoProfesional = () => {
-    if (!empresa?.tipo) return "🛠"; // fallback genérico
+  const obtenerIconoProfesional = () => {
+    if (!empresa?.tipo) return "🛠";
 
     switch (empresa.tipo) {
       case "barberia":
@@ -55,11 +55,12 @@ const ResumenReserva = ({
       case "salon_belleza":
         return "💇‍♀️";
       default:
-        return "🛠"; // icono genérico para otros servicios
+        return "🛠";
     }
   };
-      const obtenerIconoCliente = () => {
-    if (!empresa?.tipo) return "🛠"; // fallback genérico
+
+  const obtenerIconoCliente = () => {
+    if (!empresa?.tipo) return "🛠";
 
     switch (empresa.tipo) {
       case "barberia":
@@ -67,7 +68,7 @@ const ResumenReserva = ({
       case "salon_belleza":
         return "👩🏼";
       default:
-        return "🛠"; // icono genérico para otros servicios
+        return "🛠";
     }
   };
 
@@ -81,7 +82,7 @@ const ResumenReserva = ({
 
           <div className="small">
             <div className="d-flex justify-content-between border-bottom py-1">
-                 <span>{obtenerIconoCliente()}Nombre:</span>
+              <span>{obtenerIconoCliente()}Nombre:</span>
               <strong>
                 {usuarioEncontrado
                   ? `${usuarioEncontrado.nombre} ${usuarioEncontrado.apellido}`
@@ -122,9 +123,30 @@ const ResumenReserva = ({
             <div className="d-flex justify-content-between border-bottom py-1">
               <span>💸 Precio:</span>
               <strong>
-                {precioServicio
-                  ? `$${precioServicio.toLocaleString("es-CL")}`
-                  : "—"}
+                {precioFinalCalculado != null &&
+                precioFinalCalculado < servicioSeleccionado?.precio ? (
+                  <>
+                    <span
+                      style={{
+                        textDecoration: "line-through",
+                        color: "#999",
+                        marginRight: "8px",
+                        fontWeight: 500,
+                      }}
+                    >
+                      ${servicioSeleccionado.precio.toLocaleString("es-CL")}
+                    </span>
+                    <span>
+                      ${precioFinalCalculado.toLocaleString("es-CL")}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    $
+                    {servicioSeleccionado?.precio?.toLocaleString("es-CL") ||
+                      "—"}
+                  </>
+                )}
               </strong>
             </div>
           </div>
@@ -158,6 +180,7 @@ const ResumenReserva = ({
 
       <div className="d-grid gap-2">
         <Button
+          type="button"
           color={excedente > 0 ? "warning" : "success"}
           size="lg"
           className="font-weight-bold"
@@ -183,10 +206,11 @@ const ResumenReserva = ({
               </h5>
               <p className="small text-muted mb-2">
                 🕒 {empresa?.horarios || "—"}
-               
                 {empresa?.slug === "lasantabarberia" && (
-                  
-                  <>  <br />⭐ Sábado atención solo suscritos</>
+                  <>
+                    {" "}
+                    <br />⭐ Sábado atención solo suscritos
+                  </>
                 )}
                 <br />
                 📍 {empresa?.direccion || "—"}

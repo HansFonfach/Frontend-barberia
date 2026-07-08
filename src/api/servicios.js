@@ -21,8 +21,10 @@ export const getServiciosBarbero = (barberoId) => {
   return axiosPublic.get(`/barberoServicio/barberos/${barberoId}/servicios`);
 };
 
-export const getServiciosPublicos = (slug) => {
-  return axiosPublic.get(`servicios/${slug}/serviciosPublicos`);
+export const getServiciosPublicos = (slug, fecha = null) => {
+  return axiosPublic.get(`servicios/${slug}/serviciosPublicos`, {
+    params: fecha ? { fecha } : {},
+  });
 };
 
 export const patchHorasPermitidas = (
