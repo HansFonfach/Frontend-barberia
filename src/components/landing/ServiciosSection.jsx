@@ -28,7 +28,7 @@ const ServiciosSection = ({ servicios, onReservar, theme }) => {
       "noviembre",
       "diciembre",
     ];
-    return `${fecha.getDate()} de ${meses[fecha.getMonth()]}`;
+    return `${fecha.getUTCDate()} de ${meses[fecha.getUTCMonth()]}`; // 👈 UTC, no local
   };
 
   return (
