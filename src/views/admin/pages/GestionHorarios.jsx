@@ -200,6 +200,22 @@ const SlotCard = ({
               {grupo.reserva.duracion} min
             </span>
           )}
+          {/* 👇 NUEVO: badge de cupos cuando la hora tiene capacidad extra */}
+          {grupo.esExtra && typeof grupo.cupoUsado === "number" && (
+            <Badge
+              pill
+              style={{
+                fontSize: "0.68rem",
+                background:
+                  grupo.cupoUsado < grupo.cupoTotal ? "#dbeafe" : "#fee2e2",
+                color:
+                  grupo.cupoUsado < grupo.cupoTotal ? "#1e40af" : "#991b1b",
+                fontWeight: 600,
+              }}
+            >
+              {grupo.cupoUsado}/{grupo.cupoTotal} cupos extra
+            </Badge>
+          )}
         </div>
 
         {grupo.estado === "reservada" && grupo.reserva && (
@@ -217,7 +233,7 @@ const SlotCard = ({
       </div>
 
       {/* Acción derecha */}
-      <div style={{ flexShrink: 0 }}>
+      <div style={{ flexShrink: 0, display: "flex", gap: "6px" }}>
         {(grupo.estado === "disponible" ||
           grupo.estado === "cancelada" ||
           grupo.estado === "bloqueada") && (
@@ -242,15 +258,21 @@ const SlotCard = ({
           </Button>
         )}
 
-        {grupo.estado === "extra" && (
+        {/* 👇 CAMBIO: ya no depende solo de estado === "extra".
+      Cualquier fila que venga de una excepción extra (esExtra) puede
+      eliminarse, incluso si ya tiene una reserva encima (estado "reservada"),
+      porque lo que se borra es la EXCEPCIÓN, no la reserva. */}
+        {grupo.esExtra && (
           <Button
             size="sm"
             color="danger"
             outline
-            onClick={() => onEliminarExtra(grupo.horaInicio)}
+            onClick={() =>
+              onEliminarExtra(grupo.horaInicioOriginal || grupo.horaInicio)
+            }
             style={{ fontSize: "0.75rem", padding: "4px 10px" }}
           >
-            Eliminar
+            Eliminar hora extra
           </Button>
         )}
       </div>
@@ -281,7 +303,6 @@ const GestionHorarios = () => {
   useEffect(() => {
     if (barbero) {
       cargarServiciosBarbero(barbero).then((data) => {
-       
         setServiciosDisponibles(data);
       });
     }
@@ -326,11 +347,10 @@ const GestionHorarios = () => {
   );
 
   const horasAgrupadas = useMemo(() => {
-  
     const horasFiltradas = filtrarHorasFuturas(horasAdmin);
- 
+
     const agrupadas = agruparBloques(horasFiltradas);
-   
+
     return agrupadas;
   }, [horasAdmin, esHoy]);
 
@@ -638,9 +658,6 @@ const GestionHorarios = () => {
                     ))}
                   </div>
                 )}
-
-                {/* Agregar hora extra */}
-                {/* Agregar hora extra */}
                 <div
                   style={{
                     marginTop: "24px",
