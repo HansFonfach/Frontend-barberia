@@ -70,3 +70,11 @@ export const patchMarcarAbono = (reservaId, monto) => {
 export const patchRevertirAbono = (reservaId) => {
   return axiosPrivate.patch(`/reservas/${reservaId}/revertirAbono`);
 };
+
+export const getConfirmarAsistenciaWhatsapp = (token) => {
+  return axiosPublic.get(`/reservas/confirmar-reserva?token=${token}`);
+};
+
+export const getCancelarAsistenciaWhatsapp = (token) => {
+  return axiosPublic.get(`/reservas/cancelar-reserva?token=${token}`);
+};

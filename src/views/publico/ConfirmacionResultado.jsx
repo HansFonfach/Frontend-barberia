@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   Container,
@@ -9,7 +10,7 @@ import {
   NavItem,
 } from "reactstrap";
 import { Link, useLocation, useParams } from "react-router-dom";
-
+ 
 import {
   FiCalendar,
   FiInstagram,
@@ -19,27 +20,34 @@ import {
   FiAlertCircle,
   FiClock,
 } from "react-icons/fi";
-
-import { getConfirmarAsistencia } from "api/reservas";
-
+ 
+import {
+  getConfirmarAsistencia,
+  getConfirmarAsistenciaWhatsapp,
+  getCancelarAsistenciaWhatsapp,
+} from "api/reservas";
+ 
 const ConfirmacionResultado = () => {
   const location = useLocation();
-  const { slug } = useParams();
-
+  const { slug: slugParam } = useParams();
+ 
   const [scrolled, setScrolled] = useState(false);
   const [loading, setLoading] = useState(true);
-
+  // slug puede venir de la URL (/:slug/confirmar-reserva) o, si no, lo
+  // rellenamos con lo que devuelva el backend (flujo de botones WhatsApp,
+  // que llega sin slug en la URL: /confirmar-reserva?token=...)
+  const [slug, setSlug] = useState(slugParam);
+ 
   const [config, setConfig] = useState({
     icon: <FiClock size={50} className="text-primary" />,
     title: "Procesando...",
     message: "Estamos verificando tu solicitud.",
     color: "primary",
   });
-
-  // ✅ FUNCIÓN GLOBAL (SOLUCIÓN DEL ERROR)
+ 
   const actualizarUI = (res, err, repetida = false) => {
     setLoading(false);
-
+ 
     if (err) {
       const errorConfigs = {
         politica: {
@@ -68,11 +76,11 @@ const ConfirmacionResultado = () => {
           color: "secondary",
         },
       };
-
+ 
       setConfig(errorConfigs[err] || errorConfigs.servidor);
       return;
     }
-
+ 
     if (res === "confirma") {
       setConfig({
         icon: <FiCheckCircle size={50} className="text-success" />,
@@ -84,7 +92,7 @@ const ConfirmacionResultado = () => {
       });
       return;
     }
-
+ 
     if (res === "cancela") {
       setConfig({
         icon: <FiXCircle size={50} className="text-danger" />,
@@ -94,17 +102,49 @@ const ConfirmacionResultado = () => {
       });
     }
   };
-
-  // ✅ ÚNICO useEffect (OPTIMIZADO)
+ 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-
+ 
     const respuesta = params.get("respuesta");
     const error = params.get("error");
     const yaRespondida = params.get("ya_respondida");
     const token = params.get("token");
-
-    // 1. Si hay token y respuesta → pegarle al backend SIEMPRE
+ 
+    // 1. Flujo viejo: backend ya redirigió con el resultado en la URL
+    if (!token && (respuesta || error)) {
+      actualizarUI(respuesta, error, yaRespondida === "true");
+      return;
+    }
+ 
+    // 2. Flujo botones WhatsApp: solo llega el token (sin slug, sin respuesta).
+    //    La acción (confirmar/cancelar) se infiere de cuál botón mandó al path.
+    if (token && !respuesta) {
+      const esCancelar = location.pathname.includes("cancelar");
+      const llamada = esCancelar
+        ? getCancelarAsistenciaWhatsapp(token)
+        : getConfirmarAsistenciaWhatsapp(token);
+ 
+      llamada
+        .then((res) => {
+          if (res.data?.empresa?.slug) setSlug(res.data.empresa.slug);
+          actualizarUI(
+            res.data?.respuesta || (esCancelar ? "cancela" : "confirma"),
+            null,
+            res.data?.yaRespondida,
+          );
+        })
+        .catch((err) => {
+          if (err.response?.data?.empresa?.slug) {
+            setSlug(err.response.data.empresa.slug);
+          }
+          const errorType = err.response?.data?.error || "servidor";
+          actualizarUI(null, errorType);
+        });
+      return;
+    }
+ 
+    // 3. Flujo con respuesta explícita en la URL (email, por ejemplo)
     if (token && respuesta) {
       getConfirmarAsistencia(token, respuesta)
         .then((res) => {
@@ -120,17 +160,13 @@ const ConfirmacionResultado = () => {
         });
       return;
     }
-
-    // 2. Si backend ya redirigió con resultado
-    if (respuesta || error) {
-      actualizarUI(respuesta, error, yaRespondida === "true");
-      return;
-    }
-
-    // 3. Nada válido
+ 
+    // 4. Nada válido
     actualizarUI(null, "servidor");
   }, [location]);
-
+ 
+  const irAlInicio = () => (slug ? `/${slug}` : "/");
+ 
   return (
     <div
       style={{
@@ -147,20 +183,20 @@ const ConfirmacionResultado = () => {
       >
         <Container>
           <Link
-            to={`/${slug}`}
+            to={irAlInicio()}
             className="navbar-brand d-flex align-items-center font-weight-bold"
           >
             <FiCalendar className="mr-2" style={{ color: "#f72585" }} />
             Agenda<span style={{ color: "#4361ee" }}>Fonfach</span>
           </Link>
-
+ 
           <Nav className="ml-auto" navbar>
             <NavItem>
               <Button
                 className="text-white"
                 size="sm"
                 style={{ background: "#4361ee", borderRadius: "50px" }}
-                onClick={() => (window.location.href = `/${slug}`)}
+                onClick={() => (window.location.href = irAlInicio())}
               >
                 Ir al Inicio
               </Button>
@@ -168,7 +204,7 @@ const ConfirmacionResultado = () => {
           </Nav>
         </Container>
       </Navbar>
-
+ 
       <Container
         className="d-flex align-items-center justify-content-center flex-grow-1"
         style={{ paddingTop: "100px" }}
@@ -183,16 +219,16 @@ const ConfirmacionResultado = () => {
               backgroundColor: loading ? "#4361ee" : `var(--${config.color})`,
             }}
           />
-
+ 
           <CardBody className="text-center p-5">
             <div className="mb-4">{config.icon}</div>
-
+ 
             <h2 className="font-weight-bold mb-3">{config.title}</h2>
-
+ 
             <p className="text-muted mb-4">{config.message}</p>
-
+ 
             <hr className="my-4" />
-
+ 
             <Button
               color="secondary"
               outline
@@ -205,7 +241,7 @@ const ConfirmacionResultado = () => {
           </CardBody>
         </Card>
       </Container>
-
+ 
       <footer className="py-4 bg-white border-top">
         <Container>
           <div className="d-flex flex-column align-items-center">
@@ -216,12 +252,12 @@ const ConfirmacionResultado = () => {
               >
                 <FiInstagram size={22} />
               </a>
-
+ 
               <a href="https://wa.me/56975297584" className="mx-3 text-muted">
                 <FiSmartphone size={22} />
               </a>
             </div>
-
+ 
             <p className="text-muted small mb-0">
               © {new Date().getFullYear()} <strong>AgendaFonfach</strong>. Todos
               los derechos reservados.
@@ -232,5 +268,5 @@ const ConfirmacionResultado = () => {
     </div>
   );
 };
-
+ 
 export default ConfirmacionResultado;

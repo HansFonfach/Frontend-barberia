@@ -347,6 +347,7 @@ const ReservarHoraInvitado = () => {
                   </div>
                 )}
               </Col>
+
               <Col lg={5}>
                 <ResumenReserva
                   servicioSeleccionado={servicioSeleccionado}
@@ -440,7 +441,7 @@ const ReservarHoraInvitado = () => {
                       style={{ color: theme.primary }}
                     />
                     <span
-                      className="fw-bold"
+                      className="fw-bold text-dark"
                       style={{ fontSize: "0.85rem", color: theme.textMuted }}
                     >
                       +569

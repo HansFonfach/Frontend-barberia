@@ -82,6 +82,12 @@ root.render(
           <Route path="/" element={<Principal />} />
           <Route path="/registro-negocio" element={<RegistrarNegocio />} />
 
+          <Route
+            path="/confirmar-reserva"
+            element={<ConfirmacionResultado />}
+          />
+          <Route path="/cancelar-reserva" element={<ConfirmacionResultado />} />
+
           {/* ✅ Rutas específicas PRIMERO */}
           <Route
             path="/:slug"

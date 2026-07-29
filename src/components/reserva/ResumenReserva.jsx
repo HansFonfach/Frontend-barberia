@@ -136,9 +136,7 @@ const ResumenReserva = ({
                     >
                       ${servicioSeleccionado.precio.toLocaleString("es-CL")}
                     </span>
-                    <span>
-                      ${precioFinalCalculado.toLocaleString("es-CL")}
-                    </span>
+                    <span>${precioFinalCalculado.toLocaleString("es-CL")}</span>
                   </>
                 ) : (
                   <>
@@ -177,6 +175,8 @@ const ResumenReserva = ({
           )}
         </CardBody>
       </Card>
+
+      <input type="text" className="form-control mb-2 " placeholder="Código promocional" />
 
       <div className="d-grid gap-2">
         <Button
