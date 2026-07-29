@@ -36,6 +36,7 @@ import {
   FiUserCheck,
   FiUserX,
   FiShield,
+  FiStar,
 } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import NegociosConfianza from "./NegociosConfianza";
@@ -59,6 +60,11 @@ const LandingPage = () => {
   );
 
   const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${MESSAGE}`;
+
+  const MESSAGE_PLAN_NEGOCIO = encodeURIComponent(
+    "Hola, tengo un negocio con 6 o más profesionales (o varias sucursales) y quiero cotizar el Plan Negocio",
+  );
+  const WHATSAPP_URL_PLAN_NEGOCIO = `https://wa.me/${WHATSAPP_NUMBER}?text=${MESSAGE_PLAN_NEGOCIO}`;
 
   // Cliente real
   const clienteReal = {
@@ -162,24 +168,62 @@ const LandingPage = () => {
     { nombre: "Clínicas dentales", icon: "🦷", count: 0 },
   ];
 
-  // PLAN ÚNICO
-  const plan = {
-    nombre: "Plan Inicial",
-    precio: "24.990",
-    periodo: "mes",
-    descripcion: "Todo lo que necesitas para nunca más perder una hora",
-    incluye: [
-      "Reservas ilimitadas",
-      "Sistema de puntos y canjes",
-      "Lista de espera automática",
-      "Notificaciones WhatsApp + Email",
-      "Recordatorios inteligentes de reposición",
-      "Panel de administración completo",
-      "Múltiples profesionales",
-      "Reserva como invitado o registrado",
-      "Sin comisiones por reserva",
-    ],
-  };
+  // PLANES
+  const planes = [
+    {
+      nombre: "Plan Solo",
+      subtitulo: "1 profesional",
+      precio: "29.990",
+      periodo: "mes",
+      destacado: false,
+      cta: "Comenzar ahora",
+      accion: () => (window.location.href = "/registro-negocio"),
+      incluye: [
+        "Reservas ilimitadas",
+        "Sistema de puntos y canjes",
+        "Lista de espera automática",
+        "Recordatorios inteligentes de reposición",
+        "Notificaciones por email",
+        "Panel de administración completo",
+        "Reserva como invitado o registrado",
+        "Sin comisiones por reserva",
+      ],
+    },
+    {
+      nombre: "Plan Equipo",
+      subtitulo: "1 a 3 profesionales",
+      precio: "39.990",
+      periodo: "mes",
+      destacado: true,
+      badge: "Más elegido",
+      cta: "Comenzar ahora",
+      accion: () => (window.location.href = "/registro-negocio"),
+      incluye: [
+        "Todo lo del Plan Solo",
+        "Hasta 3 profesionales",
+        "Notificaciones por WhatsApp (cliente y profesional)",
+        "Suscripciones y membresías para tus clientes",
+        "Recordatorios por WhatsApp + email",
+      ],
+    },
+    {
+      nombre: "Plan Negocio",
+      subtitulo: "3+ profesionales ",
+      precio: null,
+      periodo: null,
+      destacado: false,
+      cta: "Conversemos por WhatsApp",
+      accion: () => window.open(WHATSAPP_URL_PLAN_NEGOCIO, "_blank"),
+      incluye: [
+        "Todo lo del Plan Equipo",
+        "Profesionales ilimitados",
+        "WhatsApp sin límite de conversaciones",
+        "Múltiples sucursales",
+        "Estadísticas avanzadas",
+        "Soporte prioritario",
+      ],
+    },
+  ];
 
   return (
     <div style={{ backgroundColor: "#ffffff" }}>
@@ -213,7 +257,7 @@ const LandingPage = () => {
             </NavItem>
             <NavItem className="d-none d-md-block">
               <NavLink href="#plan-contacto" className="text-dark mr-4">
-                Plan y Contacto
+                Planes y Contacto
               </NavLink>
             </NavItem>
             <NavItem>
@@ -717,7 +761,7 @@ const LandingPage = () => {
       <FuncionalidadesSection />
       <NegociosConfianza />
 
-      {/* SECCIÓN COMBINADA: PLAN Y CONTACTO */}
+      {/* SECCIÓN COMBINADA: PLANES Y CONTACTO */}
       <section id="plan-contacto" className="py-7 bg-white">
         <Container>
           <div className="text-center mb-6">
@@ -729,112 +773,169 @@ const LandingPage = () => {
                 borderRadius: "50px",
               }}
             >
-              💎 Precio Inicial
+              💎 Elige tu plan
             </Badge>
             <h2 className="display-4 font-weight-bold">
-              Un plan, todo incluido
+              Un plan para cada tamaño de negocio
             </h2>
             <p className="text-muted">
-              Sin importar el tamaño de tu negocio, el precio es el mismo
+              Empieza solo y sube de plan a medida que crece tu equipo
             </p>
           </div>
 
-          <Row className="justify-content-center">
-            <Col lg="10">
-              <Row>
-                {/* Columna del Plan */}
-                <Col md="6">
-                  <Card
-                    className="border-0 shadow-lg h-100"
-                    style={{ borderRadius: "30px", overflow: "hidden" }}
-                  >
+          {/* Planes */}
+          <Row className="justify-content-center mb-6">
+            {planes.map((p, index) => (
+              <Col lg="4" md="6" className="mb-4 d-flex" key={p.nombre}>
+                <Card
+                  className="border-0 shadow-lg w-100"
+                  style={{
+                    borderRadius: "30px",
+                    overflow: "hidden",
+                    border: p.destacado
+                      ? "2px solid #f72585"
+                      : "2px solid transparent",
+                    transform: p.destacado ? "scale(1.03)" : "none",
+                    zIndex: p.destacado ? 1 : 0,
+                  }}
+                >
+                  {p.badge && (
                     <div
-                      className="p-4 text-center"
+                      className="text-center py-2"
                       style={{
-                        background:
-                          "linear-gradient(135deg, #4361ee 0%, #f72585 100%)",
+                        background: "#f72585",
+                        color: "white",
+                        fontSize: "12px",
+                        fontWeight: "700",
+                        letterSpacing: "0.5px",
                       }}
                     >
-                      <Badge
-                        className="mb-3"
-                        style={{
-                          background: "rgba(255,255,255,0.2)",
-                          color: "white",
-                          border: "none",
-                          borderRadius: "50px",
-                          padding: "8px 16px",
-                        }}
-                      >
-                        PLAN INICIAL
-                      </Badge>
-                      <h3 className="text-white mb-2">
-                        Para cualquier profesional
-                      </h3>
+                      <FiStar className="mr-1" style={{ marginTop: "-2px" }} />
+                      {p.badge.toUpperCase()}
+                    </div>
+                  )}
+
+                  <div
+                    className="p-4 text-center"
+                    style={{
+                      background: p.destacado
+                        ? "linear-gradient(135deg, #4361ee 0%, #f72585 100%)"
+                        : "#1a1a2e",
+                    }}
+                  >
+                    <Badge
+                      className="mb-3"
+                      style={{
+                        background: "rgba(255,255,255,0.2)",
+                        color: "white",
+                        border: "none",
+                        borderRadius: "50px",
+                        padding: "8px 16px",
+                      }}
+                    >
+                      {p.nombre.toUpperCase()}
+                    </Badge>
+                    <h3 className="text-white mb-2">{p.subtitulo}</h3>
+
+                    {p.precio ? (
                       <div className="d-flex align-items-center justify-content-center">
                         <span
                           className="text-white"
-                          style={{ fontSize: "3rem", fontWeight: "bold" }}
+                          style={{ fontSize: "2.75rem", fontWeight: "bold" }}
                         >
-                          ${plan.precio}
+                          ${p.precio}
                         </span>
                         <span className="text-white-50 ml-2">
-                          /{plan.periodo}
+                          /{p.periodo}
                         </span>
                       </div>
-                      <p className="text-white-50 mt-2 mb-0">
-                        Barberías, salones, spa, consultorios y más
-                      </p>
+                    ) : (
+                      <div
+                        className="text-white"
+                        style={{ fontSize: "1.75rem", fontWeight: "bold" }}
+                      >
+                        Precio a medida
+                      </div>
+                    )}
+                  </div>
+
+                  <CardBody className="p-4 d-flex flex-column">
+                    <div className="mb-4 flex-grow-1">
+                      {p.incluye.map((item, i) => (
+                        <div
+                          key={i}
+                          className="d-flex align-items-center mb-3"
+                        >
+                          <FiCheckCircle
+                            className="mr-3"
+                            style={{
+                              color: "#06d6a0",
+                              fontSize: "1.2rem",
+                              flexShrink: 0,
+                            }}
+                          />
+                          <span>{item}</span>
+                        </div>
+                      ))}
                     </div>
 
-                    <CardBody className="p-4">
-                      <div className="mb-4">
-                        {plan.incluye.map((item, index) => (
-                          <div
-                            key={index}
-                            className="d-flex align-items-center mb-3"
-                          >
-                            <FiCheckCircle
-                              className="mr-3"
-                              style={{ color: "#06d6a0", fontSize: "1.2rem" }}
-                            />
-                            <span>{item}</span>
-                          </div>
-                        ))}
-                      </div>
+                    <Button
+                      block
+                      className="text-white"
+                      style={{
+                        background: p.destacado
+                          ? "linear-gradient(135deg, #4361ee, #f72585)"
+                          : "#1a1a2e",
+                        border: "none",
+                        borderRadius: "10px",
+                        padding: "12px",
+                        fontWeight: "600",
+                      }}
+                      onClick={p.accion}
+                    >
+                      {p.cta} <FiArrowRight className="ml-2" />
+                    </Button>
 
-                      <p className="text-center text-muted small mt-3">
+                    {index === 0 && (
+                      <p className="text-center text-muted small mt-3 mb-0">
                         <FiShield className="mr-1" /> Sin permanencia. 7 días
                         gratis.
                       </p>
-                    </CardBody>
-                  </Card>
-                </Col>
+                    )}
+                  </CardBody>
+                </Card>
+              </Col>
+            ))}
+          </Row>
 
-                {/* Columna de Contacto */}
-                <Col md="6">
-                  <Card
-                    className="border-0 shadow-lg h-100"
-                    style={{ borderRadius: "30px", overflow: "hidden" }}
-                  >
-                    <CardBody className="p-4">
-                      <div className="text-center mb-4">
-                        <div
-                          className="d-inline-block p-3 rounded-circle mb-3"
-                          style={{ background: "#e0e7ff" }}
-                        >
-                          <FiMail size={30} color="#4361ee" />
-                        </div>
-                        <h3 className="font-weight-bold">
-                          ¿Te interesa o tienes dudas?
-                        </h3>
-                        <p className="text-muted">
-                          Contáctame directamente y te responderé a la brevedad
-                        </p>
-                      </div>
+          {/* Contacto */}
+          <Row className="justify-content-center">
+            <Col lg="8">
+              <Card
+                className="border-0 shadow-lg"
+                style={{ borderRadius: "30px", overflow: "hidden" }}
+              >
+                <CardBody className="p-4">
+                  <div className="text-center mb-4">
+                    <div
+                      className="d-inline-block p-3 rounded-circle mb-3"
+                      style={{ background: "#e0e7ff" }}
+                    >
+                      <FiMail size={30} color="#4361ee" />
+                    </div>
+                    <h3 className="font-weight-bold">
+                      ¿Tienes dudas sobre qué plan elegir?
+                    </h3>
+                    <p className="text-muted">
+                      Contáctame directamente y te responderé a la brevedad
+                    </p>
+                  </div>
 
-                      {/* Datos de contacto */}
+                  <Row>
+                    {/* Datos de contacto */}
+                    <Col md="5">
                       <div
-                        className="mb-4 p-3"
+                        className="mb-4 p-3 h-100"
                         style={{ background: "#f8f9fa", borderRadius: "15px" }}
                       >
                         <h5 className="font-weight-bold mb-3">
@@ -882,8 +983,10 @@ const LandingPage = () => {
                           </span>
                         </div>
                       </div>
+                    </Col>
 
-                      {/* Formulario simplificado */}
+                    {/* Formulario simplificado */}
+                    <Col md="7">
                       <Form>
                         <FormGroup>
                           <Input
@@ -929,10 +1032,10 @@ const LandingPage = () => {
                           Enviar mensaje <FiArrowRight className="ml-2" />
                         </Button>
                       </Form>
-                    </CardBody>
-                  </Card>
-                </Col>
-              </Row>
+                    </Col>
+                  </Row>
+                </CardBody>
+              </Card>
             </Col>
           </Row>
         </Container>
@@ -982,7 +1085,7 @@ const LandingPage = () => {
             </Col>
             <Col md="6" className="text-center text-md-right">
               <p className="text-muted small mb-0">
-                ⚡ $24.990 CLP fijos - Sin comisiones - 7 días gratis
+                ⚡ Desde $24.990 CLP - Sin comisiones - 7 días gratis
               </p>
             </Col>
           </Row>
