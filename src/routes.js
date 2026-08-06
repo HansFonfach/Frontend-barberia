@@ -232,6 +232,7 @@ export const barberoRoutes = [
     component: <CrearBarberoCompleto />,
     layout: "/admin",
     section: "gestion",
+    soloAdmin: true,
   },
 
   {
@@ -240,7 +241,7 @@ export const barberoRoutes = [
     icon: "ni ni-credit-card text-warning",
     component: <GestionSuscripciones />,
     layout: "/admin",
-    excludeSlugs: ["lumicabeauty", "DerikBarberVip", "danails-studio"],
+    excludeSlugs: ["lumicabeauty", "don-valentino", "danails-studio"],
     section: "gestion",
   },
 
@@ -259,6 +260,7 @@ export const barberoRoutes = [
     component: <GestionCategorias />,
     layout: "/admin",
     section: "gestion",
+    soloAdmin: true,
   },
   {
     // submenu: Servicios
@@ -274,6 +276,7 @@ export const barberoRoutes = [
         icon: "fas fa-list text-danger",
         component: <GestionServicios />,
         layout: "/admin",
+        soloAdmin: true,
       },
       {
         path: "/asignar-servicios",

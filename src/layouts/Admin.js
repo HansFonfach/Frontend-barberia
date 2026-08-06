@@ -1,5 +1,11 @@
 import React from "react";
-import { useLocation, Route, Routes, Navigate } from "react-router-dom";
+import {
+  useLocation,
+  useParams,
+  Route,
+  Routes,
+  Navigate,
+} from "react-router-dom";
 import { Container } from "reactstrap";
 import AdminNavbar from "components/Navbars/AdminNavbar.jsx";
 import AdminFooter from "components/Footers/AdminFooter.js";
@@ -7,10 +13,14 @@ import Sidebar from "components/Sidebar/Sidebar.jsx";
 import { useAuth } from "context/AuthContext";
 import { clienteRoutes, barberoRoutes } from "./../routes";
 import { useEmpresa } from "context/EmpresaContext";
+import { filtrarRutasPermitidas } from "utils/filtrarRutas.js";
+import { filtrarRutasMenu } from "utils/filtrarRutas.js";
+
 
 const AdminLayout = (props) => {
   const mainContent = React.useRef(null);
   const location = useLocation();
+  const { slug } = useParams();
   const { user } = useAuth();
   const { empresa, loading } = useEmpresa();
 
@@ -19,6 +29,18 @@ const AdminLayout = (props) => {
   }, [location]);
 
   const routes = user?.rol === "barbero" ? barberoRoutes : clienteRoutes;
+
+  // Rutas que este usuario puede cargar (incluye las invisibles)
+  const rutasPermitidas = React.useMemo(
+    () => filtrarRutasPermitidas(routes, { user, slug }),
+    [routes, user, slug],
+  );
+
+  // Rutas que este usuario puede ver en el menú
+  const rutasMenu = React.useMemo(
+    () => filtrarRutasMenu(routes, { user, slug }),
+    [routes, user, slug],
+  );
 
   // 🔥 1️⃣ Mientras carga la empresa
   if (loading) {
@@ -38,22 +60,19 @@ const AdminLayout = (props) => {
     <>
       <Sidebar
         {...props}
-        routes={routes}
+        routes={rutasMenu}
         logo={{
           innerLink: "/admin/index",
-          imgSrc: empresa.logo, // 👈 ya no hay fallback incorrecto
+          imgSrc: empresa.logo,
           imgAlt: empresa.nombre || "Logo Empresa",
         }}
       />
 
       <div className="main-content" ref={mainContent}>
-        <AdminNavbar
-          {...props}
-          brandText={empresa.nombre} // 👈 mejor usar nombre empresa
-        />
+        <AdminNavbar {...props} brandText={empresa.nombre} />
 
         <Routes>
-          {routes.flatMap((r, idx) =>
+          {rutasPermitidas.flatMap((r, idx) =>
             r.children
               ? r.children.map((child, cidx) => (
                   <Route
@@ -65,8 +84,7 @@ const AdminLayout = (props) => {
               : [<Route key={idx} path={r.path} element={r.component} />],
           )}
 
-
-
+          {/* Cualquier ruta no permitida cae acá y se redirige */}
           {user?.rol === "barbero" ? (
             <Route
               path="*"

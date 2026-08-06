@@ -66,18 +66,16 @@ const Sidebar = ({ routes, logo, usuario }) => {
 
   /* =======================
      LINKS AGRUPADOS
+     Las rutas llegan ya filtradas desde AdminLayout
+     (permisos + excludeSlugs + invisible). Acá solo se pintan.
   ======================= */
   const renderGroupedLinks = (routes) => {
-    const grouped = routes
-      .filter((r) => !r.invisible)
-      .filter((r) => !r.excludeSlugs?.includes(slug))
-      .filter((r) => !r.soloAdmin || user?.esAdmin)
-      .reduce((acc, route) => {
-        const section = route.section || "otros";
-        if (!acc[section]) acc[section] = [];
-        acc[section].push(route);
-        return acc;
-      }, {});
+    const grouped = routes.reduce((acc, route) => {
+      const section = route.section || "otros";
+      if (!acc[section]) acc[section] = [];
+      acc[section].push(route);
+      return acc;
+    }, {});
 
     return Object.keys(grouped).map((sectionKey) => (
       <div key={sectionKey} className="sidebar-section">
@@ -238,7 +236,6 @@ const Sidebar = ({ routes, logo, usuario }) => {
             />
           </Link>
 
-          {/* USUARIO MOBILE */}
           {/* USUARIO MOBILE */}
           <Nav className="align-items-center d-md-none">
             <UncontrolledDropdown nav>

@@ -845,9 +845,7 @@ const LandingPage = () => {
                         >
                           ${p.precio}
                         </span>
-                        <span className="text-white-50 ml-2">
-                          /{p.periodo}
-                        </span>
+                        <span className="text-white-50 ml-2">/{p.periodo}</span>
                       </div>
                     ) : (
                       <div
@@ -862,10 +860,7 @@ const LandingPage = () => {
                   <CardBody className="p-4 d-flex flex-column">
                     <div className="mb-4 flex-grow-1">
                       {p.incluye.map((item, i) => (
-                        <div
-                          key={i}
-                          className="d-flex align-items-center mb-3"
-                        >
+                        <div key={i} className="d-flex align-items-center mb-3">
                           <FiCheckCircle
                             className="mr-3"
                             style={{
@@ -906,137 +901,6 @@ const LandingPage = () => {
                 </Card>
               </Col>
             ))}
-          </Row>
-
-          {/* Contacto */}
-          <Row className="justify-content-center">
-            <Col lg="8">
-              <Card
-                className="border-0 shadow-lg"
-                style={{ borderRadius: "30px", overflow: "hidden" }}
-              >
-                <CardBody className="p-4">
-                  <div className="text-center mb-4">
-                    <div
-                      className="d-inline-block p-3 rounded-circle mb-3"
-                      style={{ background: "#e0e7ff" }}
-                    >
-                      <FiMail size={30} color="#4361ee" />
-                    </div>
-                    <h3 className="font-weight-bold">
-                      ¿Tienes dudas sobre qué plan elegir?
-                    </h3>
-                    <p className="text-muted">
-                      Contáctame directamente y te responderé a la brevedad
-                    </p>
-                  </div>
-
-                  <Row>
-                    {/* Datos de contacto */}
-                    <Col md="5">
-                      <div
-                        className="mb-4 p-3 h-100"
-                        style={{ background: "#f8f9fa", borderRadius: "15px" }}
-                      >
-                        <h5 className="font-weight-bold mb-3">
-                          Agenda Fonfach
-                        </h5>
-
-                        <div className="d-flex align-items-center mb-3">
-                          <FiInstagram
-                            className="mr-3"
-                            color="#4361ee"
-                            size={20}
-                          />
-                          <a
-                            href="https://instagram.com/agendafonfach"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-dark"
-                            style={{ textDecoration: "none" }}
-                          >
-                            @Agendafonfach
-                          </a>
-                        </div>
-
-                        <div className="d-flex align-items-center mb-3">
-                          <FiSmartphone
-                            className="mr-3"
-                            color="#25D366"
-                            size={20}
-                          />
-                          <a
-                            href="https://wa.me/56975297584"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-dark"
-                            style={{ textDecoration: "none" }}
-                          >
-                            +56 9 7529 7584
-                          </a>
-                        </div>
-
-                        <div className="d-flex align-items-center">
-                          <FiMail className="mr-3" color="#f72585" size={20} />
-                          <span className="text-dark">
-                            contacto@agendafonfach.cl
-                          </span>
-                        </div>
-                      </div>
-                    </Col>
-
-                    {/* Formulario simplificado */}
-                    <Col md="7">
-                      <Form>
-                        <FormGroup>
-                          <Input
-                            type="text"
-                            placeholder="Tu nombre"
-                            style={{
-                              borderRadius: "10px",
-                              marginBottom: "10px",
-                            }}
-                          />
-                        </FormGroup>
-                        <FormGroup>
-                          <Input
-                            type="email"
-                            placeholder="Tu email"
-                            style={{
-                              borderRadius: "10px",
-                              marginBottom: "10px",
-                            }}
-                          />
-                        </FormGroup>
-                        <FormGroup>
-                          <Input
-                            type="textarea"
-                            placeholder="Escribe tu mensaje..."
-                            rows="3"
-                            style={{
-                              borderRadius: "10px",
-                              marginBottom: "15px",
-                            }}
-                          />
-                        </FormGroup>
-                        <Button
-                          block
-                          style={{
-                            background: "#f72585",
-                            border: "none",
-                            borderRadius: "10px",
-                            padding: "12px",
-                            fontWeight: "600",
-                          }}
-                        >
-                          Enviar mensaje <FiArrowRight className="ml-2" />
-                        </Button>
-                      </Form>
-                    </Col>
-                  </Row>
-                </CardBody>
-              </Card>
-            </Col>
           </Row>
         </Container>
       </section>
