@@ -192,7 +192,7 @@ const LandingPage = () => {
     {
       nombre: "Plan Equipo",
       subtitulo: "1 a 3 profesionales",
-      precio: "39.990",
+      precio: "44.990",
       periodo: "mes",
       destacado: true,
       badge: "Más elegido",
