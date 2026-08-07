@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import { Container, Row, Col, Card, CardBody } from "reactstrap";
-import { DollarSign, TrendingUp, ShoppingBag, Sparkles, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import {
+  DollarSign,
+  TrendingUp,
+  ShoppingBag,
+  Sparkles,
+  ChevronLeft,
+  ChevronRight,
+  Calendar,
+  Users,
+} from "lucide-react";
 import UserHeader from "components/Headers/UserHeader";
 import { useEstadisticas } from "context/EstadisticasContext";
 
@@ -8,6 +17,19 @@ const MESES = [
   "Enero","Febrero","Marzo","Abril","Mayo","Junio",
   "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
 ];
+
+const COLORES_PROFESIONAL = [
+  "#4f46e5", "#0891b2", "#059669", "#d97706", "#db2777", "#7c3aed",
+];
+
+const iniciales = (nombre = "") =>
+  nombre
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((p) => p[0])
+    .join("")
+    .toUpperCase() || "?";
 
 const HistorialIngresos = () => {
   const { verHistorialDeIngresos } = useEstadisticas();
@@ -56,6 +78,12 @@ const HistorialIngresos = () => {
     (anio === hoy.getFullYear() && mes > hoy.getMonth());
 
   const detalles = data?.detalle || {};
+
+  const ranking = [...(data?.porProfesional || [])].sort(
+    (a, b) => (b.total || 0) - (a.total || 0),
+  );
+  const mostrarRanking = ranking.length > 1;
+  const mayorTotal = ranking[0]?.total || 0;
 
   const items = [
     {
@@ -213,7 +241,7 @@ const HistorialIngresos = () => {
 
             {/* Posible ingreso — solo mes actual */}
             {esMesActual && detalles.posibleIngreso != null && (
-              <Row>
+              <Row className="mb-3">
                 <Col xs="12" md="6">
                   <Card className="border-0 shadow-sm" style={{ borderRadius: 14, borderLeft: "4px solid #0891b2" }}>
                     <CardBody className="p-3 d-flex justify-content-between align-items-center">
@@ -226,6 +254,114 @@ const HistorialIngresos = () => {
                         </p>
                       </div>
                       <TrendingUp size={28} style={{ color: "#bae6fd" }} />
+                    </CardBody>
+                  </Card>
+                </Col>
+              </Row>
+            )}
+
+            {/* Ingresos por profesional */}
+            {mostrarRanking && (
+              <Row>
+                <Col xs="12">
+                  <Card className="border-0 shadow-sm" style={{ borderRadius: 16 }}>
+                    <CardBody className="p-3 p-md-4">
+                      <div className="d-flex align-items-center justify-content-between mb-1">
+                        <div className="d-flex align-items-center">
+                          <Users size={18} className="mr-2" style={{ color: "#4f46e5" }} />
+                          <h5 className="mb-0" style={{ fontWeight: 700, color: "#1e293b" }}>
+                            Ingresos por profesional
+                          </h5>
+                        </div>
+                        <span style={{
+                          fontSize: "0.75rem", fontWeight: 600, color: "#64748b",
+                          background: "#f1f5f9", borderRadius: 999, padding: "3px 10px"
+                        }}>
+                          {ranking.length} profesionales
+                        </span>
+                      </div>
+
+                      <p className="text-muted mb-4" style={{ fontSize: "0.8rem" }}>
+                        No incluye suscripciones, porque son ingreso del negocio y no se
+                        atribuyen a una persona.
+                      </p>
+
+                      {ranking.map((p, i) => {
+                        const color = COLORES_PROFESIONAL[i % COLORES_PROFESIONAL.length];
+                        const porcentaje = mayorTotal > 0
+                          ? Math.round(((p.total || 0) / mayorTotal) * 100)
+                          : 0;
+
+                        return (
+                          <div
+                            key={p.barberoId || i}
+                            style={{
+                              padding: "14px 0",
+                              borderTop: i === 0 ? "none" : "1px solid #f1f5f9",
+                            }}
+                          >
+                            <div className="d-flex align-items-center justify-content-between mb-2" style={{ gap: 12 }}>
+                              <div className="d-flex align-items-center" style={{ minWidth: 0, gap: 12 }}>
+                                <div style={{
+                                  width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+                                  background: `${color}15`, color,
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  fontWeight: 700, fontSize: "0.85rem",
+                                }}>
+                                  {iniciales(p.nombre)}
+                                </div>
+                                <div style={{ minWidth: 0 }}>
+                                  <p style={{
+                                    margin: 0, fontWeight: 600, color: "#1e293b",
+                                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                                  }}>
+                                    {p.nombre || "Sin nombre"}
+                                  </p>
+                                  {p.cantidadReservas != null && (
+                                    <p style={{ margin: 0, fontSize: "0.75rem", color: "#94a3b8" }}>
+                                      {p.cantidadReservas} {p.cantidadReservas === 1 ? "atención" : "atenciones"}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+
+                              <p style={{
+                                margin: 0, fontWeight: 700, fontSize: "1.05rem",
+                                color: "#1e293b", whiteSpace: "nowrap",
+                              }}>
+                                {formatMoney(p.total)}
+                              </p>
+                            </div>
+
+                            <div style={{
+                              height: 6, borderRadius: 999, background: "#f1f5f9",
+                              overflow: "hidden", marginBottom: 10,
+                            }}>
+                              <div style={{
+                                width: `${porcentaje}%`, height: "100%",
+                                background: color, borderRadius: 999,
+                                transition: "width 0.4s ease",
+                              }} />
+                            </div>
+
+                            <div className="d-flex flex-wrap" style={{ gap: 8 }}>
+                              {[
+                                { label: "Servicios", valor: p.ingresoReservas },
+                                { label: "Productos", valor: p.ingresoProductos },
+                                { label: "Extras", valor: p.ingresoExtras },
+                              ].map((chip) => (
+                                <span key={chip.label} style={{
+                                  fontSize: "0.72rem", color: "#64748b", background: "#f8fafc",
+                                  border: "1px solid #f1f5f9", borderRadius: 8, padding: "3px 8px",
+                                }}>
+                                  {chip.label}{" "}
+                                  <strong style={{ color: "#475569" }}>{formatMoney(chip.valor)}</strong>
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
                     </CardBody>
                   </Card>
                 </Col>
