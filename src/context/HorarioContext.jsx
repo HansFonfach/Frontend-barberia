@@ -14,6 +14,8 @@ import { postCancelarHoraExtraDiaria } from "api/horarios";
 import { postAgregarHoraExtraDiaria } from "api/horarios";
 import { getHorasDisponibles } from "api/horarios.js";
 import { createContext, useContext } from "react";
+import { getFeriadosConEstado } from "api/horarios";
+import { postToggleTrabajoFeriado } from "api/horarios";
 
 const HorarioContext = createContext();
 
@@ -187,6 +189,25 @@ export const HorarioProvider = ({ children }) => {
     return res;
   };
 
+  const obtenerFeriadosConEstado = async (barberoId) => {
+    try {
+      const res = await getFeriadosConEstado(barberoId);
+      return res?.feriados || [];
+    } catch (error) {
+      console.error("❌ Error al obtener feriados:", error);
+      return [];
+    }
+  };
+
+  const toggleTrabajoFeriado = async (barbero, fecha) => {
+    try {
+      const res = await postToggleTrabajoFeriado(barbero, fecha);
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   return (
     <HorarioContext.Provider
       value={{
@@ -204,6 +225,8 @@ export const HorarioProvider = ({ children }) => {
         crearVacaciones,
         eliminarVacaciones,
         obtenerVacacionesBarbero,
+        obtenerFeriadosConEstado, // 👈
+        toggleTrabajoFeriado, // 👈
       }}
     >
       {children}

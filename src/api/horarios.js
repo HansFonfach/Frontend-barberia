@@ -198,3 +198,26 @@ export const getHorasProfesionalDia = async (barberoId, fecha) => {
   });
   return res.data;
 };
+
+export const getFeriadosConEstado = async (barberoId) => {
+  try {
+    const res = await axiosPrivate.get(
+      `/excepcionHorario/feriado/${barberoId}`,
+    );
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const postToggleTrabajoFeriado = async (barbero, fecha) => {
+  try {
+    const res = await axiosPrivate.post(`/excepcionHorario/feriado/toggle`, {
+      barbero,
+      fecha,
+    });
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};

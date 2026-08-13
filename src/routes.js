@@ -43,6 +43,7 @@ import VentasDirectas from "views/admin/pages/VentasDirectas";
 import GestionSuscripciones from "views/admin/pages/GestionSuscripciones";
 import GestionCategorias from "views/admin/pages/GestionCategorias";
 import GestionServiciosPorHora from "views/admin/pages/GestionServiciosPorHora";
+import HabilitarFeriados from "views/admin/pages/HabilitarFeriados";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -314,6 +315,13 @@ export const barberoRoutes = [
         name: "Administrar horarios",
         icon: "fas fa-clock text-danger",
         component: <GestionHorariosBarbero />,
+        layout: "/admin",
+      },
+      {
+        path: "/gestion-feriados",
+        name: "Administrar Feriados",
+        icon: "fas fa-clock text-success",
+        component: <HabilitarFeriados />,
         layout: "/admin",
       },
 

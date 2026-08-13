@@ -371,18 +371,10 @@ const GestionHorarios = () => {
     try {
       setMensajeError("");
       const esBloqueada = horasCanceladasSet.has(hora);
-      if (infoFeriado) {
-        if (esBloqueada) {
-          await agregarHoraExtraDiaria(barbero, fechaSeleccionada, hora);
-          setMensaje(`Hora ${hora} habilitada para el feriado`);
-        } else {
-          await cancelarHoraExtraDiaria(barbero, fechaSeleccionada, hora);
-          setMensaje(`Hora ${hora} bloqueada nuevamente`);
-        }
-      } else {
-        await toggleHoraPorDia(hora, fechaSeleccionada, barbero);
-        setMensaje(`Hora ${hora} ${esBloqueada ? "reactivada" : "cancelada"}`);
-      }
+
+      await toggleHoraPorDia(hora, fechaSeleccionada, barbero);
+      setMensaje(`Hora ${hora} ${esBloqueada ? "reactivada" : "bloqueada"}`);
+
       await refetch();
     } catch (err) {
       setMensajeError(`Error al actualizar hora ${hora}`);
