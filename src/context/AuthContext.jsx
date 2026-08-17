@@ -114,7 +114,7 @@ export const AuthProvider = ({ children }) => {
     try {
       setLoading(true);
 
-      const res = await loginRequest(credentials);
+      const res = await loginRequest(credentials, credentials.slug);
       const token = res.data?.token;
 
       if (token) {
