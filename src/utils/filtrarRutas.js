@@ -3,11 +3,17 @@
 /**
  * Reglas de acceso de una ruta.
  * - soloAdmin: solo la ve quien tenga esAdmin === true
- * - excludeSlugs: negocios donde la ruta no aplica
+ * - excludeSlugs: negocios donde la ruta no aplica (por slug puntual)
+ * - excludeRubros: rubros de empresa donde la ruta no aplica
+ *   (ej. ["gimnasio"] para ocultar pantallas de barbería/salón que un gimnasio no usa)
+ * - requiereModulo: nombre del flag en empresa.modulos que debe estar en true
+ *   (ej. "clasesGrupales" para las pantallas del módulo de gimnasios)
  */
-const tienePermiso = (ruta, { user, slug }) => {
+const tienePermiso = (ruta, { user, slug, empresa }) => {
   if (ruta.soloAdmin && !user?.esAdmin) return false;
   if (ruta.excludeSlugs?.includes(slug)) return false;
+  if (ruta.excludeRubros?.includes(empresa?.rubro)) return false;
+  if (ruta.requiereModulo && !empresa?.modulos?.[ruta.requiereModulo]) return false;
   return true;
 };
 

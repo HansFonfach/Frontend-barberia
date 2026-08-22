@@ -31,11 +31,15 @@ import { EstadisticasProvider } from "context/EstadisticasContext";
 import { NotificacionProvider } from "context/NotificacionesContext";
 import { LookProvider } from "context/LookContext";
 import { CanjeProvider } from "context/CanjeContext";
+import { ClasesProvider } from "context/ClasesContext";
+import { PlanesMembresiaProvider } from "context/PlanesMembresiaContext";
+import { PlanesSuscripcionProvider } from "context/PlanesSuscripcionContext";
 
 // Pages
 import Principal from "views/publico/principal";
 import Landing from "views/pages/Landing";
 import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
+import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
 import CancelarInvitado from "views/invitados/pages/CancelarInvitado";
 import VerificarCuenta from "views/publico/VerificarCuenta";
 import RegistrarNegocio from "views/publico/RegistrarNegocio";
@@ -61,7 +65,15 @@ const AdminProviders = ({ children }) => (
               <EstadisticasProvider>
                 <NotificacionProvider>
                   <LookProvider>
-                    <CanjeProvider>{children}</CanjeProvider>
+                    <CanjeProvider>
+                      <ClasesProvider>
+                        <PlanesMembresiaProvider>
+                          <PlanesSuscripcionProvider>
+                            {children}
+                          </PlanesSuscripcionProvider>
+                        </PlanesMembresiaProvider>
+                      </ClasesProvider>
+                    </CanjeProvider>
                   </LookProvider>
                 </NotificacionProvider>
               </EstadisticasProvider>
@@ -102,6 +114,14 @@ root.render(
             element={
               <EmpresaWrapper>
                 <ReservarHoraInvitado />
+              </EmpresaWrapper>
+            }
+          />
+          <Route
+            path="/:slug/clase-de-prueba"
+            element={
+              <EmpresaWrapper>
+                <ClasePruebaInvitado />
               </EmpresaWrapper>
             }
           />

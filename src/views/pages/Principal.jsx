@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   Card,
   CardBody,
@@ -18,6 +18,9 @@ import { Sparkles, Scissors, Star, Zap, Calendar } from "lucide-react";
 import { useUsuario } from "context/usuariosContext";
 import { useEmpresa } from "context/EmpresaContext";
 import { useParams } from "react-router-dom";
+import ClasesContext from "context/ClasesContext";
+import { getEstadoMembresiaCliente } from "api/membresiasClases";
+import { Dumbbell } from "lucide-react";
 
 const UserDashboard = () => {
   const { user, loading: authLoading } = useAuth();
@@ -25,15 +28,21 @@ const UserDashboard = () => {
   const { estadoLookCliente } = useLook();
   const { getVerPuntos, puntos, getSuscripcionActiva } = useUsuario();
   const { empresa } = useEmpresa();
+  const { misInscripciones } = useContext(ClasesContext);
   const { slug } = useParams();
   const esLumiBeauty = empresa?.slug === "lumicabeauty";
 
   const esBarberia = empresa?.tipo === "barberia";
+  // 👇 empresa.rubro sí lo llena el registro de empresas (empresa.tipo no),
+  // así que todo lo nuevo de gimnasios se rige por este campo.
+  const esGimnasio = empresa?.rubro === "gimnasio";
 
   const [suscripcion, setSuscripcion] = useState(null);
   const [data, setData] = useState({ ultima: null, proxima: null });
   const [look, setLook] = useState(null);
   const [loadingDatos, setLoadingDatos] = useState(true);
+  const [proximaClase, setProximaClase] = useState(null);
+  const [membresiaClase, setMembresiaClase] = useState(null);
 
   const meta = 900;
 
@@ -67,6 +76,22 @@ const UserDashboard = () => {
           await getVerPuntos().catch(() => null);
         }
 
+        // ✅ Próxima clase y estado de mensualidad solo si es gimnasio
+        if (esGimnasio) {
+          const [inscripciones, membresiaRes] = await Promise.all([
+            misInscripciones().catch(() => []),
+            getEstadoMembresiaCliente(user.id).catch(() => null),
+          ]);
+
+          const ahora = new Date();
+          const proximaClaseEncontrada = inscripciones
+            .filter((i) => i.estado === "confirmada" && new Date(i.fecha) > ahora)
+            .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))[0];
+
+          setProximaClase(proximaClaseEncontrada || null);
+          setMembresiaClase(membresiaRes?.data || { activa: false });
+        }
+
         setData({ ultima, proxima });
         setLook(lookDataRaw || null);
       } catch (e) {
@@ -77,7 +102,7 @@ const UserDashboard = () => {
     };
 
     cargarDatos();
-  }, [user?.id, esBarberia]);
+  }, [user?.id, esBarberia, esGimnasio]);
 
   const diasRestantes = suscripcion
     ? Math.max(
@@ -164,7 +189,8 @@ const UserDashboard = () => {
           </Col>
         </Row>
 
-        {/* ===== PRÓXIMA CITA / ÚLTIMA VISITA ===== */}
+        {/* ===== PRÓXIMA CITA / ÚLTIMA VISITA — SOLO NO GIMNASIO ===== */}
+        {!esGimnasio && (
         <Row className="mb-5">
           <Col lg="6" md="6" className="mb-4">
             <Card className="shadow-sm border-0 h-100 cita-card">
@@ -220,6 +246,76 @@ const UserDashboard = () => {
             </Card>
           </Col>
         </Row>
+        )}
+
+        {/* ===== PRÓXIMA CLASE / MENSUALIDAD — SOLO GIMNASIO ===== */}
+        {esGimnasio && (
+          <Row className="mb-5">
+            <Col lg="6" md="6" className="mb-4">
+              <Card className="shadow-sm border-0 h-100 cita-card">
+                <CardBody className="p-4">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div>
+                      <h6 className="text-uppercase text-muted mb-1">
+                        🏋️ Próxima clase
+                      </h6>
+                      <h3 className="font-weight-bold mb-0">
+                        {proximaClase
+                          ? proximaClase.clase?.nombre || "Clase"
+                          : "—"}
+                      </h3>
+                      <small className="d-block text-muted mt-1">
+                        {proximaClase
+                          ? new Date(proximaClase.fecha).toLocaleString(
+                              "es-CL",
+                              {
+                                weekday: "long",
+                                day: "2-digit",
+                                month: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                timeZone: "America/Santiago",
+                              },
+                            )
+                          : "No tienes clases agendadas"}
+                      </small>
+                    </div>
+                    <div className="bg-light rounded-circle p-3 shadow-sm">
+                      <Calendar size={22} />
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </Col>
+
+            <Col lg="6" md="6" className="mb-4">
+              <Card className="shadow-sm border-0 h-100 cita-card">
+                <CardBody className="p-4">
+                  <div className="d-flex align-items-center justify-content-between">
+                    <div>
+                      <h6 className="text-uppercase text-muted mb-1">
+                        💳 Mensualidad
+                      </h6>
+                      <h3 className="font-weight-bold mb-0">
+                        {membresiaClase?.activa
+                          ? membresiaClase.nombrePlan
+                          : "Sin mensualidad activa"}
+                      </h3>
+                      <small className="d-block text-muted mt-1">
+                        {membresiaClase?.activa
+                          ? `${membresiaClase.clasesRestantes} clase${membresiaClase.clasesRestantes !== 1 ? "s" : ""} disponible${membresiaClase.clasesRestantes !== 1 ? "s" : ""} este ciclo`
+                          : "Revisa los planes en Mi plan"}
+                      </small>
+                    </div>
+                    <div className="bg-light rounded-circle p-3 shadow-sm">
+                      <Dumbbell size={22} />
+                    </div>
+                  </div>
+                </CardBody>
+              </Card>
+            </Col>
+          </Row>
+        )}
 
         {/* ===== ESTADO DEL LOOK — SOLO BARBERÍA ===== */}
         {esBarberia && look && (
@@ -379,8 +475,8 @@ const UserDashboard = () => {
           </Row>
         )}
 
-        {/* ===== MENSAJE GENÉRICO PARA NO BARBERÍA ===== */}
-        {!esBarberia && (
+        {/* ===== MENSAJE GENÉRICO PARA NO BARBERÍA / NO GIMNASIO ===== */}
+        {!esBarberia && !esGimnasio && (
           <Row className="mb-5">
             <Col>
               <Card className="border-0 shadow card-hover">

@@ -6,15 +6,21 @@ const UserHeader = () => {
 
   if (loading || !empresa) return null;
 
-  // 🔥 Imagen dinámica según tipo
+  // 🔥 Imagen dinámica según el rubro real de la empresa.
+  // Ojo: algunas empresas (las creadas antes de que existiera `rubro`, como
+  // Lumica) solo tienen cargado `empresa.tipo`, y las más nuevas solo tienen
+  // `empresa.rubro` — por eso se chequean los dos, no solo uno.
+  const esDe = (valores) =>
+    valores.includes(empresa.rubro) || valores.includes(empresa.tipo);
+
   let backgroundImg;
 
-  if (empresa.tipo === "barberia") {
-    backgroundImg = require("../../assets/img/theme/profile-cover.jpg");
-  } else if (empresa.tipo || empresa.rubro === "salon_belleza") {
+  if (esDe(["gimnasio"])) {
+    backgroundImg = require("../../assets/img/theme/entrenamiento.jpg");
+  } else if (esDe(["salon_belleza", "spa", "centro_estetica"])) {
     backgroundImg = require("../../assets/img/theme/lifting-pestanas.png");
   } else {
-    // Imagen por defecto
+    // Barbería, peluquería y el resto: imagen por defecto
     backgroundImg = require("../../assets/img/theme/profile-cover.jpg");
   }
 

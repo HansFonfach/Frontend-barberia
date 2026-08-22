@@ -133,15 +133,22 @@ const BadgeEstado = ({ fechaFin, activa }) => {
   return <span style={{ ...base, background: "#E6F9F0", color: "#1A7A4A" }}>Activa · {dias}d</span>;
 };
 
-const BadgePlan = ({ tipoPlan }) => {
-  const esNavaja = tipoPlan === "creditos";
+const BadgePlan = ({ s }) => {
+  const nombre = s.planSnapshot?.nombre || NOMBRE_PLAN[s.tipoPlan] || s.tipoPlan;
+  const esPersonalizado = s.tipoPlan === "plan_personalizado";
+  const esNavaja = s.tipoPlan === "creditos";
+  const colores = esPersonalizado
+    ? { bg: "#FFF3E0", color: "#B36B00" }
+    : esNavaja
+      ? { bg: "#EEEDFE", color: "#534AB7" }
+      : { bg: "#E6F9F0", color: "#1A7A4A" };
   return (
     <span style={{
-      background: esNavaja ? "#EEEDFE" : "#E6F9F0",
-      color: esNavaja ? "#534AB7" : "#1A7A4A",
+      background: colores.bg,
+      color: colores.color,
       padding: "4px 10px", borderRadius: 99, fontSize: 11, fontWeight: 600,
     }}>
-      {NOMBRE_PLAN[tipoPlan] || tipoPlan}
+      {nombre}
     </span>
   );
 };
@@ -177,7 +184,7 @@ const TablaDesktop = ({ suscripciones }) => (
                 </div>
               </div>
             </td>
-            <td style={S.td}><BadgePlan tipoPlan={s.tipoPlan} /></td>
+            <td style={S.td}><BadgePlan s={s} /></td>
             <td style={S.td}><BarraServicios usados={s.serviciosUsados} total={s.serviciosTotales} /></td>
             <td style={{ ...S.td, color: "#8898aa", fontSize: 12 }}>{formatFecha(s.fechaInicio)}</td>
             <td style={{ ...S.td, color: "#8898aa", fontSize: 12 }}>{formatFecha(s.fechaFin)}</td>
@@ -213,7 +220,7 @@ const CardsMobile = ({ suscripciones }) => (
 
         {/* Plan */}
         <div style={{ marginBottom: 8 }}>
-          <BadgePlan tipoPlan={s.tipoPlan} />
+          <BadgePlan s={s} />
         </div>
 
         {/* Servicios */}
@@ -280,6 +287,7 @@ const GestionSuscripciones = () => {
   const porVencer = activas.filter((s) => diasRestantes(s.fechaFin) <= 7);
   const navaja    = suscripciones.filter((s) => s.tipoPlan === "creditos").length;
   const dupla     = suscripciones.filter((s) => s.tipoPlan === "combo_visita_corte_barba").length;
+  const personalizados = suscripciones.filter((s) => s.tipoPlan === "plan_personalizado").length;
 
   return (
     <>
@@ -312,6 +320,7 @@ const GestionSuscripciones = () => {
                   { label: "Vencidas",     value: vencidas.length },
                   { label: "Santa Navaja", value: navaja },
                   { label: "Santa Dupla",  value: dupla },
+                  { label: "Planes propios", value: personalizados },
                 ].map((s) => (
                   <div key={s.label} style={S.statCard}>
                     <div style={S.statLabel}>{s.label}</div>

@@ -32,14 +32,14 @@ const AdminLayout = (props) => {
 
   // Rutas que este usuario puede cargar (incluye las invisibles)
   const rutasPermitidas = React.useMemo(
-    () => filtrarRutasPermitidas(routes, { user, slug }),
-    [routes, user, slug],
+    () => filtrarRutasPermitidas(routes, { user, slug, empresa }),
+    [routes, user, slug, empresa],
   );
 
   // Rutas que este usuario puede ver en el menú
   const rutasMenu = React.useMemo(
-    () => filtrarRutasMenu(routes, { user, slug }),
-    [routes, user, slug],
+    () => filtrarRutasMenu(routes, { user, slug, empresa }),
+    [routes, user, slug, empresa],
   );
 
   // 🔥 1️⃣ Mientras carga la empresa

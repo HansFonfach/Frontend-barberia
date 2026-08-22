@@ -1582,64 +1582,69 @@ const ConfiguracionEmpresa = () => {
                             </div>
                           </Field>
                         )}
-
-                        <hr className="my-4" />
-                        <SectionTitle
-                          icon={<CreditCard size={18} />}
-                          title="Datos de transferencia"
-                        />
-                        <Row>
-                          {[
-                            {
-                              key: "banco",
-                              label: "Banco",
-                              placeholder: "BancoEstado",
-                            },
-                            {
-                              key: "tipoCuenta",
-                              label: "Tipo de cuenta",
-                              placeholder: "Cuenta RUT",
-                            },
-                            {
-                              key: "numeroCuenta",
-                              label: "N° de cuenta",
-                              placeholder: "12345678",
-                            },
-                            {
-                              key: "titular",
-                              label: "Titular",
-                              placeholder: "Nombre completo",
-                            },
-                            {
-                              key: "rut",
-                              label: "RUT titular",
-                              placeholder: "12.345.678-9",
-                            },
-                            {
-                              key: "correo",
-                              label: "Correo de pago",
-                              placeholder: "pagos@empresa.cl",
-                            },
-                          ].map(({ key, label, placeholder }) => (
-                            <Col md={6} key={key}>
-                              <Field label={label}>
-                                <Input
-                                  placeholder={placeholder}
-                                  value={form.pagos.transferencia[key]}
-                                  onChange={(e) =>
-                                    set(
-                                      `pagos.transferencia.${key}`,
-                                      e.target.value,
-                                    )
-                                  }
-                                  style={{ borderRadius: 8 }}
-                                />
-                              </Field>
-                            </Col>
-                          ))}
-                        </Row>
                       </>
                     )}
+
+                    <hr className="my-4" />
+                    <SectionTitle
+                      icon={<CreditCard size={18} />}
+                      title="Datos de transferencia"
+                    />
+                    <p className="text-muted small mb-3">
+                      Estos datos se muestran a tus clientes para que puedan
+                      transferir (por ejemplo, al pagar el abono de una
+                      reserva o al solicitar una mensualidad de clases).
+                    </p>
+                    <Row>
+                      {[
+                        {
+                          key: "banco",
+                          label: "Banco",
+                          placeholder: "BancoEstado",
+                        },
+                        {
+                          key: "tipoCuenta",
+                          label: "Tipo de cuenta",
+                          placeholder: "Cuenta RUT",
+                        },
+                        {
+                          key: "numeroCuenta",
+                          label: "N° de cuenta",
+                          placeholder: "12345678",
+                        },
+                        {
+                          key: "titular",
+                          label: "Titular",
+                          placeholder: "Nombre completo",
+                        },
+                        {
+                          key: "rut",
+                          label: "RUT titular",
+                          placeholder: "12.345.678-9",
+                        },
+                        {
+                          key: "correo",
+                          label: "Correo de pago",
+                          placeholder: "pagos@empresa.cl",
+                        },
+                      ].map(({ key, label, placeholder }) => (
+                        <Col md={6} key={key}>
+                          <Field label={label}>
+                            <Input
+                              placeholder={placeholder}
+                              value={form.pagos.transferencia[key]}
+                              onChange={(e) =>
+                                set(
+                                  `pagos.transferencia.${key}`,
+                                  e.target.value,
+                                )
+                              }
+                              style={{ borderRadius: 8 }}
+                            />
+                          </Field>
+                        </Col>
+                      ))}
+                    </Row>
                   </>
                 )}
 

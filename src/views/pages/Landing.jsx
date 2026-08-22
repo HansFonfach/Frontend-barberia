@@ -8,6 +8,7 @@ import { useLandingData } from "hooks/useLandingData";
 import AuthFooter from "components/Footers/AuthFooter";
 import ServiciosSection from "components/landing/ServiciosSection";
 import ProfesionalesSection from "components/landing/ProfesionalesSection";
+import LandingGimnasio from "components/landing/LandingGimnasio";
 
 import { MdLocationOn, MdAccessTime, MdEmail, MdPhone } from "react-icons/md";
 import { FaWhatsapp, FaCalendarCheck, FaFacebook } from "react-icons/fa";
@@ -21,6 +22,8 @@ const Landing = () => {
   const {
     servicios,
     profesionales,
+    clases,
+    planes,
     loading: loadingLanding,
   } = useLandingData(slug);
 
@@ -109,6 +112,20 @@ const Landing = () => {
           </Button>
         </div>
       </div>
+    );
+  }
+
+  // 🏋️ Los gimnasios tienen un landing propio (clases, planes, clase de
+  // prueba gratis) en vez de reusar el de barbería/salón con parches.
+  if (empresa.rubro === "gimnasio") {
+    return (
+      <LandingGimnasio
+        empresa={empresa}
+        slug={slug}
+        clases={clases}
+        planes={planes}
+        profesionales={profesionales}
+      />
     );
   }
 
@@ -366,8 +383,8 @@ const Landing = () => {
                 ¿Listo para tu próxima cita?
               </h3>
               <p className="mb-0" style={{ color: "#FFFFFF", opacity: 0.9 }}>
-                Reserva ahora y disfruta de nuestros servicios con profesionales
-                expertos
+                Reserva ahora y disfruta de nuestros servicios con
+                profesionales expertos
               </p>
             </Col>
             <Col lg="4" className="text-lg-end text-center">

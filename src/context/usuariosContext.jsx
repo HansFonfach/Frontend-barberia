@@ -77,10 +77,10 @@ export const UsuarioProvider = ({ children }) => {
       throw error; // 👈 relanza para que el hook lo capture
     }
   };
-  const subscribeUser = async (_id, tipoPlan) => {
+  const subscribeUser = async (_id, planId) => {
     try {
-      const res = await postSubscribeUserById(_id, tipoPlan);
-     
+      const res = await postSubscribeUserById(_id, planId);
+
       setErrors(null);
       return res.data;
     } catch (error) {

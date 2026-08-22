@@ -25,45 +25,45 @@ import {
   FiCheck,
 } from "react-icons/fi";
 
-const PLANES = [
-  {
-    id: "creditos",
-    nombre: "La Santa Navaja",
-    emoji: "✂️",
-    precio: "$25.000",
-    desc: "2 servicios · Corte o barba",
-    color: "#2dce89",
-  },
-  {
-    id: "combo_visita_corte_barba",
-    nombre: "La Santa Dupla",
-    emoji: "👑",
-    precio: "$40.000",
-    desc: "2 visitas · Corte + barba",
-    color: "#fb6340",
-  },
-  {
-    id: "padre_e_hijo",
-    nombre: "En el nombre del padre y del hijo",
-    emoji: "👨‍👦",
-    precio: "$22.000",
-    desc: "2 visitas · 2 Cortes",
-    color: "#5e72e4",
-  },
-  {
-    id: "barba",
-    nombre: "La Santa Barba",
-    emoji: "🧔",
-    precio: "$40.000",
-    desc: "4 visitas · 1 Barba por semana",
-    color: "#11cdef",
-  },
+// Planes "viejos" hardcodeados. Ya no se pueden asignar desde acá (ahora se
+// crean y ofrecen desde Gestión de Planes de Suscripción / PlanesSuscripcionContext),
+// pero se mantiene esta tabla solo para poder mostrar el nombre bonito de
+// suscripciones antiguas que quedaron con este tipoPlan.
+const PLANES_LEGACY = [
+  { id: "creditos", nombre: "La Santa Navaja" },
+  { id: "combo_visita_corte_barba", nombre: "La Santa Dupla" },
+  { id: "padre_e_hijo", nombre: "En el nombre del padre y del hijo" },
+  { id: "barba", nombre: "La Santa Barba" },
 ];
+
+const COLORES_PLAN = ["#2dce89", "#fb6340", "#5e72e4", "#11cdef", "#f5365c", "#ffd600"];
+
+const formatPrecio = (precio) => {
+  const n = Number(precio) || 0;
+  return `$${n.toLocaleString("es-CL")}`;
+};
+
+const resumenPlan = (plan) => {
+  const cantidad = plan.cantidadPorCiclo ?? "-";
+  const cicloDias = plan.cicloDias ?? plan.duracionDias;
+  const cicloTexto =
+    cicloDias === 30 || cicloDias === 31
+      ? "al mes"
+      : cicloDias === 365 || cicloDias === 360
+        ? "al año"
+        : `cada ${cicloDias} días`;
+  const servicios =
+    Array.isArray(plan.serviciosPermitidos) && plan.serviciosPermitidos.length > 0
+      ? "servicios seleccionados"
+      : "cualquier servicio";
+  return `${cantidad} ${servicios} ${cicloTexto}`;
+};
 
 const ClienteDetallesModal = ({
   isOpen,
   toggle,
   usuario,
+  planes = [],
   onEditar,
   onSuscribir,
   onCancelarSuscripcion,
@@ -99,10 +99,12 @@ const ClienteDetallesModal = ({
     });
   };
 
-  const handleElegirPlan = (tipoPlan) => {
+  const handleElegirPlan = (planId) => {
     setEligiendoPlan(false);
-    onSuscribir(tipoPlan);
+    onSuscribir(planId);
   };
+
+  const planesActivos = (planes || []).filter((p) => p.activo !== false);
 
   /* =============================
      SELECTOR DE PLAN
@@ -115,63 +117,83 @@ const ClienteDetallesModal = ({
       >
         Selecciona el plan para {usuario.nombre}
       </p>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: vistaMobile ? "1fr" : "1fr 1fr",
-          gap: "10px",
-          marginBottom: "10px",
-        }}
-      >
-        {PLANES.map((plan) => (
-          <button
-            key={plan.id}
-            onClick={() => handleElegirPlan(plan.id)}
-            style={{
-              background: "#fff",
-              border: `2px solid ${plan.color}`,
-              borderRadius: "12px",
-              padding: "12px 16px",
-              cursor: "pointer",
-              textAlign: "left",
-              transition: "all 0.2s ease",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = plan.color + "15";
-              e.currentTarget.style.transform = "translateY(-2px)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "#fff";
-              e.currentTarget.style.transform = "none";
-            }}
-          >
-            <span style={{ fontSize: "1.6rem" }}>{plan.emoji}</span>
-            <div>
-              <div
-                style={{ fontWeight: 700, fontSize: "13px", color: "#32325d" }}
-              >
-                {plan.nombre}
-              </div>
-              <div style={{ fontSize: "11px", color: "#8898aa" }}>
-                {plan.desc}
-              </div>
-              <div
+
+      {planesActivos.length === 0 ? (
+        <p
+          className="text-center text-muted mb-3"
+          style={{ fontSize: "12px" }}
+        >
+          No hay planes de suscripción creados todavía. Crea uno en{" "}
+          <strong>Planes de suscripción</strong>.
+        </p>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: vistaMobile ? "1fr" : "1fr 1fr",
+            gap: "10px",
+            marginBottom: "10px",
+            maxHeight: vistaMobile ? "50vh" : "40vh",
+            overflowY: "auto",
+          }}
+        >
+          {planesActivos.map((plan, i) => {
+            const color = COLORES_PLAN[i % COLORES_PLAN.length];
+            return (
+              <button
+                key={plan._id}
+                onClick={() => handleElegirPlan(plan._id)}
                 style={{
-                  fontWeight: 800,
-                  fontSize: "14px",
-                  color: plan.color,
-                  marginTop: "2px",
+                  background: "#fff",
+                  border: `2px solid ${color}`,
+                  borderRadius: "12px",
+                  padding: "12px 16px",
+                  cursor: "pointer",
+                  textAlign: "left",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = color + "15";
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = "#fff";
+                  e.currentTarget.style.transform = "none";
                 }}
               >
-                {plan.precio}
-              </div>
-            </div>
-          </button>
-        ))}
-      </div>
+                <span style={{ fontSize: "1.6rem" }}>✂️</span>
+                <div>
+                  <div
+                    style={{
+                      fontWeight: 700,
+                      fontSize: "13px",
+                      color: "#32325d",
+                    }}
+                  >
+                    {plan.nombre}
+                  </div>
+                  <div style={{ fontSize: "11px", color: "#8898aa" }}>
+                    {resumenPlan(plan)}
+                  </div>
+                  <div
+                    style={{
+                      fontWeight: 800,
+                      fontSize: "14px",
+                      color,
+                      marginTop: "2px",
+                    }}
+                  >
+                    {formatPrecio(plan.precio)}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
       <Button
         color="light"
         size="sm"
@@ -417,8 +439,12 @@ const ClienteDetallesModal = ({
                       {
                         label: "Plan",
                         value:
-                          PLANES.find((p) => p.id === suscripcionData.tipoPlan)
-                            ?.nombre || suscripcionData.tipoPlan,
+                          suscripcionData.planSnapshot?.nombre ||
+                          suscripcionData.nombrePlan ||
+                          PLANES_LEGACY.find(
+                            (p) => p.id === suscripcionData.tipoPlan,
+                          )?.nombre ||
+                          suscripcionData.tipoPlan,
                       },
                       {
                         label: "Servicios usados",

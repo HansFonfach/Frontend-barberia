@@ -41,9 +41,18 @@ import EstadisticasProductos from "views/admin/pages/EstadisticasProductos";
 import HistorialIngresos from "views/admin/pages/HistorialIngresos";
 import VentasDirectas from "views/admin/pages/VentasDirectas";
 import GestionSuscripciones from "views/admin/pages/GestionSuscripciones";
+import GestionPlanesSuscripcion from "views/admin/pages/GestionPlanesSuscripcion";
 import GestionCategorias from "views/admin/pages/GestionCategorias";
 import GestionServiciosPorHora from "views/admin/pages/GestionServiciosPorHora";
 import HabilitarFeriados from "views/admin/pages/HabilitarFeriados";
+import GestionClases from "views/admin/pages/GestionClases";
+import GestionPlanesMembresia from "views/admin/pages/GestionPlanesMembresia";
+import GestionMembresias from "views/admin/pages/GestionMembresias";
+import ClasesDelDia from "views/admin/pages/ClasesDelDia";
+import AgendarClase from "views/pages/AgendarClase";
+import MisClases from "views/pages/MisClases";
+import MiPlanClase from "views/pages/MiPlanClase";
+import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -70,6 +79,11 @@ export const publicRoutes = [
   },
   { path: "/inicio", component: <Landing />, invisible: true },
   { path: "/reservar", component: <ReservarHoraInvitado />, invisible: true },
+  {
+    path: "/clase-de-prueba",
+    component: <ClasePruebaInvitado />,
+    invisible: true,
+  },
   {
     path: "/cancelar-reserva-invitado",
     component: <CancelarInvitado />,
@@ -109,6 +123,7 @@ export const clienteRoutes = [
     icon: "ni ni-calendar-grid-58 text-success",
     component: <ReservarHora />,
     layout: "/admin",
+    excludeRubros: ["gimnasio"],
   },
   {
     path: "/administrar-reservas",
@@ -116,6 +131,7 @@ export const clienteRoutes = [
     icon: "ni ni-folder-17 text-info",
     component: <Administrar />,
     layout: "/admin",
+    excludeRubros: ["gimnasio"],
   },
   {
     path: "/suscripcion",
@@ -124,6 +140,7 @@ export const clienteRoutes = [
     component: <Suscripcion />,
     layout: "/admin",
     excludeSlugs: ["lumicabeauty"],
+    excludeRubros: ["gimnasio"],
   },
   {
     path: "/profesionales",
@@ -131,6 +148,7 @@ export const clienteRoutes = [
     icon: "ni ni-single-02 text-primary",
     component: <BarberosPage />,
     layout: "/admin",
+    excludeRubros: ["gimnasio"],
   },
   {
     path: "/servicios",
@@ -138,6 +156,7 @@ export const clienteRoutes = [
     icon: "fas fa-cut text-danger",
     component: <PresentarServicios />,
     layout: "/admin",
+    excludeRubros: ["gimnasio"],
   },
 
   {
@@ -146,6 +165,33 @@ export const clienteRoutes = [
     icon: "ni ni-trophy text-yellow",
     component: <CatalogoCanjes />,
     layout: "/admin",
+    excludeRubros: ["gimnasio"],
+  },
+
+  /* ── Clases grupales (solo empresas tipo gimnasio con el módulo activo) ── */
+  {
+    path: "/agendar-clase",
+    name: "Agendar clase",
+    icon: "fas fa-dumbbell text-success",
+    component: <AgendarClase />,
+    layout: "/admin",
+    requiereModulo: "clasesGrupales",
+  },
+  {
+    path: "/mis-clases",
+    name: "Mis clases",
+    icon: "ni ni-folder-17 text-info",
+    component: <MisClases />,
+    layout: "/admin",
+    requiereModulo: "clasesGrupales",
+  },
+  {
+    path: "/mi-plan",
+    name: "Mi plan",
+    icon: "ni ni-credit-card text-warning",
+    component: <MiPlanClase />,
+    layout: "/admin",
+    requiereModulo: "clasesGrupales",
   },
   {
     path: "/centro-ayuda",
@@ -207,6 +253,7 @@ export const barberoRoutes = [
     component: <ReservarHoraBarbero />,
     layout: "/admin",
     section: "reservas",
+    excludeRubros: ["gimnasio"],
   },
   {
     path: "/reservas",
@@ -215,6 +262,7 @@ export const barberoRoutes = [
     component: <ReservasDiarias />,
     layout: "/admin",
     section: "reservas",
+    excludeRubros: ["gimnasio"],
   },
 
   /* ── Gestión ── */
@@ -243,7 +291,19 @@ export const barberoRoutes = [
     component: <GestionSuscripciones />,
     layout: "/admin",
     excludeSlugs: ["lumicabeauty", "don-valentino", "danails-studio"],
+    excludeRubros: ["gimnasio"],
     section: "gestion",
+  },
+  {
+    path: "/planes-suscripcion",
+    name: "Planes de suscripción",
+    icon: "ni ni-collection text-warning",
+    component: <GestionPlanesSuscripcion />,
+    layout: "/admin",
+    excludeSlugs: ["lumicabeauty", "don-valentino", "danails-studio"],
+    excludeRubros: ["gimnasio"],
+    section: "gestion",
+    soloAdmin: true,
   },
 
   {
@@ -270,6 +330,7 @@ export const barberoRoutes = [
     icon: "fas fa-scissors text-danger",
     layout: "/admin",
     section: "gestion",
+    excludeRubros: ["gimnasio"],
     children: [
       {
         path: "/gestion-servicios",
@@ -302,6 +363,7 @@ export const barberoRoutes = [
     icon: "fas fa-clock text-danger",
     layout: "/admin",
     section: "gestion",
+    excludeRubros: ["gimnasio"],
     children: [
       {
         path: "/asignar-horas",
@@ -363,6 +425,53 @@ export const barberoRoutes = [
         icon: "ni ni-chart-bar-32 text-primary",
         component: <EstadisticasProductos />,
         layout: "/admin",
+      },
+    ],
+  },
+
+  {
+    // submenu: Clases (solo para empresas tipo gimnasio con el módulo activado)
+    path: "/clases-menu",
+    name: "Clases",
+    icon: "fas fa-dumbbell text-danger",
+    layout: "/admin",
+    section: "gestion",
+    requiereModulo: "clasesGrupales",
+    children: [
+      {
+        path: "/clases-del-dia",
+        name: "Clases del día",
+        icon: "fas fa-calendar-day text-success",
+        component: <ClasesDelDia />,
+        layout: "/admin",
+        requiereModulo: "clasesGrupales",
+      },
+      {
+        path: "/gestion-clases",
+        name: "Clases y horarios",
+        icon: "fas fa-calendar-alt text-danger",
+        component: <GestionClases />,
+        layout: "/admin",
+        soloAdmin: true,
+        requiereModulo: "clasesGrupales",
+      },
+      {
+        path: "/planes-membresia",
+        name: "Planes",
+        icon: "ni ni-collection text-primary",
+        component: <GestionPlanesMembresia />,
+        layout: "/admin",
+        soloAdmin: true,
+        requiereModulo: "clasesGrupales",
+      },
+      {
+        path: "/membresias",
+        name: "Membresías",
+        icon: "ni ni-credit-card text-warning",
+        component: <GestionMembresias />,
+        layout: "/admin",
+        soloAdmin: true,
+        requiereModulo: "clasesGrupales",
       },
     ],
   },

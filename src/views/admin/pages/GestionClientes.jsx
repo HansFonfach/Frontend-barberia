@@ -24,6 +24,7 @@ import ClienteDetallesModal from "components/gestionUsuarios/ClienteDetallesModa
 
 import { useUsuarios } from "hooks/useUsuarios";
 import { usePagination } from "hooks/usePagination";
+import { usePlanesSuscripcion } from "context/PlanesSuscripcionContext";
 
 // Importar iconos actualizados
 import { FiEye, FiEdit, FiUser, FiUsers } from "react-icons/fi";
@@ -46,6 +47,8 @@ const GestionClientes = () => {
     toggleModalGestion,
     getAllUsers,
   } = useUsuarios("cliente");
+
+  const { planes } = usePlanesSuscripcion();
 
   // Estados para el nuevo modal de detalles
   const [modalDetalles, setModalDetalles] = useState(false);
@@ -176,7 +179,7 @@ const GestionClientes = () => {
 
   const [loadingSuscripcion, setLoadingSuscripcion] = useState(false);
 
-  const handleSuscribirModal = async (tipoPlan) => {
+  const handleSuscribirModal = async (planId) => {
     setLoadingSuscripcion(true);
     Swal.fire({
       title: "Activando suscripción...",
@@ -186,7 +189,7 @@ const GestionClientes = () => {
     });
 
     try {
-      await handleSuscribir(usuarioEdit._id, "suscribir", tipoPlan);
+      await handleSuscribir(usuarioEdit._id, "suscribir", planId);
       Swal.fire({
         icon: "success",
         title: "¡Suscripción activada!",
@@ -397,6 +400,7 @@ const GestionClientes = () => {
         isOpen={modalDetalles}
         toggle={toggleModalDetalles}
         usuario={usuarioEdit}
+        planes={planes}
         onEditar={() => {
           toggleModalDetalles();
           handleEditar(usuarioEdit);

@@ -109,7 +109,7 @@ export const useUsuarios = (rolFiltro) => {
     }
   };
 
-  const handleSuscribir = async (usuarioId, accion, tipoPlan) => {
+  const handleSuscribir = async (usuarioId, accion, planId) => {
     const usuario = usuariosFiltrados.find((u) => u._id === usuarioId);
     if (!usuario) return null;
 
@@ -117,7 +117,7 @@ export const useUsuarios = (rolFiltro) => {
       let resultado = null;
 
       if (accion === "suscribir") {
-        resultado = await subscribeUser(usuarioId, tipoPlan); // ← pasa tipoPlan
+        resultado = await subscribeUser(usuarioId, planId); // ← pasa planId
       } else if (accion === "cancelar") {
         await unsubscribeUser(usuarioId);
         resultado = null;
