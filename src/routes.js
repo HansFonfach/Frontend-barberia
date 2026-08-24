@@ -497,6 +497,7 @@ export const barberoRoutes = [
         path: "/estadisticas",
         name: "Estadísticas",
         icon: "fas fa-chart-line text-info",
+        excludeRubros: ["gimnasio"],
         component: <Estadisticas />,
         layout: "/admin",
       },
