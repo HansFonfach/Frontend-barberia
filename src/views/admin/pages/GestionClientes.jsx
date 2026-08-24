@@ -9,6 +9,13 @@ import {
   Badge,
   Spinner,
   Button,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  Form,
+  FormGroup,
+  Input,
+  Label,
 } from "reactstrap";
 import Swal from "sweetalert2";
 
@@ -25,9 +32,10 @@ import ClienteDetallesModal from "components/gestionUsuarios/ClienteDetallesModa
 import { useUsuarios } from "hooks/useUsuarios";
 import { usePagination } from "hooks/usePagination";
 import { usePlanesSuscripcion } from "context/PlanesSuscripcionContext";
+import { useCrearCliente } from "hooks/useCrearCliente";
 
 // Importar iconos actualizados
-import { FiEye, FiEdit, FiUser, FiUsers } from "react-icons/fi";
+import { FiEye, FiEdit, FiUser, FiUsers, FiPlus } from "react-icons/fi";
 
 const GestionClientes = () => {
   const {
@@ -49,6 +57,22 @@ const GestionClientes = () => {
   } = useUsuarios("cliente");
 
   const { planes } = usePlanesSuscripcion();
+
+  const {
+    modalCrear,
+    formCrear,
+    toggleCrear,
+    handleCrearChange,
+    handleCrearCliente,
+    rut,
+    rutError,
+    handleRutChange,
+  } = useCrearCliente();
+
+  const handleCrearClienteConRefresco = async () => {
+    const ok = await handleCrearCliente();
+    if (ok) getAllUsers();
+  };
 
   // Estados para el nuevo modal de detalles
   const [modalDetalles, setModalDetalles] = useState(false);
@@ -318,13 +342,13 @@ const GestionClientes = () => {
             <Card className="bg-secondary shadow">
               <CardHeader className="bg-white border-0 py-3">
                 <Row className="align-items-center">
-                  <Col xs="12" md="6" className="mb-2 mb-md-0">
+                  <Col xs="12" md="5" className="mb-2 mb-md-0">
                     <h3 className="mb-0 text-default d-flex align-items-center">
                       <FiUsers className="mr-2 text-primary" size={24} />
                       Gestión de Clientes
                     </h3>
                   </Col>
-                  <Col xs="12" md="6">
+                  <Col xs="12" md="4" className="mb-2 mb-md-0">
                     <SearchBar
                       busqueda={busqueda}
                       onBusquedaChange={setBusqueda}
@@ -332,6 +356,15 @@ const GestionClientes = () => {
                       totalResultados={usuarios.length}
                       compact={vistaMobile}
                     />
+                  </Col>
+                  <Col xs="12" md="3" className="text-md-right">
+                    <Button
+                      color="primary"
+                      block={vistaMobile}
+                      onClick={toggleCrear}
+                    >
+                      <FiPlus className="mr-1" /> Crear Cliente
+                    </Button>
                   </Col>
                 </Row>
                 {renderResultados()}
@@ -420,6 +453,82 @@ const GestionClientes = () => {
         tipoUsuario="cliente"
         fullscreen={vistaMobile}
       />
+
+      {/* MODAL CREAR CLIENTE - mismo patrón que "Crear Profesional" en
+          GestionBarberos.jsx, sin foto/especialidades porque un cliente
+          no las usa */}
+      <Modal
+        isOpen={modalCrear}
+        toggle={toggleCrear}
+        centered
+        size="lg"
+        fullscreen={vistaMobile}
+      >
+        <ModalHeader toggle={toggleCrear}>Crear Cliente</ModalHeader>
+        <ModalBody>
+          <Form>
+            <Row>
+              <Col sm={6}>
+                <FormGroup>
+                  <Label>RUT *</Label>
+                  <Input
+                    value={rut}
+                    onChange={handleRutChange}
+                    className={rutError ? "is-invalid" : ""}
+                  />
+                  {rutError && (
+                    <small className="text-danger">{rutError}</small>
+                  )}
+                </FormGroup>
+              </Col>
+
+              {["nombre", "apellido", "telefono", "email"].map((name) => (
+                <Col sm={6} key={name}>
+                  <FormGroup>
+                    <Label>
+                      {name.charAt(0).toUpperCase() + name.slice(1)}
+                    </Label>
+                    <Input
+                      name={name}
+                      value={formCrear[name]}
+                      onChange={handleCrearChange}
+                    />
+                  </FormGroup>
+                </Col>
+              ))}
+
+              <Col sm={6}>
+                <FormGroup>
+                  <Label>Contraseña</Label>
+                  <Input
+                    type="password"
+                    name="password"
+                    value={formCrear.password}
+                    onChange={handleCrearChange}
+                  />
+                </FormGroup>
+              </Col>
+              <Col sm={6}>
+                <FormGroup>
+                  <Label>Confirmar Contraseña</Label>
+                  <Input
+                    type="password"
+                    name="confirmaPassword"
+                    value={formCrear.confirmaPassword}
+                    onChange={handleCrearChange}
+                  />
+                </FormGroup>
+              </Col>
+            </Row>
+
+            <div className="text-right mt-3">
+              <Button color="primary" onClick={handleCrearClienteConRefresco}>
+                Crear
+              </Button>
+            </div>
+          </Form>
+        </ModalBody>
+      </Modal>
 
       <style jsx>{`
         @media (max-width: 768px) {

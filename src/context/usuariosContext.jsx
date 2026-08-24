@@ -17,6 +17,7 @@ import { getSubActiva } from "api/usuarios";
 import { getVerMisPuntos } from "api/usuarios";
 import { postAsignarServiciosAlBarbero } from "api/usuarios";
 import { postCrearBarbero } from "api/usuarios";
+import { postCrearCliente } from "api/usuarios";
 import { updateEstadoUsuario } from "api/usuarios";
 
 const UsuarioContext = createContext();
@@ -226,6 +227,16 @@ export const UsuarioProvider = ({ children }) => {
     }
   };
 
+  const crearCliente = async (data) => {
+    try {
+      const res = await postCrearCliente(data);
+      return res.data;
+    } catch (error) {
+      console.error("Error al crear cliente", error);
+      throw error;
+    }
+  };
+
   const cambiarEstadoUsuario = async (id, estado) => {
     try {
       await updateEstadoUsuario(id, estado);
@@ -247,6 +258,7 @@ export const UsuarioProvider = ({ children }) => {
         suscripcionLista,
         servicios,
         crearBarbero,
+        crearCliente,
         updateUser,
         getAllUsers,
         getBarberosDisponibles,

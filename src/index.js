@@ -28,6 +28,7 @@ import { ServiciosProvider } from "context/ServiciosContext";
 import { HorarioProvider } from "context/HorarioContext";
 import { ReservaProvider } from "context/ReservaContext";
 import { EstadisticasProvider } from "context/EstadisticasContext";
+import { EstadisticasGimnasioProvider } from "context/EstadisticasGimnasioContext";
 import { NotificacionProvider } from "context/NotificacionesContext";
 import { LookProvider } from "context/LookContext";
 import { CanjeProvider } from "context/CanjeContext";
@@ -39,7 +40,6 @@ import { PlanesSuscripcionProvider } from "context/PlanesSuscripcionContext";
 import Principal from "views/publico/principal";
 import Landing from "views/pages/Landing";
 import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
-import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
 import CancelarInvitado from "views/invitados/pages/CancelarInvitado";
 import VerificarCuenta from "views/publico/VerificarCuenta";
 import RegistrarNegocio from "views/publico/RegistrarNegocio";
@@ -63,19 +63,21 @@ const AdminProviders = ({ children }) => (
           <HorarioProvider>
             <ReservaProvider>
               <EstadisticasProvider>
-                <NotificacionProvider>
-                  <LookProvider>
-                    <CanjeProvider>
-                      <ClasesProvider>
-                        <PlanesMembresiaProvider>
-                          <PlanesSuscripcionProvider>
-                            {children}
-                          </PlanesSuscripcionProvider>
-                        </PlanesMembresiaProvider>
-                      </ClasesProvider>
-                    </CanjeProvider>
-                  </LookProvider>
-                </NotificacionProvider>
+                <EstadisticasGimnasioProvider>
+                  <NotificacionProvider>
+                    <LookProvider>
+                      <CanjeProvider>
+                        <ClasesProvider>
+                          <PlanesMembresiaProvider>
+                            <PlanesSuscripcionProvider>
+                              {children}
+                            </PlanesSuscripcionProvider>
+                          </PlanesMembresiaProvider>
+                        </ClasesProvider>
+                      </CanjeProvider>
+                    </LookProvider>
+                  </NotificacionProvider>
+                </EstadisticasGimnasioProvider>
               </EstadisticasProvider>
             </ReservaProvider>
           </HorarioProvider>
@@ -114,14 +116,6 @@ root.render(
             element={
               <EmpresaWrapper>
                 <ReservarHoraInvitado />
-              </EmpresaWrapper>
-            }
-          />
-          <Route
-            path="/:slug/clase-de-prueba"
-            element={
-              <EmpresaWrapper>
-                <ClasePruebaInvitado />
               </EmpresaWrapper>
             }
           />
