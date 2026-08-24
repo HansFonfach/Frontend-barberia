@@ -11,7 +11,7 @@ import {
   patchCancelarMembresia,
 } from "api/membresiasClases";
 import {
-  getSolicitudesMembresiaPendientes,
+  getSolicitudesMembresia,
   patchAprobarSolicitudMembresia,
   patchRechazarSolicitudMembresia,
 } from "api/solicitudesMembresia";
@@ -373,6 +373,7 @@ const GestionMembresias = () => {
   const [solicitudes, setSolicitudes] = useState([]);
   const [loadingSolicitudes, setLoadingSolicitudes] = useState(false);
   const [resolviendoId, setResolviendoId] = useState(null);
+  const [estadoFiltro, setEstadoFiltro] = useState("pendiente");
 
   const [modal, setModal] = useState(false);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
@@ -397,10 +398,10 @@ const GestionMembresias = () => {
     }
   };
 
-  const cargarSolicitudes = async () => {
+  const cargarSolicitudes = async (estado = estadoFiltro) => {
     setLoadingSolicitudes(true);
     try {
-      const res = await getSolicitudesMembresiaPendientes();
+      const res = await getSolicitudesMembresia(estado);
       setSolicitudes(res.data?.solicitudes || []);
     } catch (error) {
       console.error("❌ Error al obtener las solicitudes de membresía:", error);
@@ -411,10 +412,14 @@ const GestionMembresias = () => {
 
   useEffect(() => {
     cargar(soloActivas ? { activas: "true" } : {});
-    cargarSolicitudes();
     getAllPlanes(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    cargarSolicitudes(estadoFiltro);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [estadoFiltro]);
 
   const handleAprobarSolicitud = async (sol) => {
     const confirmar = await Swal.fire({
@@ -547,110 +552,174 @@ const GestionMembresias = () => {
       <Container className="mt--7" fluid>
         <Row className="justify-content-center">
           <Col xl="11" style={S.page}>
-            {/* ── Solicitudes pendientes (transferencia/efectivo a revisar) ── */}
-            {(loadingSolicitudes || solicitudes.length > 0) && (
-              <div style={{ ...S.card, marginBottom: 24 }}>
-                <div style={S.cardHeader}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ ...S.iconWrap, background: "#FFF3CD" }}>
-                      <i className="ni ni-bell-55" style={{ color: "#856404", fontSize: 18 }} />
-                    </div>
-                    <div>
-                      <p style={S.title}>Solicitudes pendientes</p>
-                      <p style={S.subtitle}>
-                        Clientes esperando que actives su mensualidad
-                      </p>
-                    </div>
+            {/* ── Panel de pagos: solicitudes de membresía por estado ── */}
+            <div style={{ ...S.card, marginBottom: 24 }}>
+              <div style={S.cardHeader}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                  <div style={{ ...S.iconWrap, background: "#FFF3CD" }}>
+                    <i className="ni ni-bell-55" style={{ color: "#856404", fontSize: 18 }} />
                   </div>
-                  {solicitudes.length > 0 && (
-                    <span
-                      style={{
-                        background: "#FFF3CD",
-                        color: "#856404",
-                        borderRadius: 99,
-                        padding: "4px 12px",
-                        fontSize: 12,
-                        fontWeight: 700,
-                      }}
-                    >
-                      {solicitudes.length}
-                    </span>
-                  )}
+                  <div>
+                    <p style={S.title}>Panel de pagos</p>
+                    <p style={S.subtitle}>
+                      Solicitudes de membresía (checkout web y clientes logueados)
+                    </p>
+                  </div>
                 </div>
+                {solicitudes.length > 0 && (
+                  <span
+                    style={{
+                      background: "#FFF3CD",
+                      color: "#856404",
+                      borderRadius: 99,
+                      padding: "4px 12px",
+                      fontSize: 12,
+                      fontWeight: 700,
+                    }}
+                  >
+                    {solicitudes.length}
+                  </span>
+                )}
+              </div>
 
-                {loadingSolicitudes ? (
-                  <div style={{ textAlign: "center", padding: "2rem" }}>
-                    <Spinner color="primary" />
-                  </div>
-                ) : (
-                  <div style={S.tableWrap}>
-                    <table style={S.table}>
-                      <thead>
-                        <tr>
-                          <th style={S.th}>Cliente</th>
-                          <th style={S.th}>Plan</th>
-                          <th style={S.th}>Método</th>
-                          <th style={S.th}>Solicitada</th>
-                          <th style={S.th}>Comprobante</th>
-                          <th style={S.th}></th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {solicitudes.map((sol) => (
-                          <tr key={sol._id}>
-                            <td style={S.td}>
-                              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                <div style={S.avatar}>{iniciales(sol.cliente)}</div>
-                                <div>
-                                  <div style={{ fontWeight: 600, fontSize: 13 }}>
-                                    {sol.cliente?.nombre} {sol.cliente?.apellido}
-                                  </div>
-                                  <div style={{ fontSize: 11, color: "#8898aa" }}>
-                                    {sol.cliente?.email || sol.cliente?.telefono}
-                                  </div>
+              {/* Tabs de estado */}
+              <div style={{ ...S.filterBar, borderBottom: "1px solid #f0f0f0" }}>
+                {[
+                  { key: "pendiente", label: "Pendientes" },
+                  { key: "aprobada", label: "Aprobadas" },
+                  { key: "rechazada", label: "Rechazadas" },
+                  { key: "todas", label: "Todas" },
+                ].map((t) => (
+                  <button
+                    key={t.key}
+                    style={estadoFiltro === t.key ? S.btnPrimary : S.btnSecondary}
+                    onClick={() => setEstadoFiltro(t.key)}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+
+              {loadingSolicitudes ? (
+                <div style={{ textAlign: "center", padding: "2rem" }}>
+                  <Spinner color="primary" />
+                </div>
+              ) : solicitudes.length === 0 ? (
+                <div style={S.emptyState}>
+                  <p style={{ fontSize: 13, color: "#8898aa" }}>
+                    No hay solicitudes en este estado.
+                  </p>
+                </div>
+              ) : (
+                <div style={S.tableWrap}>
+                  <table style={S.table}>
+                    <thead>
+                      <tr>
+                        <th style={S.th}>Cliente</th>
+                        <th style={S.th}>RUT</th>
+                        <th style={S.th}>Plan</th>
+                        <th style={S.th}>Método</th>
+                        <th style={S.th}>Solicitada</th>
+                        <th style={S.th}>Comprobante</th>
+                        <th style={S.th}>Estado</th>
+                        <th style={S.th}></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {solicitudes.map((sol) => (
+                        <tr key={sol._id}>
+                          <td style={S.td}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                              <div style={S.avatar}>{iniciales(sol.cliente)}</div>
+                              <div>
+                                <div style={{ fontWeight: 600, fontSize: 13 }}>
+                                  {sol.cliente?.nombre} {sol.cliente?.apellido}
+                                </div>
+                                <div style={{ fontSize: 11, color: "#8898aa" }}>
+                                  {sol.cliente?.email || sol.cliente?.telefono}
                                 </div>
                               </div>
-                            </td>
-                            <td style={S.td}>
-                              {sol.nombrePlan}
-                              <div style={{ fontSize: 11, color: "#8898aa" }}>
-                                {formatoPesos(sol.precio)}
-                              </div>
-                            </td>
-                            <td style={S.td}>
-                              <span
-                                style={{
-                                  padding: "3px 10px",
-                                  borderRadius: 99,
-                                  fontSize: 11,
-                                  fontWeight: 500,
-                                  background:
-                                    sol.metodo === "transferencia" ? "#E6F0FF" : "#EAFBF1",
-                                  color:
-                                    sol.metodo === "transferencia" ? "#2D5FA3" : "#1A7A4A",
-                                }}
+                            </div>
+                          </td>
+                          <td style={{ ...S.td, fontSize: 12 }}>{sol.cliente?.rut || "—"}</td>
+                          <td style={S.td}>
+                            {sol.nombrePlan}
+                            <div style={{ fontSize: 11, color: "#8898aa" }}>
+                              {formatoPesos(sol.precio)}
+                            </div>
+                          </td>
+                          <td style={S.td}>
+                            <span
+                              style={{
+                                padding: "3px 10px",
+                                borderRadius: 99,
+                                fontSize: 11,
+                                fontWeight: 500,
+                                background:
+                                  sol.metodo === "transferencia"
+                                    ? "#E6F0FF"
+                                    : sol.metodo === "whatsapp"
+                                      ? "#E6F9F0"
+                                      : "#EAFBF1",
+                                color:
+                                  sol.metodo === "transferencia"
+                                    ? "#2D5FA3"
+                                    : sol.metodo === "whatsapp"
+                                      ? "#1A7A4A"
+                                      : "#1A7A4A",
+                              }}
+                            >
+                              {sol.metodo === "transferencia"
+                                ? "Transferencia"
+                                : sol.metodo === "whatsapp"
+                                  ? "WhatsApp"
+                                  : "Efectivo"}
+                            </span>
+                          </td>
+                          <td style={{ ...S.td, color: "#8898aa", fontSize: 12 }}>
+                            {formatFechaHora(sol.createdAt)}
+                          </td>
+                          <td style={S.td}>
+                            {sol.comprobante?.url ? (
+                              <a
+                                href={sol.comprobante.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{ color: "#534AB7", fontWeight: 500, fontSize: 12 }}
                               >
-                                {sol.metodo === "transferencia" ? "Transferencia" : "Efectivo"}
+                                Ver comprobante
+                              </a>
+                            ) : (
+                              <span style={{ fontSize: 12, color: "#8898aa" }}>—</span>
+                            )}
+                          </td>
+                          <td style={S.td}>
+                            {sol.estado === "pendiente" ? (
+                              <span style={{ padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 500, background: "#FFF3CD", color: "#856404" }}>
+                                Pendiente
                               </span>
-                            </td>
-                            <td style={{ ...S.td, color: "#8898aa", fontSize: 12 }}>
-                              {formatFechaHora(sol.createdAt)}
-                            </td>
-                            <td style={S.td}>
-                              {sol.comprobante?.url ? (
-                                <a
-                                  href={sol.comprobante.url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  style={{ color: "#534AB7", fontWeight: 500, fontSize: 12 }}
-                                >
-                                  Ver comprobante
-                                </a>
-                              ) : (
-                                <span style={{ fontSize: 12, color: "#8898aa" }}>—</span>
-                              )}
-                            </td>
-                            <td style={S.td}>
+                            ) : sol.estado === "aprobada" ? (
+                              <span style={{ padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 500, background: "#E6F9F0", color: "#1A7A4A" }}>
+                                Aprobada
+                              </span>
+                            ) : (
+                              <span style={{ padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 500, background: "#FCEBEB", color: "#A32D2D" }}>
+                                Rechazada
+                              </span>
+                            )}
+                            {sol.estado !== "pendiente" && sol.fechaResolucion && (
+                              <div style={{ fontSize: 10, color: "#8898aa", marginTop: 2 }}>
+                                {formatFechaHora(sol.fechaResolucion)}
+                              </div>
+                            )}
+                            {sol.estado === "rechazada" && sol.motivoRechazo && (
+                              <div style={{ fontSize: 10, color: "#A32D2D", marginTop: 2, maxWidth: 160 }}>
+                                {sol.motivoRechazo}
+                              </div>
+                            )}
+                          </td>
+                          <td style={S.td}>
+                            {sol.estado === "pendiente" && (
                               <div style={{ display: "flex", gap: 6 }}>
                                 <button
                                   style={{
@@ -683,15 +752,15 @@ const GestionMembresias = () => {
                                   Rechazar
                                 </button>
                               </div>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
-              </div>
-            )}
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
 
             <div style={S.card}>
               {/* ── Header ── */}

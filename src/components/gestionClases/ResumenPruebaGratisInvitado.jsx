@@ -86,7 +86,7 @@ const ResumenPruebaGratisInvitado = ({
       <Card className="border-success shadow-sm mb-3">
         <CardBody>
           <h6 className="font-weight-bold text-success d-flex align-items-center">
-            <Gift size={18} className="me-2" /> Tu clase de prueba
+            <Gift size={18} className="me-2" /> Tu clase
           </h6>
 
           <div className="small mb-3">
@@ -230,12 +230,13 @@ const ResumenPruebaGratisInvitado = ({
               Agendando...
             </>
           ) : (
-            "🎁 Agendar mi clase de prueba"
+            "Reservar mi clase"
           )}
         </Button>
 
         <small className="text-muted text-center d-block mt-1">
-          Es 100% gratis y solo se puede usar una vez.
+          Si tienes membresía activa, se descuenta de tu plan. Si no, es tu clase de prueba
+          gratis y solo se puede usar una vez.
         </small>
       </div>
     </>

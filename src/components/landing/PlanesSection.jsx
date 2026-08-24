@@ -1,6 +1,7 @@
 import { Container, Row, Col, Card, CardBody } from "reactstrap";
+import { useNavigate, useParams } from "react-router-dom";
 import { FaWhatsapp } from "react-icons/fa";
-import { Check } from "lucide-react";
+import { Check, CreditCard } from "lucide-react";
 
 /**
  * Catálogo público de planes de membresía para el landing de un gimnasio.
@@ -10,6 +11,9 @@ import { Check } from "lucide-react";
  * a mano.
  */
 const PlanesSection = ({ planes, empresa, theme }) => {
+  const navigate = useNavigate();
+  const { slug } = useParams();
+
   if (!planes?.length) return null;
 
   const primaryColor = theme?.primary || "#5e72e4";
@@ -55,8 +59,8 @@ const PlanesSection = ({ planes, empresa, theme }) => {
           </h2>
 
           <p style={{ color: textMuted }}>
-            Sin letra chica. Contáctanos por WhatsApp y lo activamos al
-            tiro.
+            Contrata tu plan directamente aquí, o escríbenos por WhatsApp si
+            prefieres coordinarlo con nosotros.
           </p>
         </div>
 
@@ -178,20 +182,35 @@ const PlanesSection = ({ planes, empresa, theme }) => {
                       </li>
                     </ul>
 
+                    <button
+                      className="btn btn-block font-weight-bold mb-2"
+                      style={{
+                        backgroundColor: primaryColor,
+                        color: "#fff",
+                        borderRadius: "12px",
+                        padding: "12px",
+                        border: "none",
+                      }}
+                      onClick={() => navigate(`/${slug}/contratar-plan?plan=${plan._id}`)}
+                    >
+                      <CreditCard size={16} className="mr-2" />
+                      Contratar plan
+                    </button>
+
                     {destacado ? (
                       <button
                         className="btn btn-block font-weight-bold"
                         style={{
-                          backgroundColor: primaryColor,
-                          color: "#fff",
+                          backgroundColor: "#fff",
+                          color: primaryColor,
                           borderRadius: "12px",
                           padding: "12px",
-                          border: "none",
+                          border: `1.5px solid ${primaryColor}`,
                         }}
                         onClick={() => contactarWhatsapp(plan)}
                       >
                         <FaWhatsapp className="mr-2" />
-                        Quiero este plan
+                        ¿Cómo pagar? (WhatsApp)
                       </button>
                     ) : (
                       <button
@@ -206,7 +225,7 @@ const PlanesSection = ({ planes, empresa, theme }) => {
                         onClick={() => contactarWhatsapp(plan)}
                       >
                         <FaWhatsapp className="mr-2" />
-                        Quiero este plan
+                        ¿Cómo pagar? (WhatsApp)
                       </button>
                     )}
                   </CardBody>

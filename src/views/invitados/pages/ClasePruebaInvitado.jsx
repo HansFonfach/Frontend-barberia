@@ -6,7 +6,7 @@ import Swal from "sweetalert2";
 
 import AuthFooter from "components/Footers/AuthFooter";
 import { useEmpresa } from "context/EmpresaContext";
-import { getClasesPublicas, getSesionesPublicas, postInscribirPruebaGratisInvitado } from "api/clases";
+import { getClasesPublicas, getSesionesPublicas, postInscribirClasePublica } from "api/clases";
 import ClaseGridSelector from "components/gestionClases/ClaseGridSelector";
 import DiaClaseSelector from "components/gestionClases/DiaClaseSelector";
 import HoraClaseSelector from "components/gestionClases/HoraClaseSelector";
@@ -60,12 +60,18 @@ const PasosPruebaGratis = ({ pasoActual }) => {
 };
 
 /**
- * Agenda la clase de prueba gratis SIN crear cuenta. Mismo espíritu que
- * "Reservar hora" para invitados: página pública, sin login, con el mismo
- * wizard visual que usa el cliente logueado en "Agendar clase"
- * (ClaseGridSelector / DiaClaseSelector / HoraClaseSelector), terminando en
- * un formulario de datos personales en vez de un selector de tipo de acceso
- * (acá SIEMPRE es la clase de prueba, nunca mensualidad ni pase diario).
+ * Agenda una clase SIN crear cuenta. Mismo espíritu que "Reservar hora" para
+ * invitados: página pública, sin login, con el mismo wizard visual que usa
+ * el cliente logueado en "Agendar clase" (ClaseGridSelector /
+ * DiaClaseSelector / HoraClaseSelector), terminando en un formulario de
+ * datos personales.
+ *
+ * Si el RUT ingresado tiene una membresía activa, la reserva descuenta una
+ * clase de esa membresía (pidiendo el teléfono o correo registrado como
+ * verificación extra, para que no baste con saber el RUT de otra persona).
+ * Si no tiene membresía, cae automáticamente en la clase de prueba gratis
+ * (una sola vez por persona) — el backend decide cuál de las dos aplica,
+ * este formulario es el mismo para ambos casos.
  */
 const ClasePruebaInvitado = () => {
   const { slug } = useParams();
@@ -143,15 +149,19 @@ const ClasePruebaInvitado = () => {
     if (!sesionSeleccionada) return;
     setConfirmando(true);
     try {
-      await postInscribirPruebaGratisInvitado(slug, {
+      const res = await postInscribirClasePublica(slug, {
         ...datosInvitado,
         claseId: sesionSeleccionada.claseId,
         fecha: sesionSeleccionada.fecha,
       });
 
+      const usoMembresia = res?.data?.inscripcion?.tipoAcceso === "membresia";
+
       await Swal.fire({
-        title: "¡Tu clase de prueba quedó agendada! 🎉",
-        text: "Te esperamos en el horario que elegiste. Te llegará la confirmación a tu correo.",
+        title: usoMembresia ? "¡Clase reservada! 🎉" : "¡Tu clase de prueba quedó agendada! 🎉",
+        text: usoMembresia
+          ? "Se descontó una clase de tu membresía. Te esperamos en el horario que elegiste."
+          : "Te esperamos en el horario que elegiste. Te llegará la confirmación a tu correo.",
         icon: "success",
         confirmButtonText: "Genial",
       });
@@ -174,10 +184,22 @@ const ClasePruebaInvitado = () => {
         if (resultado.isConfirmed) {
           navigate(`/${slug}/login`);
         }
+      } else if (data?.code === "VERIFICACION_REQUERIDA") {
+        Swal.fire(
+          "Verifica tu identidad",
+          `${data.message} Completa el teléfono o el correo con el que estás registrado en el formulario.`,
+          "warning",
+        );
+      } else if (data?.code === "SIN_MEMBRESIA") {
+        Swal.fire(
+          "Sin membresía activa",
+          `${data.message}`,
+          "info",
+        );
       } else {
         Swal.fire(
           "No se pudo agendar",
-          data?.message || "Ocurrió un problema al agendar tu clase de prueba.",
+          data?.message || "Ocurrió un problema al agendar tu clase.",
           "error",
         );
       }
@@ -230,7 +252,7 @@ const ClasePruebaInvitado = () => {
                 className="display-3 font-weight-bold mb-2"
                 style={{ color: "#ffffff", fontSize: "clamp(2.2rem, 5vw, 3.5rem)" }}
               >
-                Agenda tu clase de prueba gratis
+                Agenda tu clase sin crear cuenta
               </h1>
               <p
                 className="lead"
@@ -242,7 +264,8 @@ const ClasePruebaInvitado = () => {
                   marginRight: "auto",
                 }}
               >
-                Sin cuenta, sin costo, sin compromiso. Elige tu clase y listo.
+                ¿Ya eres socio? Ingresa tu RUT y reservamos con tu membresía. ¿Primera vez? Agenda
+                tu clase de prueba gratis.
               </p>
             </Col>
           </Row>

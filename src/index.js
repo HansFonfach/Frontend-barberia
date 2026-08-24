@@ -41,6 +41,8 @@ import Principal from "views/publico/principal";
 import Landing from "views/pages/Landing";
 import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
 import CancelarInvitado from "views/invitados/pages/CancelarInvitado";
+import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
+import ContratarPlanInvitado from "views/invitados/pages/ContratarPlanInvitado";
 import VerificarCuenta from "views/publico/VerificarCuenta";
 import RegistrarNegocio from "views/publico/RegistrarNegocio";
 import ConfirmacionResultado from "views/publico/ConfirmacionResultado";
@@ -149,6 +151,27 @@ root.render(
             element={
               <EmpresaWrapper>
                 <ConfirmarReserva />
+              </EmpresaWrapper>
+            }
+          />
+
+          {/* Clases grupales (gimnasios): agendar sin login (clase de prueba
+              o, si el RUT tiene membresía activa, descontando su cupo) y
+              contratar un plan sin crear cuenta. Antes esta página existía
+              en el código pero nunca estaba conectada a ninguna ruta. */}
+          <Route
+            path="/:slug/clase-de-prueba"
+            element={
+              <EmpresaWrapper>
+                <ClasePruebaInvitado />
+              </EmpresaWrapper>
+            }
+          />
+          <Route
+            path="/:slug/contratar-plan"
+            element={
+              <EmpresaWrapper>
+                <ContratarPlanInvitado />
               </EmpresaWrapper>
             }
           />

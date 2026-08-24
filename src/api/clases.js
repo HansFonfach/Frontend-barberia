@@ -5,18 +5,6 @@ import { axiosPublic } from "./axiosPublic";
 export const getClases = (todas = false) =>
   axiosPrivate.get("/clases", { params: todas ? { todas: "true" } : {} });
 
-// Catálogo público (landing de la empresa, sin login)
-export const getClasesPublicas = (slug) =>
-  axiosPublic.get(`/clases/${slug}/publicas`);
-
-// Sesiones (horario + cupo) sin login, para agendar la clase de prueba
-export const getSesionesPublicas = (slug, params = {}) =>
-  axiosPublic.get(`/clases/${slug}/sesiones-publicas`, { params });
-
-// Agendar la clase de prueba gratis sin crear cuenta
-export const postInscribirPruebaGratisInvitado = (slug, payload) =>
-  axiosPublic.post(`/clases/${slug}/prueba-gratis`, payload);
-
 export const postCrearClase = (data) => axiosPrivate.post("/clases", data);
 
 export const putActualizarClase = (id, data) =>
@@ -53,6 +41,28 @@ export const patchCancelarInscripcion = (inscripcionId, motivo) =>
 export const patchPagoInscripcion = (inscripcionId, data) =>
   axiosPrivate.patch(`/clases/inscripcion/${inscripcionId}/pago`, data);
 
-// Mis inscripciones (vista del cliente logueado)
+// Mis inscripciones (vista del cliente logueado) — usada por ClasesContext.
+// Faltaba exportarse, igual que pasaba con getClasesPublicas antes.
 export const getMisInscripciones = () =>
   axiosPrivate.get("/clases/mis-inscripciones");
+
+// ── Público (sin login) ─────────────────────────────────────────────────
+// NOTA: estas tres ya se usaban en useLandingData.js / ClasePruebaInvitado.jsx
+// pero nunca se habían exportado desde acá — el landing de cualquier
+// empresa con módulo de clases grupales estaba silenciosamente rompiendo
+// esa carga (getClasesPublicas era `undefined` en tiempo de ejecución).
+
+export const getClasesPublicas = (slug) =>
+  axiosPublic.get(`/clases/${slug}/publicas`);
+
+export const getSesionesPublicas = (slug, params = {}) =>
+  axiosPublic.get(`/clases/${slug}/sesiones-publicas`, { params });
+
+export const postInscribirPruebaGratisInvitado = (slug, data) =>
+  axiosPublic.post(`/clases/${slug}/prueba-gratis`, data);
+
+// Reservar clase sin login por RUT: usa la membresía activa si el RUT tiene
+// una (pide teléfono/correo como segundo factor), o cae al flujo de prueba
+// gratis si no tiene. Un solo endpoint para ambos casos.
+export const postInscribirClasePublica = (slug, data) =>
+  axiosPublic.post(`/clases/${slug}/inscribir-publico`, data);
