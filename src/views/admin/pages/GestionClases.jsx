@@ -61,6 +61,7 @@ const FORM_VACIO = {
   duracion: "60",
   cupoMaximo: "10",
   precioPaseDiario: "",
+  color: "",
   horarioSemanal: [],
 };
 
@@ -96,6 +97,21 @@ const agruparHorarioPorDia = (horarioSemanal = []) => {
 // ("similar" al ejemplo, sin copiar exactamente esos colores).
 const PALETA = ["#534AB7", "#2D9CDB", "#27AE60", "#E67E22", "#EB5757", "#9B51E0", "#F2994A"];
 const colorDeClase = (clase, idx) => clase.color || PALETA[idx % PALETA.length];
+
+// Swatches rápidos para el selector de color del formulario. Es una lista
+// aparte de PALETA (que sigue usándose solo como respaldo automático para
+// clases sin color propio) para no cambiarle el color a clases ya
+// existentes que dependen de esa paleta por índice.
+const SWATCHES_COLOR = [
+  "#534AB7",
+  "#2D9CDB",
+  "#27AE60",
+  "#E67E22",
+  "#EB5757",
+  "#9B51E0",
+  "#F2994A",
+  "#000000",
+];
 
 // ─── Estilos (mismo lenguaje visual que GestionMembresias.jsx) ────────────────
 
@@ -463,6 +479,7 @@ const GestionClases = () => {
       duracion: clase.duracion ?? "60",
       cupoMaximo: clase.cupoMaximo ?? "10",
       precioPaseDiario: clase.precioPaseDiario ?? "",
+      color: clase.color || "",
       horarioSemanal: clase.horarioSemanal || [],
     });
     setModal(true);
@@ -551,6 +568,7 @@ const GestionClases = () => {
       cupoMaximo: Number(form.cupoMaximo),
       precioPaseDiario:
         form.precioPaseDiario === "" ? null : Number(form.precioPaseDiario),
+      color: form.color || null,
       horarioSemanal: form.horarioSemanal,
     };
 
@@ -1163,6 +1181,52 @@ const GestionClases = () => {
                 </FormGroup>
               </Col>
             </Row>
+
+            <FormGroup>
+              <label>Color de la clase</label>
+              <div className="d-flex align-items-center flex-wrap" style={{ gap: 8 }}>
+                {SWATCHES_COLOR.map((c) => (
+                  <div
+                    key={c}
+                    onClick={() => setForm({ ...form, color: c })}
+                    title={c}
+                    style={{
+                      width: 26,
+                      height: 26,
+                      borderRadius: "50%",
+                      background: c,
+                      cursor: "pointer",
+                      border:
+                        form.color === c ? "3px solid #1a1a2e" : "2px solid #fff",
+                      boxShadow: "0 0 0 1px #e0e0e0",
+                    }}
+                  />
+                ))}
+                <Input
+                  type="color"
+                  name="color"
+                  value={form.color || "#534AB7"}
+                  onChange={handleChange}
+                  style={{ width: 44, height: 30, padding: 2 }}
+                  title="Elegir otro color"
+                />
+                {form.color && (
+                  <Button
+                    size="sm"
+                    color="link"
+                    className="text-muted p-0 ml-1"
+                    type="button"
+                    onClick={() => setForm({ ...form, color: "" })}
+                  >
+                    Quitar
+                  </Button>
+                )}
+              </div>
+              <small className="text-muted d-block mt-1">
+                Se usa en el calendario semanal. Si no eliges uno, se asigna
+                automáticamente.
+              </small>
+            </FormGroup>
 
             <FormGroup>
               <div className="d-flex justify-content-between align-items-center mb-2">
