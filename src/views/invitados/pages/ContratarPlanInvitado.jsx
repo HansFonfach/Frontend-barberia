@@ -241,7 +241,7 @@ const ContratarPlanInvitado = () => {
                           {formatoPesos(plan.precio)}
                         </div>
                         <small className="text-muted d-block">
-                          {plan.clasesIncluidas} clases · {plan.duracionDias} días
+                          {plan.clasesIncluidas} clases{plan.tipoCiclo === "mensual" ? "/mes" : " en total"} · {plan.duracionDias} días
                         </small>
                       </CardBody>
                     </Card>

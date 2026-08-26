@@ -165,8 +165,10 @@ const PlanesSection = ({ planes, empresa, theme }) => {
                           className="mr-2 mt-1"
                         />
                         <span style={{ color: textDark }}>
-                          <strong>{plan.clasesIncluidas}</strong> clases
-                          incluidas
+                          <strong>{plan.clasesIncluidas}</strong>{" "}
+                          {plan.tipoCiclo === "mensual"
+                            ? "clases incluidas al mes"
+                            : "clases incluidas en total"}
                         </span>
                       </li>
                       <li className="d-flex align-items-start mb-3">

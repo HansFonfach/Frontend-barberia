@@ -18,3 +18,19 @@ export const getClientesGimnasio = () =>
 
 export const getPorCobrarGimnasio = () =>
   axiosPrivate.get("/estadisticasGimnasio/por-cobrar");
+
+// Panel de estadísticas completo (selector de período + comparación).
+// `opciones` = { periodo: "este_mes" | "mes_anterior" | "ultimos_3_meses" |
+//   "ultimos_6_meses" | "este_anio" | "anio_anterior" | "personalizado",
+//   desde, hasta } — desde/hasta solo aplican con periodo:"personalizado".
+export const getResumenPeriodoGimnasio = (opciones = {}) =>
+  axiosPrivate.get("/estadisticasGimnasio/resumen", { params: opciones });
+
+export const getClientesAnalisisGimnasio = (opciones = {}) =>
+  axiosPrivate.get("/estadisticasGimnasio/clientes-analisis", { params: opciones });
+
+export const getDemandaGimnasio = (opciones = {}) =>
+  axiosPrivate.get("/estadisticasGimnasio/demanda", { params: opciones });
+
+export const getEvolucionGimnasio = (meses = 6) =>
+  axiosPrivate.get("/estadisticasGimnasio/evolucion", { params: { meses } });

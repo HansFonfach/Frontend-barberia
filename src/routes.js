@@ -17,6 +17,7 @@ import GestionClientes from "views/admin/pages/GestionClientes";
 import ReservasDiarias from "views/admin/pages/ReservasDiarias";
 import ForgotPassword from "views/publico/ForgotPassword";
 import Estadisticas from "views/admin/pages/Estadisticas";
+import EstadisticasGimnasio from "views/admin/pages/EstadisticasGimnasio";
 import BarberosPage from "views/pages/PresentarBarberos";
 import CentroAyuda from "views/pages/CentroAyuda";
 import Politicas from "views/pages/Politicas";
@@ -494,12 +495,26 @@ export const barberoRoutes = [
         layout: "/admin",
       },
       {
+        // Panel de estadísticas de barbería/salón (reservas + suscripciones):
+        // no aplica al modelo de gimnasio (membresías + clases), por eso se
+        // excluye ahí y se reemplaza por la entrada de abajo.
         path: "/estadisticas",
         name: "Estadísticas",
         icon: "fas fa-chart-line text-info",
-        excludeRubros: ["gimnasio"],
         component: <Estadisticas />,
         layout: "/admin",
+        excludeRubros: ["gimnasio"],
+      },
+      {
+        // Panel de estadísticas para gimnasios/boxes (membresías + clases
+        // grupales) — mismo nombre/posición de menú, pero solo visible
+        // para empresas con el módulo de clases grupales activo.
+        path: "/estadisticas-gimnasio",
+        name: "Estadísticas",
+        icon: "fas fa-chart-line text-info",
+        component: <EstadisticasGimnasio />,
+        layout: "/admin",
+        requiereModulo: "clasesGrupales",
       },
       {
         path: "/HistorialIngresos",

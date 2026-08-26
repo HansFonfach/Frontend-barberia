@@ -2,6 +2,7 @@ import { useUsuario } from "context/usuariosContext";
 import { useState } from "react";
 import Swal from "sweetalert2";
 import { useRutValidator } from "hooks/useRutValidador";
+import { useEmpresa } from "context/EmpresaContext";
 
 // Mismo patrón que useCrearBarbero (hooks/barberos/useCrearBarbero.js), pero
 // sin foto/perfil profesional/especialidades: un cliente no los usa.
@@ -19,6 +20,11 @@ export const useCrearCliente = () => {
   const [modalCrear, setModalCrear] = useState(false);
   const [formCrear, setFormCrear] = useState(initialForm);
   const { crearCliente } = useUsuario();
+  const { empresa } = useEmpresa();
+  // RUT y teléfono son opcionales SOLO para el gimnasio (pedido explícito del
+  // negocio); para el resto de los rubros siguen siendo obligatorios, igual
+  // que antes.
+  const esGimnasio = empresa?.rubro === "gimnasio";
 
   const {
     rut,
@@ -48,9 +54,15 @@ export const useCrearCliente = () => {
     const { nombre, apellido, telefono, email, password, confirmaPassword } =
       formConRut;
 
-    if (!rut || !nombre || !apellido || !telefono || !email || !password)
+    if (
+      !nombre ||
+      !apellido ||
+      !email ||
+      !password ||
+      (!esGimnasio && (!rut || !telefono))
+    )
       return Swal.fire("Error", "Completa todos los campos", "error");
-    if (!rutValido)
+    if (rut && !rutValido)
       return Swal.fire("Error", "RUT o pasaporte inválido", "error");
     if (password !== confirmaPassword)
       return Swal.fire("Error", "Las contraseñas no coinciden", "error");

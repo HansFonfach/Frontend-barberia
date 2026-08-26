@@ -112,7 +112,7 @@ const SolicitarPlanModal = ({ isOpen, toggle, plan, empresa, onEnviada }) => {
       <ModalBody>
         <p className="text-muted mb-4">
           <strong>{plan?.nombre}</strong> · {formatoPesos(plan?.precio)} ·{" "}
-          {plan?.clasesIncluidas} clases · {plan?.duracionDias} días
+          {plan?.clasesIncluidas} clases{plan?.tipoCiclo === "mensual" ? "/mes" : " en total"} · {plan?.duracionDias} días
         </p>
 
         <FormGroup>
@@ -409,7 +409,9 @@ const MiPlanClase = () => {
                     <Col xs="6" md="3" className="mb-3">
                       <div className="border rounded p-3 text-center">
                         <small className="text-muted d-block">
-                          Clases usadas
+                          {membresia.tipoCiclo === "mensual"
+                            ? "Clases usadas este mes"
+                            : "Clases usadas"}
                         </small>
                         <strong className="h3">
                           {membresia.clasesUsadas}/{membresia.clasesIncluidas}
@@ -430,9 +432,13 @@ const MiPlanClase = () => {
                   />
 
                   <small className="text-muted">
-                    {membresia.clasesRestantes > 0
-                      ? `Te quedan ${membresia.clasesRestantes} clase${membresia.clasesRestantes !== 1 ? "s" : ""} este ciclo`
-                      : "Ya usaste todas las clases incluidas en tu plan este ciclo"}
+                    {membresia.tipoCiclo === "mensual"
+                      ? membresia.clasesRestantes > 0
+                        ? `Te quedan ${membresia.clasesRestantes} clase${membresia.clasesRestantes !== 1 ? "s" : ""} este mes (se renuevan el próximo mes)`
+                        : "Ya usaste todas las clases de este mes, se renuevan el próximo mes"
+                      : membresia.clasesRestantes > 0
+                        ? `Te quedan ${membresia.clasesRestantes} clase${membresia.clasesRestantes !== 1 ? "s" : ""} en tu plan`
+                        : "Ya usaste todas las clases incluidas en tu plan"}
                   </small>
                 </CardBody>
               </Card>
@@ -495,8 +501,10 @@ const MiPlanClase = () => {
                               className="text-success mr-2 mt-1"
                             />
                             <span>
-                              <strong>{plan.clasesIncluidas}</strong> clases
-                              incluidas
+                              <strong>{plan.clasesIncluidas}</strong>{" "}
+                              {plan.tipoCiclo === "mensual"
+                                ? "clases incluidas al mes"
+                                : "clases incluidas en total"}
                             </span>
                           </li>
                           <li className="d-flex align-items-start mb-2">

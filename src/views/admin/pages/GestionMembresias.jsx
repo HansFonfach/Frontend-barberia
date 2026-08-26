@@ -202,13 +202,13 @@ const S = {
 
 // ─── Sub-componentes ──────────────────────────────────────────────────────────
 
-const BarraClases = ({ usadas, total }) => {
+const BarraClases = ({ usadas, total, tipoCiclo }) => {
   const pct = total > 0 ? Math.min((usadas / total) * 100, 100) : 0;
   const color = pct >= 100 ? "#E24B4A" : pct >= 60 ? "#fb6340" : "#2dce89";
   return (
     <div>
       <div style={{ fontSize: 11, color: "#8898aa", marginBottom: 3 }}>
-        {usadas} / {total} clases
+        {usadas} / {total} clases{tipoCiclo === "mensual" ? " este mes" : ""}
       </div>
       <div style={{ background: "#f0f0f0", borderRadius: 99, height: 6, width: 100 }}>
         <div
@@ -290,7 +290,7 @@ const TablaDesktop = ({ membresias, onCancelar }) => (
             </td>
             <td style={S.td}>{m.nombrePlan}</td>
             <td style={S.td}>
-              <BarraClases usadas={m.clasesUsadas} total={m.clasesIncluidas} />
+              <BarraClases usadas={m.clasesUsadas} total={m.clasesIncluidas} tipoCiclo={m.tipoCiclo} />
             </td>
             <td style={S.td}>{formatoPesos(m.precio)}</td>
             <td style={{ ...S.td, color: "#8898aa", fontSize: 12 }}>{formatFecha(m.fechaInicio)}</td>
@@ -339,7 +339,7 @@ const CardsMobile = ({ membresias, onCancelar }) => (
         </div>
 
         <div style={{ marginBottom: 10 }}>
-          <BarraClases usadas={m.clasesUsadas} total={m.clasesIncluidas} />
+          <BarraClases usadas={m.clasesUsadas} total={m.clasesIncluidas} tipoCiclo={m.tipoCiclo} />
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 10 }}>
@@ -878,7 +878,7 @@ const GestionMembresias = () => {
                 <option value="">Selecciona un plan</option>
                 {planesActivos.map((p) => (
                   <option key={p._id} value={p._id}>
-                    {p.nombre} — {p.clasesIncluidas} clases — {formatoPesos(p.precio)}
+                    {p.nombre} — {p.clasesIncluidas} clases{p.tipoCiclo === "mensual" ? "/mes" : " en total"} — {formatoPesos(p.precio)}
                   </option>
                 ))}
               </Input>

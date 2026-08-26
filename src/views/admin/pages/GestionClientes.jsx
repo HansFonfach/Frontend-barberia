@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   Container,
   Row,
@@ -33,6 +33,13 @@ import { useUsuarios } from "hooks/useUsuarios";
 import { usePagination } from "hooks/usePagination";
 import { usePlanesSuscripcion } from "context/PlanesSuscripcionContext";
 import { useCrearCliente } from "hooks/useCrearCliente";
+import { useEmpresa } from "context/EmpresaContext";
+import PlanesMembresiaContext from "context/PlanesMembresiaContext";
+import {
+  postCrearMembresia,
+  getEstadoMembresiaCliente,
+  getListarMembresias,
+} from "api/membresiasClases";
 
 // Importar iconos actualizados
 import { FiEye, FiEdit, FiUser, FiUsers, FiPlus } from "react-icons/fi";
@@ -74,6 +81,48 @@ const GestionClientes = () => {
     if (ok) getAllUsers();
   };
 
+  const { empresa } = useEmpresa();
+  // RUT y teléfono son opcionales SOLO para el gimnasio (ver useCrearCliente,
+  // que ya relaja la validación); acá solo ajustamos qué campos se marcan
+  // como obligatorios en la UI.
+  const esGimnasio = empresa?.rubro === "gimnasio";
+
+  // Membresía de clases (gimnasio) del cliente que se está viendo — se
+  // reutiliza el mismo endpoint/estado que ya usa "Mi plan" del cliente,
+  // no se duplica el cálculo de clases usadas/restantes.
+  const { planes: planesMembresiaGimnasio, getAllPlanes: getAllPlanesMembresiaGimnasio } =
+    useContext(PlanesMembresiaContext);
+  const [membresiaCliente, setMembresiaCliente] = useState(null);
+  const [cargandoMembresiaCliente, setCargandoMembresiaCliente] = useState(false);
+  const [guardandoMembresiaCliente, setGuardandoMembresiaCliente] = useState(false);
+
+  // Membresías activas de TODA la empresa, para pintar la columna
+  // "Membresía" de la tabla sin hacer una consulta por cada cliente listado
+  // (mismo endpoint que ya usa el panel de Membresías con activas:"true").
+  const [membresiasActivasPorCliente, setMembresiasActivasPorCliente] = useState(new Map());
+
+  const cargarMembresiasActivas = async () => {
+    try {
+      const res = await getListarMembresias({ activas: "true" });
+      const mapa = new Map(
+        (res.data?.membresias || [])
+          .filter((m) => m.cliente?._id)
+          .map((m) => [m.cliente._id, m]),
+      );
+      setMembresiasActivasPorCliente(mapa);
+    } catch (error) {
+      console.error("Error al obtener las membresías activas:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (esGimnasio) {
+      getAllPlanesMembresiaGimnasio(false);
+      cargarMembresiasActivas();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [esGimnasio]);
+
   // Estados para el nuevo modal de detalles
   const [modalDetalles, setModalDetalles] = useState(false);
   const [vistaMobile, setVistaMobile] = useState(false);
@@ -100,25 +149,42 @@ const GestionClientes = () => {
     { key: "nombre", label: "Nombre" },
     { key: "apellido", label: "Apellido" },
     { key: "telefono", label: "Teléfono" },
-    {
-      key: "suscripcion",
-      label: "Suscripción",
-      render: (_, usuario) => {
-        const s = usuario.suscripcion;
-        if (s && s.activa) {
-          return (
-            <Badge color="success" pill className="px-3">
-              Activa
-            </Badge>
-          );
+    esGimnasio
+      ? {
+          key: "membresia",
+          label: "Membresía",
+          render: (_, usuario) => {
+            const activa = membresiasActivasPorCliente.has(usuario._id);
+            return activa ? (
+              <Badge color="success" pill className="px-3">
+                Activa
+              </Badge>
+            ) : (
+              <Badge color="secondary" pill className="px-3">
+                Sin membresía
+              </Badge>
+            );
+          },
         }
-        return (
-          <Badge color="danger" pill className="px-3">
-            Inactiva
-          </Badge>
-        );
-      },
-    },
+      : {
+          key: "suscripcion",
+          label: "Suscripción",
+          render: (_, usuario) => {
+            const s = usuario.suscripcion;
+            if (s && s.activa) {
+              return (
+                <Badge color="success" pill className="px-3">
+                  Activa
+                </Badge>
+              );
+            }
+            return (
+              <Badge color="danger" pill className="px-3">
+                Inactiva
+              </Badge>
+            );
+          },
+        },
   ];
 
   // Columnas simplificadas para móvil
@@ -139,6 +205,16 @@ const GestionClientes = () => {
             </div>
             <small className="text-muted">{usuario.telefono}</small>
           </div>
+          {esGimnasio && (
+            <Badge
+              color={membresiasActivasPorCliente.has(usuario._id) ? "success" : "secondary"}
+              pill
+              className="ml-auto"
+              style={{ fontSize: "10px" }}
+            >
+              {membresiasActivasPorCliente.has(usuario._id) ? "Activa" : "Sin membresía"}
+            </Badge>
+          )}
         </div>
       ),
     },
@@ -163,17 +239,60 @@ const GestionClientes = () => {
     },
   ];
 
+  const cargarMembresiaCliente = async (usuarioId) => {
+    setCargandoMembresiaCliente(true);
+    try {
+      const res = await getEstadoMembresiaCliente(usuarioId);
+      setMembresiaCliente(res.data);
+    } catch (error) {
+      console.error("Error al obtener la membresía del cliente:", error);
+      setMembresiaCliente(null);
+    } finally {
+      setCargandoMembresiaCliente(false);
+    }
+  };
+
   const handleAccion = async (accionId, usuario) => {
     switch (accionId) {
       case "ver":
         setUsuarioEdit(usuario);
         toggleModalDetalles();
+        if (esGimnasio) {
+          setMembresiaCliente(null);
+          cargarMembresiaCliente(usuario._id);
+        }
         break;
       case "editar":
         handleEditar(usuario);
         break;
       default:
         break;
+    }
+  };
+
+  const handleAsignarMembresiaGimnasio = async (planId) => {
+    if (!usuarioEdit) return;
+    setGuardandoMembresiaCliente(true);
+    try {
+      await postCrearMembresia({ clienteId: usuarioEdit._id, planId });
+      Swal.fire({
+        icon: "success",
+        title: "¡Membresía asignada!",
+        showConfirmButton: false,
+        timer: 1500,
+        toast: vistaMobile,
+        position: vistaMobile ? "top-end" : "center",
+      });
+      cargarMembresiaCliente(usuarioEdit._id);
+      cargarMembresiasActivas();
+    } catch (error) {
+      Swal.fire(
+        "Error",
+        error.response?.data?.message || "No se pudo asignar la membresía",
+        "error",
+      );
+    } finally {
+      setGuardandoMembresiaCliente(false);
     }
   };
 
@@ -442,6 +561,12 @@ const GestionClientes = () => {
         onCancelarSuscripcion={handleCancelarSuscripcionModal}
         onEliminar={handleEliminarModal}
         fullscreen={vistaMobile}
+        esGimnasio={esGimnasio}
+        membresiaGimnasio={membresiaCliente}
+        cargandoMembresiaGimnasio={cargandoMembresiaCliente}
+        planesMembresiaGimnasio={planesMembresiaGimnasio}
+        guardandoMembresiaGimnasio={guardandoMembresiaCliente}
+        onAsignarMembresiaGimnasio={handleAsignarMembresiaGimnasio}
       />
 
       {/* MODAL EDITAR - Adaptado para móvil */}
@@ -470,7 +595,7 @@ const GestionClientes = () => {
             <Row>
               <Col sm={6}>
                 <FormGroup>
-                  <Label>RUT *</Label>
+                  <Label>RUT {esGimnasio ? "(opcional)" : "*"}</Label>
                   <Input
                     value={rut}
                     onChange={handleRutChange}
@@ -482,20 +607,24 @@ const GestionClientes = () => {
                 </FormGroup>
               </Col>
 
-              {["nombre", "apellido", "telefono", "email"].map((name) => (
-                <Col sm={6} key={name}>
-                  <FormGroup>
-                    <Label>
-                      {name.charAt(0).toUpperCase() + name.slice(1)}
-                    </Label>
-                    <Input
-                      name={name}
-                      value={formCrear[name]}
-                      onChange={handleCrearChange}
-                    />
-                  </FormGroup>
-                </Col>
-              ))}
+              {["nombre", "apellido", "telefono", "email"].map((name) => {
+                const opcional = esGimnasio && name === "telefono";
+                const label = name.charAt(0).toUpperCase() + name.slice(1);
+                return (
+                  <Col sm={6} key={name}>
+                    <FormGroup>
+                      <Label>
+                        {label} {opcional ? "(opcional)" : name === "telefono" ? "*" : ""}
+                      </Label>
+                      <Input
+                        name={name}
+                        value={formCrear[name]}
+                        onChange={handleCrearChange}
+                      />
+                    </FormGroup>
+                  </Col>
+                );
+              })}
 
               <Col sm={6}>
                 <FormGroup>

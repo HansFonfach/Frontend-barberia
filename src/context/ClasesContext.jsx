@@ -16,6 +16,11 @@ import {
   postInscribirCliente,
   patchCancelarInscripcion,
   getMisInscripciones,
+  postExcepcionClase,
+  deleteExcepcionClase,
+  getFeriadosClases,
+  postBloquearFeriadoClase,
+  deleteBloquearFeriadoClase,
 } from "api/clases";
 
 const ClasesContext = createContext();
@@ -134,6 +139,38 @@ export const ClasesProvider = ({ children }) => {
     return res.data?.inscripciones || [];
   }, []);
 
+  // ────────────────────────────────
+  // Excepciones puntuales de una clase en una fecha (cancelar, cambiar cupo,
+  // o forzar que se mantenga habilitada pese a un feriado bloqueado)
+  // ────────────────────────────────
+  const crearExcepcionClase = useCallback(async (claseId, data) => {
+    const res = await postExcepcionClase(claseId, data);
+    return res.data;
+  }, []);
+
+  const eliminarExcepcionClase = useCallback(async (excepcionId) => {
+    const res = await deleteExcepcionClase(excepcionId);
+    return res.data;
+  }, []);
+
+  // ────────────────────────────────
+  // Feriados del módulo de clases (por empresa)
+  // ────────────────────────────────
+  const getFeriados = useCallback(async (params = {}) => {
+    const res = await getFeriadosClases(params);
+    return res.data?.feriados || [];
+  }, []);
+
+  const bloquearFeriado = useCallback(async (fecha, motivo) => {
+    const res = await postBloquearFeriadoClase(fecha, { motivo });
+    return res.data;
+  }, []);
+
+  const desbloquearFeriado = useCallback(async (fecha) => {
+    const res = await deleteBloquearFeriadoClase(fecha);
+    return res.data;
+  }, []);
+
   const value = useMemo(
     () => ({
       clases,
@@ -148,6 +185,11 @@ export const ClasesProvider = ({ children }) => {
       inscribirCliente,
       cancelarInscripcion,
       misInscripciones,
+      crearExcepcionClase,
+      eliminarExcepcionClase,
+      getFeriados,
+      bloquearFeriado,
+      desbloquearFeriado,
     }),
     [
       clases,
@@ -162,6 +204,11 @@ export const ClasesProvider = ({ children }) => {
       inscribirCliente,
       cancelarInscripcion,
       misInscripciones,
+      crearExcepcionClase,
+      eliminarExcepcionClase,
+      getFeriados,
+      bloquearFeriado,
+      desbloquearFeriado,
     ],
   );
 

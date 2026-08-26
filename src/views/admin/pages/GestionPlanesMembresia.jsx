@@ -26,7 +26,16 @@ const FORM_VACIO = {
   clasesIncluidas: "8",
   precio: "",
   duracionDias: "30",
+  // "mensual" por defecto para planes nuevos: es lo que casi siempre se
+  // quiere (ej. "12 clases al mes durante 6 meses"). Los planes ya creados
+  // antes de este campo siguen funcionando como "total" (ver handleEditar).
+  tipoCiclo: "mensual",
 };
+
+const etiquetaCiclo = (tipoCiclo, clasesIncluidas) =>
+  tipoCiclo === "mensual"
+    ? `${clasesIncluidas} clases/mes`
+    : `${clasesIncluidas} clases en total`;
 
 const formatoPesos = (valor) => {
   if (valor === null || valor === undefined || valor === "") return "—";
@@ -73,6 +82,10 @@ const GestionPlanesMembresia = () => {
       clasesIncluidas: plan.clasesIncluidas ?? "8",
       precio: plan.precio ?? "",
       duracionDias: plan.duracionDias ?? "30",
+      // Planes creados antes de este campo no traen tipoCiclo — se
+      // muestran/editan como "total", que es como funcionaban en la
+      // práctica (para no cambiarles el comportamiento por sorpresa).
+      tipoCiclo: plan.tipoCiclo || "total",
     });
     setModal(true);
   };
@@ -100,6 +113,7 @@ const GestionPlanesMembresia = () => {
       clasesIncluidas: Number(form.clasesIncluidas),
       precio: Number(form.precio),
       duracionDias: Number(form.duracionDias) || 30,
+      tipoCiclo: form.tipoCiclo === "mensual" ? "mensual" : "total",
     };
 
     try {
@@ -226,7 +240,7 @@ const GestionPlanesMembresia = () => {
                           </div>
                           <div className="mb-2">
                             <Badge color="info" pill className="mr-2">
-                              {p.clasesIncluidas} clases
+                              {etiquetaCiclo(p.tipoCiclo, p.clasesIncluidas)}
                             </Badge>
                             <Badge color="warning" pill>
                               {p.duracionDias} días
@@ -272,7 +286,7 @@ const GestionPlanesMembresia = () => {
                       <thead>
                         <tr>
                           <th>Plan</th>
-                          <th>Clases incluidas</th>
+                          <th>Clases</th>
                           <th>Precio</th>
                           <th>Duración</th>
                           <th>Estado</th>
@@ -283,7 +297,7 @@ const GestionPlanesMembresia = () => {
                         {planesFiltrados.map((p) => (
                           <tr key={p._id}>
                             <td>{p.nombre}</td>
-                            <td>{p.clasesIncluidas}</td>
+                            <td>{etiquetaCiclo(p.tipoCiclo, p.clasesIncluidas)}</td>
                             <td>{formatoPesos(p.precio)}</td>
                             <td>{p.duracionDias} días</td>
                             <td>
@@ -348,10 +362,30 @@ const GestionPlanesMembresia = () => {
               />
             </FormGroup>
 
+            <FormGroup>
+              <label>¿Cómo se cuenta el cupo de clases?</label>
+              <Input
+                type="select"
+                name="tipoCiclo"
+                value={form.tipoCiclo}
+                onChange={handleChange}
+              >
+                <option value="mensual">Por mes (se renueva cada 30 días)</option>
+                <option value="total">Total para todo el período (no se renueva)</option>
+              </Input>
+              <small className="text-muted">
+                {form.tipoCiclo === "mensual"
+                  ? "Ej: plan de 6 meses con 12 clases/mes → el cliente puede usar hasta 12 clases cada mes, y se renuevan solas mes a mes hasta que termine el plan."
+                  : "El cliente tiene ese cupo de clases una sola vez para usar en cualquier momento dentro de la duración del plan (no se renueva)."}
+              </small>
+            </FormGroup>
+
             <Row>
               <Col md="6">
                 <FormGroup>
-                  <label>Clases incluidas al mes</label>
+                  <label>
+                    {form.tipoCiclo === "mensual" ? "Clases incluidas al mes" : "Clases incluidas (total)"}
+                  </label>
                   <Input
                     type="number"
                     name="clasesIncluidas"
@@ -374,7 +408,7 @@ const GestionPlanesMembresia = () => {
             </Row>
 
             <FormGroup>
-              <label>Duración del plan (días)</label>
+              <label>Duración total del plan (días)</label>
               <Input
                 type="number"
                 name="duracionDias"
@@ -382,7 +416,9 @@ const GestionPlanesMembresia = () => {
                 onChange={handleChange}
               />
               <small className="text-muted">
-                Normalmente 30 días (un mes calendario)
+                {form.tipoCiclo === "mensual"
+                  ? "Cuántos días dura el plan completo (ej. 90 = trimestral, 180 = semestral, 365 = anual). El cupo de arriba se renueva cada 30 días dentro de este total."
+                  : "Normalmente 30 días (un mes calendario), pero puede ser cualquier duración."}
               </small>
             </FormGroup>
 

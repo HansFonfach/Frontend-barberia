@@ -59,6 +59,18 @@ const resumenPlan = (plan) => {
   return `${cantidad} ${servicios} ${cicloTexto}`;
 };
 
+const formatFechaCorta = (fecha) => {
+  if (!fecha) return "—";
+  return new Date(fecha).toLocaleDateString("es-CL", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+const resumenPlanGimnasio = (plan) =>
+  `${plan.clasesIncluidas} clases ${plan.tipoCiclo === "mensual" ? "al mes" : "en total"} · ${plan.duracionDias} días`;
+
 const ClienteDetallesModal = ({
   isOpen,
   toggle,
@@ -69,6 +81,15 @@ const ClienteDetallesModal = ({
   onCancelarSuscripcion,
   onEliminar,
   fullscreen = false,
+  // ── Gimnasio: mensualidad de clases (MembresiaClase), en vez de la
+  // Suscripción de créditos que usa la barbería. Se mantiene todo lo de
+  // arriba intacto para no tocar el flujo de barbería/salón.
+  esGimnasio = false,
+  membresiaGimnasio = null,
+  cargandoMembresiaGimnasio = false,
+  planesMembresiaGimnasio = [],
+  guardandoMembresiaGimnasio = false,
+  onAsignarMembresiaGimnasio,
 }) => {
   const [vistaMobile, setVistaMobile] = useState(false);
   const [eligiendoPlan, setEligiendoPlan] = useState(false);
@@ -101,10 +122,16 @@ const ClienteDetallesModal = ({
 
   const handleElegirPlan = (planId) => {
     setEligiendoPlan(false);
-    onSuscribir(planId);
+    if (esGimnasio) {
+      onAsignarMembresiaGimnasio && onAsignarMembresiaGimnasio(planId);
+    } else {
+      onSuscribir(planId);
+    }
   };
 
-  const planesActivos = (planes || []).filter((p) => p.activo !== false);
+  const planesActivos = esGimnasio
+    ? (planesMembresiaGimnasio || []).filter((p) => p.activo !== false)
+    : (planes || []).filter((p) => p.activo !== false);
 
   /* =============================
      SELECTOR DE PLAN
@@ -123,8 +150,17 @@ const ClienteDetallesModal = ({
           className="text-center text-muted mb-3"
           style={{ fontSize: "12px" }}
         >
-          No hay planes de suscripción creados todavía. Crea uno en{" "}
-          <strong>Planes de suscripción</strong>.
+          {esGimnasio ? (
+            <>
+              No hay planes de membresía creados todavía. Crea uno en{" "}
+              <strong>Planes</strong>.
+            </>
+          ) : (
+            <>
+              No hay planes de suscripción creados todavía. Crea uno en{" "}
+              <strong>Planes de suscripción</strong>.
+            </>
+          )}
         </p>
       ) : (
         <div
@@ -142,6 +178,7 @@ const ClienteDetallesModal = ({
             return (
               <button
                 key={plan._id}
+                disabled={guardandoMembresiaGimnasio}
                 onClick={() => handleElegirPlan(plan._id)}
                 style={{
                   background: "#fff",
@@ -164,7 +201,7 @@ const ClienteDetallesModal = ({
                   e.currentTarget.style.transform = "none";
                 }}
               >
-                <span style={{ fontSize: "1.6rem" }}>✂️</span>
+                <span style={{ fontSize: "1.6rem" }}>{esGimnasio ? "🏋️" : "✂️"}</span>
                 <div>
                   <div
                     style={{
@@ -176,7 +213,7 @@ const ClienteDetallesModal = ({
                     {plan.nombre}
                   </div>
                   <div style={{ fontSize: "11px", color: "#8898aa" }}>
-                    {resumenPlan(plan)}
+                    {esGimnasio ? resumenPlanGimnasio(plan) : resumenPlan(plan)}
                   </div>
                   <div
                     style={{
@@ -225,7 +262,19 @@ const ClienteDetallesModal = ({
           <FiEdit size={12} className="mr-1" /> Editar
         </Button>
 
-        {tieneSuscripcion ? (
+        {esGimnasio ? (
+          !membresiaGimnasio?.activa && (
+            <Button
+              color="success"
+              size="sm"
+              disabled={cargandoMembresiaGimnasio}
+              onClick={() => setEligiendoPlan(true)}
+              block
+            >
+              <FiStar size={12} className="mr-1" /> Asignar membresía
+            </Button>
+          )
+        ) : tieneSuscripcion ? (
           <Button
             color="secondary"
             size="sm"
@@ -269,7 +318,17 @@ const ClienteDetallesModal = ({
             <FiEdit size={14} className="mr-1" /> Editar información
           </Button>
 
-          {tieneSuscripcion ? (
+          {esGimnasio ? (
+            !membresiaGimnasio?.activa && (
+              <Button
+                color="success"
+                disabled={cargandoMembresiaGimnasio}
+                onClick={() => setEligiendoPlan(true)}
+              >
+                <FiStar size={14} className="mr-1" /> Asignar membresía
+              </Button>
+            )
+          ) : tieneSuscripcion ? (
             <Button color="secondary" onClick={onCancelarSuscripcion}>
               <FiX size={14} className="mr-1" /> Cancelar suscripción
             </Button>
@@ -344,6 +403,15 @@ const ClienteDetallesModal = ({
       <ModalBody
         style={{ padding: vistaMobile ? "10px" : "20px", overflowY: "auto" }}
       >
+        {eligiendoPlan ? (
+          // El selector de plan vive DENTRO del body (que sí tiene scroll
+          // garantizado, incluso en el modal fullscreen de celular) y no en
+          // el footer: en mobile el footer no tenía su propio scroll, así
+          // que con varios planes la lista quedaba cortada fuera de la
+          // pantalla y el dueño no la veía (sí en escritorio, donde el
+          // modal no es fullscreen y el footer tiene más espacio).
+          renderSelectorPlanes()
+        ) : (
         <Row>
           {/* INFO PERSONAL */}
           <Col xs="12" md="6" className="mb-3">
@@ -401,7 +469,7 @@ const ClienteDetallesModal = ({
             </Card>
           </Col>
 
-          {/* SUSCRIPCIÓN */}
+          {/* SUSCRIPCIÓN (barbería/salón) o MEMBRESÍA (gimnasio) */}
           <Col xs="12" md="6" className="mb-3">
             <Card className="shadow-sm h-100">
               <CardBody style={{ padding: vistaMobile ? "10px 12px" : "16px" }}>
@@ -410,86 +478,172 @@ const ClienteDetallesModal = ({
                   style={{ fontSize: vistaMobile ? "12px" : "14px" }}
                 >
                   <FiAward className="mr-1" size={13} />
-                  Suscripción
+                  {esGimnasio ? "Membresía" : "Suscripción"}
                 </h6>
 
-                <div className="text-center mb-2">
-                  {tieneSuscripcion ? (
-                    <Badge
-                      color="success"
-                      pill
-                      style={{ padding: "6px 14px", fontSize: "12px" }}
-                    >
-                      <FiCheck className="mr-1" size={11} /> Activa
-                    </Badge>
+                {esGimnasio ? (
+                  cargandoMembresiaGimnasio ? (
+                    <div className="text-center py-3">
+                      <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
+                        Cargando membresía...
+                      </p>
+                    </div>
                   ) : (
-                    <Badge
-                      color="secondary"
-                      pill
-                      style={{ padding: "6px 14px", fontSize: "12px" }}
-                    >
-                      <FiX className="mr-1" size={11} /> Sin suscripción
-                    </Badge>
-                  )}
-                </div>
+                    <>
+                      <div className="text-center mb-2">
+                        {membresiaGimnasio?.activa ? (
+                          <Badge
+                            color="success"
+                            pill
+                            style={{ padding: "6px 14px", fontSize: "12px" }}
+                          >
+                            <FiCheck className="mr-1" size={11} /> Activa
+                          </Badge>
+                        ) : (
+                          <Badge
+                            color="secondary"
+                            pill
+                            style={{ padding: "6px 14px", fontSize: "12px" }}
+                          >
+                            <FiX className="mr-1" size={11} /> Sin membresía
+                          </Badge>
+                        )}
+                      </div>
 
-                {tieneSuscripcion && suscripcionData ? (
-                  <ListGroup flush>
-                    {[
-                      {
-                        label: "Plan",
-                        value:
-                          suscripcionData.planSnapshot?.nombre ||
-                          suscripcionData.nombrePlan ||
-                          PLANES_LEGACY.find(
-                            (p) => p.id === suscripcionData.tipoPlan,
-                          )?.nombre ||
-                          suscripcionData.tipoPlan,
-                      },
-                      {
-                        label: "Servicios usados",
-                        value: `${suscripcionData.serviciosUsados || 0} / ${suscripcionData.serviciosTotales || 0}`,
-                      },
-                      {
-                        label: "Inicio",
-                        value: formatFecha(suscripcionData.fechaInicio),
-                      },
-                      {
-                        label: "Vencimiento",
-                        value: formatFecha(suscripcionData.fechaFin),
-                      },
-                    ].map(({ label, value }) => (
-                      <ListGroupItem
-                        key={label}
-                        className="d-flex justify-content-between align-items-center px-0 border-0"
-                        style={{
-                          padding: "5px 0",
-                          fontSize: vistaMobile ? "12px" : "13px",
-                        }}
-                      >
-                        <span className="text-muted">{label}:</span>
-                        <span className="font-weight-bold">{value}</span>
-                      </ListGroupItem>
-                    ))}
-                  </ListGroup>
+                      {membresiaGimnasio?.activa ? (
+                        <ListGroup flush>
+                          {[
+                            { label: "Plan", value: membresiaGimnasio.nombrePlan },
+                            {
+                              label: "Clases usadas",
+                              value: `${membresiaGimnasio.clasesUsadas} / ${membresiaGimnasio.clasesIncluidas}${membresiaGimnasio.tipoCiclo === "mensual" ? " este mes" : ""}`,
+                            },
+                            {
+                              label: "Inicio",
+                              value: formatFechaCorta(membresiaGimnasio.fechaInicio),
+                            },
+                            {
+                              label: "Vencimiento",
+                              value: formatFechaCorta(membresiaGimnasio.fechaFin),
+                            },
+                          ].map(({ label, value }) => (
+                            <ListGroupItem
+                              key={label}
+                              className="d-flex justify-content-between align-items-center px-0 border-0"
+                              style={{
+                                padding: "5px 0",
+                                fontSize: vistaMobile ? "12px" : "13px",
+                              }}
+                            >
+                              <span className="text-muted">{label}:</span>
+                              <span className="font-weight-bold">{value}</span>
+                            </ListGroupItem>
+                          ))}
+                        </ListGroup>
+                      ) : (
+                        <div className="text-center py-2">
+                          <FiStar size={28} className="text-muted mb-1" />
+                          <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
+                            Sin membresía activa
+                          </p>
+                          <Button
+                            color="success"
+                            size="sm"
+                            className="mt-2"
+                            onClick={() => setEligiendoPlan(true)}
+                          >
+                            <FiStar size={12} className="mr-1" /> Asignar membresía
+                          </Button>
+                        </div>
+                      )}
+                    </>
+                  )
                 ) : (
-                  <div className="text-center py-2">
-                    <FiStar size={28} className="text-muted mb-1" />
-                    <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
-                      Sin suscripción activa
-                    </p>
-                  </div>
+                  <>
+                    <div className="text-center mb-2">
+                      {tieneSuscripcion ? (
+                        <Badge
+                          color="success"
+                          pill
+                          style={{ padding: "6px 14px", fontSize: "12px" }}
+                        >
+                          <FiCheck className="mr-1" size={11} /> Activa
+                        </Badge>
+                      ) : (
+                        <Badge
+                          color="secondary"
+                          pill
+                          style={{ padding: "6px 14px", fontSize: "12px" }}
+                        >
+                          <FiX className="mr-1" size={11} /> Sin suscripción
+                        </Badge>
+                      )}
+                    </div>
+
+                    {tieneSuscripcion && suscripcionData ? (
+                      <ListGroup flush>
+                        {[
+                          {
+                            label: "Plan",
+                            value:
+                              suscripcionData.planSnapshot?.nombre ||
+                              suscripcionData.nombrePlan ||
+                              PLANES_LEGACY.find(
+                                (p) => p.id === suscripcionData.tipoPlan,
+                              )?.nombre ||
+                              suscripcionData.tipoPlan,
+                          },
+                          {
+                            label: "Servicios usados",
+                            value: `${suscripcionData.serviciosUsados || 0} / ${suscripcionData.serviciosTotales || 0}`,
+                          },
+                          {
+                            label: "Inicio",
+                            value: formatFecha(suscripcionData.fechaInicio),
+                          },
+                          {
+                            label: "Vencimiento",
+                            value: formatFecha(suscripcionData.fechaFin),
+                          },
+                        ].map(({ label, value }) => (
+                          <ListGroupItem
+                            key={label}
+                            className="d-flex justify-content-between align-items-center px-0 border-0"
+                            style={{
+                              padding: "5px 0",
+                              fontSize: vistaMobile ? "12px" : "13px",
+                            }}
+                          >
+                            <span className="text-muted">{label}:</span>
+                            <span className="font-weight-bold">{value}</span>
+                          </ListGroupItem>
+                        ))}
+                      </ListGroup>
+                    ) : (
+                      <div className="text-center py-2">
+                        <FiStar size={28} className="text-muted mb-1" />
+                        <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
+                          Sin suscripción activa
+                        </p>
+                      </div>
+                    )}
+                  </>
                 )}
               </CardBody>
             </Card>
           </Col>
         </Row>
+        )}
       </ModalBody>
 
-      {/* FOOTER */}
-      <ModalFooter style={{ padding: vistaMobile ? "8px 10px" : "12px 24px" }}>
-        {vistaMobile ? renderFooterMobile() : renderFooterDesktop()}
-      </ModalFooter>
+      {/* FOOTER — oculto mientras se elige un plan, porque el selector ya
+          se muestra arriba en el body (con scroll garantizado) y trae su
+          propio botón "Cancelar" */}
+      {!eligiendoPlan && (
+        <ModalFooter style={{ padding: vistaMobile ? "8px 10px" : "12px 24px" }}>
+          {vistaMobile ? renderFooterMobile() : renderFooterDesktop()}
+        </ModalFooter>
+      )}
 
       <style jsx>{`
         .modal-fullscreen {

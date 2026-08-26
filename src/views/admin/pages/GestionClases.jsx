@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState, useCallback } from "react";
 import {
   Button,
   Container,
@@ -8,16 +8,40 @@ import {
   Modal,
   ModalBody,
   ModalHeader,
+  ModalFooter,
   Form,
   FormGroup,
   Input,
+  Label,
   Badge,
 } from "reactstrap";
+import dayjs from "dayjs";
+import "dayjs/locale/es";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+import isBetween from "dayjs/plugin/isBetween";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore";
+import localeData from "dayjs/plugin/localeData";
+import localizedFormat from "dayjs/plugin/localizedFormat";
+import updateLocale from "dayjs/plugin/updateLocale";
 import UserHeader from "components/Headers/UserHeader.js";
 import Swal from "sweetalert2";
 import ClasesContext from "context/ClasesContext";
 import { useUsuario } from "context/usuariosContext";
 import InscribirClienteModal from "components/gestionClases/InscribirClienteModal";
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+dayjs.extend(localeData);
+dayjs.extend(isBetween);
+dayjs.extend(isSameOrAfter);
+dayjs.extend(isSameOrBefore);
+dayjs.extend(localizedFormat);
+dayjs.extend(updateLocale);
+dayjs.locale("es");
+
+const TZ = "America/Santiago";
 
 const DIAS = [
   "Domingo",
@@ -66,6 +90,12 @@ const agruparHorarioPorDia = (horarioSemanal = []) => {
     }))
     .sort((a, b) => a.diaSemana - b.diaSemana);
 };
+
+// Paleta de respaldo para clases sin color propio asignado — solo para que
+// el calendario semanal se vea variado, igual que como pedía el negocio
+// ("similar" al ejemplo, sin copiar exactamente esos colores).
+const PALETA = ["#534AB7", "#2D9CDB", "#27AE60", "#E67E22", "#EB5757", "#9B51E0", "#F2994A"];
+const colorDeClase = (clase, idx) => clase.color || PALETA[idx % PALETA.length];
 
 // ─── Estilos (mismo lenguaje visual que GestionMembresias.jsx) ────────────────
 
@@ -152,6 +182,17 @@ const S = {
     cursor: "pointer",
     whiteSpace: "nowrap",
   },
+  btnSecondary: {
+    background: "transparent",
+    color: "#534AB7",
+    border: "1px solid #D9D5F5",
+    borderRadius: 8,
+    padding: "7px 16px",
+    fontSize: 13,
+    fontWeight: 500,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  },
   actionBtn: {
     borderRadius: 8,
     padding: "5px 12px",
@@ -212,6 +253,44 @@ const S = {
     justifyContent: "center",
     margin: "0 auto 1rem",
   },
+  calendarWrap: { padding: "0.5rem 1.5rem 1.5rem" },
+  miniCalWrap: { overflowX: "auto", paddingBottom: 8 },
+  miniCalCorner: {
+    background: "#fafafa",
+    borderBottom: "2px solid #e9ecef",
+    borderRight: "1px solid #e9ecef",
+    boxSizing: "border-box",
+  },
+  miniCalHeaderCell: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontWeight: 700,
+    fontSize: 13,
+    color: "#1a1a2e",
+    textTransform: "capitalize",
+    background: "#fafafa",
+    borderBottom: "2px solid #e9ecef",
+    borderRight: "1px solid #f0f0f0",
+    boxSizing: "border-box",
+  },
+  miniCalHoraLabel: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "flex-end",
+    paddingRight: 8,
+    paddingTop: 4,
+    fontSize: 12,
+    color: "#8898aa",
+    borderRight: "1px solid #e9ecef",
+    borderBottom: "1px solid #f5f5f5",
+    boxSizing: "border-box",
+  },
+  miniCalCelda: {
+    borderRight: "1px solid #f0f0f0",
+    borderBottom: "1px solid #f5f5f5",
+    boxSizing: "border-box",
+  },
 };
 
 const pill = (bg, color) => ({
@@ -232,6 +311,77 @@ const iniciales = (nombre = "") =>
     .map((p) => p[0]?.toUpperCase())
     .join("") || "?";
 
+// ─── Calendario semanal (grilla propia, sin librería externa) ────────────────
+// Se venía usando react-big-calendar para esto, pero su sistema de
+// posicionamiento por porcentaje (relativo al alto real en px de su propio
+// contenedor interno) resultó demasiado frágil para este layout — terminaba
+// mostrando todos los bloques amontonados cerca de una misma fila sin
+// importar la hora real de cada uno, y no se logró estabilizar tocando sus
+// props/CSS. Acá se arma la grilla a mano: la posición de cada bloque se
+// calcula directo en píxeles (hora → fila, día → columna), sin depender de
+// ningún cálculo interno de terceros.
+const HORA_INICIO_GRILLA = 6; // 06:00
+const HORA_FIN_GRILLA = 22; // 22:00 (límite inferior de la última fila)
+const HORAS_GRILLA = Array.from(
+  { length: HORA_FIN_GRILLA - HORA_INICIO_GRILLA },
+  (_, i) => HORA_INICIO_GRILLA + i,
+);
+const ALTO_FILA = 64; // px por hora
+const ALTO_HEADER = 42; // px del encabezado de días
+const ANCHO_GUTTER = 56; // px de la columna de horas
+const ANCHO_COLUMNA_MIN = 100; // px mínimo por columna de día (si la pantalla
+// es angosta, de ahí para abajo entra scroll horizontal en vez de apretarlas)
+// diaSemana: 0=domingo…6=sábado (igual que en el back). La semana se muestra
+// de lunes a domingo, en ese orden — offset (diaSemana+6)%7 ya usado más
+// abajo para eventosSemana coincide con este mismo orden de columnas.
+const COLUMNAS_DIA = [1, 2, 3, 4, 5, 6, 0];
+
+// Agrupa eventos que se superponen en el tiempo dentro de un mismo día y les
+// asigna una "columna" (0,1,2…) y el total de columnas del grupo, para que
+// clases simultáneas (ej. distintas salas a la misma hora) se vean una al
+// lado de la otra en vez de tapadas. Algoritmo greedy estándar de layout de
+// calendario (similar al que usan Google Calendar y react-big-calendar).
+const distribuirSolapes = (eventosDia) => {
+  const ordenados = [...eventosDia].sort(
+    (a, b) => a.start - b.start || a.end - b.end,
+  );
+  const resultado = [];
+  let cluster = [];
+  let finMaximoCluster = -Infinity;
+
+  const cerrarCluster = () => {
+    if (!cluster.length) return;
+    const finColumnas = [];
+    cluster.forEach((ev) => {
+      let idx = finColumnas.findIndex((fin) => fin <= ev.start.getTime());
+      if (idx === -1) {
+        idx = finColumnas.length;
+        finColumnas.push(ev.end.getTime());
+      } else {
+        finColumnas[idx] = ev.end.getTime();
+      }
+      resultado.push({ ...ev, colIdx: idx, totalColumnas: 0 });
+    });
+    const total = finColumnas.length;
+    for (let i = resultado.length - cluster.length; i < resultado.length; i++) {
+      resultado[i].totalColumnas = total;
+    }
+    cluster = [];
+    finMaximoCluster = -Infinity;
+  };
+
+  ordenados.forEach((ev) => {
+    if (cluster.length && ev.start.getTime() >= finMaximoCluster) {
+      cerrarCluster();
+    }
+    cluster.push(ev);
+    finMaximoCluster = Math.max(finMaximoCluster, ev.end.getTime());
+  });
+  cerrarCluster();
+
+  return resultado;
+};
+
 const GestionClases = () => {
   const {
     clases,
@@ -244,6 +394,10 @@ const GestionClases = () => {
     getSesiones,
     getInscritos,
     cancelarInscripcion,
+    crearExcepcionClase,
+    getFeriados,
+    bloquearFeriado,
+    desbloquearFeriado,
   } = useContext(ClasesContext);
 
   const { barberos, getBarberosDisponibles } = useUsuario();
@@ -266,6 +420,15 @@ const GestionClases = () => {
   const [inscritosPorSesion, setInscritosPorSesion] = useState({});
 
   const [modalInscribir, setModalInscribir] = useState({ abierto: false, sesion: null });
+
+  // ── Calendario semanal (horario recurrente, sin fechas reales) ──
+  const [modalAcciones, setModalAcciones] = useState({ abierto: false, clase: null });
+
+  // ── Feriados del módulo de clases (bloquear día / excepciones por clase) ──
+  const [modalFeriados, setModalFeriados] = useState(false);
+  const [feriados, setFeriados] = useState([]);
+  const [cargandoFeriados, setCargandoFeriados] = useState(false);
+  const [feriadoExpandido, setFeriadoExpandido] = useState(null);
 
   useEffect(() => {
     getAllClases();
@@ -515,6 +678,140 @@ const GestionClases = () => {
   const activasCount = clases.filter((c) => c.activa).length;
   const inactivasCount = totalClases - activasCount;
 
+  /* =======================================================
+     🗓️ Calendario semanal: NO son sesiones reales con fecha — es el
+     horario recurrente (horarioSemanal) de cada clase dibujado sobre una
+     semana de referencia fija, para ver de un vistazo los bloques
+     ocupados. Clickear un bloque abre las mismas acciones que antes tenía
+     la fila de la tabla (editar / ver cupos / activar / eliminar).
+  ======================================================= */
+  const inicioSemanaRef = useMemo(() => dayjs().startOf("week"), []);
+
+  const eventosSemana = useMemo(
+    () =>
+      clasesFiltradas.flatMap((c, idx) =>
+        (c.horarioSemanal || []).map((b, i) => {
+          const [hh, mm] = b.horaInicio.split(":").map(Number);
+          // diaSemana: 0=domingo...6=sábado; inicioSemanaRef es lunes
+          // (locale "es"), así que el offset desde el lunes es (d+6)%7.
+          const offset = (b.diaSemana + 6) % 7;
+          const start = inicioSemanaRef
+            .add(offset, "day")
+            .hour(hh)
+            .minute(mm)
+            .second(0)
+            .toDate();
+          const end = new Date(start.getTime() + (Number(c.duracion) || 60) * 60000);
+          return {
+            // Se muestra la hora junto al nombre (ej. "ARMOR · 07:30") — además
+            // de quedar más claro para quien mira el calendario, sirve para
+            // comprobar a simple vista que el bloque está en la fila correcta.
+            title: `${c.nombre} · ${b.horaInicio}`,
+            start,
+            end,
+            diaSemana: b.diaSemana,
+            resource: c,
+            color: colorDeClase(c, idx),
+            key: `${c._id}-${b.diaSemana}-${b.horaInicio}-${i}`,
+          };
+        }),
+      ),
+    [clasesFiltradas, inicioSemanaRef],
+  );
+
+  // Convierte eventosSemana (hora/día "lógicos") en posiciones concretas en
+  // píxeles dentro de la grilla (top/left/width/height), resolviendo también
+  // los solapes de clases simultáneas del mismo día.
+  const eventosPosicionados = useMemo(() => {
+    const porDia = new Map();
+    eventosSemana.forEach((ev) => {
+      if (!porDia.has(ev.diaSemana)) porDia.set(ev.diaSemana, []);
+      porDia.get(ev.diaSemana).push(ev);
+    });
+
+    const resultado = [];
+    porDia.forEach((eventosDia, diaSemana) => {
+      const colIdxDia = COLUMNAS_DIA.indexOf(diaSemana);
+      if (colIdxDia === -1) return;
+      distribuirSolapes(eventosDia).forEach((ev) => {
+        const inicioMin =
+          ev.start.getHours() * 60 + ev.start.getMinutes() - HORA_INICIO_GRILLA * 60;
+        const duracionMin = Math.max(15, (ev.end.getTime() - ev.start.getTime()) / 60000);
+        // Horizontal en % (relativo al ancho real de la capa de eventos, que
+        // sigue el ancho fluido de la grilla vía CSS) — así las columnas se
+        // estiran solas para llenar la pantalla sin tener que medir nada por
+        // JS. Vertical sigue en px, ya que esa parte ya quedó funcionando bien.
+        const anchoColPct = 100 / COLUMNAS_DIA.length;
+        const anchoSubColPct = anchoColPct / ev.totalColumnas;
+        resultado.push({
+          ...ev,
+          top: Math.max(0, (inicioMin / 60) * ALTO_FILA),
+          height: (duracionMin / 60) * ALTO_FILA - 2,
+          leftPct: colIdxDia * anchoColPct + ev.colIdx * anchoSubColPct,
+          widthPct: anchoSubColPct,
+        });
+      });
+    });
+    return resultado;
+  }, [eventosSemana]);
+
+  const abrirAcciones = (event) => setModalAcciones({ abierto: true, clase: event.resource });
+  const cerrarAcciones = () => setModalAcciones({ abierto: false, clase: null });
+
+  // ── Feriados ──
+  const cargarFeriados = useCallback(async () => {
+    setCargandoFeriados(true);
+    try {
+      const hoy = dayjs().format("YYYY-MM-DD");
+      const data = await getFeriados({ desde: hoy });
+      setFeriados(data);
+    } catch (error) {
+      setFeriados([]);
+    } finally {
+      setCargandoFeriados(false);
+    }
+  }, [getFeriados]);
+
+  const abrirFeriados = () => {
+    setModalFeriados(true);
+    setFeriadoExpandido(null);
+    cargarFeriados();
+  };
+
+  const handleToggleBloqueoFeriado = async (feriado) => {
+    const dia = dayjs(feriado.fecha).format("YYYY-MM-DD");
+    try {
+      if (feriado.bloqueado) {
+        await desbloquearFeriado(dia);
+        Swal.fire("Listo", "Día habilitado nuevamente", "success");
+      } else {
+        await bloquearFeriado(dia, feriado.nombre);
+        Swal.fire("Listo", "Día bloqueado para las clases", "success");
+      }
+      cargarFeriados();
+    } catch (error) {
+      Swal.fire(
+        "Error",
+        error.response?.data?.message || "No se pudo actualizar el feriado",
+        "error",
+      );
+    }
+  };
+
+  const handleExcepcionClasePorFeriado = async (claseId, fecha, tipo) => {
+    if (tipo === "normal") return; // nada que hacer, es el valor por defecto
+    try {
+      await crearExcepcionClase(claseId, { fecha, tipo });
+      Swal.fire("Listo", "Excepción aplicada a esa clase en esa fecha", "success");
+    } catch (error) {
+      Swal.fire(
+        "Error",
+        error.response?.data?.message || "No se pudo aplicar la excepción",
+        "error",
+      );
+    }
+  };
+
   return (
     <>
       <UserHeader />
@@ -530,15 +827,20 @@ const GestionClases = () => {
                     <i className="fas fa-dumbbell" style={{ color: "#534AB7", fontSize: 18 }} />
                   </div>
                   <div>
-                    <p style={S.title}>Clases y cupos</p>
+                    <p style={S.title}>Clases y horarios</p>
                     <p style={S.subtitle}>
-                      Crea y administra las clases grupales, su horario y su cupo
+                      Horario semanal de tus clases grupales, cupo y feriados
                     </p>
                   </div>
                 </div>
-                <button style={S.btnPrimary} onClick={handleNuevo}>
-                  + Nueva clase
-                </button>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <button style={S.btnSecondary} onClick={abrirFeriados}>
+                    <i className="fas fa-star mr-1" /> Feriados
+                  </button>
+                  <button style={S.btnPrimary} onClick={handleNuevo}>
+                    + Nueva clase
+                  </button>
+                </div>
               </div>
 
               {/* ── Stats ── */}
@@ -685,84 +987,95 @@ const GestionClases = () => {
                   ))}
                 </div>
               ) : (
-                <div style={S.tableWrap}>
-                  <table style={S.table}>
-                    <thead>
-                      <tr>
-                        <th style={S.th}>Clase</th>
-                        <th style={S.th}>Instructor</th>
-                        <th style={S.th}>Horario</th>
-                        <th style={S.th}>Cupo</th>
-                        <th style={S.th}>Duración</th>
-                        <th style={S.th}>Pase diario</th>
-                        <th style={S.th}>Estado</th>
-                        <th style={S.th}></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {clasesFiltradas.map((c) => (
-                        <tr key={c._id}>
-                          <td style={S.td}>
-                            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                              <div style={{ ...S.avatar, background: c.color || "#534AB7" }}>
-                                {iniciales(c.nombre)}
-                              </div>
-                              <span style={{ fontWeight: 600 }}>{c.nombre}</span>
+                <div style={S.calendarWrap}>
+                  <p style={{ fontSize: 12, color: "#8898aa", margin: "10px 0" }}>
+                    Horario semanal recurrente (no son fechas reales). Haz clic en un bloque para editar la clase, ver sus cupos, activarla/desactivarla o eliminarla.
+                  </p>
+                  <div style={S.miniCalWrap}>
+                    <div style={{ position: "relative" }}>
+                      {/* Grilla de fondo: encabezado de días + filas de horas.
+                          Las columnas de día usan minmax(ANCHO_COLUMNA_MIN, 1fr)
+                          — el navegador las estira solas para llenar todo el
+                          ancho disponible (sin medir nada por JS); si no entran
+                          ni al mínimo, este contenedor scrollea horizontal
+                          (overflowX en S.miniCalWrap) en vez de apretarlas. */}
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: `${ANCHO_GUTTER}px repeat(${COLUMNAS_DIA.length}, minmax(${ANCHO_COLUMNA_MIN}px, 1fr))`,
+                          gridTemplateRows: `${ALTO_HEADER}px repeat(${HORAS_GRILLA.length}, ${ALTO_FILA}px)`,
+                        }}
+                      >
+                        <div style={S.miniCalCorner} />
+                        {COLUMNAS_DIA.map((dia) => (
+                          <div key={`enc-${dia}`} style={S.miniCalHeaderCell}>
+                            {DIAS[dia]}
+                          </div>
+                        ))}
+                        {HORAS_GRILLA.map((h) => (
+                          <React.Fragment key={`fila-${h}`}>
+                            <div style={S.miniCalHoraLabel}>
+                              {`${String(h).padStart(2, "0")}:00`}
                             </div>
-                          </td>
-                          <td style={S.td}>
-                            {c.instructor
-                              ? `${c.instructor.nombre || ""} ${c.instructor.apellido || ""}`.trim()
-                              : "—"}
-                          </td>
-                          <td style={{ ...S.td, fontSize: 12 }}>{formatearHorario(c.horarioSemanal)}</td>
-                          <td style={S.td}>{c.cupoMaximo}</td>
-                          <td style={S.td}>{c.duracion} min</td>
-                          <td style={S.td}>
-                            {c.precioPaseDiario ? `$${c.precioPaseDiario.toLocaleString("es-CL")}` : "—"}
-                          </td>
-                          <td style={S.td}>
-                            <span style={c.activa ? pill("#E6F9F0", "#1A7A4A") : pill("#F0F0F0", "#8898aa")}>
-                              {c.activa ? "Activa" : "Inactiva"}
-                            </span>
-                          </td>
-                          <td style={S.td}>
-                            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                              <button
-                                style={{ ...S.actionBtn, background: "#534AB7", color: "#fff" }}
-                                onClick={() => handleEditar(c)}
-                              >
-                                Editar
-                              </button>
-                              <button
-                                style={{ ...S.actionBtn, background: "transparent", color: "#2D5FA3", border: "1px solid #C7DBF5" }}
-                                onClick={() => abrirSesiones(c)}
-                              >
-                                Ver cupos
-                              </button>
-                              <button
-                                style={{
-                                  ...S.actionBtn,
-                                  background: "transparent",
-                                  color: c.activa ? "#8898aa" : "#1A7A4A",
-                                  border: `1px solid ${c.activa ? "#e9ecef" : "#BEEBD2"}`,
-                                }}
-                                onClick={() => handleToggleActiva(c)}
-                              >
-                                {c.activa ? "Desactivar" : "Activar"}
-                              </button>
-                              <button
-                                style={{ ...S.actionBtn, background: "transparent", color: "#E24B4A", border: "1px solid #F5C2C2" }}
-                                onClick={() => handleEliminar(c)}
-                              >
-                                Eliminar
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                            {COLUMNAS_DIA.map((dia) => (
+                              <div key={`celda-${h}-${dia}`} style={S.miniCalCelda} />
+                            ))}
+                          </React.Fragment>
+                        ))}
+                      </div>
+
+                      {/* Capa de eventos. Vertical (top/height) en px, ya
+                          probado que queda bien. Horizontal (left/width) en %
+                          sobre el ancho de esta misma capa (left:GUTTER,
+                          right:0 — sigue el ancho fluido de la grilla de
+                          arriba sin depender de ninguna medición por JS). */}
+                      <div
+                        style={{
+                          position: "absolute",
+                          top: ALTO_HEADER,
+                          left: ANCHO_GUTTER,
+                          right: 0,
+                          height: ALTO_FILA * HORAS_GRILLA.length,
+                          pointerEvents: "none",
+                        }}
+                      >
+                        {eventosPosicionados.map((ev) => (
+                          <div
+                            key={ev.key}
+                            onClick={() => abrirAcciones(ev)}
+                            title={ev.title}
+                            style={{
+                              position: "absolute",
+                              top: ev.top,
+                              left: `${ev.leftPct}%`,
+                              width: `calc(${ev.widthPct}% - 4px)`,
+                              height: ev.height,
+                              backgroundColor: ev.color,
+                              opacity: ev.resource.activa ? 1 : 0.45,
+                              borderRadius: 6,
+                              color: "#fff",
+                              fontSize: 12,
+                              fontWeight: 700,
+                              padding: "4px 6px",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                              cursor: "pointer",
+                              boxShadow: "0 1px 3px rgba(0,0,0,0.15)",
+                              pointerEvents: "auto",
+                            }}
+                          >
+                            {ev.title}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    {eventosSemana.length === 0 && (
+                      <p style={{ fontSize: 13, color: "#8898aa", padding: "16px 4px" }}>
+                        No hay clases con horario configurado.
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
@@ -1096,6 +1409,156 @@ const GestionClases = () => {
             </>
           )}
         </ModalBody>
+      </Modal>
+
+      {/* MODAL ACCIONES: clic en un bloque del calendario semanal */}
+      <Modal isOpen={modalAcciones.abierto} toggle={cerrarAcciones} centered size="sm">
+        <ModalHeader toggle={cerrarAcciones}>{modalAcciones.clase?.nombre}</ModalHeader>
+        <ModalBody>
+          {modalAcciones.clase && (
+            <>
+              <p className="text-muted small mb-3">
+                {formatearHorario(modalAcciones.clase.horarioSemanal)} · Cupo {modalAcciones.clase.cupoMaximo} · {modalAcciones.clase.duracion} min
+              </p>
+              <div className="d-flex flex-column" style={{ gap: 8 }}>
+                <Button
+                  color="primary"
+                  outline
+                  onClick={() => {
+                    cerrarAcciones();
+                    handleEditar(modalAcciones.clase);
+                  }}
+                >
+                  Editar clase
+                </Button>
+                <Button
+                  color="info"
+                  outline
+                  onClick={() => {
+                    const clase = modalAcciones.clase;
+                    cerrarAcciones();
+                    abrirSesiones(clase);
+                  }}
+                >
+                  Ver cupos / inscritos
+                </Button>
+                <Button
+                  color={modalAcciones.clase.activa ? "secondary" : "success"}
+                  outline
+                  onClick={() => {
+                    handleToggleActiva(modalAcciones.clase);
+                    cerrarAcciones();
+                  }}
+                >
+                  {modalAcciones.clase.activa ? "Desactivar" : "Activar"}
+                </Button>
+                <Button
+                  color="danger"
+                  outline
+                  onClick={() => {
+                    const clase = modalAcciones.clase;
+                    cerrarAcciones();
+                    handleEliminar(clase);
+                  }}
+                >
+                  Eliminar clase
+                </Button>
+              </div>
+            </>
+          )}
+        </ModalBody>
+      </Modal>
+
+      {/* MODAL FERIADOS: bloquear día completo o dejar clases puntuales
+          habilitadas/canceladas pese al feriado. Los feriados en sí
+          (fecha/nombre) son globales; lo que se administra acá es solo el
+          bloqueo propio de este gimnasio. */}
+      <Modal isOpen={modalFeriados} toggle={() => setModalFeriados(false)} centered size="md">
+        <ModalHeader toggle={() => setModalFeriados(false)}>Feriados</ModalHeader>
+        <ModalBody>
+          <p className="text-muted small mb-3">
+            Los feriados aparecen habilitados por defecto: las clases funcionan con normalidad. Puedes bloquear el día completo, o dejar/cancelar clases puntuales pese al bloqueo.
+          </p>
+          {cargandoFeriados ? (
+            <div className="text-center py-4 text-muted">Cargando...</div>
+          ) : feriados.length === 0 ? (
+            <p className="text-muted text-center py-3">No hay feriados próximos.</p>
+          ) : (
+            <div className="d-flex flex-column" style={{ gap: 8 }}>
+              {feriados.map((f) => {
+                const dia = dayjs(f.fecha).format("YYYY-MM-DD");
+                const expandido = feriadoExpandido === dia;
+                return (
+                  <div
+                    key={f._id}
+                    style={{ border: "1px solid #e9ecef", borderRadius: 10, padding: 10 }}
+                  >
+                    <div className="d-flex align-items-center justify-content-between" style={{ gap: 8, flexWrap: "wrap" }}>
+                      <div>
+                        <div style={{ fontWeight: 600, fontSize: 13 }}>{f.nombre}</div>
+                        <div style={{ fontSize: 12, color: "#8898aa", textTransform: "capitalize" }}>
+                          {dayjs(f.fecha).format("dddd D [de] MMMM")}
+                        </div>
+                      </div>
+                      <div className="d-flex align-items-center" style={{ gap: 6 }}>
+                        <span style={f.bloqueado ? pill("#FCEBEB", "#A32D2D") : pill("#E6F9F0", "#1A7A4A")}>
+                          {f.bloqueado ? "Bloqueado" : "Habilitado"}
+                        </span>
+                        <Button
+                          size="sm"
+                          color={f.bloqueado ? "success" : "danger"}
+                          outline
+                          onClick={() => handleToggleBloqueoFeriado(f)}
+                        >
+                          {f.bloqueado ? "Habilitar" : "Bloquear"}
+                        </Button>
+                        <Button
+                          size="sm"
+                          color="secondary"
+                          outline
+                          onClick={() => setFeriadoExpandido(expandido ? null : dia)}
+                        >
+                          {expandido ? "Ocultar" : "Excepciones"}
+                        </Button>
+                      </div>
+                    </div>
+
+                    {expandido && (
+                      <div style={{ marginTop: 10, borderTop: "1px solid #f0f0f0", paddingTop: 10 }}>
+                        <p className="text-muted small mb-2">
+                          Excepción puntual por clase para el {dayjs(f.fecha).format("D MMM")} (no afecta otras fechas):
+                        </p>
+                        {clases.map((c) => (
+                          <div key={c._id} className="d-flex align-items-center justify-content-between mb-2" style={{ gap: 8 }}>
+                            <span style={{ fontSize: 13 }}>{c.nombre}</span>
+                            <Input
+                              type="select"
+                              bsSize="sm"
+                              style={{ maxWidth: 220 }}
+                              defaultValue="normal"
+                              onChange={(e) =>
+                                handleExcepcionClasePorFeriado(c._id, dia, e.target.value)
+                              }
+                            >
+                              <option value="normal">Sin cambios</option>
+                              <option value="cancelada">Cancelar esta clase ese día</option>
+                              <option value="forzar_habilitada">Mantener habilitada pese al bloqueo</option>
+                            </Input>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={() => setModalFeriados(false)}>
+            Cerrar
+          </Button>
+        </ModalFooter>
       </Modal>
 
       <InscribirClienteModal

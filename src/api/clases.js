@@ -22,12 +22,26 @@ export const getSesionesClases = (params = {}) =>
 export const getInscritosSesion = (claseId, fecha) =>
   axiosPrivate.get(`/clases/${claseId}/inscritos`, { params: { fecha } });
 
-// Excepciones puntuales (cancelar una fecha o cambiar su cupo)
+// Excepciones puntuales (cancelar una fecha o cambiar su cupo, o forzar que
+// una clase se mantenga habilitada pese a un feriado bloqueado)
 export const postExcepcionClase = (claseId, data) =>
   axiosPrivate.post(`/clases/${claseId}/excepciones`, data);
 
 export const deleteExcepcionClase = (excepcionId) =>
   axiosPrivate.delete(`/clases/excepciones/${excepcionId}`);
+
+// Feriados del módulo de clases (por empresa): listar + bloquear/desbloquear
+// el día completo. La lista de feriados en sí sigue siendo global (mismo
+// origen que api/feriados.js), esto solo agrega el estado de bloqueo propio
+// del gimnasio.
+export const getFeriadosClases = (params = {}) =>
+  axiosPrivate.get("/clases/feriados", { params });
+
+export const postBloquearFeriadoClase = (fecha, data) =>
+  axiosPrivate.post(`/clases/feriados/${fecha}/bloquear`, data);
+
+export const deleteBloquearFeriadoClase = (fecha) =>
+  axiosPrivate.delete(`/clases/feriados/${fecha}/bloquear`);
 
 // Inscripciones
 export const postInscribirCliente = (claseId, data) =>

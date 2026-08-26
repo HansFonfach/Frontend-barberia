@@ -5,6 +5,10 @@ import {
   getClasesHoyGimnasio,
   getClientesGimnasio,
   getPorCobrarGimnasio,
+  getResumenPeriodoGimnasio,
+  getClientesAnalisisGimnasio,
+  getDemandaGimnasio,
+  getEvolucionGimnasio,
 } from "api/estadisticasGimnasio";
 
 // Equivalente a EstadisticasContext pero para empresas de tipo gimnasio
@@ -84,6 +88,63 @@ export const EstadisticasGimnasioProvider = ({ children }) => {
     }
   };
 
+  // ── Panel de estadísticas completo (selector de período) ──────────────
+  const RESUMEN_VACIO = {
+    periodo: null,
+    clases: { realizadas: 0, programadas: 0, canceladas: 0, variacionCanceladas: null },
+    asistencias: { total: 0, variacionPorcentaje: null, promedioPorClase: 0, tasaOcupacion: 0, promedioPorDia: [] },
+    ingresos: { total: 0, totalAnterior: 0, variacionPorcentaje: null, detalle: {} },
+    membresias: { activas: 0, variacionActivas: null, nuevas: 0, variacionNuevas: null, porVencer: 0 },
+    clientes: { nuevos: 0, variacionNuevos: null, activos: 0, variacionActivos: null },
+  };
+
+  const resumenPeriodoGimnasio = async (opciones) => {
+    try {
+      const res = await getResumenPeriodoGimnasio(opciones);
+      return res.data.data;
+    } catch (error) {
+      console.error("Error en resumenPeriodoGimnasio:", error);
+      return RESUMEN_VACIO;
+    }
+  };
+
+  const clientesAnalisisGimnasio = async (opciones) => {
+    try {
+      const res = await getClientesAnalisisGimnasio(opciones);
+      return res.data.data;
+    } catch (error) {
+      console.error("Error en clientesAnalisisGimnasio:", error);
+      return {
+        topAsistentes: [],
+        clientesEnCaida: [],
+        clientesNuevos: [],
+        clientesPorVencer: [],
+        clientesEnRiesgo: [],
+        retencion: null,
+      };
+    }
+  };
+
+  const demandaGimnasio = async (opciones) => {
+    try {
+      const res = await getDemandaGimnasio(opciones);
+      return res.data.data;
+    } catch (error) {
+      console.error("Error en demandaGimnasio:", error);
+      return { diasSemana: [], horariosTop: [], horariosBajos: [], clasesTop: [], clasesBajas: [] };
+    }
+  };
+
+  const evolucionGimnasio = async (meses) => {
+    try {
+      const res = await getEvolucionGimnasio(meses);
+      return res.data.data;
+    } catch (error) {
+      console.error("Error en evolucionGimnasio:", error);
+      return { meses: meses || 6, evolucion: [] };
+    }
+  };
+
   return (
     <EstadisticasGimnasioContext.Provider
       value={{
@@ -92,6 +153,10 @@ export const EstadisticasGimnasioProvider = ({ children }) => {
         clasesHoyGimnasio,
         clientesGimnasio,
         porCobrarGimnasio,
+        resumenPeriodoGimnasio,
+        clientesAnalisisGimnasio,
+        demandaGimnasio,
+        evolucionGimnasio,
       }}
     >
       {children}
