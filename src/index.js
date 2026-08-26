@@ -35,6 +35,7 @@ import { CanjeProvider } from "context/CanjeContext";
 import { ClasesProvider } from "context/ClasesContext";
 import { PlanesMembresiaProvider } from "context/PlanesMembresiaContext";
 import { PlanesSuscripcionProvider } from "context/PlanesSuscripcionContext";
+import { ProgresoClienteProvider } from "context/ProgresoClienteContext";
 
 // Pages
 import Principal from "views/publico/principal";
@@ -72,7 +73,9 @@ const AdminProviders = ({ children }) => (
                         <ClasesProvider>
                           <PlanesMembresiaProvider>
                             <PlanesSuscripcionProvider>
-                              {children}
+                              <ProgresoClienteProvider>
+                                {children}
+                              </ProgresoClienteProvider>
                             </PlanesSuscripcionProvider>
                           </PlanesMembresiaProvider>
                         </ClasesProvider>

@@ -23,7 +23,11 @@ import {
   FiTrash2,
   FiX,
   FiCheck,
+  FiActivity,
+  FiPlus,
 } from "react-icons/fi";
+import Swal from "sweetalert2";
+import { useProgresoCliente } from "context/ProgresoClienteContext";
 
 // Planes "viejos" hardcodeados. Ya no se pueden asignar desde acá (ahora se
 // crean y ofrecen desde Gestión de Planes de Suscripción / PlanesSuscripcionContext),
@@ -70,6 +74,165 @@ const formatFechaCorta = (fecha) => {
 
 const resumenPlanGimnasio = (plan) =>
   `${plan.clasesIncluidas} clases ${plan.tipoCiclo === "mensual" ? "al mes" : "en total"} · ${plan.duracionDias} días`;
+
+/**
+ * Progreso físico (solo gimnasio): muestra el último registro de la
+ * bitácora del cliente y permite al admin/profe agregar uno nuevo — pensado
+ * para un control presencial (peso, % grasa, cintura con huincha/balanza).
+ * A propósito no interpreta ningún número (nada de IMC ni "vas bien/mal"):
+ * es la misma bitácora descriptiva que ve el cliente en "Mi progreso", solo
+ * que acá el admin también puede agregarle un registro.
+ */
+const ProgresoFisicoGimnasio = ({ clienteId, vistaMobile }) => {
+  const { medicionesClienteCorporal, crearMedicionCorporal } = useProgresoCliente();
+
+  const [mediciones, setMediciones] = useState([]);
+  const [cargando, setCargando] = useState(true);
+  const [mostrarForm, setMostrarForm] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [form, setForm] = useState({ pesoKg: "", grasaCorporalPorcentaje: "", cinturaCm: "", notas: "" });
+
+  const cargar = async () => {
+    if (!clienteId) return;
+    setCargando(true);
+    const data = await medicionesClienteCorporal(clienteId);
+    setMediciones(data);
+    setCargando(false);
+  };
+
+  useEffect(() => {
+    cargar();
+    setMostrarForm(false);
+    setForm({ pesoKg: "", grasaCorporalPorcentaje: "", cinturaCm: "", notas: "" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clienteId]);
+
+  const ultima = mediciones[mediciones.length - 1];
+
+  const handleGuardar = async () => {
+    const numero = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
+
+    if (
+      numero(form.pesoKg) == null &&
+      numero(form.grasaCorporalPorcentaje) == null &&
+      numero(form.cinturaCm) == null
+    ) {
+      Swal.fire("Falta info", "Ingresa al menos un dato (peso, % grasa o cintura)", "warning");
+      return;
+    }
+
+    setGuardando(true);
+    try {
+      await crearMedicionCorporal({
+        clienteId,
+        pesoKg: numero(form.pesoKg),
+        grasaCorporalPorcentaje: numero(form.grasaCorporalPorcentaje),
+        medidas: { cinturaCm: numero(form.cinturaCm) },
+        notas: form.notas || "",
+      });
+      setMostrarForm(false);
+      setForm({ pesoKg: "", grasaCorporalPorcentaje: "", cinturaCm: "", notas: "" });
+      cargar();
+    } catch (error) {
+      Swal.fire(
+        "Error",
+        error.response?.data?.message || "No se pudo guardar el registro",
+        "error",
+      );
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  return (
+    <Card className="shadow-sm mt-3">
+      <CardBody style={{ padding: vistaMobile ? "10px 12px" : "16px" }}>
+        <h6
+          className="text-primary mb-2 d-flex align-items-center"
+          style={{ fontSize: vistaMobile ? "12px" : "14px" }}
+        >
+          <FiActivity className="mr-1" size={13} />
+          Progreso físico (bitácora del cliente)
+        </h6>
+
+        {cargando ? (
+          <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
+            Cargando...
+          </p>
+        ) : (
+          <>
+            {ultima ? (
+              <p className="mb-2" style={{ fontSize: vistaMobile ? "12px" : "13px" }}>
+                Último registro:{" "}
+                <strong>{ultima.pesoKg != null ? `${ultima.pesoKg} kg` : "sin peso"}</strong>
+                {" · "}
+                {formatFechaCorta(ultima.fecha)}
+                {ultima.registradoPorRol === "cliente" && (
+                  <span className="text-muted"> (lo registró el cliente)</span>
+                )}
+              </p>
+            ) : (
+              <p className="text-muted mb-2" style={{ fontSize: "12px" }}>
+                Este cliente todavía no tiene registros en su bitácora.
+              </p>
+            )}
+
+            {!mostrarForm ? (
+              <Button size="sm" color="info" outline onClick={() => setMostrarForm(true)}>
+                <FiPlus size={12} className="mr-1" /> Registrar medición
+              </Button>
+            ) : (
+              <div>
+                <Row>
+                  <Col xs="6" className="mb-2">
+                    <label className="small text-muted mb-1 d-block">Peso (kg)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      className="form-control form-control-sm"
+                      value={form.pesoKg}
+                      onChange={(e) => setForm((f) => ({ ...f, pesoKg: e.target.value }))}
+                    />
+                  </Col>
+                  <Col xs="6" className="mb-2">
+                    <label className="small text-muted mb-1 d-block">% grasa</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      className="form-control form-control-sm"
+                      value={form.grasaCorporalPorcentaje}
+                      onChange={(e) =>
+                        setForm((f) => ({ ...f, grasaCorporalPorcentaje: e.target.value }))
+                      }
+                    />
+                  </Col>
+                  <Col xs="6" className="mb-2">
+                    <label className="small text-muted mb-1 d-block">Cintura (cm)</label>
+                    <input
+                      type="number"
+                      step="0.1"
+                      className="form-control form-control-sm"
+                      value={form.cinturaCm}
+                      onChange={(e) => setForm((f) => ({ ...f, cinturaCm: e.target.value }))}
+                    />
+                  </Col>
+                </Row>
+                <div className="d-flex" style={{ gap: 8 }}>
+                  <Button size="sm" color="success" disabled={guardando} onClick={handleGuardar}>
+                    {guardando ? "Guardando..." : "Guardar"}
+                  </Button>
+                  <Button size="sm" color="light" onClick={() => setMostrarForm(false)}>
+                    Cancelar
+                  </Button>
+                </div>
+              </div>
+            )}
+          </>
+        )}
+      </CardBody>
+    </Card>
+  );
+};
 
 const ClienteDetallesModal = ({
   isOpen,
@@ -412,6 +575,7 @@ const ClienteDetallesModal = ({
           // modal no es fullscreen y el footer tiene más espacio).
           renderSelectorPlanes()
         ) : (
+        <>
         <Row>
           {/* INFO PERSONAL */}
           <Col xs="12" md="6" className="mb-3">
@@ -633,6 +797,11 @@ const ClienteDetallesModal = ({
             </Card>
           </Col>
         </Row>
+
+        {esGimnasio && (
+          <ProgresoFisicoGimnasio clienteId={usuario._id} vistaMobile={vistaMobile} />
+        )}
+        </>
         )}
       </ModalBody>
 

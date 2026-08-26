@@ -53,6 +53,7 @@ import ClasesDelDia from "views/admin/pages/ClasesDelDia";
 import AgendarClase from "views/pages/AgendarClase";
 import MisClases from "views/pages/MisClases";
 import MiPlanClase from "views/pages/MiPlanClase";
+import MiProgreso from "views/pages/MiProgreso";
 import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
 
 /* =========================
@@ -191,6 +192,14 @@ export const clienteRoutes = [
     name: "Mi plan",
     icon: "ni ni-credit-card text-warning",
     component: <MiPlanClase />,
+    layout: "/admin",
+    requiereModulo: "clasesGrupales",
+  },
+  {
+    path: "/mi-progreso",
+    name: "Mi progreso",
+    icon: "fas fa-fire text-warning",
+    component: <MiProgreso />,
     layout: "/admin",
     requiereModulo: "clasesGrupales",
   },
