@@ -43,22 +43,7 @@ const strengthLabel = (score) => {
       return { color: "secondary", text: "" };
   }
 };
-const auth = (() => {
-  try {
-    return useAuth();
-  } catch {
-    return null;
-  }
-})();
-
 const CambiarContrasena = () => {
-  // si usas token en localStorage (fallback)
-  const token =
-    (auth && auth.user && auth.user.token) ||
-    localStorage.getItem("token") ||
-    localStorage.getItem("accessToken") ||
-    null;
-
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -93,10 +78,23 @@ const CambiarContrasena = () => {
       );
     }
 
+    // El objeto "user" del contexto viene de /auth/me, que expone el id
+    // del usuario como "id" (no "_id"); si se usa "user._id" acá siempre
+    // sale undefined y la petición termina yendo a
+    // /auth/change-password/undefined.
+    const userId = user?.id || user?._id;
+    if (!userId) {
+      return Swal.fire(
+        "Error",
+        "No se pudo identificar tu usuario. Vuelve a iniciar sesión e inténtalo de nuevo.",
+        "error"
+      );
+    }
+
     // Preparar petición al backend
     setLoading(true);
     try {
-      await updatePassword(user._id, currentPassword, newPassword);
+      await updatePassword(userId, currentPassword, newPassword);
 
       Swal.fire("Exitoso", "Contraseña actualizada.", "success");
       // Limpiar campos

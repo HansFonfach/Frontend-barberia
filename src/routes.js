@@ -525,4 +525,14 @@ export const barberoRoutes = [
       },
     ],
   },
+
+  // ocultas (el link ya existe en AdminNavbar/Sidebar, pero faltaba la
+  // ruta acá, por eso el admin caía siempre al dashboard)
+  { path: "/perfil", component: <Perfil />, layout: "/admin", invisible: true },
+  {
+    path: "/cambiar-contrasena",
+    component: <CambiarContrasena />,
+    layout: "/admin",
+    invisible: true,
+  },
 ];
