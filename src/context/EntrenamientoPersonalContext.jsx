@@ -16,6 +16,7 @@ import {
   getRutinaSugerida,
   getMiembrosEntrenamiento,
   buscarMiembroPorRut as buscarMiembroPorRutApi,
+  getHistorialPorGrupo,
 } from "api/entrenamientoPersonal";
 
 // Progreso de entrenamiento personal: racha + resumen mensual + hitos +
@@ -183,6 +184,17 @@ export const EntrenamientoPersonalProvider = ({ children }) => {
     return res.data.data;
   };
 
+  const HISTORIAL_VACIO = { registros: [], progresionPorEjercicio: [] };
+  const historialPorGrupo = async (grupo, dias) => {
+    try {
+      const res = await getHistorialPorGrupo(grupo, dias);
+      return res.data.data;
+    } catch (error) {
+      console.error("Error en historialPorGrupo:", error);
+      return HISTORIAL_VACIO;
+    }
+  };
+
   return (
     <EntrenamientoPersonalContext.Provider
       value={{
@@ -202,6 +214,7 @@ export const EntrenamientoPersonalProvider = ({ children }) => {
         rutinaSugerida,
         miembrosEntrenamiento,
         buscarMiembroPorRut,
+        historialPorGrupo,
       }}
     >
       {children}

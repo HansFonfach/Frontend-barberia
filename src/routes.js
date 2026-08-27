@@ -57,6 +57,7 @@ import MiProgreso from "views/pages/MiProgreso";
 import MiEntrenamiento from "views/pages/MiEntrenamiento";
 import MiRutina from "views/pages/MiRutina";
 import PlanAlimenticio from "views/pages/PlanAlimenticio";
+import HistorialEntrenamiento from "views/pages/HistorialEntrenamiento";
 import MiembrosEntrenamiento from "views/admin/pages/MiembrosEntrenamiento";
 import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
 
@@ -237,6 +238,14 @@ export const clienteRoutes = [
     requiereModulo: "entrenamientoPersonal",
   },
   {
+    path: "/historial-entrenamiento",
+    name: "Historial",
+    icon: "fas fa-history text-warning",
+    component: <HistorialEntrenamiento />,
+    layout: "/admin",
+    requiereModulo: "entrenamientoPersonal",
+  },
+  {
     path: "/centro-ayuda",
     name: "Centro de ayuda",
     icon: "ni ni-support-16 text-purple",
@@ -310,6 +319,15 @@ export const barberoRoutes = [
     name: "Plan alimenticio",
     icon: "fas fa-apple-alt text-success",
     component: <PlanAlimenticio />,
+    layout: "/admin",
+    section: "principal",
+    requiereModulo: "entrenamientoPersonal",
+  },
+  {
+    path: "/historial-entrenamiento",
+    name: "Historial",
+    icon: "fas fa-history text-warning",
+    component: <HistorialEntrenamiento />,
     layout: "/admin",
     section: "principal",
     requiereModulo: "entrenamientoPersonal",

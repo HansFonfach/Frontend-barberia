@@ -69,3 +69,11 @@ export const getMiembrosEntrenamiento = () => axiosPrivate.get("/entrenamiento-p
 // directamente con esa persona (devuelve solo _id/nombre/apellido).
 export const buscarMiembroPorRut = (rut) =>
   axiosPrivate.get(`/entrenamiento-personal/buscar-miembro/${encodeURIComponent(rut)}`);
+
+// Historial filtrado por un solo grupo (ej: "pecho") + progresión de peso
+// por ejercicio dentro de ese grupo — a diferencia de "mis-registros" que
+// trae todo mezclado. dias es opcional (por defecto 365 en el backend).
+export const getHistorialPorGrupo = (grupo, dias) =>
+  axiosPrivate.get(`/entrenamiento-personal/historial/${grupo}`, {
+    params: dias ? { dias } : {},
+  });
