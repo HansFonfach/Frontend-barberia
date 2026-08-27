@@ -239,6 +239,7 @@ const ClienteDetallesModal = ({
   toggle,
   usuario,
   planes = [],
+  cargandoPlanes = false,
   onEditar,
   onSuscribir,
   onCancelarSuscripcion,
@@ -308,7 +309,13 @@ const ClienteDetallesModal = ({
         Selecciona el plan para {usuario.nombre}
       </p>
 
-      {planesActivos.length === 0 ? (
+      {!esGimnasio && cargandoPlanes ? (
+        <div className="text-center py-3">
+          <p className="text-muted mb-0" style={{ fontSize: "12px" }}>
+            Cargando planes...
+          </p>
+        </div>
+      ) : planesActivos.length === 0 ? (
         <p
           className="text-center text-muted mb-3"
           style={{ fontSize: "12px" }}

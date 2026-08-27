@@ -63,7 +63,7 @@ const GestionClientes = () => {
     getAllUsers,
   } = useUsuarios("cliente");
 
-  const { planes } = usePlanesSuscripcion();
+  const { planes, loadingPlanes, getAllPlanes: getAllPlanesSuscripcion } = usePlanesSuscripcion();
 
   const {
     modalCrear,
@@ -119,6 +119,13 @@ const GestionClientes = () => {
     if (esGimnasio) {
       getAllPlanesMembresiaGimnasio(false);
       cargarMembresiasActivas();
+    } else {
+      // Antes esto dependía de que el admin ya hubiera visitado "Planes de
+      // suscripción" en algún momento de la sesión (PlanesSuscripcionContext
+      // no trae fetch propio al montar) — si entraba directo a "Clientes"
+      // (típico en el celular, sesión recién abierta) el selector de planes
+      // al suscribir quedaba vacío aunque sí hubiera planes creados.
+      getAllPlanesSuscripcion(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [esGimnasio]);
@@ -553,6 +560,7 @@ const GestionClientes = () => {
         toggle={toggleModalDetalles}
         usuario={usuarioEdit}
         planes={planes}
+        cargandoPlanes={loadingPlanes}
         onEditar={() => {
           toggleModalDetalles();
           handleEditar(usuarioEdit);
