@@ -25,3 +25,21 @@ export const getMiProgresoEntrenamiento = () =>
 // ninguna API externa de "máquinas de gimnasio".
 export const getCatalogoEjerciciosEntrenamiento = () =>
   axiosPrivate.get("/entrenamiento-personal/catalogo-ejercicios");
+
+// ── Rutinas: cada quien arma las suyas y decide, rutina por rutina, si
+// las comparte con el resto de la empresa. ──
+
+// data = { nombre, grupoMuscular, ejercicios?: [{ nombre, series?,
+//   repeticiones?, pesoKg? }], notas?, compartida? }
+export const postRutina = (data) => axiosPrivate.post("/entrenamiento-personal/rutina", data);
+
+export const getMisRutinas = () => axiosPrivate.get("/entrenamiento-personal/mis-rutinas");
+
+export const getRutinasCompartidas = () =>
+  axiosPrivate.get("/entrenamiento-personal/rutinas-compartidas");
+
+export const putRutina = (id, data) =>
+  axiosPrivate.put(`/entrenamiento-personal/rutina/${id}`, data);
+
+export const deleteRutina = (id) =>
+  axiosPrivate.delete(`/entrenamiento-personal/rutina/${id}`);

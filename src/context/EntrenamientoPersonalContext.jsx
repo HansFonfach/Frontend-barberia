@@ -5,6 +5,11 @@ import {
   deleteRegistroEntrenamiento,
   getMiProgresoEntrenamiento,
   getCatalogoEjerciciosEntrenamiento,
+  postRutina,
+  getMisRutinas,
+  getRutinasCompartidas,
+  putRutina,
+  deleteRutina,
 } from "api/entrenamientoPersonal";
 
 // Progreso de entrenamiento personal: racha + resumen mensual + hitos +
@@ -81,6 +86,41 @@ export const EntrenamientoPersonalProvider = ({ children }) => {
     }
   };
 
+  const crearRutina = async (data) => {
+    const res = await postRutina(data);
+    return res.data.data;
+  };
+
+  const misRutinas = async () => {
+    try {
+      const res = await getMisRutinas();
+      return res.data.data.rutinas || [];
+    } catch (error) {
+      console.error("Error en misRutinas:", error);
+      return [];
+    }
+  };
+
+  const rutinasCompartidas = async () => {
+    try {
+      const res = await getRutinasCompartidas();
+      return res.data.data.rutinas || [];
+    } catch (error) {
+      console.error("Error en rutinasCompartidas:", error);
+      return [];
+    }
+  };
+
+  const actualizarRutina = async (id, data) => {
+    const res = await putRutina(id, data);
+    return res.data.data;
+  };
+
+  const eliminarRutina = async (id) => {
+    const res = await deleteRutina(id);
+    return res.data.data;
+  };
+
   return (
     <EntrenamientoPersonalContext.Provider
       value={{
@@ -89,6 +129,11 @@ export const EntrenamientoPersonalProvider = ({ children }) => {
         misRegistrosEntrenamiento,
         eliminarRegistroEntrenamiento,
         catalogoEjercicios,
+        crearRutina,
+        misRutinas,
+        rutinasCompartidas,
+        actualizarRutina,
+        eliminarRutina,
       }}
     >
       {children}

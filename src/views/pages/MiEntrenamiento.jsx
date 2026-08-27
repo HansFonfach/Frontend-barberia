@@ -38,9 +38,10 @@ import BitacoraCorporal from "components/gimnasio/BitacoraCorporal";
  * gimnasio real con clases agendadas (eso es "Mi progreso").
  *
  * Todo lo que se muestra (racha, hitos, sugerencia del día, aviso de
- * constancia) sale de los registros reales — nada se inventa. La sección
- * de nutrición es a propósito solo un listado de ideas generales, no un
- * plan calculado: para algo más preciso lo ideal es un nutricionista.
+ * constancia) sale de los registros reales — nada se inventa. Las
+ * rutinas armadas de antemano viven en "Mi rutina" (MiRutina.jsx) y las
+ * ideas de comida en "Plan alimenticio" (PlanAlimenticio.jsx) — separadas
+ * para no llenar una sola página con todo.
  */
 
 const HITOS_ICONOS = {
@@ -98,36 +99,6 @@ const VENTANAS_HISTORIAL = [
   { dias: 7, label: "Última semana" },
   { dias: 30, label: "Último mes" },
   { dias: 90, label: "Últimos 3 meses" },
-];
-
-// ===== Ideas de comidas (referencia general, no un plan calculado) =====
-const DESAYUNOS = [
-  "Huevos revueltos (2-3) + palta + pan integral o tortilla de avena",
-  "Yogurt griego natural + fruta + puñado de nueces o granola sin azúcar",
-  "Avena cocida con leche o bebida vegetal + plátano + canela",
-  "Tostadas integrales + queso fresco o ricotta + tomate",
-];
-const ALMUERZOS = [
-  "Pechuga de pollo o pavo a la plancha + arroz o quinoa + ensalada variada",
-  "Salmón o atún al horno + papas o camote + verduras salteadas",
-  "Carne magra (posta, lomo) + legumbres (lentejas, garbanzos) + ensalada",
-  "Bowl de proteína (pollo o tofu) + arroz integral + palta + verduras crudas",
-];
-const CENAS = [
-  "Ensalada grande con proteína (pollo, huevo, atún) + aceite de oliva",
-  "Tortilla de verduras + ensalada",
-  "Sopa de verduras con proteína (pollo desmenuzado o legumbres)",
-  "Pescado a la plancha + verduras al vapor",
-];
-const SNACKS = [
-  "Yogurt griego natural",
-  "Puñado de almendras o nueces (10-12 unidades)",
-  "Una fruta (manzana, plátano, naranja)",
-  "Huevo duro",
-  "Palta con sal en una tostada integral pequeña",
-  "Queso fresco light + tomate",
-  "Batido de proteína con agua o leche",
-  "Zanahorias baby o apio con hummus",
 ];
 
 /* =======================================================
@@ -514,7 +485,6 @@ const MiEntrenamiento = () => {
 
   const [progreso, setProgreso] = useState(null);
   const [cargando, setCargando] = useState(true);
-  const [snackSugerido, setSnackSugerido] = useState(null);
   const [catalogo, setCatalogo] = useState([]);
 
   const cargarProgreso = async () => {
@@ -551,11 +521,6 @@ const MiEntrenamiento = () => {
         "error",
       );
     }
-  };
-
-  const elegirSnack = () => {
-    const otro = SNACKS[Math.floor(Math.random() * SNACKS.length)];
-    setSnackSugerido(otro);
   };
 
   return (
@@ -756,48 +721,6 @@ const MiEntrenamiento = () => {
 
                 {/* ===== HISTORIAL (diario/semanal/mensual) ===== */}
                 <HistorialActividad />
-
-                {/* ===== NUTRICIÓN (ideas generales, no un plan calculado) ===== */}
-                <Card className="border-0 shadow-sm mb-4" style={{ borderRadius: 16 }}>
-                  <CardBody className="p-4">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <h4 className="mb-0">🥗 Ideas para comer</h4>
-                      <Button size="sm" color="info" onClick={elegirSnack}>
-                        Tengo hambre ahora
-                      </Button>
-                    </div>
-                    <p className="text-muted small mb-4">
-                      Ideas generales pensadas para bajar grasa manteniendo músculo
-                      (proteína en cada comida, comida real). No es un plan
-                      nutricional calculado para ti — para algo más preciso, lo
-                      ideal es un nutricionista.
-                    </p>
-
-                    {snackSugerido && (
-                      <Alert color="info" style={{ borderRadius: 12 }}>
-                        <strong>¿Hambre ahora?</strong> Prueba con: {snackSugerido}
-                      </Alert>
-                    )}
-
-                    <Row>
-                      {[
-                        { titulo: "☀️ Desayuno", items: DESAYUNOS },
-                        { titulo: "🍽️ Almuerzo", items: ALMUERZOS },
-                        { titulo: "🌙 Cena", items: CENAS },
-                        { titulo: "🍎 Snacks", items: SNACKS },
-                      ].map((seccion) => (
-                        <Col md="6" key={seccion.titulo} className="mb-4">
-                          <h6 className="font-weight-bold mb-2">{seccion.titulo}</h6>
-                          {seccion.items.map((item, i) => (
-                            <p key={i} className="text-muted small mb-2">
-                              • {item}
-                            </p>
-                          ))}
-                        </Col>
-                      ))}
-                    </Row>
-                  </CardBody>
-                </Card>
 
                 {/* ===== BITÁCORA (compartida con Mi progreso) ===== */}
                 <BitacoraCorporal />

@@ -55,6 +55,8 @@ import MisClases from "views/pages/MisClases";
 import MiPlanClase from "views/pages/MiPlanClase";
 import MiProgreso from "views/pages/MiProgreso";
 import MiEntrenamiento from "views/pages/MiEntrenamiento";
+import MiRutina from "views/pages/MiRutina";
+import PlanAlimenticio from "views/pages/PlanAlimenticio";
 import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
 
 /* =========================
@@ -126,6 +128,7 @@ export const clienteRoutes = [
     icon: "ni ni-calendar-grid-58 text-success",
     component: <ReservarHora />,
     layout: "/admin",
+    excludeSlugs: ["team-hans"],
     excludeRubros: ["gimnasio"],
   },
   {
@@ -134,6 +137,7 @@ export const clienteRoutes = [
     icon: "ni ni-folder-17 text-info",
     component: <Administrar />,
     layout: "/admin",
+    excludeSlugs: ["team-hans"],
     excludeRubros: ["gimnasio"],
   },
   {
@@ -142,7 +146,7 @@ export const clienteRoutes = [
     icon: "ni ni-credit-card text-warning",
     component: <Suscripcion />,
     layout: "/admin",
-    excludeSlugs: ["lumicabeauty"],
+    excludeSlugs: ["lumicabeauty", "team-hans"],
     excludeRubros: ["gimnasio"],
   },
   {
@@ -151,6 +155,7 @@ export const clienteRoutes = [
     icon: "ni ni-single-02 text-primary",
     component: <BarberosPage />,
     layout: "/admin",
+    excludeSlugs: ["team-hans"],
     excludeRubros: ["gimnasio"],
   },
   {
@@ -159,6 +164,7 @@ export const clienteRoutes = [
     icon: "fas fa-cut text-danger",
     component: <PresentarServicios />,
     layout: "/admin",
+    excludeSlugs: ["team-hans"],
     excludeRubros: ["gimnasio"],
   },
 
@@ -168,6 +174,7 @@ export const clienteRoutes = [
     icon: "ni ni-trophy text-yellow",
     component: <CatalogoCanjes />,
     layout: "/admin",
+    excludeSlugs: ["team-hans"],
     excludeRubros: ["gimnasio"],
   },
 
@@ -209,6 +216,22 @@ export const clienteRoutes = [
     name: "Mi entrenamiento",
     icon: "fas fa-dumbbell text-primary",
     component: <MiEntrenamiento />,
+    layout: "/admin",
+    requiereModulo: "entrenamientoPersonal",
+  },
+  {
+    path: "/mi-rutina",
+    name: "Mi rutina",
+    icon: "fas fa-clipboard-list text-info",
+    component: <MiRutina />,
+    layout: "/admin",
+    requiereModulo: "entrenamientoPersonal",
+  },
+  {
+    path: "/plan-alimenticio",
+    name: "Plan alimenticio",
+    icon: "fas fa-apple-alt text-success",
+    component: <PlanAlimenticio />,
     layout: "/admin",
     requiereModulo: "entrenamientoPersonal",
   },
@@ -272,6 +295,24 @@ export const barberoRoutes = [
     section: "principal",
     requiereModulo: "entrenamientoPersonal",
   },
+  {
+    path: "/mi-rutina",
+    name: "Mi rutina",
+    icon: "fas fa-clipboard-list text-info",
+    component: <MiRutina />,
+    layout: "/admin",
+    section: "principal",
+    requiereModulo: "entrenamientoPersonal",
+  },
+  {
+    path: "/plan-alimenticio",
+    name: "Plan alimenticio",
+    icon: "fas fa-apple-alt text-success",
+    component: <PlanAlimenticio />,
+    layout: "/admin",
+    section: "principal",
+    requiereModulo: "entrenamientoPersonal",
+  },
 
   /* ── Reservas ── */
   {
@@ -281,6 +322,7 @@ export const barberoRoutes = [
     component: <ReservarHoraBarbero />,
     layout: "/admin",
     section: "reservas",
+    excludeSlugs: ["team-hans"],
     excludeRubros: ["gimnasio"],
   },
   {
@@ -290,6 +332,7 @@ export const barberoRoutes = [
     component: <ReservasDiarias />,
     layout: "/admin",
     section: "reservas",
+    excludeSlugs: ["team-hans"],
     excludeRubros: ["gimnasio"],
   },
 
@@ -301,6 +344,7 @@ export const barberoRoutes = [
     component: <GestionClientes />,
     layout: "/admin",
     section: "gestion",
+    excludeSlugs: ["team-hans"],
   },
   {
     path: "/gestion-profesionales",
@@ -310,6 +354,7 @@ export const barberoRoutes = [
     layout: "/admin",
     section: "gestion",
     soloAdmin: true,
+    excludeSlugs: ["team-hans"],
   },
 
   {
@@ -318,7 +363,7 @@ export const barberoRoutes = [
     icon: "ni ni-credit-card text-warning",
     component: <GestionSuscripciones />,
     layout: "/admin",
-    excludeSlugs: ["lumicabeauty", "don-valentino", "danails-studio"],
+    excludeSlugs: ["lumicabeauty", "don-valentino", "danails-studio", "team-hans"],
     excludeRubros: ["gimnasio"],
     section: "gestion",
   },
@@ -328,7 +373,7 @@ export const barberoRoutes = [
     icon: "ni ni-collection text-warning",
     component: <GestionPlanesSuscripcion />,
     layout: "/admin",
-    excludeSlugs: ["lumicabeauty", "don-valentino", "danails-studio"],
+    excludeSlugs: ["lumicabeauty", "don-valentino", "danails-studio", "team-hans"],
     excludeRubros: ["gimnasio"],
     section: "gestion",
     soloAdmin: true,
@@ -341,6 +386,7 @@ export const barberoRoutes = [
     component: <GestionCanjes />,
     layout: "/admin",
     section: "gestion",
+    excludeSlugs: ["team-hans"],
   },
   {
     path: "/gestion-categorias",
@@ -350,6 +396,7 @@ export const barberoRoutes = [
     layout: "/admin",
     section: "gestion",
     soloAdmin: true,
+    excludeSlugs: ["team-hans"],
   },
   {
     // submenu: Servicios
@@ -358,6 +405,7 @@ export const barberoRoutes = [
     icon: "fas fa-scissors text-danger",
     layout: "/admin",
     section: "gestion",
+    excludeSlugs: ["team-hans"],
     excludeRubros: ["gimnasio"],
     children: [
       {
@@ -391,6 +439,7 @@ export const barberoRoutes = [
     icon: "fas fa-clock text-danger",
     layout: "/admin",
     section: "gestion",
+    excludeSlugs: ["team-hans"],
     excludeRubros: ["gimnasio"],
     children: [
       {
@@ -432,6 +481,7 @@ export const barberoRoutes = [
     icon: "ni ni-box-2 text-primary",
     layout: "/admin",
     section: "gestion",
+    excludeSlugs: ["team-hans"],
     children: [
       {
         path: "/gestion-productos",
@@ -530,6 +580,7 @@ export const barberoRoutes = [
         icon: "fas fa-chart-line text-info",
         component: <Estadisticas />,
         layout: "/admin",
+        excludeSlugs: ["team-hans"],
         excludeRubros: ["gimnasio"],
       },
       {
@@ -549,6 +600,7 @@ export const barberoRoutes = [
         icon: "fas fa-chart-line text-success",
         component: <HistorialIngresos />,
         layout: "/admin",
+        excludeSlugs: ["team-hans"],
       },
     ],
   },
