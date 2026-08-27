@@ -10,6 +10,12 @@ import {
   getRutinasCompartidas,
   putRutina,
   deleteRutina,
+  getPerfilEntrenamiento,
+  putPerfilEntrenamiento,
+  getRecomendacionNutricional,
+  getRutinaSugerida,
+  getMiembrosEntrenamiento,
+  buscarMiembroPorRut as buscarMiembroPorRutApi,
 } from "api/entrenamientoPersonal";
 
 // Progreso de entrenamiento personal: racha + resumen mensual + hitos +
@@ -26,6 +32,8 @@ export const useEntrenamientoPersonal = () => {
     );
   return context;
 };
+
+const PERFIL_VACIO = { objetivo: null, sexoBiologico: null, fechaNacimiento: null };
 
 const PROGRESO_VACIO = {
   totalHistorico: 0,
@@ -121,6 +129,60 @@ export const EntrenamientoPersonalProvider = ({ children }) => {
     return res.data.data;
   };
 
+  const perfilEntrenamiento = async () => {
+    try {
+      const res = await getPerfilEntrenamiento();
+      return res.data.data;
+    } catch (error) {
+      console.error("Error en perfilEntrenamiento:", error);
+      return PERFIL_VACIO;
+    }
+  };
+
+  const actualizarPerfilEntrenamiento = async (data) => {
+    const res = await putPerfilEntrenamiento(data);
+    return res.data.data;
+  };
+
+  const recomendacionNutricional = async () => {
+    try {
+      const res = await getRecomendacionNutricional();
+      return res.data.data;
+    } catch (error) {
+      console.error("Error en recomendacionNutricional:", error);
+      return { disponible: false, faltantes: [] };
+    }
+  };
+
+  const rutinaSugerida = async () => {
+    try {
+      const res = await getRutinaSugerida();
+      return res.data.data;
+    } catch (error) {
+      console.error("Error en rutinaSugerida:", error);
+      return { disponible: false, mensaje: null };
+    }
+  };
+
+  const miembrosEntrenamiento = async () => {
+    try {
+      const res = await getMiembrosEntrenamiento();
+      return res.data.data.miembros || [];
+    } catch (error) {
+      console.error("Error en miembrosEntrenamiento:", error);
+      return [];
+    }
+  };
+
+  // Busca a alguien de la empresa por RUT (para compartir una rutina
+  // directamente con esa persona) — sin try/catch: el componente necesita
+  // distinguir "no encontrado" (404) de un error real para mostrar el
+  // mensaje que corresponda.
+  const buscarMiembroPorRut = async (rut) => {
+    const res = await buscarMiembroPorRutApi(rut);
+    return res.data.data;
+  };
+
   return (
     <EntrenamientoPersonalContext.Provider
       value={{
@@ -134,6 +196,12 @@ export const EntrenamientoPersonalProvider = ({ children }) => {
         rutinasCompartidas,
         actualizarRutina,
         eliminarRutina,
+        perfilEntrenamiento,
+        actualizarPerfilEntrenamiento,
+        recomendacionNutricional,
+        rutinaSugerida,
+        miembrosEntrenamiento,
+        buscarMiembroPorRut,
       }}
     >
       {children}

@@ -57,6 +57,7 @@ import MiProgreso from "views/pages/MiProgreso";
 import MiEntrenamiento from "views/pages/MiEntrenamiento";
 import MiRutina from "views/pages/MiRutina";
 import PlanAlimenticio from "views/pages/PlanAlimenticio";
+import MiembrosEntrenamiento from "views/admin/pages/MiembrosEntrenamiento";
 import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
 
 /* =========================
@@ -345,6 +346,19 @@ export const barberoRoutes = [
     layout: "/admin",
     section: "gestion",
     excludeSlugs: ["team-hans"],
+  },
+  {
+    // Lista simple de miembros (dueño + amigos) para empresas de solo
+    // entrenamiento personal — a propósito NO es GestionClientes (esa trae
+    // reservas/suscripciones/membresías que acá no aplican). Solo admin.
+    path: "/miembros-entrenamiento",
+    name: "Miembros",
+    icon: "fas fa-user-friends text-warning",
+    component: <MiembrosEntrenamiento />,
+    layout: "/admin",
+    section: "gestion",
+    requiereModulo: "entrenamientoPersonal",
+    soloAdmin: true,
   },
   {
     path: "/gestion-profesionales",

@@ -5,6 +5,7 @@ import {
   getMisMedicionesCorporales,
   getMedicionesClienteCorporal,
   deleteMedicionCorporal,
+  getComparativaBitacora,
 } from "api/progresoCliente";
 
 // Progreso del cliente: racha de constancia + resumen mensual + hitos
@@ -74,6 +75,16 @@ export const ProgresoClienteProvider = ({ children }) => {
     return res.data.data;
   };
 
+  const comparativaBitacora = async () => {
+    try {
+      const res = await getComparativaBitacora();
+      return res.data.data;
+    } catch (error) {
+      console.error("Error en comparativaBitacora:", error);
+      return { disponible: false, motivo: "error" };
+    }
+  };
+
   return (
     <ProgresoClienteContext.Provider
       value={{
@@ -82,6 +93,7 @@ export const ProgresoClienteProvider = ({ children }) => {
         misMedicionesCorporales,
         medicionesClienteCorporal,
         eliminarMedicionCorporal,
+        comparativaBitacora,
       }}
     >
       {children}

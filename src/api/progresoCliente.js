@@ -1,7 +1,9 @@
 import { axiosPrivate } from "./axiosPrivate";
 
-// Progreso personal del cliente (racha, resumen mensual, hitos) + bitácora
-// de peso/medidas. Solo para empresas con modulos.clasesGrupales activo.
+// Progreso personal del cliente (racha, resumen mensual, hitos) — solo
+// para empresas con modulos.clasesGrupales activo. La bitácora de
+// peso/medidas de acá abajo, en cambio, también sirve para empresas que
+// solo tienen modulos.entrenamientoPersonal (ver progresoClienteRoutes.js).
 
 export const getMiProgreso = () =>
   axiosPrivate.get("/progreso-cliente/mi-progreso");
@@ -20,3 +22,8 @@ export const getMedicionesClienteCorporal = (clienteId) =>
 
 export const deleteMedicionCorporal = (id) =>
   axiosPrivate.delete(`/progreso-cliente/medicion-corporal/${id}`);
+
+// Comparativa mensual: último registro de bitácora vs. el anterior más
+// cercano a ~1 mes atrás (deltas puros, sin interpretar).
+export const getComparativaBitacora = () =>
+  axiosPrivate.get("/progreso-cliente/comparativa-bitacora");

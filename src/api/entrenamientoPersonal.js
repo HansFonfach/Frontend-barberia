@@ -43,3 +43,29 @@ export const putRutina = (id, data) =>
 
 export const deleteRutina = (id) =>
   axiosPrivate.delete(`/entrenamiento-personal/rutina/${id}`);
+
+// ── Perfil de entrenamiento (objetivo, sexo biológico, fecha de
+// nacimiento) — 100% opcional, se usa solo para la calculadora de
+// calorías/macros y la rutina sugerida. ──
+
+export const getPerfilEntrenamiento = () => axiosPrivate.get("/entrenamiento-personal/perfil");
+
+// data = { objetivo?, sexoBiologico?, fechaNacimiento? } — cada campo es
+// independiente, mandar null/"" en uno lo borra sin tocar los demás.
+export const putPerfilEntrenamiento = (data) => axiosPrivate.put("/entrenamiento-personal/perfil", data);
+
+// Calorías/macros calculados con fórmula real (Mifflin-St Jeor) a partir
+// del perfil + la última bitácora + la frecuencia real de entrenamiento.
+export const getRecomendacionNutricional = () =>
+  axiosPrivate.get("/entrenamiento-personal/recomendacion-nutricional");
+
+// Plantilla de rutina sugerida según el objetivo del perfil.
+export const getRutinaSugerida = () => axiosPrivate.get("/entrenamiento-personal/rutina-sugerida");
+
+// Miembros de la empresa (dueño + amigos) con su actividad — SOLO ADMIN.
+export const getMiembrosEntrenamiento = () => axiosPrivate.get("/entrenamiento-personal/miembros");
+
+// Busca a alguien de tu empresa por RUT, para compartir una rutina
+// directamente con esa persona (devuelve solo _id/nombre/apellido).
+export const buscarMiembroPorRut = (rut) =>
+  axiosPrivate.get(`/entrenamiento-personal/buscar-miembro/${encodeURIComponent(rut)}`);

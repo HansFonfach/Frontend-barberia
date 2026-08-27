@@ -24,10 +24,12 @@ import {
   CalendarClock,
   ScrollText,
   Plus,
+  Ruler,
 } from "lucide-react";
 import Swal from "sweetalert2";
 import UserHeader from "components/Headers/UserHeader.js";
 import { useEntrenamientoPersonal } from "context/EntrenamientoPersonalContext";
+import { useProgresoCliente } from "context/ProgresoClienteContext";
 import BitacoraCorporal from "components/gimnasio/BitacoraCorporal";
 
 /**
@@ -479,6 +481,103 @@ const HistorialActividad = () => {
   );
 };
 
+const ETIQUETA_CAMPO_COMPARATIVA = {
+  pesoKg: { label: "Peso", unidad: "kg" },
+  grasaCorporalPorcentaje: { label: "% grasa corporal", unidad: "%" },
+  cinturaCm: { label: "Cintura", unidad: "cm" },
+  caderaCm: { label: "Cadera", unidad: "cm" },
+  pechoCm: { label: "Pecho", unidad: "cm" },
+  brazoCm: { label: "Brazo", unidad: "cm" },
+  piernaCm: { label: "Pierna", unidad: "cm" },
+};
+
+const formatFechaCorta = (fecha) =>
+  new Date(fecha).toLocaleDateString("es-CL", { day: "2-digit", month: "short" });
+
+/* =======================================================
+   Comparativa mensual de bitácora: último registro vs. el anterior más
+   cercano a ~1 mes atrás. Deltas puros — a propósito SIN colorear
+   verde/rojo (que un número suba o baje no es "bueno" ni "malo" en sí
+   mismo, depende del objetivo de cada uno), solo la flecha de dirección.
+======================================================= */
+const ComparativaMensual = () => {
+  const { comparativaBitacora } = useProgresoCliente();
+  const [comp, setComp] = useState(null);
+  const [cargando, setCargando] = useState(true);
+
+  useEffect(() => {
+    comparativaBitacora().then((data) => {
+      setComp(data);
+      setCargando(false);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const camposConDato = comp?.disponible
+    ? Object.keys(ETIQUETA_CAMPO_COMPARATIVA).filter((c) => comp.deltas[c] != null)
+    : [];
+
+  return (
+    <Card className="border-0 shadow-sm mb-4" style={{ borderRadius: 16 }}>
+      <CardBody className="p-4">
+        <div className="d-flex align-items-center mb-2">
+          <Ruler size={20} className="text-info mr-2" />
+          <h4 className="mb-0">Comparativa mensual</h4>
+        </div>
+
+        {cargando ? (
+          <div className="text-center py-3">
+            <Spinner color="info" size="sm" />
+          </div>
+        ) : !comp?.disponible ? (
+          <p className="text-muted small mb-0">
+            {comp?.motivo === "un_solo_periodo"
+              ? "Todavía solo tienes un registro reciente en tu bitácora — cuando anotes otro con unas semanas de diferencia, vas a poder comparar."
+              : "Registra tu peso o medidas en la bitácora de abajo para empezar a comparar mes a mes."}
+          </p>
+        ) : camposConDato.length === 0 ? (
+          <p className="text-muted small mb-0">
+            Tienes registros en ambos períodos, pero no coinciden en ningún dato para
+            comparar (ej: anotaste peso una vez y medidas la otra).
+          </p>
+        ) : (
+          <>
+            <p className="text-muted small mb-3">
+              {formatFechaCorta(comp.anterior.fecha)} → {formatFechaCorta(comp.actual.fecha)}
+            </p>
+            <div className="d-flex flex-wrap" style={{ gap: 12 }}>
+              {camposConDato.map((campo) => {
+                const delta = comp.deltas[campo];
+                const { label, unidad } = ETIQUETA_CAMPO_COMPARATIVA[campo];
+                return (
+                  <div
+                    key={campo}
+                    className="text-center"
+                    style={{ minWidth: 100, padding: "10px 8px", borderRadius: 12, border: "1px solid #e9ecef" }}
+                  >
+                    <p className="text-muted small mb-1">{label}</p>
+                    <Badge color="light" pill className="border">
+                      <IconoVariacion v={delta} /> {delta > 0 ? "+" : ""}
+                      {delta}
+                      {unidad}
+                    </Badge>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {comp?.sugerencia && (
+          <Alert color="info" className="mt-3 mb-0" style={{ borderRadius: 12 }}>
+            {comp.sugerencia}
+          </Alert>
+        )}
+      </CardBody>
+    </Card>
+  );
+};
+
 const MiEntrenamiento = () => {
   const { miProgresoEntrenamiento, eliminarRegistroEntrenamiento, catalogoEjercicios } =
     useEntrenamientoPersonal();
@@ -724,6 +823,9 @@ const MiEntrenamiento = () => {
 
                 {/* ===== BITÁCORA (compartida con Mi progreso) ===== */}
                 <BitacoraCorporal />
+
+                {/* ===== COMPARATIVA MENSUAL DE BITÁCORA ===== */}
+                <ComparativaMensual />
               </>
             )}
           </Col>
