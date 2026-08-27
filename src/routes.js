@@ -54,6 +54,7 @@ import AgendarClase from "views/pages/AgendarClase";
 import MisClases from "views/pages/MisClases";
 import MiPlanClase from "views/pages/MiPlanClase";
 import MiProgreso from "views/pages/MiProgreso";
+import MiEntrenamiento from "views/pages/MiEntrenamiento";
 import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
 
 /* =========================
@@ -204,6 +205,14 @@ export const clienteRoutes = [
     requiereModulo: "clasesGrupales",
   },
   {
+    path: "/mi-entrenamiento",
+    name: "Mi entrenamiento",
+    icon: "fas fa-dumbbell text-primary",
+    component: <MiEntrenamiento />,
+    layout: "/admin",
+    requiereModulo: "entrenamientoPersonal",
+  },
+  {
     path: "/centro-ayuda",
     name: "Centro de ayuda",
     icon: "ni ni-support-16 text-purple",
@@ -253,6 +262,15 @@ export const barberoRoutes = [
     component: <AdminDashboard />,
     layout: "/admin",
     section: "principal",
+  },
+  {
+    path: "/mi-entrenamiento",
+    name: "Mi entrenamiento",
+    icon: "fas fa-dumbbell text-primary",
+    component: <MiEntrenamiento />,
+    layout: "/admin",
+    section: "principal",
+    requiereModulo: "entrenamientoPersonal",
   },
 
   /* ── Reservas ── */
