@@ -11,6 +11,13 @@ import { axiosPrivate } from "./axiosPrivate";
 export const postRegistroEntrenamiento = (data) =>
   axiosPrivate.post("/entrenamiento-personal/registro", data);
 
+// data = { duracionMinutos?, notas?, ejercicios? } — cada campo es
+// independiente. Pensado sobre todo para ir agregando ejercicios a un
+// registro ya creado (registrar "ejercicio por ejercicio" mientras se
+// entrena, en vez de todo junto al final).
+export const putRegistroEntrenamiento = (id, data) =>
+  axiosPrivate.put(`/entrenamiento-personal/registro/${id}`, data);
+
 export const getMisRegistrosEntrenamiento = (dias = 60) =>
   axiosPrivate.get("/entrenamiento-personal/mis-registros", { params: { dias } });
 

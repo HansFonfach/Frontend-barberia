@@ -37,6 +37,7 @@ import { PlanesMembresiaProvider } from "context/PlanesMembresiaContext";
 import { PlanesSuscripcionProvider } from "context/PlanesSuscripcionContext";
 import { ProgresoClienteProvider } from "context/ProgresoClienteContext";
 import { EntrenamientoPersonalProvider } from "context/EntrenamientoPersonalContext";
+import { DiarioAlimenticioProvider } from "context/DiarioAlimenticioContext";
 
 // Pages
 import Principal from "views/publico/principal";
@@ -76,7 +77,9 @@ const AdminProviders = ({ children }) => (
                             <PlanesSuscripcionProvider>
                               <ProgresoClienteProvider>
                                 <EntrenamientoPersonalProvider>
-                                  {children}
+                                  <DiarioAlimenticioProvider>
+                                    {children}
+                                  </DiarioAlimenticioProvider>
                                 </EntrenamientoPersonalProvider>
                               </ProgresoClienteProvider>
                             </PlanesSuscripcionProvider>

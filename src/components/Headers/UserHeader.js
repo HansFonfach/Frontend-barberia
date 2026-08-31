@@ -14,8 +14,13 @@ const UserHeader = () => {
     valores.includes(empresa.rubro) || valores.includes(empresa.tipo);
 
   let backgroundImg;
+  const esTeamHans = empresa.slug === "team-hans";
 
-  if (esDe(["gimnasio"])) {
+  if (esTeamHans) {
+    // Excepción puntual para Team Hans, igual que otras excepciones por
+    // slug ya usadas en routes.js — no afecta al resto de barberías.
+    backgroundImg = require("../../assets/img/theme/gym.jpeg");
+  } else if (esDe(["gimnasio"])) {
     backgroundImg = require("../../assets/img/theme/entrenamiento.jpg");
   } else if (esDe(["salon_belleza", "spa", "centro_estetica"])) {
     backgroundImg = require("../../assets/img/theme/lifting-pestanas.png");
@@ -24,16 +29,46 @@ const UserHeader = () => {
     backgroundImg = require("../../assets/img/theme/profile-cover.jpg");
   }
 
+  // Team Hans pidió que la foto se vea completa, sin recortarse ni dejar
+  // bordes negros — en vez de un alto fijo (600px) que casi nunca calza con
+  // la proporción real de la imagen, en pantallas ≥768px el header adopta
+  // el mismo "aspect-ratio" que la foto (753x451), así "cover" la cubre
+  // entera sin recortar nada y sin espacios vacíos. En celular se deja el
+  // comportamiento anterior (que ya estaba bien) con "contain" + alto fijo.
+  const headerStyle = esTeamHans
+    ? { backgroundImage: `url(${backgroundImg})` }
+    : {
+        minHeight: "600px",
+        backgroundImage: `url(${backgroundImg})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      };
+
   return (
     <>
+      {esTeamHans && (
+        <style>{`
+          .th-hero {
+            min-height: 600px;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: #000;
+          }
+          @media (min-width: 768px) {
+            .th-hero {
+              min-height: 0;
+              aspect-ratio: 753 / 451;
+              background-size: cover;
+            }
+          }
+        `}</style>
+      )}
       <div
-        className="header pb-8 pt-5 pt-lg-8 d-flex align-items-center"
-        style={{
-          minHeight: "600px",
-          backgroundImage: `url(${backgroundImg})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
+        className={`header pb-8 pt-5 pt-lg-8 d-flex align-items-center${
+          esTeamHans ? " th-hero" : ""
+        }`}
+        style={headerStyle}
       >
         <span className="mask bg-gradient-default opacity-4" />
 

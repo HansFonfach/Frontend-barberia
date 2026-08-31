@@ -58,6 +58,7 @@ import MiEntrenamiento from "views/pages/MiEntrenamiento";
 import MiRutina from "views/pages/MiRutina";
 import PlanAlimenticio from "views/pages/PlanAlimenticio";
 import HistorialEntrenamiento from "views/pages/HistorialEntrenamiento";
+import DiarioAlimenticio from "views/pages/DiarioAlimenticio";
 import MiembrosEntrenamiento from "views/admin/pages/MiembrosEntrenamiento";
 import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
 
@@ -246,6 +247,14 @@ export const clienteRoutes = [
     requiereModulo: "entrenamientoPersonal",
   },
   {
+    path: "/diario-alimenticio",
+    name: "Diario alimenticio",
+    icon: "fas fa-book-open text-danger",
+    component: <DiarioAlimenticio />,
+    layout: "/admin",
+    requiereModulo: "entrenamientoPersonal",
+  },
+  {
     path: "/centro-ayuda",
     name: "Centro de ayuda",
     icon: "ni ni-support-16 text-purple",
@@ -328,6 +337,15 @@ export const barberoRoutes = [
     name: "Historial",
     icon: "fas fa-history text-warning",
     component: <HistorialEntrenamiento />,
+    layout: "/admin",
+    section: "principal",
+    requiereModulo: "entrenamientoPersonal",
+  },
+  {
+    path: "/diario-alimenticio",
+    name: "Diario alimenticio",
+    icon: "fas fa-book-open text-danger",
+    component: <DiarioAlimenticio />,
     layout: "/admin",
     section: "principal",
     requiereModulo: "entrenamientoPersonal",

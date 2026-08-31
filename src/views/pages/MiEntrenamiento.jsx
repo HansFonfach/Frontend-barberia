@@ -137,16 +137,25 @@ const SugerenciaHoy = ({ sugerencia }) => {
 const FILA_EJERCICIO_VACIA = { nombre: "", pesoKg: "", series: "", repeticiones: "" };
 
 /* =======================================================
-   Formulario rápido para registrar una actividad
+   Formulario para registrar una actividad — pensado para anotar sobre la
+   marcha: eliges qué vas a entrenar, y cada ejercicio se registra (se
+   guarda de verdad, no solo queda en un borrador local) apenas lo
+   terminas, con "Registrar ejercicio". Al volver a la página con la
+   misma actividad todavía "de hoy", sigue agregando ahí en vez de crear
+   una sesión nueva — para que sirva aunque cierres la pestaña a mitad de
+   la rutina. "Terminar actividad" solo guarda duración/notas y cierra la
+   sesión actual (los ejercicios ya quedaron guardados antes, uno por uno).
 ======================================================= */
-const RegistrarActividadForm = ({ sugerencia, catalogo, onRegistrado }) => {
-  const { crearRegistroEntrenamiento } = useEntrenamientoPersonal();
+const RegistrarActividadForm = ({ sugerencia, catalogo, registrosHoy, onRegistrado }) => {
+  const { crearRegistroEntrenamiento, actualizarRegistroEntrenamiento } = useEntrenamientoPersonal();
   const [tipoActividad, setTipoActividad] = useState("");
+  const [fecha, setFecha] = useState(hoyISO());
   const [duracionMinutos, setDuracionMinutos] = useState("");
   const [notas, setNotas] = useState("");
-  const [fecha, setFecha] = useState(hoyISO());
-  const [ejercicios, setEjercicios] = useState([]);
-  const [guardando, setGuardando] = useState(false);
+  const [ejercicioActual, setEjercicioActual] = useState({ ...FILA_EJERCICIO_VACIA });
+  const [registroActivo, setRegistroActivo] = useState(null);
+  const [guardandoEjercicio, setGuardandoEjercicio] = useState(false);
+  const [terminando, setTerminando] = useState(false);
 
   useEffect(() => {
     if (sugerencia?.tipo === "grupo" && !tipoActividad) {
@@ -155,37 +164,116 @@ const RegistrarActividadForm = ({ sugerencia, catalogo, onRegistrado }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sugerencia]);
 
-  const agregarFilaEjercicio = () => setEjercicios((f) => [...f, { ...FILA_EJERCICIO_VACIA }]);
-  const quitarFilaEjercicio = (idx) => setEjercicios((f) => f.filter((_, i) => i !== idx));
-  const cambiarFilaEjercicio = (idx, campo, valor) =>
-    setEjercicios((f) => f.map((fila, i) => (i === idx ? { ...fila, [campo]: valor } : fila)));
+  // Si ya existe un registro de HOY para el tipo elegido (por ejemplo,
+  // volviste a la página a mitad de la rutina), seguimos agregando
+  // ejercicios ahí en vez de crear una sesión duplicada.
+  useEffect(() => {
+    if (!tipoActividad || registroActivo) return;
+    const existente = (registrosHoy || []).filter((r) => r.tipoActividad === tipoActividad).pop();
+    if (existente) {
+      setRegistroActivo(existente);
+      setDuracionMinutos(existente.duracionMinutos != null ? String(existente.duracionMinutos) : "");
+      setNotas(existente.notas || "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tipoActividad, registrosHoy]);
 
-  const handleGuardar = async () => {
+  const handleCambiarTipo = (nuevoTipo) => {
+    setTipoActividad(nuevoTipo);
+    if (registroActivo && registroActivo.tipoActividad !== nuevoTipo) {
+      setRegistroActivo(null);
+      setDuracionMinutos("");
+      setNotas("");
+    }
+  };
+
+  const cambiarEjercicioActual = (campo, valor) =>
+    setEjercicioActual((f) => ({ ...f, [campo]: valor }));
+
+  const handleAgregarEjercicio = async () => {
+    if (!tipoActividad) {
+      return Swal.fire("Falta info", "Elige qué estás entrenando (o jugando)", "warning");
+    }
+    if (!ejercicioActual.nombre.trim()) {
+      return Swal.fire("Falta info", "Escribe el nombre del ejercicio o máquina", "warning");
+    }
+    setGuardandoEjercicio(true);
+    try {
+      const nuevo = {
+        nombre: ejercicioActual.nombre.trim(),
+        pesoKg: ejercicioActual.pesoKg === "" ? null : Number(ejercicioActual.pesoKg),
+        series: ejercicioActual.series === "" ? null : Number(ejercicioActual.series),
+        repeticiones: ejercicioActual.repeticiones === "" ? null : Number(ejercicioActual.repeticiones),
+      };
+
+      if (!registroActivo) {
+        const creado = await crearRegistroEntrenamiento({
+          fecha: new Date(`${fecha}T12:00:00`).toISOString(),
+          tipoActividad,
+          ejercicios: [nuevo],
+        });
+        setRegistroActivo(creado);
+      } else {
+        const actualizado = await actualizarRegistroEntrenamiento(registroActivo._id, {
+          ejercicios: [...(registroActivo.ejercicios || []), nuevo],
+        });
+        setRegistroActivo(actualizado);
+      }
+      setEjercicioActual({ ...FILA_EJERCICIO_VACIA });
+      onRegistrado && onRegistrado();
+    } catch (error) {
+      Swal.fire(
+        "Error",
+        error.response?.data?.message || "No se pudo registrar el ejercicio",
+        "error",
+      );
+    } finally {
+      setGuardandoEjercicio(false);
+    }
+  };
+
+  const handleQuitarEjercicioRegistrado = async (idx) => {
+    if (!registroActivo) return;
+    try {
+      const actualizado = await actualizarRegistroEntrenamiento(registroActivo._id, {
+        ejercicios: registroActivo.ejercicios.filter((_, i) => i !== idx),
+      });
+      setRegistroActivo(actualizado);
+    } catch (error) {
+      Swal.fire("Error", "No se pudo quitar el ejercicio", "error");
+    }
+  };
+
+  const handleTerminar = async () => {
     if (!tipoActividad) {
       return Swal.fire("Falta info", "Elige qué entrenaste (o jugaste)", "warning");
     }
-    setGuardando(true);
+    setTerminando(true);
     try {
-      const ejerciciosLimpios = ejercicios
-        .filter((e) => e.nombre.trim())
-        .map((e) => ({
-          nombre: e.nombre.trim(),
-          pesoKg: e.pesoKg === "" ? null : Number(e.pesoKg),
-          series: e.series === "" ? null : Number(e.series),
-          repeticiones: e.repeticiones === "" ? null : Number(e.repeticiones),
-        }));
-
-      await crearRegistroEntrenamiento({
-        fecha: new Date(`${fecha}T12:00:00`).toISOString(),
-        tipoActividad,
-        duracionMinutos: duracionMinutos === "" ? null : Number(duracionMinutos),
-        notas,
-        ejercicios: ejerciciosLimpios,
-      });
+      if (registroActivo) {
+        // Los ejercicios ya se fueron guardando uno por uno — acá solo se
+        // completan duración/notas y se cierra la sesión.
+        await actualizarRegistroEntrenamiento(registroActivo._id, {
+          duracionMinutos: duracionMinutos === "" ? null : Number(duracionMinutos),
+          notas,
+        });
+      } else {
+        // Sin ejercicios de detalle (ej: cardio, fútbol) — se registra la
+        // actividad del día directamente.
+        await crearRegistroEntrenamiento({
+          fecha: new Date(`${fecha}T12:00:00`).toISOString(),
+          tipoActividad,
+          duracionMinutos: duracionMinutos === "" ? null : Number(duracionMinutos),
+          notas,
+          ejercicios: [],
+        });
+      }
+      setTipoActividad("");
+      setFecha(hoyISO());
       setDuracionMinutos("");
       setNotas("");
-      setFecha(hoyISO());
-      setEjercicios([]);
+      setEjercicioActual({ ...FILA_EJERCICIO_VACIA });
+      setRegistroActivo(null);
       onRegistrado && onRegistrado();
     } catch (error) {
       Swal.fire(
@@ -194,7 +282,7 @@ const RegistrarActividadForm = ({ sugerencia, catalogo, onRegistrado }) => {
         "error",
       );
     } finally {
-      setGuardando(false);
+      setTerminando(false);
     }
   };
 
@@ -207,13 +295,13 @@ const RegistrarActividadForm = ({ sugerencia, catalogo, onRegistrado }) => {
       </datalist>
 
       <Row>
-        <Col md="4">
+        <Col md="5">
           <FormGroup>
-            <Label className="small font-weight-bold">¿Qué hiciste?</Label>
+            <Label className="small font-weight-bold">¿Qué vas a entrenar?</Label>
             <Input
               type="select"
               value={tipoActividad}
-              onChange={(e) => setTipoActividad(e.target.value)}
+              onChange={(e) => handleCambiarTipo(e.target.value)}
             >
               <option value="">Selecciona...</option>
               {TIPOS_ACTIVIDAD.map((t) => (
@@ -227,12 +315,119 @@ const RegistrarActividadForm = ({ sugerencia, catalogo, onRegistrado }) => {
         <Col md="3" xs="6">
           <FormGroup>
             <Label className="small font-weight-bold">Fecha</Label>
-            <Input type="date" value={fecha} max={hoyISO()} onChange={(e) => setFecha(e.target.value)} />
+            <Input
+              type="date"
+              value={fecha}
+              max={hoyISO()}
+              disabled={!!registroActivo}
+              onChange={(e) => setFecha(e.target.value)}
+            />
           </FormGroup>
         </Col>
-        <Col md="2" xs="6">
+      </Row>
+
+      {registroActivo && (
+        <Badge color="success" pill className="mb-2">
+          Sesión en curso: {ICONOS_TIPO[tipoActividad]} {TIPOS_ACTIVIDAD.find((t) => t.key === tipoActividad)?.label}
+        </Badge>
+      )}
+
+      {/* ── Ejercicios ya registrados en esta sesión ── */}
+      {registroActivo?.ejercicios?.length > 0 && (
+        <div className="mb-3">
+          <Label className="small font-weight-bold mb-2 d-block">Ya registraste:</Label>
+          <div className="d-flex flex-wrap" style={{ gap: 8 }}>
+            {registroActivo.ejercicios.map((e, i) => (
+              <Badge
+                key={i}
+                pill
+                color="light"
+                className="d-flex align-items-center border"
+                style={{ padding: "8px 12px", fontSize: 13 }}
+              >
+                <span className="mr-1">
+                  {e.nombre}
+                  {e.pesoKg != null ? ` ${e.pesoKg}kg` : ""}
+                  {e.series != null ? ` · ${e.series}x${e.repeticiones ?? "?"}` : ""}
+                </span>
+                <Trash2
+                  size={13}
+                  className="text-danger"
+                  style={{ cursor: "pointer" }}
+                  onClick={() => handleQuitarEjercicioRegistrado(i)}
+                />
+              </Badge>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Registrar el ejercicio que acabas de hacer ── */}
+      <div className="mt-2 mb-3">
+        <Label className="small font-weight-bold mb-2 d-block">
+          Ejercicio o máquina que acabas de hacer
+        </Label>
+        <Row className="align-items-end">
+          <Col xs="12" sm="5">
+            <Input
+              type="text"
+              list="catalogo-ejercicios"
+              placeholder="Ej: Prensa de piernas"
+              value={ejercicioActual.nombre}
+              onChange={(e) => cambiarEjercicioActual("nombre", e.target.value)}
+            />
+          </Col>
+          <Col xs="4" sm="2">
+            <Input
+              type="number"
+              min="0"
+              step="0.5"
+              placeholder="Kg"
+              value={ejercicioActual.pesoKg}
+              onChange={(e) => cambiarEjercicioActual("pesoKg", e.target.value)}
+            />
+          </Col>
+          <Col xs="4" sm="2">
+            <Input
+              type="number"
+              min="0"
+              placeholder="Series"
+              value={ejercicioActual.series}
+              onChange={(e) => cambiarEjercicioActual("series", e.target.value)}
+            />
+          </Col>
+          <Col xs="4" sm="1">
+            <Input
+              type="number"
+              min="0"
+              placeholder="Reps"
+              value={ejercicioActual.repeticiones}
+              onChange={(e) => cambiarEjercicioActual("repeticiones", e.target.value)}
+            />
+          </Col>
+          <Col xs="12" sm="2" className="mt-2 mt-sm-0">
+            <Button
+              block
+              size="sm"
+              color="primary"
+              outline
+              disabled={guardandoEjercicio}
+              onClick={handleAgregarEjercicio}
+            >
+              <Plus size={14} /> {guardandoEjercicio ? "..." : "Registrar"}
+            </Button>
+          </Col>
+        </Row>
+        <p className="text-muted small mt-2 mb-0">
+          Cada ejercicio se guarda apenas lo registras — no hace falta esperar a
+          terminar toda la rutina para anotar todo junto.
+        </p>
+      </div>
+
+      <Row>
+        <Col md="4" xs="6">
           <FormGroup>
-            <Label className="small font-weight-bold">Minutos</Label>
+            <Label className="small font-weight-bold">Minutos totales</Label>
             <Input
               type="number"
               min="0"
@@ -242,7 +437,7 @@ const RegistrarActividadForm = ({ sugerencia, catalogo, onRegistrado }) => {
             />
           </FormGroup>
         </Col>
-        <Col md="3">
+        <Col md="8" xs="6">
           <FormGroup>
             <Label className="small font-weight-bold">Notas (opcional)</Label>
             <Input
@@ -255,85 +450,14 @@ const RegistrarActividadForm = ({ sugerencia, catalogo, onRegistrado }) => {
         </Col>
       </Row>
 
-      {/* ── Detalle por máquina/ejercicio (opcional) ── */}
-      <div className="mt-2 mb-3">
-        <div className="d-flex justify-content-between align-items-center mb-2">
-          <Label className="small font-weight-bold mb-0">
-            Máquinas/ejercicios usados (opcional)
-          </Label>
-          <Button size="sm" color="link" className="p-0" onClick={agregarFilaEjercicio}>
-            <Plus size={14} /> Agregar
-          </Button>
-        </div>
-
-        {ejercicios.length === 0 ? (
-          <p className="text-muted small mb-0">
-            Si quieres, anota qué máquina/ejercicio usaste y con cuánto peso — así
-            más adelante te avisamos si es buen momento para subirlo.
-          </p>
-        ) : (
-          ejercicios.map((fila, idx) => (
-            <Row key={idx} className="align-items-end mb-2">
-              <Col xs="12" sm="5">
-                <Input
-                  type="text"
-                  list="catalogo-ejercicios"
-                  placeholder="Ej: Prensa de piernas"
-                  value={fila.nombre}
-                  onChange={(e) => cambiarFilaEjercicio(idx, "nombre", e.target.value)}
-                />
-              </Col>
-              <Col xs="4" sm="2">
-                <Input
-                  type="number"
-                  min="0"
-                  step="0.5"
-                  placeholder="Kg"
-                  value={fila.pesoKg}
-                  onChange={(e) => cambiarFilaEjercicio(idx, "pesoKg", e.target.value)}
-                />
-              </Col>
-              <Col xs="4" sm="2">
-                <Input
-                  type="number"
-                  min="0"
-                  placeholder="Series"
-                  value={fila.series}
-                  onChange={(e) => cambiarFilaEjercicio(idx, "series", e.target.value)}
-                />
-              </Col>
-              <Col xs="3" sm="2">
-                <Input
-                  type="number"
-                  min="0"
-                  placeholder="Reps"
-                  value={fila.repeticiones}
-                  onChange={(e) => cambiarFilaEjercicio(idx, "repeticiones", e.target.value)}
-                />
-              </Col>
-              <Col xs="1">
-                <Button
-                  size="sm"
-                  color="link"
-                  className="text-danger p-0"
-                  onClick={() => quitarFilaEjercicio(idx)}
-                >
-                  <Trash2 size={14} />
-                </Button>
-              </Col>
-            </Row>
-          ))
-        )}
-      </div>
-
       <Button
         block
         color="success"
-        disabled={guardando}
-        onClick={handleGuardar}
+        disabled={terminando}
+        onClick={handleTerminar}
         className="font-weight-bold"
       >
-        {guardando ? "Guardando..." : "Registrar actividad"}
+        {terminando ? "Guardando..." : registroActivo ? "Terminar actividad" : "Registrar actividad"}
       </Button>
     </>
   );
@@ -444,17 +568,15 @@ const HistorialActividad = () => {
                 <p className="text-muted small font-weight-bold mb-2" style={{ textTransform: "uppercase", letterSpacing: 0.5 }}>
                   Semana del {g.inicio.toLocaleDateString("es-CL", { day: "2-digit", month: "short" })} · {g.registros.length} actividad{g.registros.length !== 1 ? "es" : ""}
                 </p>
-                <div className="d-flex flex-wrap" style={{ gap: 8 }}>
+                <div className="d-flex flex-column" style={{ gap: 8 }}>
                   {g.registros.map((r) => (
-                    <Badge
+                    <div
                       key={r._id}
-                      pill
-                      color="light"
-                      className="d-flex align-items-center border"
-                      style={{ padding: "8px 12px", fontSize: 13 }}
+                      className="d-flex align-items-start border rounded"
+                      style={{ padding: "8px 12px", fontSize: 13, gap: 8, maxWidth: "100%" }}
                     >
-                      {ICONOS_TIPO[r.tipoActividad]}{" "}
-                      <span className="mx-1">
+                      <span style={{ flex: "1 1 auto", minWidth: 0, wordBreak: "break-word" }}>
+                        {ICONOS_TIPO[r.tipoActividad]}{" "}
                         {formatFecha(r.fecha)} · {r.tipoActividad}
                         {r.duracionMinutos ? ` · ${r.duracionMinutos} min` : ""}
                         {r.ejercicios?.length
@@ -465,11 +587,11 @@ const HistorialActividad = () => {
                       </span>
                       <Trash2
                         size={13}
-                        className="text-danger ml-1"
-                        style={{ cursor: "pointer" }}
+                        className="text-danger flex-shrink-0"
+                        style={{ cursor: "pointer", marginTop: 2 }}
                         onClick={() => handleEliminar(r)}
                       />
-                    </Badge>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -586,11 +708,15 @@ const MiEntrenamiento = () => {
   const [cargando, setCargando] = useState(true);
   const [catalogo, setCatalogo] = useState([]);
 
-  const cargarProgreso = async () => {
-    setCargando(true);
+  // silencioso=true evita tapar toda la página con el spinner grande — se
+  // usa para los refrescos que dispara "Registrar actividad" mientras se
+  // va anotando ejercicio por ejercicio, para que no se sienta que la
+  // página "parpadea" cada vez que registras uno.
+  const cargarProgreso = async (silencioso = false) => {
+    if (!silencioso) setCargando(true);
     const data = await miProgresoEntrenamiento();
     setProgreso(data);
-    setCargando(false);
+    if (!silencioso) setCargando(false);
   };
 
   useEffect(() => {
@@ -781,8 +907,9 @@ const MiEntrenamiento = () => {
                     <RegistrarActividadForm
                       sugerencia={progreso.sugerencia}
                       catalogo={catalogo}
+                      registrosHoy={progreso.registrosHoy}
                       onRegistrado={() => {
-                        cargarProgreso();
+                        cargarProgreso(true);
                         catalogoEjercicios().then(setCatalogo);
                       }}
                     />

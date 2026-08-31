@@ -1,6 +1,7 @@
 import { createContext, useContext } from "react";
 import {
   postRegistroEntrenamiento,
+  putRegistroEntrenamiento,
   getMisRegistrosEntrenamiento,
   deleteRegistroEntrenamiento,
   getMiProgresoEntrenamiento,
@@ -67,6 +68,14 @@ export const EntrenamientoPersonalProvider = ({ children }) => {
 
   const crearRegistroEntrenamiento = async (data) => {
     const res = await postRegistroEntrenamiento(data);
+    return res.data.data;
+  };
+
+  // Sin try/catch: el componente necesita saber si el guardado falló (ej:
+  // mientras se agrega un ejercicio a mitad de la rutina) para avisar y
+  // no perder lo que la persona acaba de anotar.
+  const actualizarRegistroEntrenamiento = async (id, data) => {
+    const res = await putRegistroEntrenamiento(id, data);
     return res.data.data;
   };
 
@@ -200,6 +209,7 @@ export const EntrenamientoPersonalProvider = ({ children }) => {
       value={{
         miProgresoEntrenamiento,
         crearRegistroEntrenamiento,
+        actualizarRegistroEntrenamiento,
         misRegistrosEntrenamiento,
         eliminarRegistroEntrenamiento,
         catalogoEjercicios,
