@@ -52,6 +52,8 @@ import ConfirmacionResultado from "views/publico/ConfirmacionResultado";
 import { ProductoProvider } from "context/ProductoContext";
 import { VentaDirectaProvider } from "context/VentaDirectaContext";
 import ConfirmarReserva from "views/publico/ConfirmarReserva";
+import SuperAdminLogin from "views/superadmin/SuperAdminLogin";
+import SuperAdminDashboard from "views/superadmin/SuperAdminDashboard";
 
 // Wrapper por empresa (slug)
 const EmpresaWrapper = ({ children }) => {
@@ -112,6 +114,15 @@ root.render(
             element={<ConfirmacionResultado />}
           />
           <Route path="/cancelar-reserva" element={<ConfirmacionResultado />} />
+
+          {/* Panel de super-admin (gestión de todas las empresas, solo
+              Hans) — rutas top-level, fuera del esquema /:slug. React
+              Router prioriza siempre un segmento literal ("superadmin")
+              por sobre uno dinámico (":slug"), así que esto nunca choca
+              con el landing de una empresa aunque alguna llegara a
+              registrarse con el slug "superadmin". */}
+          <Route path="/superadmin/login" element={<SuperAdminLogin />} />
+          <Route path="/superadmin" element={<SuperAdminDashboard />} />
 
           {/* ✅ Rutas específicas PRIMERO */}
           <Route

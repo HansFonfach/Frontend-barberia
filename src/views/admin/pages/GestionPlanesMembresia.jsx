@@ -57,6 +57,7 @@ const GestionPlanesMembresia = () => {
   const [editando, setEditando] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [form, setForm] = useState(FORM_VACIO);
+  const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
     getAllPlanes();
@@ -107,15 +108,25 @@ const GestionPlanesMembresia = () => {
       Swal.fire("Error", "Ingresa un precio válido", "error");
       return;
     }
+    if (!form.duracionDias || Number(form.duracionDias) <= 0) {
+      Swal.fire(
+        "Error",
+        "La duración del plan (días) debe ser mayor a 0",
+        "error",
+      );
+      return;
+    }
+    if (guardando) return; // ya hay un guardado en curso, ignora el reintento
 
     const payload = {
       nombre: form.nombre.trim(),
       clasesIncluidas: Number(form.clasesIncluidas),
       precio: Number(form.precio),
-      duracionDias: Number(form.duracionDias) || 30,
+      duracionDias: Number(form.duracionDias),
       tipoCiclo: form.tipoCiclo === "mensual" ? "mensual" : "total",
     };
 
+    setGuardando(true);
     try {
       if (editando) {
         await actualizarPlan(form._id, payload);
@@ -130,6 +141,8 @@ const GestionPlanesMembresia = () => {
         error.response?.data?.message || "No se pudo guardar el plan",
         "error",
       );
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -422,8 +435,14 @@ const GestionPlanesMembresia = () => {
               </small>
             </FormGroup>
 
-            <Button block color="primary" onClick={handleGuardar} type="button">
-              Guardar
+            <Button
+              block
+              color="primary"
+              onClick={handleGuardar}
+              type="button"
+              disabled={guardando}
+            >
+              {guardando ? "Guardando..." : "Guardar"}
             </Button>
           </Form>
         </ModalBody>

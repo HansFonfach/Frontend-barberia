@@ -383,15 +383,87 @@ const LandingPage = () => {
               </div>
             </Col>
             <Col lg="6" className="position-relative">
-              <div
-                className="rounded-custom shadow-2xl overflow-hidden"
-                style={{ borderRadius: "24px" }}
-              >
-                <img
-                  src="https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=800"
-                  alt="Dashboard AgendaFonfach"
-                  className="img-fluid"
-                />
+              {/* Mockup del propio sistema de reservas en vez de una foto
+                  de stock genérica — vende mejor porque muestra
+                  exactamente lo que el negocio recibe: link de reserva,
+                  horarios y confirmación automática. */}
+              <div className="hero-mockup-wrap">
+                <div className="hero-mockup-card">
+                  <div className="mockup-topbar">
+                    <span
+                      className="mockup-dot"
+                      style={{ background: "#ff5f56" }}
+                    />
+                    <span
+                      className="mockup-dot"
+                      style={{ background: "#ffbd2e" }}
+                    />
+                    <span
+                      className="mockup-dot"
+                      style={{ background: "#27c93f" }}
+                    />
+                    <span className="mockup-url">
+                      agendafonfach.cl/tu-negocio
+                    </span>
+                  </div>
+
+                  <div className="mockup-body">
+                    <div className="mockup-header-row">
+                      <div className="mockup-avatar">💈</div>
+                      <div>
+                        <div className="mockup-biz-name">
+                          La Santa Barbería
+                        </div>
+                        <div className="mockup-biz-sub">Elige día y hora</div>
+                      </div>
+                    </div>
+
+                    <div className="mockup-days-row">
+                      {["Lun", "Mar", "Mié", "Jue", "Vie"].map((d, i) => (
+                        <span
+                          key={d}
+                          className={`mockup-day-pill ${
+                            i === 2 ? "active" : ""
+                          }`}
+                        >
+                          {d}
+                        </span>
+                      ))}
+                    </div>
+
+                    <div className="mockup-slots-grid">
+                      {["10:00", "11:30", "15:00", "16:30", "17:00", "18:30"].map(
+                        (h, i) => (
+                          <span
+                            key={h}
+                            className={`mockup-slot ${
+                              i === 3 ? "selected" : ""
+                            }`}
+                          >
+                            {i === 3 && (
+                              <FiCheckCircle size={12} className="mr-1" />
+                            )}
+                            {h}
+                          </span>
+                        ),
+                      )}
+                    </div>
+
+                    <div className="mockup-cta">
+                      Confirmar reserva <FiArrowRight className="ml-1" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="floating-badge floating-whatsapp">
+                  <FaWhatsapp size={16} style={{ color: "#25d366" }} />
+                  <span>Recordatorio enviado ✅</span>
+                </div>
+
+                <div className="floating-badge floating-stat">
+                  <FiTrendingUp size={16} style={{ color: "#06d6a0" }} />
+                  <span>+40% más reservas</span>
+                </div>
               </div>
             </Col>
           </Row>
@@ -973,6 +1045,162 @@ const LandingPage = () => {
         }
         .mb-6 {
           margin-bottom: 4rem;
+        }
+
+        /* Mockup del hero */
+        .hero-mockup-wrap {
+          position: relative;
+          max-width: 460px;
+          margin: 0 auto;
+        }
+        .hero-mockup-card {
+          background: #fff;
+          border-radius: 24px;
+          box-shadow: 0 30px 60px rgba(26, 26, 46, 0.15);
+          overflow: hidden;
+          border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        .mockup-topbar {
+          display: flex;
+          align-items: center;
+          gap: 6px;
+          padding: 14px 16px;
+          background: #f8faff;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .mockup-dot {
+          width: 9px;
+          height: 9px;
+          border-radius: 50%;
+          display: inline-block;
+        }
+        .mockup-url {
+          margin-left: 10px;
+          font-size: 11px;
+          color: #9aa3b2;
+          background: #fff;
+          padding: 3px 10px;
+          border-radius: 6px;
+          border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        .mockup-body {
+          padding: 24px;
+        }
+        .mockup-header-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 20px;
+        }
+        .mockup-avatar {
+          width: 46px;
+          height: 46px;
+          border-radius: 50%;
+          background: linear-gradient(135deg, #eef1ff, #fce4f0);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 1.4rem;
+          flex-shrink: 0;
+        }
+        .mockup-biz-name {
+          font-weight: 700;
+          color: #1a1a2e;
+          font-size: 15px;
+        }
+        .mockup-biz-sub {
+          font-size: 12px;
+          color: #9aa3b2;
+        }
+        .mockup-days-row {
+          display: flex;
+          gap: 8px;
+          margin-bottom: 14px;
+        }
+        .mockup-day-pill {
+          flex: 1;
+          text-align: center;
+          padding: 8px 0;
+          border-radius: 10px;
+          font-size: 12px;
+          font-weight: 600;
+          color: #6c757d;
+          background: #f4f6fb;
+        }
+        .mockup-day-pill.active {
+          background: linear-gradient(135deg, #4361ee, #f72585);
+          color: #fff;
+        }
+        .mockup-slots-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 8px;
+          margin-bottom: 20px;
+        }
+        .mockup-slot {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 9px 0;
+          border-radius: 10px;
+          font-size: 12.5px;
+          font-weight: 600;
+          color: #4361ee;
+          background: #eef1ff;
+        }
+        .mockup-slot.selected {
+          background: #06d6a0;
+          color: #fff;
+        }
+        .mockup-cta {
+          width: 100%;
+          padding: 13px;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #4361ee, #f72585);
+          color: #fff;
+          font-weight: 600;
+          font-size: 14px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        .floating-badge {
+          position: absolute;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: #fff;
+          padding: 10px 16px;
+          border-radius: 50px;
+          box-shadow: 0 12px 30px rgba(26, 26, 46, 0.15);
+          font-size: 12.5px;
+          font-weight: 600;
+          color: #1a1a2e;
+          animation: float-badge 3.5s ease-in-out infinite;
+          white-space: nowrap;
+        }
+        .floating-whatsapp {
+          top: -14px;
+          left: -18px;
+        }
+        .floating-stat {
+          bottom: -16px;
+          right: -12px;
+          animation-delay: 1.2s;
+        }
+        @keyframes float-badge {
+          0%,
+          100% {
+            transform: translateY(0);
+          }
+          50% {
+            transform: translateY(-8px);
+          }
+        }
+        @media (max-width: 767px) {
+          .floating-badge {
+            display: none;
+          }
         }
       `}</style>
     </div>

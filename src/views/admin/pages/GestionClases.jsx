@@ -422,6 +422,7 @@ const GestionClases = () => {
   const [editando, setEditando] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [form, setForm] = useState(FORM_VACIO);
+  const [guardando, setGuardando] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const [modalSesiones, setModalSesiones] = useState({
@@ -559,6 +560,7 @@ const GestionClases = () => {
       );
       return;
     }
+    if (guardando) return; // ya hay un guardado en curso, ignora el reintento
 
     const payload = {
       nombre: form.nombre.trim(),
@@ -572,6 +574,7 @@ const GestionClases = () => {
       horarioSemanal: form.horarioSemanal,
     };
 
+    setGuardando(true);
     try {
       if (editando) {
         await actualizarClase(form._id, payload);
@@ -586,6 +589,8 @@ const GestionClases = () => {
         error.response?.data?.message || "No se pudo guardar la clase",
         "error",
       );
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -1326,8 +1331,14 @@ const GestionClases = () => {
               ))}
             </FormGroup>
 
-            <Button block color="primary" onClick={handleGuardar} type="button">
-              Guardar
+            <Button
+              block
+              color="primary"
+              onClick={handleGuardar}
+              type="button"
+              disabled={guardando}
+            >
+              {guardando ? "Guardando..." : "Guardar"}
             </Button>
           </Form>
         </ModalBody>
