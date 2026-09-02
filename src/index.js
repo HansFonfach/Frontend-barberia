@@ -55,6 +55,11 @@ import ConfirmarReserva from "views/publico/ConfirmarReserva";
 import SuperAdminLogin from "views/superadmin/SuperAdminLogin";
 import SuperAdminDashboard from "views/superadmin/SuperAdminDashboard";
 
+// Red de seguridad ante errores de render (evita la pantalla en blanco) y
+// detección de versión vieja del sitio en el navegador del usuario.
+import ErrorBoundary from "components/ErrorBoundary";
+import { iniciarVersionWatcher } from "utils/versionWatcher";
+
 // Wrapper por empresa (slug)
 const EmpresaWrapper = ({ children }) => {
   const { slug } = useParams();
@@ -100,9 +105,14 @@ const AdminProviders = ({ children }) => (
   </VentaDirectaProvider>
 );
 
+// Empieza a chequear si el navegador quedó con una versión vieja del sitio
+// (típico en celulares que cachean agresivo) y recarga sola si corresponde.
+iniciarVersionWatcher();
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
+    <ErrorBoundary>
     <BrowserRouter>
       <AuthProvider>
         <Routes>
@@ -224,5 +234,6 @@ root.render(
         </Routes>
       </AuthProvider>
     </BrowserRouter>
+    </ErrorBoundary>
   </React.StrictMode>,
 );
