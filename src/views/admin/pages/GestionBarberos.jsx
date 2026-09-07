@@ -91,9 +91,11 @@ const GestionBarberos = () => {
     handleRutChange,
     fotoPreview,
     handleFotoChange,
+    creando,
   } = useCrearBarbero();
 
   const [especialidadInput, setEspecialidadInput] = useState("");
+  const [cambiandoEstadoId, setCambiandoEstadoId] = useState(null);
 
   // ── foto edición: vive en el componente, no en el hook ──
   const [fotoEditPreview, setFotoEditPreview] = useState(null);
@@ -191,15 +193,20 @@ const GestionBarberos = () => {
           cancelButtonText: "Cancelar",
         });
         if (confirm.isConfirmed) {
-          await handleCambiarEstado(
-            usuario._id,
-            activar ? "activo" : "inactivo",
-          );
-          Swal.fire(
-            "Listo",
-            activar ? "Profesional reactivado" : "Profesional inactivado",
-            "success",
-          );
+          setCambiandoEstadoId(usuario._id);
+          try {
+            await handleCambiarEstado(
+              usuario._id,
+              activar ? "activo" : "inactivo",
+            );
+            Swal.fire(
+              "Listo",
+              activar ? "Profesional reactivado" : "Profesional inactivado",
+              "success",
+            );
+          } finally {
+            setCambiandoEstadoId(null);
+          }
         }
       }
     } catch (error) {
@@ -281,6 +288,7 @@ const GestionBarberos = () => {
                                   color={activo ? "danger" : "success"}
                                   block
                                   onClick={() => handleAccion("estado", b)}
+                                  disabled={cambiandoEstadoId === b._id}
                                 >
                                   <Power size={14} />
                                 </Button>
@@ -500,8 +508,12 @@ const GestionBarberos = () => {
             </Row>
 
             <div className="text-right mt-3">
-              <Button color="primary" onClick={handleCrearBarbero}>
-                Crear
+              <Button
+                color="primary"
+                onClick={handleCrearBarbero}
+                disabled={creando}
+              >
+                {creando ? "Creando..." : "Crear"}
               </Button>
             </div>
           </Form>

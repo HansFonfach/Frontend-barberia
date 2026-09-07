@@ -22,6 +22,7 @@ export const useCrearBarbero = () => {
   const { crearBarbero } = useUsuario();
   const [fotoPreview, setFotoPreview] = useState(null);
   const [fotoFile, setFotoFile] = useState(null);
+  const [creando, setCreando] = useState(false);
 
   const { rut, error: rutError, handleRutChange, isValid: rutValido, clearRut } = useRutValidator();
 
@@ -65,6 +66,7 @@ export const useCrearBarbero = () => {
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
       return Swal.fire("Error", "Email inválido", "error");
 
+    setCreando(true);
     try {
       const formData = new FormData();
       Object.entries(formCrear).forEach(([key, value]) => {
@@ -86,6 +88,8 @@ export const useCrearBarbero = () => {
       setModalCrear(false);
     } catch (error) {
       Swal.fire("Error", error.response?.data?.message || "Error al crear", "error");
+    } finally {
+      setCreando(false);
     }
   };
 
@@ -100,5 +104,6 @@ export const useCrearBarbero = () => {
     handleRutChange,
     fotoPreview,
     handleFotoChange,
+    creando,
   };
 };

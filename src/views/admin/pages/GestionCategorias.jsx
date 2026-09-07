@@ -41,6 +41,7 @@ const GestionCategorias = () => {
     nombre: "",
     orden: 0,
   });
+  const [guardando, setGuardando] = useState(false);
 
   useEffect(() => {
     const cargarCategorias = async () => {
@@ -80,6 +81,7 @@ const GestionCategorias = () => {
       return;
     }
 
+    setGuardando(true);
     try {
       if (editando) {
         //await updateCategoria(form._id, {
@@ -97,6 +99,8 @@ const GestionCategorias = () => {
       setModal(false);
     } catch (error) {
       Swal.fire("Error", "No se pudo guardar", "error");
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -302,8 +306,13 @@ const GestionCategorias = () => {
               />
             </FormGroup>
 
-            <Button block color="primary" onClick={handleGuardar}>
-              Guardar
+            <Button
+              block
+              color="primary"
+              onClick={handleGuardar}
+              disabled={guardando}
+            >
+              {guardando ? "Guardando..." : "Guardar"}
             </Button>
           </Form>
         </ModalBody>

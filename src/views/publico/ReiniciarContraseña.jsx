@@ -23,6 +23,7 @@ const ResetPassword = () => {
   const { token, slug } = useParams();
   const { resetPassword } = useAuth();
   const { empresa } = useEmpresa();
+  const [guardando, setGuardando] = useState(false);
 
   const [form, setForm] = useState({
     password: "",
@@ -47,6 +48,7 @@ const ResetPassword = () => {
       });
     }
 
+    setGuardando(true);
     try {
       const res = await resetPassword(token, form.password);
 
@@ -65,6 +67,8 @@ const ResetPassword = () => {
           "Hubo un problema al actualizar la contraseña.",
         icon: "error",
       });
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -134,8 +138,13 @@ const ResetPassword = () => {
             </FormGroup>
 
             <div className="text-center">
-              <Button className="my-4" color="primary" type="submit">
-                Cambiar contraseña
+              <Button
+                className="my-4"
+                color="primary"
+                type="submit"
+                disabled={guardando}
+              >
+                {guardando ? "Guardando..." : "Cambiar contraseña"}
               </Button>
             </div>
           </Form>

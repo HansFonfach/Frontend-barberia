@@ -41,6 +41,7 @@ const Register = () => {
   const [passwordMatch, setPasswordMatch] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [registrando, setRegistrando] = useState(false);
   const { slug } = useParams();
   const { empresa } = useEmpresa();
 
@@ -88,6 +89,7 @@ const Register = () => {
       return;
     }
 
+    setRegistrando(true);
     try {
       const result = await register({ ...form, rut }, slug);
 
@@ -136,6 +138,8 @@ const Register = () => {
         title: "No se pudo registrar",
         text: message,
       });
+    } finally {
+      setRegistrando(false);
     }
   };
 
@@ -407,10 +411,12 @@ const Register = () => {
                     backgroundColor: isLumica ? lumicaTheme.primary : undefined,
                     borderColor: isLumica ? lumicaTheme.primary : undefined,
                     color: "#FFFFFF",
+                    opacity: registrando ? 0.75 : 1,
                   }}
                   type="submit"
+                  disabled={registrando}
                 >
-                  Crear cuenta
+                  {registrando ? "Registrando..." : "Crear cuenta"}
                 </Button>
               </div>
             </Form>

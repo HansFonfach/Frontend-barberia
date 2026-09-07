@@ -26,6 +26,10 @@ const ReservaDetalleModal = ({
   const [modalNota, setModalNota] = useState(false);
   const [extrasSeleccionados, setExtrasSeleccionados] = useState([]); // 👈
   const [observacionReserva, setObservacionReserva] = useState("");
+  const [procesandoAbono, setProcesandoAbono] = useState(false);
+  const [guardandoDetalle, setGuardandoDetalle] = useState(false);
+  const [cancelando, setCancelando] = useState(false);
+  const [marcandoNoAsistio, setMarcandoNoAsistio] = useState(false);
 
   const { actualizarReserva, marcarAbono, revertirAbono } = useReserva();
 
@@ -74,21 +78,26 @@ const ReservaDetalleModal = ({
 
     if (!isConfirmed) return;
 
-    const reservaActualizada = await marcarAbono(
-      reservaSeleccionada._id,
-      Number(monto),
-    );
+    setProcesandoAbono(true);
+    try {
+      const reservaActualizada = await marcarAbono(
+        reservaSeleccionada._id,
+        Number(monto),
+      );
 
-    if (!reservaActualizada) return;
+      if (!reservaActualizada) return;
 
-    setReservaSeleccionada(reservaActualizada);
+      setReservaSeleccionada(reservaActualizada);
 
-    Swal.fire({
-      icon: "success",
-      title: "Abono registrado",
-      timer: 1600,
-      showConfirmButton: false,
-    });
+      Swal.fire({
+        icon: "success",
+        title: "Abono registrado",
+        timer: 1600,
+        showConfirmButton: false,
+      });
+    } finally {
+      setProcesandoAbono(false);
+    }
   };
 
   const handleRevertirAbono = async () => {
@@ -104,17 +113,22 @@ const ReservaDetalleModal = ({
 
     if (!isConfirmed) return;
 
-    const reservaActualizada = await revertirAbono(reservaSeleccionada._id);
-    if (!reservaActualizada) return;
+    setProcesandoAbono(true);
+    try {
+      const reservaActualizada = await revertirAbono(reservaSeleccionada._id);
+      if (!reservaActualizada) return;
 
-    setReservaSeleccionada(reservaActualizada);
+      setReservaSeleccionada(reservaActualizada);
 
-    Swal.fire({
-      icon: "success",
-      title: "Abono revertido",
-      timer: 1400,
-      showConfirmButton: false,
-    });
+      Swal.fire({
+        icon: "success",
+        title: "Abono revertido",
+        timer: 1400,
+        showConfirmButton: false,
+      });
+    } finally {
+      setProcesandoAbono(false);
+    }
   };
 
   const handleGuardarNota = async (clienteId, notasProfesional) => {
@@ -158,21 +172,26 @@ const ReservaDetalleModal = ({
       cantidad: e.cantidad,
     }));
 
-    const res = await actualizarReserva(
-      reservaSeleccionada._id,
-      observacionReserva,
-      productosPayload,
-      extrasPayload, // 👈
-    );
+    setGuardandoDetalle(true);
+    try {
+      const res = await actualizarReserva(
+        reservaSeleccionada._id,
+        observacionReserva,
+        productosPayload,
+        extrasPayload, // 👈
+      );
 
-    if (!res) return;
-    setModal(false);
-    Swal.fire({
-      icon: "success",
-      title: "Detalle guardado",
-      timer: 1600,
-      showConfirmButton: false,
-    });
+      if (!res) return;
+      setModal(false);
+      Swal.fire({
+        icon: "success",
+        title: "Detalle guardado",
+        timer: 1600,
+        showConfirmButton: false,
+      });
+    } finally {
+      setGuardandoDetalle(false);
+    }
   };
 
   if (!reservaSeleccionada) return null;
@@ -221,21 +240,26 @@ const ReservaDetalleModal = ({
 
     if (!isConfirmed) return;
 
-    await cancelarReserva(reservaSeleccionada._id, motivo);
+    setCancelando(true);
+    try {
+      await cancelarReserva(reservaSeleccionada._id, motivo);
 
-    setModal(false);
+      setModal(false);
 
-    Swal.fire({
-      title: "Reserva cancelada",
+      Swal.fire({
+        title: "Reserva cancelada",
 
-      text: "La reserva fue cancelada correctamente.",
+        text: "La reserva fue cancelada correctamente.",
 
-      icon: "success",
+        icon: "success",
 
-      timer: 2000,
+        timer: 2000,
 
-      showConfirmButton: false,
-    });
+        showConfirmButton: false,
+      });
+    } finally {
+      setCancelando(false);
+    }
   };
 
   /* =========================
@@ -243,23 +267,28 @@ const ReservaDetalleModal = ({
   ========================= */
 
   const handleNoAsistio = async () => {
-    const res = await marcarReservaNoAsistida(reservaSeleccionada._id);
+    setMarcandoNoAsistio(true);
+    try {
+      const res = await marcarReservaNoAsistida(reservaSeleccionada._id);
 
-    if (!res) return;
+      if (!res) return;
 
-    setModal(false);
+      setModal(false);
 
-    Swal.fire({
-      title: "Reserva actualizada",
+      Swal.fire({
+        title: "Reserva actualizada",
 
-      text: "Marcada como NO ASISTIÓ",
+        text: "Marcada como NO ASISTIÓ",
 
-      icon: "success",
+        icon: "success",
 
-      timer: 2000,
+        timer: 2000,
 
-      showConfirmButton: false,
-    });
+        showConfirmButton: false,
+      });
+    } finally {
+      setMarcandoNoAsistio(false);
+    }
   };
 
   return (
@@ -295,6 +324,7 @@ const ReservaDetalleModal = ({
                 reservaSeleccionada={reservaSeleccionada}
                 onMarcarAbono={handleMarcarAbono}
                 onRevertirAbono={handleRevertirAbono}
+                procesandoAbono={procesandoAbono}
               />
             </Col>
           </Row>
@@ -326,9 +356,10 @@ const ReservaDetalleModal = ({
                 color="warning"
                 className="mr-2 mb-2"
                 onClick={handleNoAsistio}
+                disabled={marcandoNoAsistio || cancelando || guardandoDetalle}
               >
                 <i className="ni ni-user-run mr-1"></i>
-                No asistió
+                {marcandoNoAsistio ? "Guardando..." : "No asistió"}
               </Button>
 
               {/* REAGENDAR */}
@@ -350,9 +381,10 @@ const ReservaDetalleModal = ({
                 color="danger"
                 className="mr-2 mb-2"
                 onClick={handleCancelar}
+                disabled={cancelando || marcandoNoAsistio || guardandoDetalle}
               >
                 <i className="ni ni-fat-remove mr-1"></i>
-                Cancelar
+                {cancelando ? "Cancelando..." : "Cancelar"}
               </Button>
             </>
           )}
@@ -362,9 +394,10 @@ const ReservaDetalleModal = ({
             color="success"
             className="mr-2 mb-2"
             onClick={handleGuardarDetalle} // ← esto
+            disabled={guardandoDetalle || cancelando || marcandoNoAsistio}
           >
             <i className="ni ni-check-bold mr-1"></i>
-            Guardar detalle
+            {guardandoDetalle ? "Guardando..." : "Guardar detalle"}
           </Button>
           {/* CERRAR */}
           <Button color="secondary" onClick={() => setModal(false)}>

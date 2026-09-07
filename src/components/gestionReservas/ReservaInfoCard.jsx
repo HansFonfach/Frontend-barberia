@@ -10,6 +10,7 @@ const ReservaInfoCard = ({
   reservaSeleccionada,
   onMarcarAbono,
   onRevertirAbono,
+  procesandoAbono,
 }) => {
   const abono = reservaSeleccionada.abono;
   const totalServicio = reservaSeleccionada.servicioSnapshot?.precio || 0;
@@ -68,12 +69,23 @@ const ReservaInfoCard = ({
         )}
 
         {abono?.estado === "pagado" ? (
-          <Button color="danger" outline size="sm" onClick={onRevertirAbono}>
-            Revertir abono
+          <Button
+            color="danger"
+            outline
+            size="sm"
+            onClick={onRevertirAbono}
+            disabled={procesandoAbono}
+          >
+            {procesandoAbono ? "Procesando..." : "Revertir abono"}
           </Button>
         ) : (
-          <Button color="info" size="sm" onClick={onMarcarAbono}>
-            Marcar abonado
+          <Button
+            color="info"
+            size="sm"
+            onClick={onMarcarAbono}
+            disabled={procesandoAbono}
+          >
+            {procesandoAbono ? "Procesando..." : "Marcar abonado"}
           </Button>
         )}
       </CardBody>

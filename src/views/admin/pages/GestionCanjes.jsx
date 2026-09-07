@@ -47,6 +47,8 @@ const GestionCanjesPro = () => {
     direction: "asc",
   });
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [guardando, setGuardando] = useState(false);
+  const [eliminandoId, setEliminandoId] = useState(null);
 
   const { crearCanje, actualizarCanje, listarCanjes, canjes, loading, error } =
     useCanje();
@@ -143,6 +145,7 @@ const GestionCanjesPro = () => {
       stock: Number(form.stock),
     };
 
+    setGuardando(true);
     try {
       if (editId) {
         await actualizarCanje(editId, payload);
@@ -168,6 +171,8 @@ const GestionCanjesPro = () => {
           ? "No se pudo actualizar el canje"
           : "No se pudo crear el canje",
       });
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -194,12 +199,15 @@ const GestionCanjesPro = () => {
     });
 
     if (result.isConfirmed) {
+      setEliminandoId(id);
       try {
         // Aquí llamarías a tu función de eliminar del context
         // await eliminarCanje(id);
         Swal.fire("Eliminado!", "El canje ha sido eliminado.", "success");
       } catch (error) {
         Swal.fire("Error", "No se pudo eliminar el canje.", "error");
+      } finally {
+        setEliminandoId(null);
       }
     }
   };
@@ -488,11 +496,14 @@ const GestionCanjesPro = () => {
                         color="secondary"
                         className="mr-2"
                         onClick={resetForm}
+                        disabled={guardando}
                       >
                         Cancelar
                       </Button>
-                      <Button color="primary" type="submit">
-                        {editId ? "Actualizar" : "Crear"} canje
+                      <Button color="primary" type="submit" disabled={guardando}>
+                        {guardando
+                          ? "Guardando..."
+                          : `${editId ? "Actualizar" : "Crear"} canje`}
                       </Button>
                     </div>
                   </Form>
@@ -678,9 +689,12 @@ const GestionCanjesPro = () => {
                                     onClick={() =>
                                       handleDelete(canje.id, canje.nombre)
                                     }
+                                    disabled={eliminandoId === canje.id}
                                   >
                                     <Trash2 size={14} className="mr-1" />{" "}
-                                    Eliminar
+                                    {eliminandoId === canje.id
+                                      ? "Eliminando..."
+                                      : "Eliminar"}
                                   </Button>
                                 </td>
                               </tr>

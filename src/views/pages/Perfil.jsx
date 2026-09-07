@@ -60,6 +60,7 @@ const Perfil = () => {
     apellido: "",
     telefono: "",
   });
+  const [guardando, setGuardando] = useState(false);
 
   /* =========================
      CARGAR DATOS
@@ -83,6 +84,7 @@ const Perfil = () => {
   };
 
   const handleSubmit = async () => {
+    setGuardando(true);
     try {
       await actualizarPerfil(formData);
       Swal.fire("Listo", "Perfil actualizado correctamente", "success");
@@ -92,6 +94,8 @@ const Perfil = () => {
         err.response?.data?.message || "Error",
         "error"
       );
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -248,8 +252,12 @@ const Perfil = () => {
                   <hr className="my-4" />
 
                   <div className="text-center">
-                    <Button color="info" onClick={handleSubmit}>
-                      Guardar cambios
+                    <Button
+                      color="info"
+                      onClick={handleSubmit}
+                      disabled={guardando}
+                    >
+                      {guardando ? "Guardando..." : "Guardar cambios"}
                     </Button>
                   </div>
                 </Form>

@@ -21,6 +21,7 @@ import { useEmpresa } from "context/EmpresaContext";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("");
+  const [enviando, setEnviando] = useState(false);
   const navigate = useNavigate();
   const { forgotPassword } = useAuth();
   const { slug } = useParams();
@@ -50,6 +51,7 @@ const ForgotPassword = () => {
       });
     }
 
+    setEnviando(true);
     try {
       await forgotPassword({ email, slug });
 
@@ -67,6 +69,8 @@ const ForgotPassword = () => {
           error.response?.data?.message ||
           "No pudimos enviar el correo, intenta nuevamente.",
       });
+    } finally {
+      setEnviando(false);
     }
   };
 
@@ -142,10 +146,12 @@ const ForgotPassword = () => {
                     backgroundColor: isLumica ? lumicaTheme.primary : undefined,
                     borderColor: isLumica ? lumicaTheme.primary : undefined,
                     color: "#FFFFFF",
+                    opacity: enviando ? 0.75 : 1,
                   }}
                   type="submit"
+                  disabled={enviando}
                 >
-                  Enviar enlace de recuperación
+                  {enviando ? "Enviando..." : "Enviar enlace de recuperación"}
                 </Button>
               </div>
             </Form>

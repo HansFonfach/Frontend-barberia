@@ -41,6 +41,8 @@ const GestionServicios = () => {
     abierto: false,
     servicio: null,
   });
+  const [guardando, setGuardando] = useState(false);
+  const [eliminandoId, setEliminandoId] = useState(null);
 
   const { slug } = useParams();
 
@@ -104,6 +106,7 @@ const GestionServicios = () => {
       return;
     }
 
+    setGuardando(true);
     try {
       if (editando) {
         await updateServicio(form._id, {
@@ -129,6 +132,8 @@ const GestionServicios = () => {
       setModal(false);
     } catch (error) {
       Swal.fire("Error", "No se pudo guardar", "error");
+    } finally {
+      setGuardando(false);
     }
   };
 
@@ -142,8 +147,13 @@ const GestionServicios = () => {
     });
 
     if (confirmar.isConfirmed) {
-      await deleteServicio(servicio._id);
-      Swal.fire("Eliminado", "Servicio eliminado", "success");
+      setEliminandoId(servicio._id);
+      try {
+        await deleteServicio(servicio._id);
+        Swal.fire("Eliminado", "Servicio eliminado", "success");
+      } finally {
+        setEliminandoId(null);
+      }
     }
   };
 
@@ -261,8 +271,11 @@ const GestionServicios = () => {
                               size="sm"
                               color="danger"
                               onClick={() => handleEliminar(s)}
+                              disabled={eliminandoId === s._id}
                             >
-                              Eliminar
+                              {eliminandoId === s._id
+                                ? "Eliminando..."
+                                : "Eliminar"}
                             </Button>
                             <Button
                               size="sm"
@@ -331,8 +344,11 @@ const GestionServicios = () => {
                                 size="sm"
                                 color="danger"
                                 onClick={() => handleEliminar(s)}
+                                disabled={eliminandoId === s._id}
                               >
-                                Eliminar
+                                {eliminandoId === s._id
+                                  ? "Eliminando..."
+                                  : "Eliminar"}
                               </Button>
                               <Button
                                 size="sm"
@@ -432,8 +448,13 @@ const GestionServicios = () => {
               />
             </FormGroup>
 
-            <Button block color="primary" onClick={handleGuardar}>
-              Guardar
+            <Button
+              block
+              color="primary"
+              onClick={handleGuardar}
+              disabled={guardando}
+            >
+              {guardando ? "Guardando..." : "Guardar"}
             </Button>
           </Form>
         </ModalBody>

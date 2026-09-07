@@ -64,6 +64,7 @@ const Login = () => {
   const { signIn, isAuthenticated } = useAuth();
   const { slug } = useParams();
   const { empresa } = useEmpresa();
+  const [cargando, setCargando] = useState(false);
 
   const navigate = useNavigate();
 
@@ -79,6 +80,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    setCargando(true);
     try {
       await signIn({
         ...form,
@@ -92,6 +94,8 @@ const Login = () => {
         icon: "error",
         confirmButtonText: "Aceptar",
       });
+    } finally {
+      setCargando(false);
     }
   };
 
@@ -230,10 +234,12 @@ const Login = () => {
                   minWidth: "220px",
                   borderRadius: "12px",
                   boxShadow: "0 10px 25px rgba(242,167,195,.35)",
+                  opacity: cargando ? 0.75 : 1,
                 }}
                 type="submit"
+                disabled={cargando}
               >
-                Iniciar Sesión
+                {cargando ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
             </div>
           </Form>

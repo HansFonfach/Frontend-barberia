@@ -293,13 +293,14 @@ const EstadoBadge = ({ activo }) => (
 );
 
 /* ─── Botón de acción ─── */
-const BtnIcon = ({ children, onClick, danger }) => {
+const BtnIcon = ({ children, onClick, danger, disabled }) => {
   const [hover, setHover] = useState(false);
   return (
     <button
       style={{
         ...S.btnIcon,
-        ...(hover
+        ...(disabled ? { opacity: 0.5, cursor: "not-allowed" } : {}),
+        ...(hover && !disabled
           ? danger
             ? {
                 borderColor: "#E24B4A",
@@ -311,7 +312,8 @@ const BtnIcon = ({ children, onClick, danger }) => {
       }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
     >
       {children}
     </button>
@@ -324,6 +326,7 @@ const GestionProductos = () => {
   const [modal, setModal] = useState(false);
   const [productoEdit, setProductoEdit] = useState(null);
   const [paginaActual, setPaginaActual] = useState(1);
+  const [eliminandoId, setEliminandoId] = useState(null);
 
   const { productos, listarProductos, eliminarProducto } = useProducto();
 
@@ -377,15 +380,19 @@ const GestionProductos = () => {
       confirmButtonColor: "#E24B4A",
     });
     if (!confirm.isConfirmed) return;
-    await eliminarProducto({ id: producto._id });
-  
+    setEliminandoId(producto._id);
+    try {
+      await eliminarProducto({ id: producto._id });
 
-    Swal.fire({
-      icon: "success",
-      title: "Producto eliminado",
-      timer: 1500,
-      showConfirmButton: false,
-    });
+      Swal.fire({
+        icon: "success",
+        title: "Producto eliminado",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } finally {
+      setEliminandoId(null);
+    }
   };
 
   const handleGuardar = () => {
@@ -545,6 +552,7 @@ const GestionProductos = () => {
                                 <BtnIcon
                                   danger
                                   onClick={() => handleEliminar(producto)}
+                                  disabled={eliminandoId === producto._id}
                                 >
                                   <FiTrash2 size={14} />
                                 </BtnIcon>
