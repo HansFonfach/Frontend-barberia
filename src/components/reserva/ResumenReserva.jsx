@@ -3,6 +3,7 @@ import React from "react";
 import { Card, CardBody, Button, Spinner, Badge } from "reactstrap";
 import { Zap, MapPin, Briefcase } from "lucide-react";
 import { useEmpresa } from "context/EmpresaContext";
+import { construirTema } from "utils/temaEmpresa";
 
 const ResumenReserva = ({
   usuarioEncontrado,
@@ -27,6 +28,7 @@ const ResumenReserva = ({
   const nombreServicio = servicioSeleccionado?.nombre || "—";
   const duracionServicio = servicioSeleccionado?.duracion;
   const { empresa } = useEmpresa();
+  const theme = construirTema(empresa?.colores);
 
   const serviciosLuegoReserva = Math.max(
     0,
@@ -74,36 +76,55 @@ const ResumenReserva = ({
 
   return (
     <>
-      <Card className="border-success shadow-sm mb-3">
+      <Card
+        className="shadow-sm mb-3"
+        style={{ border: `1px solid ${theme.primary}` }}
+      >
         <CardBody>
-          <h6 className="font-weight-bold text-success d-flex align-items-center">
+          <h6
+            className="font-weight-bold d-flex align-items-center"
+            style={{ color: theme.primary }}
+          >
             <Zap size={18} className="me-2" /> Resumen
           </h6>
 
           <div className="small">
-            <div className="d-flex justify-content-between border-bottom py-1">
-              <span>{obtenerIconoCliente()}Nombre:</span>
-              <strong>
+            <div
+              className="d-flex justify-content-between border-bottom py-1"
+              style={{ flexWrap: "nowrap", gap: 8 }}
+            >
+              <span style={{ flexShrink: 0 }}>
+                {obtenerIconoCliente()}Nombre:
+              </span>
+              <strong style={{ textAlign: "right", wordBreak: "break-word" }}>
                 {usuarioEncontrado
                   ? `${usuarioEncontrado.nombre} ${usuarioEncontrado.apellido}`
                   : rut || "—"}
               </strong>
             </div>
 
-            <div className="d-flex justify-content-between border-bottom py-1">
-              <span className="d-flex align-items-center gap-1">
-                <span>{obtenerIconoServicio()} Servicio:</span>
+            <div
+              className="d-flex justify-content-between border-bottom py-1"
+              style={{ flexWrap: "nowrap", gap: 8 }}
+            >
+              <span style={{ flexShrink: 0 }}>
+                {obtenerIconoServicio()} Servicio:
               </span>
-              <strong>
+              <strong style={{ textAlign: "right", wordBreak: "break-word" }}>
                 {duracionServicio
                   ? `${nombreServicio} (${duracionServicio} min)`
                   : nombreServicio}
               </strong>
             </div>
 
-            <div className="d-flex justify-content-between border-bottom py-1">
-              <span>{obtenerIconoProfesional()} Profesional:</span>
-              <strong>
+            <div
+              className="d-flex justify-content-between border-bottom py-1"
+              style={{ flexWrap: "nowrap", gap: 8 }}
+            >
+              <span style={{ flexShrink: 0 }}>
+                {obtenerIconoProfesional()} Profesional:
+              </span>
+              <strong style={{ textAlign: "right", wordBreak: "break-word" }}>
                 {barberoSeleccionado
                   ? `${barberoSeleccionado.nombre} ${barberoSeleccionado.apellido}`
                   : "—"}
@@ -181,7 +202,12 @@ const ResumenReserva = ({
       <div className="d-grid gap-2">
         <Button
           type="button"
-          color={excedente > 0 ? "warning" : "success"}
+          color={excedente > 0 ? "warning" : undefined}
+          style={
+            excedente > 0
+              ? undefined
+              : { backgroundColor: theme.primary, borderColor: theme.primary }
+          }
           size="lg"
           className="font-weight-bold"
           onClick={onReservar}
@@ -198,10 +224,10 @@ const ResumenReserva = ({
         </Button>
 
         {mostrarInfo && empresa && (
-          <Card className="border-success mt-1">
+          <Card className="mt-1" style={{ border: `1px solid ${theme.primary}` }}>
             <CardBody className="text-center">
-              <MapPin size={40} className="text-success mb-2" />
-              <h5 className="font-weight-bold text-success">
+              <MapPin size={40} className="mb-2" style={{ color: theme.primary }} />
+              <h5 className="font-weight-bold" style={{ color: theme.primary }}>
                 {empresa?.nombre || "—"}
               </h5>
               <p className="small text-muted mb-2">
@@ -218,8 +244,8 @@ const ResumenReserva = ({
                 📞 {empresa?.telefono || "—"}
               </p>
               <Badge
-                color="success"
                 className="rounded-pill text-white px-3 py-2"
+                style={{ backgroundColor: theme.primary }}
               >
                 ⭐ 4.8 (156)
               </Badge>

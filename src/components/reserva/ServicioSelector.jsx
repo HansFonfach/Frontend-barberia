@@ -2,6 +2,8 @@
 import { listarCategoriasPublico } from "api/categoria";
 import React, { useState, useEffect } from "react";
 import { FormGroup, Label, Row, Col, Button, Spinner } from "reactstrap";
+import { useEmpresa } from "context/EmpresaContext";
+import { construirTema, estiloBotonTema } from "utils/temaEmpresa";
 
 const useCategoriasPublicas = (slug) => {
   const [categorias, setCategorias] = useState([]);
@@ -52,6 +54,7 @@ const ChipsCategoria = ({
   categoriaActiva,
   setCategoriaActiva,
   hayServiciosSinCategoria,
+  theme,
 }) => (
   <div
     style={{
@@ -73,9 +76,9 @@ const ChipsCategoria = ({
     >
       <Button
         size="sm"
-        color={categoriaActiva === null ? "success" : "outline-success"}
         onClick={() => setCategoriaActiva(null)}
         style={{
+          ...estiloBotonTema(theme, categoriaActiva === null),
           borderRadius: "8px",
           fontSize: "13px",
           whiteSpace: "nowrap",
@@ -89,9 +92,9 @@ const ChipsCategoria = ({
         <Button
           key={c._id}
           size="sm"
-          color={categoriaActiva === c._id ? "success" : "outline-success"}
           onClick={() => setCategoriaActiva(c._id)}
           style={{
+            ...estiloBotonTema(theme, categoriaActiva === c._id),
             borderRadius: "8px",
             fontSize: "13px",
             whiteSpace: "nowrap",
@@ -105,11 +108,9 @@ const ChipsCategoria = ({
       {hayServiciosSinCategoria && (
         <Button
           size="sm"
-          color={
-            categoriaActiva === "SIN_CATEGORIA" ? "success" : "outline-success"
-          }
           onClick={() => setCategoriaActiva("SIN_CATEGORIA")}
           style={{
+            ...estiloBotonTema(theme, categoriaActiva === "SIN_CATEGORIA"),
             borderRadius: "8px",
             fontSize: "13px",
             whiteSpace: "nowrap",
@@ -153,6 +154,8 @@ const ServicioSelector = ({
 }) => {
   const { categorias, cargandoCategorias } = useCategoriasPublicas(slug);
   const [categoriaActiva, setCategoriaActiva] = useState(null);
+  const { empresa } = useEmpresa();
+  const theme = construirTema(empresa?.colores);
 
   const hayServiciosSinCategoria = servicios.some((s) => !getCategoriaId(s));
 
@@ -173,6 +176,7 @@ const ServicioSelector = ({
           categoriaActiva={categoriaActiva}
           setCategoriaActiva={setCategoriaActiva}
           hayServiciosSinCategoria={hayServiciosSinCategoria}
+          theme={theme}
         />
       )}
 
@@ -181,9 +185,9 @@ const ServicioSelector = ({
           <Col key={s._id} xs="6" sm="4" lg="4" className="mb-2">
             <Button
               block
-              color={servicio === s._id ? "success" : "outline-success"}
               onClick={() => onSeleccionarServicio(s._id)}
               style={{
+                ...estiloBotonTema(theme, servicio === s._id),
                 height: "60px",
                 whiteSpace: "normal",
                 wordWrap: "break-word",
@@ -233,6 +237,8 @@ export const ServicioSelectorConDetalles = ({
 }) => {
   const { categorias, cargandoCategorias } = useCategoriasPublicas(slug);
   const [categoriaActiva, setCategoriaActiva] = useState(null);
+  const { empresa } = useEmpresa();
+  const theme = construirTema(empresa?.colores);
 
   const hayServiciosSinCategoria = servicios.some((s) => !getCategoriaId(s));
 
@@ -253,6 +259,7 @@ export const ServicioSelectorConDetalles = ({
           categoriaActiva={categoriaActiva}
           setCategoriaActiva={setCategoriaActiva}
           hayServiciosSinCategoria={hayServiciosSinCategoria}
+          theme={theme}
         />
       )}
 
@@ -261,9 +268,9 @@ export const ServicioSelectorConDetalles = ({
           <Col key={s._id} xs="6" sm="4" lg="4" className="mb-2">
             <Button
               block
-              color={servicio === s._id ? "success" : "outline-success"}
               onClick={() => onSeleccionarServicio(s._id)}
               style={{
+                ...estiloBotonTema(theme, servicio === s._id),
                 height: "80px",
                 whiteSpace: "normal",
                 wordWrap: "break-word",

@@ -4,6 +4,8 @@ import { Container, Card, CardBody } from "reactstrap";
 import { CalendarCheck, Scissors } from "lucide-react";
 import UserHeader from "components/Headers/UserHeader.js";
 import { useAuth } from "context/AuthContext";
+import { useEmpresa } from "context/EmpresaContext";
+import { construirTema } from "utils/temaEmpresa";
 
 // Componentes
 import StepIndicator from "../../components/reserva/StepIndicator";
@@ -20,6 +22,8 @@ import { useParams } from "react-router-dom";
 
 const ReservarHora = () => {
   const { user } = useAuth();
+  const { empresa: empresaTema } = useEmpresa();
+  const theme = construirTema(empresaTema?.colores);
   const { serviciosBarberos, cargarServiciosBarbero } = useServicios();
   const { slug } = useParams();
 
@@ -130,7 +134,7 @@ const ReservarHora = () => {
   if (loadingServicios) {
     return (
       <Container className="mt-7 py-5 text-center">
-        <div className="spinner-border text-success" />
+        <div className="spinner-border" style={{ color: theme.primary }} />
         <p className="mt-3 text-muted">Cargando disponibilidad...</p>
       </Container>
     );
@@ -146,7 +150,10 @@ const ReservarHora = () => {
         <Card className="shadow-lg rounded-3 border-0 bg-white">
           <CardBody className="p-4">
             <div className="text-center mb-4">
-              <div className="bg-success rounded-circle d-inline-flex p-2 mb-3 shadow">
+              <div
+                className="rounded-circle d-inline-flex p-2 mb-3 shadow"
+                style={{ backgroundColor: theme.primary }}
+              >
                  <CalendarCheck size={28} className="text-white" />
               </div>
               <h2 className="h3 font-weight-bold text-dark mb-1">

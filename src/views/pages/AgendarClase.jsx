@@ -6,20 +6,22 @@ import UserHeader from "components/Headers/UserHeader.js";
 import { useAuth } from "context/AuthContext";
 import ClasesContext from "context/ClasesContext";
 import { getEstadoMembresiaCliente } from "api/membresiasClases";
-import ClaseGridSelector from "components/gestionClases/ClaseGridSelector";
 import DiaClaseSelector from "components/gestionClases/DiaClaseSelector";
-import HoraClaseSelector from "components/gestionClases/HoraClaseSelector";
+import HorarioClaseSelector from "components/gestionClases/HorarioClaseSelector";
+import ClaseEnHorarioSelector from "components/gestionClases/ClaseEnHorarioSelector";
 import ResumenInscripcionClase from "components/gestionClases/ResumenInscripcionClase";
 
 /* =========================================================
    Indicador de pasos — mismo look que StepIndicator de
    "Reservar hora", con las etiquetas propias de este flujo.
+   Orden: primero el horario que le acomoda, después qué clase
+   hay disponible en ese horario (antes era al revés).
 ========================================================= */
 const PasosAgendarClase = ({ pasoActual }) => {
   const pasos = [
-    { numero: 1, label: "Clase" },
-    { numero: 2, label: "Día" },
-    { numero: 3, label: "Hora" },
+    { numero: 1, label: "Día" },
+    { numero: 2, label: "Horario" },
+    { numero: 3, label: "Clase" },
     { numero: 4, label: "Confirmar" },
   ];
 
@@ -65,8 +67,8 @@ const AgendarClase = () => {
   const [estadoMembresia, setEstadoMembresia] = useState(null);
   const [cargando, setCargando] = useState(true);
 
-  const [claseId, setClaseId] = useState(null);
   const [diaSeleccionado, setDiaSeleccionado] = useState(null);
+  const [horaSeleccionada, setHoraSeleccionada] = useState(null);
   const [sesionSeleccionada, setSesionSeleccionada] = useState(null);
   const [tipoAcceso, setTipoAcceso] = useState("pase_dia");
   const [confirmando, setConfirmando] = useState(false);
@@ -114,14 +116,16 @@ const AgendarClase = () => {
     );
 
   const clasesActivas = clases.filter((c) => c.activa);
-  const claseSeleccionada = clasesActivas.find((c) => c._id === claseId);
+  const claseSeleccionada = clasesActivas.find(
+    (c) => c._id === sesionSeleccionada?.claseId,
+  );
 
-  const sesionesDeClase = sesiones.filter((s) => s.claseId === claseId);
-
-  // Agrupa las sesiones de la clase elegida por día, para la tira de días
+  // Agrupa TODAS las sesiones (de cualquier clase) por día, para la tira de
+  // días — acá todavía no se sabe qué clase quiere el cliente, así que se
+  // muestran los días que tengan sesión de lo que sea.
   const diasDisponibles = useMemo(() => {
     const porDia = new Map();
-    sesionesDeClase
+    sesiones
       .slice()
       .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
       .forEach((s) => {
@@ -133,11 +137,28 @@ const AgendarClase = () => {
       iso,
       sesiones: ses,
     }));
-  }, [sesionesDeClase]);
+  }, [sesiones]);
 
   const sesionesDelDia = diaSeleccionado
     ? diasDisponibles.find((d) => d.iso === diaSeleccionado)?.sesiones || []
     : [];
+
+  const formatHoraChile = (fechaISO) =>
+    new Date(fechaISO).toLocaleTimeString("es-CL", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "America/Santiago",
+    });
+
+  // Sesiones (de cualquier clase) que caen justo en el horario ya elegido.
+  const sesionesDelHorario = horaSeleccionada
+    ? sesionesDelDia.filter((s) => formatHoraChile(s.fecha) === horaSeleccionada)
+    : [];
+
+  // Solo las clases que de verdad tienen una sesión en ese día+horario.
+  const clasesDelHorario = clasesActivas.filter((c) =>
+    sesionesDelHorario.some((s) => s.claseId === c._id),
+  );
 
   // Ajusta la opción de acceso por defecto apenas se conoce el estado real
   useEffect(() => {
@@ -152,18 +173,29 @@ const AgendarClase = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sesionSeleccionada]);
 
-  const handleSeleccionarClase = (id) => {
-    setClaseId(id);
-    setDiaSeleccionado(null);
-    setSesionSeleccionada(null);
-  };
-
   const handleSeleccionarDia = (iso) => {
     setDiaSeleccionado(iso);
+    setHoraSeleccionada(null);
     setSesionSeleccionada(null);
   };
 
-  const pasoActual = !claseId ? 1 : !diaSeleccionado ? 2 : !sesionSeleccionada ? 3 : 4;
+  const handleSeleccionarHorario = (hora) => {
+    setHoraSeleccionada(hora);
+    setSesionSeleccionada(null);
+  };
+
+  const handleSeleccionarClaseEnHorario = (id) => {
+    const sesion = sesionesDelHorario.find((s) => s.claseId === id);
+    if (sesion) setSesionSeleccionada(sesion);
+  };
+
+  const pasoActual = !diaSeleccionado
+    ? 1
+    : !horaSeleccionada
+      ? 2
+      : !sesionSeleccionada
+        ? 3
+        : 4;
 
   const handleConfirmar = async () => {
     if (!sesionSeleccionada) return;
@@ -179,8 +211,8 @@ const AgendarClase = () => {
         icon: "success",
         confirmButtonText: "Aceptar",
       });
-      setClaseId(null);
       setDiaSeleccionado(null);
+      setHoraSeleccionada(null);
       setSesionSeleccionada(null);
       await cargarTodo();
     } catch (error) {
@@ -220,31 +252,32 @@ const AgendarClase = () => {
               <h2 className="h3 font-weight-bold text-dark mb-1">
                 Agendar clase
               </h2>
-              <p className="text-muted mb-0">Clase → Día → Hora → Confirmar</p>
+              <p className="text-muted mb-0">Día → Horario → Clase → Confirmar</p>
             </div>
 
             <Row>
               <Col lg="7" md="12" className="pr-lg-4">
-                <ClaseGridSelector
-                  clases={clasesActivas}
-                  claseId={claseId}
-                  onSeleccionar={handleSeleccionarClase}
+                <DiaClaseSelector
+                  dias={diasDisponibles}
+                  diaSeleccionado={diaSeleccionado}
+                  onSelectDay={handleSeleccionarDia}
                 />
 
-                {claseId && (
-                  <DiaClaseSelector
-                    dias={diasDisponibles}
-                    diaSeleccionado={diaSeleccionado}
-                    onSelectDay={handleSeleccionarDia}
-                    claseNombre={claseSeleccionada?.nombre}
+                {diaSeleccionado && (
+                  <HorarioClaseSelector
+                    sesionesDelDia={sesionesDelDia}
+                    horaSeleccionada={horaSeleccionada}
+                    onSeleccionar={handleSeleccionarHorario}
+                    yaInscrito={yaInscrito}
                   />
                 )}
 
-                {claseId && diaSeleccionado && (
-                  <HoraClaseSelector
-                    sesiones={sesionesDelDia}
-                    sesionSeleccionada={sesionSeleccionada}
-                    onSeleccionar={setSesionSeleccionada}
+                {diaSeleccionado && horaSeleccionada && (
+                  <ClaseEnHorarioSelector
+                    clases={clasesDelHorario}
+                    sesionesDelHorario={sesionesDelHorario}
+                    claseId={sesionSeleccionada?.claseId}
+                    onSeleccionar={handleSeleccionarClaseEnHorario}
                     yaInscrito={yaInscrito}
                   />
                 )}

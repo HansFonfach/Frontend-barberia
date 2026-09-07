@@ -44,6 +44,20 @@ import {
   Eye,
 } from "lucide-react";
 import { postLogoEmpresa } from "api/empresa";
+import {
+  obtenerTemaEmpresa,
+  TEMAS_LEGACY_POR_SLUG,
+  TEMA_DEFAULT,
+  TEMA_DEFAULT_GIMNASIO,
+} from "utils/temaEmpresa";
+
+// El "tema de fábrica" es el mismo que ya usan las páginas reales del
+// cliente (Landing.jsx, LandingGimnasio.jsx, etc). Se usa como respaldo acá
+// también, para que abrir "Configuración → Colores" — o guardar cualquier
+// otra pestaña sin haber tocado colores — nunca reemplace el color real que
+// ya tiene el negocio por un azul genérico que nunca ha usado.
+const obtenerTemaDeFabrica = (empresa) =>
+  empresa?.rubro === "gimnasio" ? TEMA_DEFAULT_GIMNASIO : TEMA_DEFAULT;
 
 // ─── Utilidad: oscurecer/aclarar color hex ────────────────────────────────────
 function adjustColor(hex, amount) {
@@ -173,7 +187,7 @@ const SectionTitle = ({ icon, title }) => (
   </div>
 );
 
-const ColorField = ({ label, value, onChange }) => (
+const ColorField = ({ label, value, onChange, hint, preview }) => (
   <FormGroup className="mb-3">
     <Label
       style={{
@@ -207,7 +221,209 @@ const ColorField = ({ label, value, onChange }) => (
         style={{ borderRadius: 8, fontSize: "0.9rem" }}
       />
     </div>
+    {hint && (
+      <small className="text-muted d-block mt-1" style={{ lineHeight: 1.4 }}>
+        {hint}
+      </small>
+    )}
+    {preview && <div className="mt-2">{preview}</div>}
   </FormGroup>
+);
+
+// ─── Muestra en vivo junto a cada color: para que se entienda de un vistazo
+// qué parte real de la página cambia, sin tener que subir a mirar la vista
+// previa grande de arriba cada vez. ───────────────────────────────────────
+const MuestraColor = ({ tipo, colores }) => {
+  const primario = colores.primario || "#5e72e4";
+  const secundario = colores.secundario || "#2dce89";
+  const fondo = colores.fondo || "#ffffff";
+  const texto = colores.texto || "#172b4d";
+  const textoMuted = colores.textoMuted || "#8898aa";
+  const acento = colores.acento || primario;
+  const tarjeta = colores.tarjeta || "#ffffff";
+  const bordeTarjeta = colores.bordeTarjeta || "#e9ecef";
+  const sidebar = colores.sidebar || primario;
+
+  const cajaEstilo = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "8px 10px",
+    borderRadius: 8,
+    background: "#fbfbfd",
+    border: "1px dashed #e9ecef",
+  };
+
+  switch (tipo) {
+    case "primario":
+      return (
+        <div style={cajaEstilo}>
+          <span
+            style={{
+              background: primario,
+              color: "#fff",
+              padding: "6px 14px",
+              borderRadius: 8,
+              fontSize: "0.75rem",
+              fontWeight: 700,
+            }}
+          >
+            Reservar hora
+          </span>
+          <small style={{ color: "#8898aa", fontSize: "0.72rem" }}>
+            así se ve el botón de reservar y la hora que elige el cliente
+          </small>
+        </div>
+      );
+    case "secundario":
+      return (
+        <div style={cajaEstilo}>
+          <span
+            style={{
+              background: secundario,
+              color: "#fff",
+              padding: "5px 12px",
+              borderRadius: 8,
+              fontSize: "0.72rem",
+              fontWeight: 700,
+            }}
+          >
+            Detalle
+          </span>
+          <small style={{ color: "#8898aa", fontSize: "0.72rem" }}>
+            para acentos puntuales, no el botón principal
+          </small>
+        </div>
+      );
+    case "fondo":
+      return (
+        <div
+          style={{
+            ...cajaEstilo,
+            background: fondo,
+            border: "1px solid #e9ecef",
+          }}
+        >
+          <small style={{ color: texto, fontSize: "0.72rem" }}>
+            así se ve el fondo detrás de tu contenido
+          </small>
+        </div>
+      );
+    case "texto":
+      return (
+        <div style={cajaEstilo}>
+          <strong style={{ color: texto, fontSize: "0.8rem" }}>
+            Corte clásico — $8.000
+          </strong>
+          <small style={{ color: "#8898aa", fontSize: "0.72rem" }}>
+            así se ven los títulos y precios
+          </small>
+        </div>
+      );
+    case "textoMuted":
+      return (
+        <div style={cajaEstilo}>
+          <small style={{ color: textoMuted, fontSize: "0.8rem" }}>
+            Duración: 30 min
+          </small>
+          <small style={{ color: "#8898aa", fontSize: "0.72rem" }}>
+            así se ven los subtítulos y notas
+          </small>
+        </div>
+      );
+    case "acento":
+      return (
+        <div style={cajaEstilo}>
+          <span
+            style={{
+              width: 16,
+              height: 16,
+              borderRadius: "50%",
+              background: acento,
+              display: "inline-block",
+            }}
+          />
+          <small style={{ color: "#8898aa", fontSize: "0.72rem" }}>
+            para detalles pequeños e íconos
+          </small>
+        </div>
+      );
+    case "tarjeta":
+      return (
+        <div
+          style={{
+            ...cajaEstilo,
+            background: tarjeta,
+            border: `1px solid ${bordeTarjeta}`,
+          }}
+        >
+          <small style={{ color: texto, fontSize: "0.72rem" }}>
+            así se ve una tarjeta en tu panel (ej: la ficha de un cliente)
+          </small>
+        </div>
+      );
+    case "sidebar":
+      return (
+        <div style={cajaEstilo}>
+          <span
+            style={{
+              width: 28,
+              height: 20,
+              borderRadius: 5,
+              background: sidebar,
+              display: "inline-block",
+            }}
+          />
+          <small style={{ color: "#8898aa", fontSize: "0.72rem" }}>
+            el menú de la izquierda cuando administras tu negocio
+          </small>
+        </div>
+      );
+    default:
+      return null;
+  }
+};
+
+// ─── Vista previa combinada de la portada (hero): junta fondo + interruptor
+// de "fondo claro" en una sola muestra, porque son dos controles que se
+// entienden mejor juntos que por separado. ─────────────────────────────────
+const VistaPreviaHero = ({ heroBg, heroEsClaro }) => (
+  <div
+    className="mt-2 mb-3"
+    style={{
+      borderRadius: 10,
+      overflow: "hidden",
+      border: "1px solid #e9ecef",
+    }}
+  >
+    <div
+      style={{
+        background:
+          heroBg || "linear-gradient(150deg, #172b4d 0%, #1a174d 100%)",
+        padding: "22px 18px",
+        textAlign: "center",
+      }}
+    >
+      <div
+        style={{
+          fontWeight: 800,
+          fontSize: "1rem",
+          color: heroEsClaro ? "#172b4d" : "#ffffff",
+          marginBottom: 4,
+        }}
+      >
+        Bienvenido a tu negocio
+      </div>
+      <div
+        style={{
+          fontSize: "0.75rem",
+          color: heroEsClaro ? "#525f7f" : "rgba(255,255,255,0.85)",
+        }}
+      >
+        así se ve el título de tu portada ahora mismo
+      </div>
+    </div>
+  </div>
 );
 
 const Toggle = ({ label, hint, checked, onChange }) => (
@@ -489,6 +705,128 @@ const ColorPreview = ({ colores }) => (
           Así se verá el texto secundario en tu dashboard
         </p>
       </div>
+
+      {/* Mockup de la página de reserva real (clientes) */}
+      <p
+        style={{
+          fontSize: "0.75rem",
+          color: "#8898aa",
+          fontWeight: 600,
+          margin: "16px 0 12px",
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+        }}
+      >
+        Así se verá tu página de reservar hora
+      </p>
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: 10,
+          border: "1px solid #e9ecef",
+          padding: 14,
+        }}
+      >
+        <small
+          style={{
+            fontWeight: 700,
+            color: colores.texto || "#172b4d",
+            display: "block",
+            marginBottom: 8,
+          }}
+        >
+          Servicio
+        </small>
+        <div
+          className="d-flex flex-wrap"
+          style={{ gap: 6, marginBottom: 10 }}
+        >
+          {["Todos", "Promociones", "Otros"].map((label, i) => (
+            <span
+              key={label}
+              style={{
+                borderRadius: 8,
+                padding: "5px 12px",
+                fontSize: "0.72rem",
+                fontWeight: 600,
+                background: i === 0 ? colores.primario || "#5e72e4" : "#fff",
+                color: i === 0 ? "#fff" : colores.primario || "#5e72e4",
+                border: `1.5px solid ${colores.primario || "#5e72e4"}`,
+              }}
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+        <div className="d-flex flex-wrap" style={{ gap: 6, marginBottom: 14 }}>
+          {["Corte clásico", "Diseño de cejas"].map((label, i) => (
+            <span
+              key={label}
+              style={{
+                borderRadius: 8,
+                padding: "10px 14px",
+                fontSize: "0.72rem",
+                fontWeight: 600,
+                textAlign: "center",
+                background: i === 0 ? colores.primario || "#5e72e4" : "#fff",
+                color: i === 0 ? "#fff" : colores.primario || "#5e72e4",
+                border: `1.5px solid ${colores.primario || "#5e72e4"}`,
+              }}
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+
+        <div
+          style={{
+            border: `1px solid ${colores.primario || "#5e72e4"}`,
+            borderRadius: 10,
+            padding: 12,
+            maxWidth: 220,
+          }}
+        >
+          <small
+            style={{
+              fontWeight: 700,
+              color: colores.primario || "#5e72e4",
+              display: "block",
+              marginBottom: 6,
+            }}
+          >
+            ⚡ Resumen
+          </small>
+          {["Servicio", "Profesional", "Hora"].map((label) => (
+            <div
+              key={label}
+              className="d-flex justify-content-between"
+              style={{
+                fontSize: "0.7rem",
+                color: colores.textoMuted || "#8898aa",
+                borderBottom: "1px solid #f1f1f1",
+                padding: "3px 0",
+              }}
+            >
+              <span>{label}:</span>
+              <strong style={{ color: colores.texto || "#172b4d" }}>—</strong>
+            </div>
+          ))}
+          <div
+            style={{
+              marginTop: 8,
+              background: colores.primario || "#5e72e4",
+              color: "#fff",
+              textAlign: "center",
+              borderRadius: 8,
+              padding: "6px 0",
+              fontSize: "0.72rem",
+              fontWeight: 700,
+            }}
+          >
+            ✅ Confirmar Reserva
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 );
@@ -681,6 +1019,16 @@ const ConfiguracionEmpresa = () => {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingFoto, setUploadingFoto] = useState(false);
 
+  // El color real que ya tiene ESTE negocio hoy en su página (el mismo que
+  // calculan las páginas de cliente), para usarlo como respaldo en vez de
+  // un azul genérico. Así, si el negocio nunca ha tocado sus colores, tanto
+  // el formulario como "Resetear colores" reflejan lo que ya se ve, no un
+  // valor inventado que nadie eligió.
+  const temaActual = obtenerTemaEmpresa(empresa, empresa?.slug, {
+    temasLegacyPorSlug: TEMAS_LEGACY_POR_SLUG,
+    temaDeFabrica: obtenerTemaDeFabrica(empresa),
+  });
+
   // ── Aplica los colores al :root en tiempo real mientras edita ──
   useThemeLive(form?.colores, form?.configuracion);
 
@@ -701,13 +1049,14 @@ const ConfiguracionEmpresa = () => {
         youtube: empresa.redes?.youtube || "",
       },
       colores: {
-        primario: empresa.colores?.primario || "#5e72e4",
-        secundario: empresa.colores?.secundario || "#2dce89",
+        primario: empresa.colores?.primario || temaActual.primary,
+        secundario: empresa.colores?.secundario || temaActual.secondary,
         fondo: empresa.colores?.fondo || "#FFFFFF",
-        texto: empresa.colores?.texto || "#172b4d",
-        textoMuted: empresa.colores?.textoMuted || "#8898aa",
-        heroBg: empresa.colores?.heroBg || "",
-        heroEsClaro: empresa.colores?.heroEsClaro ?? false,
+        texto: empresa.colores?.texto || temaActual.textDark,
+        textoMuted: empresa.colores?.textoMuted || temaActual.textMuted,
+        heroBg: empresa.colores?.heroBg || temaActual.heroBg,
+        heroEsClaro:
+          empresa.colores?.heroEsClaro ?? temaActual.variant === "light",
         // Nuevos opcionales:
         acento: empresa.colores?.acento || "#fb6340",
         sidebar: empresa.colores?.sidebar || null,
@@ -796,16 +1145,17 @@ const ConfiguracionEmpresa = () => {
     );
   };
 
-  // ── Resetear colores a defaults ──
+  // ── Resetear colores: vuelve a los colores que tu negocio ya tenía antes
+  // de personalizar nada (no a un azul genérico) ──
   const resetColores = () => {
     set("colores", {
-      primario: "#5e72e4",
-      secundario: "#2dce89",
+      primario: temaActual.primary,
+      secundario: temaActual.secondary,
       fondo: "#FFFFFF",
-      texto: "#172b4d",
-      textoMuted: "#8898aa",
-      heroBg: "",
-      heroEsClaro: false,
+      texto: temaActual.textDark,
+      textoMuted: temaActual.textMuted,
+      heroBg: temaActual.heroBg,
+      heroEsClaro: temaActual.variant === "light",
       acento: "#fb6340",
       sidebar: null,
       tarjeta: "#ffffff",
@@ -1199,7 +1549,7 @@ const ConfiguracionEmpresa = () => {
                 {/* ════ APARIENCIA ════ */}
                 {tab === "apariencia" && (
                   <>
-                    <div className="d-flex align-items-center justify-content-between mb-4">
+                    <div className="d-flex align-items-center justify-content-between mb-3">
                       <SectionTitle
                         icon={<Palette size={18} />}
                         title="Colores y apariencia"
@@ -1221,6 +1571,16 @@ const ConfiguracionEmpresa = () => {
                       </button>
                     </div>
 
+                    <p
+                      className="text-muted mb-4"
+                      style={{ fontSize: "0.85rem", maxWidth: 640 }}
+                    >
+                      Junto a cada color hay una muestra chica que te
+                      muestra, al tiro, qué parte de tu página cambia. Y más
+                      abajo, en "Vista previa en tiempo real", puedes ver
+                      cómo queda tu página de reservar hora completa.
+                    </p>
+
                     {/* Vista previa en tiempo real */}
                     <ColorPreview colores={form.colores} />
 
@@ -1228,9 +1588,13 @@ const ConfiguracionEmpresa = () => {
                     <Row>
                       <Col md={6}>
                         <ColorField
-                          label="Color primario"
+                          label="Color principal"
                           value={form.colores.primario}
                           onChange={(v) => set("colores.primario", v)}
+                          hint="El color de tu marca: se usa en el botón de reservar, la hora que elige el cliente y los detalles más destacados."
+                          preview={
+                            <MuestraColor tipo="primario" colores={form.colores} />
+                          }
                         />
                       </Col>
                       <Col md={6}>
@@ -1238,27 +1602,43 @@ const ConfiguracionEmpresa = () => {
                           label="Color secundario"
                           value={form.colores.secundario}
                           onChange={(v) => set("colores.secundario", v)}
+                          hint="Para detalles y botones de apoyo — no es el color principal, es un complemento."
+                          preview={
+                            <MuestraColor tipo="secundario" colores={form.colores} />
+                          }
                         />
                       </Col>
                       <Col md={6}>
                         <ColorField
-                          label="Color de fondo"
+                          label="Fondo de las páginas"
                           value={form.colores.fondo}
                           onChange={(v) => set("colores.fondo", v)}
+                          hint="El color de fondo detrás de todo el contenido, tanto en tu panel como en la página que ve el cliente."
+                          preview={
+                            <MuestraColor tipo="fondo" colores={form.colores} />
+                          }
                         />
                       </Col>
                       <Col md={6}>
                         <ColorField
-                          label="Color de texto"
+                          label="Color del texto"
                           value={form.colores.texto}
                           onChange={(v) => set("colores.texto", v)}
+                          hint="El texto principal: nombres de servicios, títulos, precios."
+                          preview={
+                            <MuestraColor tipo="texto" colores={form.colores} />
+                          }
                         />
                       </Col>
                       <Col md={6}>
                         <ColorField
-                          label="Texto secundario (muted)"
+                          label="Color del texto secundario"
                           value={form.colores.textoMuted}
                           onChange={(v) => set("colores.textoMuted", v)}
+                          hint="Para texto más discreto: subtítulos, duración, notas."
+                          preview={
+                            <MuestraColor tipo="textoMuted" colores={form.colores} />
+                          }
                         />
                       </Col>
                       <Col md={6}>
@@ -1266,6 +1646,10 @@ const ConfiguracionEmpresa = () => {
                           label="Color de acento"
                           value={form.colores.acento}
                           onChange={(v) => set("colores.acento", v)}
+                          hint="Un color extra para detalles pequeños, como íconos."
+                          preview={
+                            <MuestraColor tipo="acento" colores={form.colores} />
+                          }
                         />
                       </Col>
                     </Row>
@@ -1286,45 +1670,56 @@ const ConfiguracionEmpresa = () => {
                           textTransform: "uppercase",
                           letterSpacing: "0.05em",
                           display: "block",
-                          marginBottom: 12,
+                          marginBottom: 4,
                         }}
                       >
-                        Colores avanzados
+                        Detalles del panel de administración
+                      </small>
+                      <small
+                        className="text-muted d-block mb-3"
+                        style={{ fontSize: "0.8rem" }}
+                      >
+                        Estos colores se ven en tu panel, cuando entras a
+                        administrar el negocio — no en la página que ve tu
+                        cliente.
                       </small>
                       <Row>
                         <Col md={6}>
                           <ColorField
-                            label="Fondo de tarjetas"
+                            label="Fondo de las tarjetas"
                             value={form.colores.tarjeta}
                             onChange={(v) => set("colores.tarjeta", v)}
+                            hint="El fondo de las tarjetas de tu panel (por ejemplo, la ficha de un cliente o de una reserva)."
+                            preview={
+                              <MuestraColor tipo="tarjeta" colores={form.colores} />
+                            }
                           />
                         </Col>
                         <Col md={6}>
                           <ColorField
-                            label="Borde de tarjetas"
+                            label="Borde de las tarjetas"
                             value={form.colores.bordeTarjeta}
                             onChange={(v) => set("colores.bordeTarjeta", v)}
+                            hint="El borde delgado alrededor de esas mismas tarjetas."
                           />
                         </Col>
                         <Col md={6}>
                           <ColorField
-                            label="Color del sidebar"
+                            label="Color del menú lateral"
                             value={
                               form.colores.sidebar || form.colores.primario
                             }
                             onChange={(v) => set("colores.sidebar", v)}
+                            hint="El menú de la izquierda cuando administras tu negocio. Si lo dejas vacío, usa tu color principal."
+                            preview={
+                              <MuestraColor tipo="sidebar" colores={form.colores} />
+                            }
                           />
-                          <small
-                            className="text-muted d-block"
-                            style={{ marginTop: -8, marginBottom: 12 }}
-                          >
-                            Por defecto usa el color primario
-                          </small>
                         </Col>
                         <Col md={12}>
                           <Field
-                            label="Fondo del hero"
-                            hint="Color, gradiente CSS o imagen. Ej: linear-gradient(135deg, #f5f5f5, #fff)"
+                            label="Fondo de la portada"
+                            hint="La franja grande de arriba en la página principal de tu negocio (lo que aquí llamamos 'hero'). Puede ser un color, un degradado o dejarse en blanco para usar el diseño por defecto. Ej: linear-gradient(135deg, #f5f5f5, #fff)"
                           >
                             <Input
                               value={form.colores.heroBg}
@@ -1340,10 +1735,15 @@ const ConfiguracionEmpresa = () => {
                     </div>
 
                     <Toggle
-                      label="Hero con fondo claro"
-                      hint="Actívalo si el fondo del hero es claro para que el texto cambie a oscuro automáticamente"
+                      label="¿Tu portada es de fondo claro?"
+                      hint="Actívalo si el fondo de arriba (el que pusiste en 'Fondo de la portada') es claro, como blanco o pastel, para que el título se vea oscuro y se lea bien. Si tu fondo es oscuro, déjalo apagado y el título sale blanco."
                       checked={form.colores.heroEsClaro}
                       onChange={(v) => set("colores.heroEsClaro", v)}
+                    />
+
+                    <VistaPreviaHero
+                      heroBg={form.colores.heroBg}
+                      heroEsClaro={form.colores.heroEsClaro}
                     />
 
                     <hr className="my-4" />

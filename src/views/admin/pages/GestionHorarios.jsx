@@ -176,6 +176,7 @@ const SlotCard = ({
         padding: "12px 14px",
         minHeight: "72px",
         display: "flex",
+        flexWrap: "wrap",
         alignItems: "center",
         justifyContent: "space-between",
         gap: "8px",
@@ -184,7 +185,7 @@ const SlotCard = ({
       }}
     >
       {/* Info izquierda */}
-      <div style={{ flex: 1, minWidth: 0 }}>
+      <div style={{ flex: "1 1 160px", minWidth: "160px" }}>
         <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
           <span
             style={{ fontWeight: 700, fontSize: "0.95rem", color: "#1e293b" }}
@@ -248,6 +249,7 @@ const SlotCard = ({
           style={{
             flexShrink: 0,
             display: "flex",
+            flexWrap: "wrap",
             alignItems: "center",
             gap: "6px",
           }}
@@ -281,7 +283,14 @@ const SlotCard = ({
           </Button>
         </div>
       ) : (
-        <div style={{ flexShrink: 0, display: "flex", gap: "6px" }}>
+        <div
+          style={{
+            flexShrink: 0,
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "6px",
+          }}
+        >
           {(grupo.estado === "disponible" ||
             grupo.estado === "cancelada" ||
             grupo.estado === "bloqueada") && (

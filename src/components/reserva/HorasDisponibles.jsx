@@ -19,6 +19,8 @@ import { Bell, Clock, Mail } from "lucide-react";
 import Swal from "sweetalert2";
 import { useNotificacion } from "context/NotificacionesContext";
 import { useAuth } from "context/AuthContext";
+import { useEmpresa } from "context/EmpresaContext";
+import { construirTema } from "utils/temaEmpresa";
 import { postCrearNotificacion } from "api/notificaciones";
 
 const HorasDisponibles = ({
@@ -36,6 +38,8 @@ const HorasDisponibles = ({
   // ✅ Los hooks SIEMPRE se llaman, sin condiciones
   const notificacionContext = useNotificacion();
   const authContext = useAuth();
+  const { empresa } = useEmpresa();
+  const theme = construirTema(empresa?.colores);
 
   // Luego usamos los valores condicionalmente
   const crearNotificacion = !esInvitado
@@ -194,25 +198,28 @@ const HorasDisponibles = ({
                   <div className="position-relative">
                     <Button
                       block
-                      outline={!isSelected}
-                      color={
-                        isDisponible
-                          ? isSelected
-                            ? "success"
-                            : "success"
-                          : "light"
-                      }
                       onClick={() => isDisponible && onSeleccionarHora(h)}
-                      className={`py-2 border-2 ${
-                        !isDisponible ? "text-muted" : ""
-                      }`}
+                      className="py-2 border-2"
                       style={{
+                        ...(isDisponible
+                          ? {
+                              backgroundColor: isSelected
+                                ? theme.primary
+                                : "#ffffff",
+                              borderColor: theme.primary,
+                              color: isSelected ? "#ffffff" : theme.primary,
+                            }
+                          : {
+                              backgroundColor: "#ffffff",
+                              borderColor: "#e9ecef",
+                              color: "#adb5bd",
+                              textDecoration: "line-through",
+                            }),
                         cursor: isDisponible ? "pointer" : "default",
-                        opacity: isDisponible ? 1 : 0.6,
                         fontWeight: isSelected ? "bold" : "500",
                         fontSize: "0.9rem",
                         borderRadius: "8px",
-                        borderStyle: isDisponible ? "solid" : "dashed",
+                        borderStyle: "solid",
                       }}
                     >
                       {h}
@@ -258,21 +265,28 @@ const HorasDisponibles = ({
             <div
               className="mt-4 p-3"
               style={{
-                backgroundColor: "#e8f5e9",
-                borderLeft: "5px solid #28a745",
+                backgroundColor: theme.primaryLight,
+                borderLeft: `5px solid ${theme.primary}`,
                 borderRadius: "8px",
               }}
             >
               <div className="d-flex justify-content-between align-items-center">
                 <div>
-                  <span className="text-success font-weight-bold d-block">
+                  <span
+                    className="font-weight-bold d-block"
+                    style={{ color: theme.primary }}
+                  >
                     Reserva seleccionada
                   </span>
                   <span className="h5 mb-0">
                     {horaSeleccionada} – {calcularHoraFin(horaSeleccionada)}
                   </span>
                 </div>
-                <Badge color="success" pill className="px-3 py-2">
+                <Badge
+                  pill
+                  className="px-3 py-2"
+                  style={{ backgroundColor: theme.primary, color: "#fff" }}
+                >
                   {duracionReal} min
                 </Badge>
               </div>

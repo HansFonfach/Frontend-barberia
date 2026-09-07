@@ -29,9 +29,13 @@ import HorasDisponibles from "../../../components/reserva/HorasDisponibles";
 import ResumenReserva from "../../../components/reserva/ResumenReserva";
 import ModalHorasBase from "../../../components/reserva/ModalHorasBase";
 import { useAuth } from "context/AuthContext";
+import { useEmpresa } from "context/EmpresaContext";
+import { construirTema } from "utils/temaEmpresa";
 import { useParams } from "react-router-dom";
 
 const ReservarHoraBarbero = () => {
+  const { empresa: empresaTema } = useEmpresa();
+  const theme = construirTema(empresaTema?.colores);
   const {
     fecha,
     barbero,
@@ -190,7 +194,10 @@ const ReservarHoraBarbero = () => {
         <Card className="shadow-lg border-0">
           <CardBody className="p-4">
             <div className="text-center mb-4">
-              <div className="bg-success rounded-circle d-inline-flex p-2 mb-3">
+              <div
+                className="rounded-circle d-inline-flex p-2 mb-3"
+                style={{ backgroundColor: theme.primary }}
+              >
                 <CalendarCheck size={28} className="text-white" />
               </div>
               <h2 className="h3 mb-1">Reserva de Hora para Cliente</h2>
@@ -388,7 +395,7 @@ const ReservarHoraBarbero = () => {
                   whiteSpace: "nowrap",
                 }}
               >
-                <FaPhone size={13} className="text-success me-2" />
+                <FaPhone size={13} className="me-2" style={{ color: theme.primary }} />
                 <span
                   className="text-muted fw-bold"
                   style={{ fontSize: "0.85rem" }}
@@ -415,7 +422,7 @@ const ReservarHoraBarbero = () => {
               {invitado.telefono && (
                 <div className="px-2">
                   {invitado.telefono.length === 8 ? (
-                    <span className="text-success fw-bold">✓</span>
+                    <span className="fw-bold" style={{ color: theme.primary }}>✓</span>
                   ) : (
                     <span className="text-muted small">
                       {invitado.telefono.length}/8
@@ -442,7 +449,7 @@ const ReservarHoraBarbero = () => {
           />
 
           <Button
-            color="success"
+            style={{ backgroundColor: theme.primary, borderColor: theme.primary }}
             block
             disabled={!invitadoValido}
             onClick={handleConfirmarInvitado}

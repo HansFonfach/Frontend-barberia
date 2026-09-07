@@ -7,28 +7,26 @@ import Swal from "sweetalert2";
 import AuthFooter from "components/Footers/AuthFooter";
 import { useEmpresa } from "context/EmpresaContext";
 import { getClasesPublicas, getSesionesPublicas, postInscribirClasePublica } from "api/clases";
-import ClaseGridSelector from "components/gestionClases/ClaseGridSelector";
 import DiaClaseSelector from "components/gestionClases/DiaClaseSelector";
-import HoraClaseSelector from "components/gestionClases/HoraClaseSelector";
+import HorarioClaseSelector from "components/gestionClases/HorarioClaseSelector";
+import ClaseEnHorarioSelector from "components/gestionClases/ClaseEnHorarioSelector";
 import ResumenPruebaGratisInvitado from "components/gestionClases/ResumenPruebaGratisInvitado";
+import { construirTema, TEMA_DEFAULT } from "utils/temaEmpresa";
 
-const themes = {
-  default: {
-    primary: "#5e72e4",
-    primaryLight: "#eaecfe",
-    primaryDark: "#324cdd",
-    heroBg: "linear-gradient(150deg, #172b4d 0%, #1a174d 100%)",
-    textDark: "#ffffff",
-    textMuted: "rgba(255,255,255,0.9)",
-    variant: "dark",
-  },
+// Tema de respaldo tal cual estaba antes de conectar los colores propios
+// del negocio (fondo oscuro fijo con texto blanco), para no cambiarle nada
+// a los gimnasios que aún no configuran sus colores.
+const TEMA_DEFAULT_CLASE_PRUEBA = {
+  ...TEMA_DEFAULT,
+  textDark: "#ffffff",
+  textMuted: "rgba(255,255,255,0.9)",
 };
 
 const PasosPruebaGratis = ({ pasoActual }) => {
   const pasos = [
-    { numero: 1, label: "Clase" },
-    { numero: 2, label: "Día" },
-    { numero: 3, label: "Hora" },
+    { numero: 1, label: "Día" },
+    { numero: 2, label: "Horario" },
+    { numero: 3, label: "Clase" },
     { numero: 4, label: "Tus datos" },
   ];
 
@@ -62,9 +60,9 @@ const PasosPruebaGratis = ({ pasoActual }) => {
 /**
  * Agenda una clase SIN crear cuenta. Mismo espíritu que "Reservar hora" para
  * invitados: página pública, sin login, con el mismo wizard visual que usa
- * el cliente logueado en "Agendar clase" (ClaseGridSelector /
- * DiaClaseSelector / HoraClaseSelector), terminando en un formulario de
- * datos personales.
+ * el cliente logueado en "Agendar clase" (DiaClaseSelector /
+ * HorarioClaseSelector / ClaseEnHorarioSelector — día → horario → clase),
+ * terminando en un formulario de datos personales.
  *
  * Si el RUT ingresado tiene una membresía activa, la reserva descuenta una
  * clase de esa membresía (pidiendo el teléfono o correo registrado como
@@ -77,14 +75,18 @@ const ClasePruebaInvitado = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const { empresa } = useEmpresa();
-  const theme = themes.default;
+
+  // Usa los colores que el gimnasio haya configurado en
+  // "Configuración → Colores" (empresa.colores). Si todavía no configuró
+  // nada, cae al tema que tenía antes (fondo oscuro, texto blanco).
+  const theme = construirTema(empresa?.colores, TEMA_DEFAULT_CLASE_PRUEBA);
 
   const [clases, setClases] = useState([]);
   const [sesiones, setSesiones] = useState([]);
   const [cargando, setCargando] = useState(true);
 
-  const [claseId, setClaseId] = useState(null);
   const [diaSeleccionado, setDiaSeleccionado] = useState(null);
+  const [horaSeleccionada, setHoraSeleccionada] = useState(null);
   const [sesionSeleccionada, setSesionSeleccionada] = useState(null);
   const [confirmando, setConfirmando] = useState(false);
 
@@ -112,12 +114,16 @@ const ClasePruebaInvitado = () => {
     cargar();
   }, [slug]);
 
-  const claseSeleccionada = clases.find((c) => c._id === claseId);
-  const sesionesDeClase = sesiones.filter((s) => s.claseId === claseId);
+  const claseSeleccionada = clases.find(
+    (c) => c._id === sesionSeleccionada?.claseId,
+  );
 
+  // Agrupa TODAS las sesiones (de cualquier clase) por día — el invitado
+  // todavía no eligió clase en este punto, solo quiere ver qué días hay
+  // algo disponible.
   const diasDisponibles = useMemo(() => {
     const porDia = new Map();
-    sesionesDeClase
+    sesiones
       .slice()
       .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
       .forEach((s) => {
@@ -126,24 +132,52 @@ const ClasePruebaInvitado = () => {
         porDia.get(iso).push(s);
       });
     return Array.from(porDia.entries()).map(([iso, ses]) => ({ iso, sesiones: ses }));
-  }, [sesionesDeClase]);
+  }, [sesiones]);
 
   const sesionesDelDia = diaSeleccionado
     ? diasDisponibles.find((d) => d.iso === diaSeleccionado)?.sesiones || []
     : [];
 
-  const handleSeleccionarClase = (id) => {
-    setClaseId(id);
-    setDiaSeleccionado(null);
-    setSesionSeleccionada(null);
-  };
+  const formatHoraChile = (fechaISO) =>
+    new Date(fechaISO).toLocaleTimeString("es-CL", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "America/Santiago",
+    });
+
+  // Sesiones (de cualquier clase) que caen justo en el horario ya elegido.
+  const sesionesDelHorario = horaSeleccionada
+    ? sesionesDelDia.filter((s) => formatHoraChile(s.fecha) === horaSeleccionada)
+    : [];
+
+  // Solo las clases que de verdad tienen una sesión en ese día+horario.
+  const clasesDelHorario = clases.filter((c) =>
+    sesionesDelHorario.some((s) => s.claseId === c._id),
+  );
 
   const handleSeleccionarDia = (iso) => {
     setDiaSeleccionado(iso);
+    setHoraSeleccionada(null);
     setSesionSeleccionada(null);
   };
 
-  const pasoActual = !claseId ? 1 : !diaSeleccionado ? 2 : !sesionSeleccionada ? 3 : 4;
+  const handleSeleccionarHorario = (hora) => {
+    setHoraSeleccionada(hora);
+    setSesionSeleccionada(null);
+  };
+
+  const handleSeleccionarClaseEnHorario = (id) => {
+    const sesion = sesionesDelHorario.find((s) => s.claseId === id);
+    if (sesion) setSesionSeleccionada(sesion);
+  };
+
+  const pasoActual = !diaSeleccionado
+    ? 1
+    : !horaSeleccionada
+      ? 2
+      : !sesionSeleccionada
+        ? 3
+        : 4;
 
   const handleConfirmar = async (datosInvitado) => {
     if (!sesionSeleccionada) return;
@@ -166,8 +200,8 @@ const ClasePruebaInvitado = () => {
         confirmButtonText: "Genial",
       });
 
-      setClaseId(null);
       setDiaSeleccionado(null);
+      setHoraSeleccionada(null);
       setSesionSeleccionada(null);
     } catch (error) {
       const data = error.response?.data;
@@ -285,31 +319,32 @@ const ClasePruebaInvitado = () => {
             <h3 className="mb-1 d-flex align-items-center">
               <Dumbbell size={22} className="me-2" /> Clase de prueba gratis
             </h3>
-            <small>Clase → Día → Hora → Tus datos</small>
+            <small>Día → Horario → Clase → Tus datos</small>
           </div>
           <CardBody className="p-4">
             <Row>
               <Col lg="7" md="12">
-                <ClaseGridSelector
-                  clases={clases}
-                  claseId={claseId}
-                  onSeleccionar={handleSeleccionarClase}
+                <DiaClaseSelector
+                  dias={diasDisponibles}
+                  diaSeleccionado={diaSeleccionado}
+                  onSelectDay={handleSeleccionarDia}
                 />
 
-                {claseId && (
-                  <DiaClaseSelector
-                    dias={diasDisponibles}
-                    diaSeleccionado={diaSeleccionado}
-                    onSelectDay={handleSeleccionarDia}
-                    claseNombre={claseSeleccionada?.nombre}
+                {diaSeleccionado && (
+                  <HorarioClaseSelector
+                    sesionesDelDia={sesionesDelDia}
+                    horaSeleccionada={horaSeleccionada}
+                    onSeleccionar={handleSeleccionarHorario}
+                    yaInscrito={() => false}
                   />
                 )}
 
-                {claseId && diaSeleccionado && (
-                  <HoraClaseSelector
-                    sesiones={sesionesDelDia}
-                    sesionSeleccionada={sesionSeleccionada}
-                    onSeleccionar={setSesionSeleccionada}
+                {diaSeleccionado && horaSeleccionada && (
+                  <ClaseEnHorarioSelector
+                    clases={clasesDelHorario}
+                    sesionesDelHorario={sesionesDelHorario}
+                    claseId={sesionSeleccionada?.claseId}
+                    onSeleccionar={handleSeleccionarClaseEnHorario}
                     yaInscrito={() => false}
                   />
                 )}

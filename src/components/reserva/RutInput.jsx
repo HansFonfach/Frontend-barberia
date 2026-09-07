@@ -1,6 +1,8 @@
 // src/views/admin/pages/components/RutClienteStep.jsx
 import React from "react";
 import { FormGroup, Label, Input, Button, Spinner, Alert } from "reactstrap";
+import { useEmpresa } from "context/EmpresaContext";
+import { construirTema } from "utils/temaEmpresa";
 
 const RutInput = ({
   rut,
@@ -11,9 +13,12 @@ const RutInput = ({
   usuarioEncontrado,
   errorBusqueda,
 }) => {
+  const { empresa } = useEmpresa();
+  const theme = construirTema(empresa?.colores);
+
   const getInputClass = () => {
     if (errorRut || errorBusqueda) return "is-invalid";
-    if (usuarioEncontrado) return "is-valid border-success";
+    if (usuarioEncontrado) return "is-valid";
     return "";
   };
 
@@ -30,7 +35,12 @@ const RutInput = ({
           onChange={handleRutChange}
           placeholder="Ingresa RUT del cliente o pasaporte"
           className={`py-3 ${getInputClass()}`}
-          style={{ paddingRight: "50px" }}
+          style={{
+            paddingRight: "50px",
+            ...(usuarioEncontrado && !errorRut && !errorBusqueda
+              ? { borderColor: theme.primary }
+              : {}),
+          }}
           disabled={buscandoUsuario}
         />
 
@@ -65,7 +75,10 @@ const RutInput = ({
       )}
 
       {usuarioEncontrado && !buscandoUsuario && (
-        <Alert color="success" className="py-2 mb-2">
+        <div
+          className="py-2 px-3 mb-2 rounded"
+          style={{ backgroundColor: theme.primary, color: "#fff" }}
+        >
           <div className="d-flex align-items-center">
             <div>
               <strong className="d-block">Cliente encontrado:</strong>
@@ -76,7 +89,7 @@ const RutInput = ({
               </div>
             </div>
           </div>
-        </Alert>
+        </div>
       )}
 
       {errorBusqueda && !buscandoUsuario && (

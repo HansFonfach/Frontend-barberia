@@ -1,6 +1,8 @@
 // src/views/admin/pages/components/BarberoStep.jsx
 import React from "react";
 import { FormGroup, Label, Row, Col, Button, Spinner } from "reactstrap";
+import { useEmpresa } from "context/EmpresaContext";
+import { construirTema, estiloBotonTema } from "utils/temaEmpresa";
 
 const BarberoSelector = ({
   barberos,
@@ -8,6 +10,9 @@ const BarberoSelector = ({
   onSeleccionarBarbero,
   loading,
 }) => {
+  const { empresa } = useEmpresa();
+  const theme = construirTema(empresa?.colores);
+
   return (
     <FormGroup className="mb-3">
       <Label className="font-weight-bold"> Profesional</Label>
@@ -34,9 +39,7 @@ const BarberoSelector = ({
             <Col key={b._id} xs="6" sm="4" lg="4" className="mb-2">
               <Button
                 block
-                color={
-                  barbero === b._id ? "success" : "outline-success"
-                }
+                style={estiloBotonTema(theme, barbero === b._id)}
                 onClick={() => onSeleccionarBarbero(b._id)}
               >
                 {b.nombre} {b.apellido}

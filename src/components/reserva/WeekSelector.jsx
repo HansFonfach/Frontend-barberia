@@ -2,6 +2,8 @@
 import React from "react";
 import { FormGroup, Label, Button, Spinner, Badge } from "reactstrap";
 import { ChevronLeft, ChevronRight, Bell } from "lucide-react";
+import { useEmpresa } from "context/EmpresaContext";
+import { construirTema } from "utils/temaEmpresa";
 
 const formatDayLabel = (d) =>
   d.toLocaleDateString("es-CL", {
@@ -30,6 +32,9 @@ const WeekSelector = ({
   barberoInfo,
   rolUsuario,
 }) => {
+  const { empresa } = useEmpresa();
+  const theme = construirTema(empresa?.colores);
+
   const parseLocalDate = (str) => {
     const [y, m, d] = str.split("-").map(Number);
     return new Date(y, m - 1, d);
@@ -190,7 +195,7 @@ const WeekSelector = ({
                       cursor: diaBloqueado ? "not-allowed" : "pointer",
                       opacity: diaBloqueado ? 0.5 : 1,
                       backgroundColor: isSelected
-                        ? "#09cf62"
+                        ? theme.primary
                         : diaTieneHoras
                         ? "#ffffff"
                         : "#f8f9fa",
@@ -200,7 +205,7 @@ const WeekSelector = ({
                         ? "#6c757d"
                         : "#212529",
                       border: isSelected
-                        ? "2px solid #28a745"
+                        ? `2px solid ${theme.primaryDark}`
                         : "1px solid #dee2e6",
                       textAlign: "center",
                       transition: "all 0.2s ease",
@@ -240,7 +245,7 @@ const WeekSelector = ({
                           fontSize: "10px",
                           fontWeight: 700,
                           marginTop: "4px",
-                          color: isSelected ? "#fff" : "#28a745",
+                          color: isSelected ? "#fff" : theme.primary,
                         }}
                       >
                         Hoy

@@ -2,8 +2,13 @@
 import React from "react";
 import { Card, CardBody, Row, Col } from "reactstrap";
 import { Check } from "lucide-react";
+import { useEmpresa } from "context/EmpresaContext";
+import { construirTema } from "utils/temaEmpresa";
 
 const StepIndicator = ({ pasoActual }) => {
+  const { empresa } = useEmpresa();
+  const theme = construirTema(empresa?.colores);
+
   const pasos = [
 
     { numero: 1, label: "Servicio & Profesional" },
@@ -20,11 +25,14 @@ const StepIndicator = ({ pasoActual }) => {
             <Col key={paso.numero} className="text-center">
               <div
                 className={`d-inline-flex align-items-center justify-content-center rounded-circle ${
-                  pasoActual >= paso.numero
-                    ? "bg-success text-white"
-                    : "bg-light text-muted"
+                  pasoActual >= paso.numero ? "text-white" : "bg-light text-muted"
                 }`}
-                style={{ width: 40, height: 40 }}
+                style={{
+                  width: 40,
+                  height: 40,
+                  backgroundColor:
+                    pasoActual >= paso.numero ? theme.primary : undefined,
+                }}
               >
                 {pasoActual > paso.numero ? <Check size={18} /> : paso.numero}
               </div>

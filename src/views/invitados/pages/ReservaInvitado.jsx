@@ -30,42 +30,32 @@ import { useEmpresa } from "context/EmpresaContext";
 import { getUsuarioByRutPublico } from "api/usuarios";
 
 import { calcularPrecioFinal } from "utils/preciosServicios.js";
+import {
+  obtenerTemaEmpresa,
+  TEMAS_LEGACY_POR_SLUG,
+  TEMA_DEFAULT,
+} from "utils/temaEmpresa";
 
-const themes = {
-  lumicabeauty: {
-    primary: "#FF5DA1",
-    primaryLight: "#FFE4F0",
-    primaryDark: "#E64D8F",
-    heroBg: "linear-gradient(135deg, #FFFFFF 0%, #FFF5FA 100%)",
-    textDark: "#2D3748",
-    textMuted: "#718096",
-    variant: "light",
-  },
-  "danails-studio": {
-    primary: "#F2A7C3",
-    primaryLight: "#FEF0F5",
-    primaryDark: "#D4819F",
-    heroBg: "linear-gradient(135deg, #FFFFFF 0%, #FEF0F5 80%, #FFF8FB 100%)",
-    textDark: "#3A2E32",
-    textMuted: "#B09AA0",
-    variant: "light",
-  },
-  default: {
-    primary: "#5e72e4",
-    primaryLight: "#eaecfe",
-    primaryDark: "#324cdd",
-    heroBg: "linear-gradient(150deg, #172b4d 0%, #1a174d 100%)",
-    textDark: "#ffffff",
-    textMuted: "rgba(255,255,255,0.9)",
-    variant: "dark",
-  },
+// Esta página siempre mostraba el hero con texto blanco cuando no había un
+// tema hecho a mano (fondo oscuro fijo) — se mantiene igual como respaldo
+// para no cambiarle nada a los negocios que aún no configuran sus colores.
+const TEMA_DEFAULT_RESERVA = {
+  ...TEMA_DEFAULT,
+  textDark: "#ffffff",
+  textMuted: "rgba(255,255,255,0.9)",
 };
 
 const ReservarHoraInvitado = () => {
   const { slug } = useParams();
   const { empresa } = useEmpresa();
 
-  const theme = themes[slug] || themes.default;
+  // Usa los colores que el negocio haya configurado en
+  // "Configuración → Colores" (empresa.colores). Si todavía no configuró
+  // nada, cae al tema hecho a mano que tenía antes (o al default general).
+  const theme = obtenerTemaEmpresa(empresa, slug, {
+    temasLegacyPorSlug: TEMAS_LEGACY_POR_SLUG,
+    temaDeFabrica: TEMA_DEFAULT_RESERVA,
+  });
   const isLightTheme = theme.variant === "light";
 
   const {
@@ -391,7 +381,7 @@ const ReservarHoraInvitado = () => {
                 </small>
               )}
               {usuarioEncontrado && !buscandoUsuario && (
-                <small className="text-success d-block mb-2">
+                <small className="d-block mb-2" style={{ color: theme.primary }}>
                   ✓ Datos completados automáticamente
                 </small>
               )}

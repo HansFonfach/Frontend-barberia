@@ -14,6 +14,11 @@ import { MdLocationOn, MdAccessTime, MdEmail, MdPhone } from "react-icons/md";
 import { FaWhatsapp, FaCalendarCheck, FaFacebook } from "react-icons/fa";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
+import {
+  obtenerTemaEmpresa,
+  TEMAS_LEGACY_POR_SLUG,
+} from "utils/temaEmpresa";
+
 const Landing = () => {
   const navigate = useNavigate();
   const { slug } = useParams();
@@ -27,49 +32,12 @@ const Landing = () => {
     loading: loadingLanding,
   } = useLandingData(slug);
 
-  const themes = {
-    lumicabeauty: {
-      primary: "#FF5DA1",
-      primaryLight: "#FFE4F0",
-      primaryDark: "#E64D8F",
-      secondary: "#BA68C8",
-      softBg: "#FFFFFF",
-      heroBg: "linear-gradient(135deg, #FFFFFF 0%, #FFF5FA 100%)",
-      textDark: "#2D3748",
-      textMuted: "#718096",
-      variant: "light",
-    },
-    "danails-studio": {
-      primary: "#F2A7C3", // rosa pastel del logo — botones, íconos, badges
-      primaryLight: "#FEF0F5", // rosa muy pálido — fondos de cards, badges
-      primaryDark: "#D4819F", // rosa más intenso — hover de botones
-
-      secondary: "#D4AF37", // dorado — solo para detalles puntuales
-
-      softBg: "#FFF8FB", // blanco rosado suavísimo
-
-      heroBg: "linear-gradient(135deg, #FFFFFF 0%, #FEF0F5 50%, #FFF8FB 100%)",
-
-      textDark: "#3A2E32", // casi negro cálido
-      textMuted: "#B09AA0", // gris rosado para subtítulos
-
-      variant: "light",
-    },
-
-    default: {
-      primary: "#5e72e4",
-      primaryLight: "#eaecfe",
-      primaryDark: "#324cdd",
-      secondary: "#2dce89",
-      softBg: "#f6f9fc",
-      heroBg: "linear-gradient(150deg, #172b4d 0%, #1a174d 100%)",
-      textDark: "#172b4d",
-      textMuted: "#8898aa",
-      variant: "dark",
-    },
-  };
-
-  const theme = themes[slug] || themes.default;
+  // Usa los colores que el negocio haya configurado en
+  // "Configuración → Colores" (empresa.colores). Si todavía no configuró
+  // nada, cae al tema hecho a mano que tenía antes (o al default general).
+  const theme = obtenerTemaEmpresa(empresa, slug, {
+    temasLegacyPorSlug: TEMAS_LEGACY_POR_SLUG,
+  });
 
   const isLightTheme = theme.variant === "light";
 

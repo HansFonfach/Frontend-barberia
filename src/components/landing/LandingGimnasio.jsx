@@ -10,16 +10,7 @@ import AuthFooter from "components/Footers/AuthFooter";
 import ClasesSection from "components/landing/ClasesSection";
 import ProfesionalesSection from "components/landing/ProfesionalesSection";
 import PlanesSection from "components/landing/PlanesSection";
-
-const theme = {
-  primary: "#2dce89",
-  primaryLight: "#e3fcef",
-  primaryDark: "#24a46d",
-  heroBg: "linear-gradient(150deg, #11142b 0%, #172b4d 55%, #0f2a22 100%)",
-  softBg: "#f6fcf9",
-  textDark: "#172b4d",
-  textMuted: "#8898aa",
-};
+import { construirTema, TEMA_DEFAULT_GIMNASIO } from "utils/temaEmpresa";
 
 /**
  * Landing dedicado a empresas de rubro "gimnasio". Reemplaza el landing de
@@ -31,6 +22,11 @@ const theme = {
  */
 const LandingGimnasio = ({ empresa, slug, clases = [], planes = [], profesionales = [] }) => {
   const navigate = useNavigate();
+
+  // Usa los colores que el negocio haya configurado en
+  // "Configuración → Colores" (empresa.colores). Si el gimnasio nunca los
+  // ha tocado, se ve exactamente igual que antes (verde por defecto).
+  const theme = construirTema(empresa?.colores, TEMA_DEFAULT_GIMNASIO);
 
   const telefonoLimpio = (empresa?.telefono || "").replace(/\D/g, "");
 
