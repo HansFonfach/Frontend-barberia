@@ -116,6 +116,30 @@ export const postAgregarHoraExtraDiaria = async (
   }
 };
 
+export const postActualizarHoraExtraDiaria = async (
+  barberoId,
+  fecha,
+  horaInicio,
+  horaFin,
+  serviciosPermitidos,
+) => {
+  try {
+    const res = await axiosPrivate.post(
+      `/excepcionHorario/actualizar-hora-extra`,
+      {
+        barbero: barberoId,
+        fecha,
+        horaInicio,
+        horaFin,
+        serviciosPermitidos,
+      },
+    );
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const postCancelarHoraExtraDiaria = async (
   barberoId,
   fecha,

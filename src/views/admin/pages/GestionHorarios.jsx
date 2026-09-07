@@ -149,12 +149,22 @@ const SlotCard = ({
   horasExtraSet,
   onToggle,
   onEliminarExtra,
+  editandoExtra,
+  horaFinEditada,
+  onCambiarHoraFinEditada,
+  onIniciarEdicionExtra,
+  onGuardarEdicionExtra,
+  onCancelarEdicionExtra,
 }) => {
   const config = ESTADO_CONFIG[grupo.estado] || ESTADO_CONFIG.disponible;
+  const horaExtraKey = grupo.horaInicioOriginal || grupo.horaInicio;
+  const editandoEstaFila = grupo.esExtra && editandoExtra === horaExtraKey;
   const rangoLabel =
     grupo.estado === "reservada"
       ? `${grupo.horaInicio} → ${grupo.horaFin}`
-      : grupo.horaInicio;
+      : grupo.esExtra && grupo.horaFinExtra
+        ? `${grupo.horaInicio} → ${grupo.horaFinExtra}`
+        : grupo.horaInicio;
 
   return (
     <div
@@ -233,49 +243,100 @@ const SlotCard = ({
       </div>
 
       {/* Acción derecha */}
-      <div style={{ flexShrink: 0, display: "flex", gap: "6px" }}>
-        {(grupo.estado === "disponible" ||
-          grupo.estado === "cancelada" ||
-          grupo.estado === "bloqueada") && (
+      {editandoEstaFila ? (
+        <div
+          style={{
+            flexShrink: 0,
+            display: "flex",
+            alignItems: "center",
+            gap: "6px",
+          }}
+        >
+          <Input
+            type="time"
+            value={horaFinEditada}
+            onChange={(e) => onCambiarHoraFinEditada(e.target.value)}
+            style={{
+              borderRadius: "8px",
+              maxWidth: "130px",
+              fontSize: "0.85rem",
+            }}
+          />
           <Button
             size="sm"
-            color={grupo.estado === "disponible" ? "danger" : "success"}
-            outline
-            onClick={() => onToggle(grupo.horaInicio)}
+            color="primary"
+            onClick={() => onGuardarEdicionExtra(horaExtraKey)}
             style={{ fontSize: "0.75rem", padding: "4px 10px" }}
           >
-            {grupo.estado === "disponible" ? (
-              <>
-                <Lock size={12} className="me-1" />
-                Bloquear
-              </>
-            ) : (
-              <>
-                <Unlock size={12} className="me-1" />
-                Habilitar
-              </>
-            )}
+            Guardar
           </Button>
-        )}
+          <Button
+            size="sm"
+            color="secondary"
+            outline
+            onClick={onCancelarEdicionExtra}
+            style={{ fontSize: "0.75rem", padding: "4px 10px" }}
+          >
+            Cancelar
+          </Button>
+        </div>
+      ) : (
+        <div style={{ flexShrink: 0, display: "flex", gap: "6px" }}>
+          {(grupo.estado === "disponible" ||
+            grupo.estado === "cancelada" ||
+            grupo.estado === "bloqueada") && (
+            <Button
+              size="sm"
+              color={grupo.estado === "disponible" ? "danger" : "success"}
+              outline
+              onClick={() => onToggle(grupo.horaInicio)}
+              style={{ fontSize: "0.75rem", padding: "4px 10px" }}
+            >
+              {grupo.estado === "disponible" ? (
+                <>
+                  <Lock size={12} className="me-1" />
+                  Bloquear
+                </>
+              ) : (
+                <>
+                  <Unlock size={12} className="me-1" />
+                  Habilitar
+                </>
+              )}
+            </Button>
+          )}
 
-        {/* 👇 CAMBIO: ya no depende solo de estado === "extra".
+          {/* 👇 CAMBIO: ya no depende solo de estado === "extra".
       Cualquier fila que venga de una excepción extra (esExtra) puede
-      eliminarse, incluso si ya tiene una reserva encima (estado "reservada"),
-      porque lo que se borra es la EXCEPCIÓN, no la reserva. */}
-        {grupo.esExtra && (
-          <Button
-            size="sm"
-            color="danger"
-            outline
-            onClick={() =>
-              onEliminarExtra(grupo.horaInicioOriginal || grupo.horaInicio)
-            }
-            style={{ fontSize: "0.75rem", padding: "4px 10px" }}
-          >
-            Eliminar hora extra
-          </Button>
-        )}
-      </div>
+      editarse/eliminarse, incluso si ya tiene una reserva encima (estado
+      "reservada"), porque lo que se edita/borra es la EXCEPCIÓN, no la
+      reserva. */}
+          {grupo.esExtra && (
+            <>
+              <Button
+                size="sm"
+                color="primary"
+                outline
+                onClick={() =>
+                  onIniciarEdicionExtra(horaExtraKey, grupo.horaFinExtra)
+                }
+                style={{ fontSize: "0.75rem", padding: "4px 10px" }}
+              >
+                Editar duración
+              </Button>
+              <Button
+                size="sm"
+                color="danger"
+                outline
+                onClick={() => onEliminarExtra(horaExtraKey)}
+                style={{ fontSize: "0.75rem", padding: "4px 10px" }}
+              >
+                Eliminar hora extra
+              </Button>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 };
@@ -285,14 +346,20 @@ const GestionHorarios = () => {
   const { user, isAuthenticated } = useAuth();
   const barbero = user?.id || user?._id;
 
-  const { agregarHoraExtraDiaria, cancelarHoraExtraDiaria, toggleHoraPorDia } =
-    useHorario();
+  const {
+    agregarHoraExtraDiaria,
+    actualizarHoraExtraDiaria,
+    cancelarHoraExtraDiaria,
+    toggleHoraPorDia,
+  } = useHorario();
 
   const [fechaSeleccionada, setFechaSeleccionada] = useState(
     new Date().toISOString().split("T")[0],
   );
   const [nuevaHora, setNuevaHora] = useState("");
   const [nuevaHoraFin, setNuevaHoraFin] = useState(""); // 👈 nuevo
+  const [editandoExtra, setEditandoExtra] = useState(null); // horaInicio de la hora extra en edición
+  const [horaFinEditada, setHoraFinEditada] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [mensajeError, setMensajeError] = useState("");
   const { cargarServiciosBarbero } = useServicios();
@@ -422,6 +489,47 @@ const GestionHorarios = () => {
       await refetch();
     } catch (err) {
       setMensajeError(`Error al eliminar hora extra ${hora}`);
+    }
+  };
+
+  const onIniciarEdicionExtra = (hora, horaFinActual) => {
+    setMensajeError("");
+    setMensaje("");
+    setEditandoExtra(hora);
+    setHoraFinEditada(horaFinActual || "");
+  };
+
+  const onCancelarEdicionExtra = () => {
+    setEditandoExtra(null);
+    setHoraFinEditada("");
+  };
+
+  const onGuardarEdicionExtra = async (hora) => {
+    if (!horaFinEditada) {
+      setMensajeError("Selecciona la nueva hora de fin");
+      return;
+    }
+    if (horaFinEditada <= hora) {
+      setMensajeError("La hora de fin debe ser posterior a la hora de inicio");
+      return;
+    }
+    try {
+      setMensajeError("");
+      await actualizarHoraExtraDiaria(
+        barbero,
+        fechaSeleccionada,
+        hora,
+        horaFinEditada,
+      );
+      setMensaje(`Hora extra ${hora} actualizada: ahora termina a las ${horaFinEditada}`);
+      setEditandoExtra(null);
+      setHoraFinEditada("");
+      await refetch();
+    } catch (err) {
+      setMensajeError(
+        err?.response?.data?.message ||
+          `Error al actualizar la hora extra ${hora}`,
+      );
     }
   };
 
@@ -646,6 +754,12 @@ const GestionHorarios = () => {
                         horasExtraSet={horasExtraSet}
                         onToggle={onToggleHora}
                         onEliminarExtra={onEliminarHoraExtra}
+                        editandoExtra={editandoExtra}
+                        horaFinEditada={horaFinEditada}
+                        onCambiarHoraFinEditada={setHoraFinEditada}
+                        onIniciarEdicionExtra={onIniciarEdicionExtra}
+                        onGuardarEdicionExtra={onGuardarEdicionExtra}
+                        onCancelarEdicionExtra={onCancelarEdicionExtra}
                       />
                     ))}
                   </div>

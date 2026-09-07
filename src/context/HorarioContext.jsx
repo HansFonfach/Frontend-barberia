@@ -12,6 +12,7 @@ import { deleteHorarioDia } from "api/horarios";
 import { getHorariosByBarbero } from "api/horarios";
 import { postCancelarHoraExtraDiaria } from "api/horarios";
 import { postAgregarHoraExtraDiaria } from "api/horarios";
+import { postActualizarHoraExtraDiaria } from "api/horarios";
 import { getHorasDisponibles } from "api/horarios.js";
 import { createContext, useContext } from "react";
 import { getFeriadosConEstado } from "api/horarios";
@@ -156,6 +157,27 @@ export const HorarioProvider = ({ children }) => {
       throw error;
     }
   };
+
+  const actualizarHoraExtraDiaria = async (
+    barbero,
+    fecha,
+    horaInicio,
+    horaFin,
+    serviciosPermitidos,
+  ) => {
+    try {
+      const res = await postActualizarHoraExtraDiaria(
+        barbero,
+        fecha,
+        horaInicio,
+        horaFin,
+        serviciosPermitidos,
+      );
+      return res;
+    } catch (error) {
+      throw error;
+    }
+  };
   try {
   } catch (error) {}
 
@@ -214,6 +236,7 @@ export const HorarioProvider = ({ children }) => {
         getHorasDisponiblesBarbero,
         cancelarHoraPorDia,
         agregarHoraExtraDiaria,
+        actualizarHoraExtraDiaria,
         obtenerExcepcionesPorDia,
         revertirHoraPorDia,
         cancelarHoraExtraDiaria,
