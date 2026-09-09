@@ -33,8 +33,12 @@ export const getReservasActivas = async (userId) => {
   return axiosPrivate.get(`/reservas/activas/${userId}`);
 };
 
-export const getResevasPorFecha = (fecha) => {
-  return axiosPrivate.get(`/reservas/barbero/por-fecha?fecha=${fecha}`);
+export const getResevasPorFecha = (fecha, hasta) => {
+  const params = new URLSearchParams({ fecha });
+  // "hasta" es opcional: si viene, trae un rango de fechas (ej. la semana
+  // completa) en vez de un solo día — lo usa la vista "Semana" del panel.
+  if (hasta) params.set("hasta", hasta);
+  return axiosPrivate.get(`/reservas/barbero/por-fecha?${params.toString()}`);
 };
 
 export const getConfirmarAsistencia = (token, respuesta) => {

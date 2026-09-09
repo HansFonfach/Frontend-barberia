@@ -15,6 +15,17 @@ const ReservaInfoCard = ({
   const abono = reservaSeleccionada.abono;
   const totalServicio = reservaSeleccionada.servicioSnapshot?.precio || 0;
 
+  // Hora de término = hora de inicio + duración del servicio (o 30 min si
+  // por algún motivo no viene la duración).
+  const duracionServicio =
+    Number(reservaSeleccionada.duracion) ||
+    Number(reservaSeleccionada.servicioSnapshot?.duracion) ||
+    Number(reservaSeleccionada.servicio?.duracion) ||
+    30;
+  const horaFin = new Date(
+    new Date(reservaSeleccionada.fecha).getTime() + duracionServicio * 60000,
+  ).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
   return (
     <Card className="shadow-sm">
       <CardHeader className="bg-white border-0">
@@ -42,6 +53,8 @@ const ReservaInfoCard = ({
             hour: "2-digit",
             minute: "2-digit",
           })}
+          {" – "}
+          {horaFin}
         </p>
 
         <hr className="my-3" />

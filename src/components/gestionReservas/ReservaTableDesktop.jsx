@@ -55,6 +55,18 @@ const ReservaTableDesktop = ({ reservas, empresa, onVer, isLoading }) => {
     return  nota;
   };
 
+  // Hora de término = hora de inicio + duración del servicio (o 30 min si
+  // por algún motivo no viene la duración).
+  const horaFinReserva = (reserva) => {
+    const duracion =
+      Number(reserva.duracion) ||
+      Number(reserva.servicioSnapshot?.duracion) ||
+      Number(reserva.servicio?.duracion) ||
+      30;
+    const fin = new Date(new Date(reserva.fecha).getTime() + duracion * 60000);
+    return fin.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
   // 👇 NUEVO: mismo cálculo que en la card mobile
   const infoAbono = (reserva) => {
     const totalServicio =
@@ -123,6 +135,8 @@ const ReservaTableDesktop = ({ reservas, empresa, onVer, isLoading }) => {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
+                  {" – "}
+                  {horaFinReserva(reserva)}
                 </td>
 
                 <td>

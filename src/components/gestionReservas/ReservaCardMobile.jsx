@@ -59,6 +59,18 @@ const ReservaCardMobile = ({ reservas, empresa, onVer, isLoading }) => {
     }
   };
 
+  // Hora de término = hora de inicio + duración del servicio (o 30 min si
+  // por algún motivo no viene la duración).
+  const horaFinReserva = (reserva) => {
+    const duracion =
+      Number(reserva.duracion) ||
+      Number(reserva.servicioSnapshot?.duracion) ||
+      Number(reserva.servicio?.duracion) ||
+      30;
+    const fin = new Date(new Date(reserva.fecha).getTime() + duracion * 60000);
+    return fin.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
   const iconoCliente = (reserva) => {
     const tieneNota = reserva.cliente?.notasProfesional?.trim();
     const nota = tieneNota ? " 📝" : "";
@@ -149,6 +161,8 @@ const ReservaCardMobile = ({ reservas, empresa, onVer, isLoading }) => {
                     hour: "2-digit",
                     minute: "2-digit",
                   })}
+                  {" – "}
+                  {horaFinReserva(reserva)}
                 </small>
               </div>
 
