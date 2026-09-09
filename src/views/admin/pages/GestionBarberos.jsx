@@ -134,6 +134,12 @@ const GestionBarberos = () => {
       preview: fotoEditPreview,
       onFotoChange: handleFotoEditChange,
     },
+    {
+      name: "esAdmin",
+      label: "Es administrador (panel Equipo)",
+      type: "checkbox",
+      help: "Además de atender, va a poder ver y gestionar las reservas y estadísticas de todo el equipo.",
+    },
   ];
 
   const agregarEspecialidad = () => {
@@ -265,12 +271,12 @@ const GestionBarberos = () => {
                               {b.nombre} {b.apellido}
                             </h5>
                             <p className="text-muted small mb-1">{b.email}</p>
-                            <Badge
-                              color={activo ? "success" : "danger"}
-                              className="mb-3"
-                            >
-                              {activo ? "Activo" : "Inactivo"}
-                            </Badge>
+                            <div className="mb-3 d-flex justify-content-center" style={{ gap: 6 }}>
+                              <Badge color={activo ? "success" : "danger"}>
+                                {activo ? "Activo" : "Inactivo"}
+                              </Badge>
+                              {b.esAdmin && <Badge color="info">Admin</Badge>}
+                            </div>
                             <Row>
                               <Col xs="6" className="pr-1">
                                 <Button
@@ -452,6 +458,28 @@ const GestionBarberos = () => {
                       </Badge>
                     ))}
                   </div>
+                </FormGroup>
+              </Col>
+
+              {/* Es administrador (panel Equipo) */}
+              <Col sm={12}>
+                <FormGroup check className="mb-3">
+                  <Label check style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Input
+                      type="checkbox"
+                      checked={!!formCrear.esAdmin}
+                      onChange={(e) =>
+                        handleCrearChange({
+                          target: { name: "esAdmin", value: e.target.checked },
+                        })
+                      }
+                    />
+                    <span>Es administrador (panel Equipo)</span>
+                  </Label>
+                  <small className="text-muted d-block" style={{ marginLeft: 24 }}>
+                    Además de atender, va a poder ver y gestionar las reservas y
+                    estadísticas de todo el equipo.
+                  </small>
                 </FormGroup>
               </Col>
 

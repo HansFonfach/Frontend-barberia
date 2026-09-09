@@ -33,11 +33,15 @@ export const getReservasActivas = async (userId) => {
   return axiosPrivate.get(`/reservas/activas/${userId}`);
 };
 
-export const getResevasPorFecha = (fecha, hasta) => {
+export const getResevasPorFecha = (fecha, hasta, barberoId) => {
   const params = new URLSearchParams({ fecha });
   // "hasta" es opcional: si viene, trae un rango de fechas (ej. la semana
   // completa) en vez de un solo día — lo usa la vista "Semana" del panel.
   if (hasta) params.set("hasta", hasta);
+  // "barberoId" es opcional y solo lo respeta el backend si quien pregunta
+  // es admin — "todos" trae la agenda de todo el equipo, o un id puntual
+  // trae la de ese profesional. Lo usa el selector de "Equipo".
+  if (barberoId) params.set("barberoId", barberoId);
   return axiosPrivate.get(`/reservas/barbero/por-fecha?${params.toString()}`);
 };
 

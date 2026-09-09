@@ -86,13 +86,15 @@ export const ReservaProvider = ({ children }) => {
     }
   };
 
-  const getReservasPorFechaBarbero = async (fecha, hasta) => {
+  const getReservasPorFechaBarbero = async (fecha, hasta, barberoId) => {
     setLoading(true);
     setError(null);
     try {
       // "hasta" opcional: trae un rango (ej. semana completa) en vez de
       // un solo día — usado por la vista "Semana" de Gestión de Reservas.
-      const res = await getResevasPorFecha(fecha, hasta);
+      // "barberoId" opcional: solo lo respeta el backend si quien pregunta
+      // es admin — selector de profesional del panel "Equipo".
+      const res = await getResevasPorFecha(fecha, hasta, barberoId);
       setReservas(res.data.reservas || []);
     } catch (err) {
       console.error("Error al obtener reservas por fecha:", err);

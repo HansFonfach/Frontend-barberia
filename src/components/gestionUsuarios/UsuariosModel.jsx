@@ -228,6 +228,32 @@ const UsuarioModal = ({
       );
     }
 
+    if (campo.type === "checkbox") {
+      const valorActual = usuario?.[campo.name] ?? false;
+      return (
+        <FormGroup key={campo.name} check className="mb-3">
+          <Label check style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Input
+              type="checkbox"
+              name={campo.name}
+              checked={!!valorActual}
+              onChange={(e) =>
+                onFieldChange({
+                  target: { name: campo.name, value: e.target.checked },
+                })
+              }
+            />
+            <span>{campo.label}</span>
+          </Label>
+          {campo.help && (
+            <small className="text-muted d-block" style={{ marginLeft: 24 }}>
+              {campo.help}
+            </small>
+          )}
+        </FormGroup>
+      );
+    }
+
     // number / textarea / text — soporta nombres anidados tipo
     // "perfilProfesional.aniosExperiencia"
     const [parent, child] = campo.name.includes(".")

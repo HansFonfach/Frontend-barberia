@@ -80,6 +80,13 @@ export const useUsuarios = (rolFiltro) => {
       JSON.stringify(usuarioEdit.perfilProfesional?.especialidades || []),
     );
 
+    // Panel "Equipo": solo se manda si el campo existe en el estado editado
+    // (lo agrega el checkbox "Es administrador" en GestionBarberos.jsx) —
+    // el backend igual valida que quien llama ya sea admin.
+    if (usuarioEdit.esAdmin !== undefined) {
+      formData.append("esAdmin", !!usuarioEdit.esAdmin);
+    }
+
     if (fotoFile) {
       formData.append("fotoPerfil", fotoFile);
     }

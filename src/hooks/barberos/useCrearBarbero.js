@@ -14,6 +14,7 @@ const initialForm = {
   especialidades: [],
   password: "",
   confirmaPassword: "",
+  esAdmin: false,
 };
 
 export const useCrearBarbero = () => {

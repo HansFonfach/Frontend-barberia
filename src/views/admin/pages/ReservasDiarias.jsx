@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Card,
   CardBody,
@@ -14,6 +15,8 @@ import UserHeader from "components/Headers/UserHeader";
 import { useReserva } from "context/ReservaContext";
 import { useEmpresa } from "context/EmpresaContext";
 import { useHorario } from "context/HorarioContext";
+import { useAuth } from "context/AuthContext";
+import { getBarberosDeEmpresa } from "api/usuarios";
 
 import ReservaCardMobile from "../../../components/gestionReservas/ReservaCardMobile";
 import ReservaTableDesktop from "../../../components/gestionReservas/ReservaTableDesktop";
@@ -76,6 +79,8 @@ const GestionReservas = () => {
 
   const { empresa } = useEmpresa();
   const { getHorasDisponiblesBarbero } = useHorario();
+  const { user } = useAuth();
+  const [searchParams] = useSearchParams();
 
   const [modal, setModal] = useState(false);
   const [modalReagendar, setModalReagendar] = useState(false);
@@ -84,6 +89,28 @@ const GestionReservas = () => {
   const [filtroFecha, setFiltroFecha] = useState(
     new Date().toISOString().split("T")[0],
   );
+
+  // ── Selector de profesional (solo admin) ──────────────────────────────
+  // "yo" = mi propia agenda (comportamiento de siempre). "todos" = la de
+  // todo el equipo. Un id puntual = la de ese profesional. Se puede llegar
+  // acá con ?barberoId=<id> desde el panel "Equipo" (botón "Ver agenda").
+  const esAdmin = user?.esAdmin === true;
+  const [equipo, setEquipo] = useState([]);
+  const [barberoSeleccionado, setBarberoSeleccionado] = useState(
+    () => searchParams.get("barberoId") || "yo",
+  );
+
+  useEffect(() => {
+    if (!esAdmin) return;
+    getBarberosDeEmpresa()
+      .then((res) => setEquipo(res.data || []))
+      .catch((error) =>
+        console.error("Error al obtener el equipo:", error),
+      );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [esAdmin]);
+
+  const mostrarProfesional = esAdmin && barberoSeleccionado === "todos";
 
   // "dia" = comportamiento de siempre (fecha puntual). "semana" = calendario
   // semanal completo, con navegación semana a semana.
@@ -102,14 +129,19 @@ const GestionReservas = () => {
   const [extrasSeleccionados, setExtrasSeleccionados] = useState([]);
 
   useEffect(() => {
+    // "yo" no se manda al backend — es simplemente "no mandar barberoId",
+    // que es exactamente el comportamiento de siempre (ver lo propio).
+    const barberoParam =
+      esAdmin && barberoSeleccionado !== "yo" ? barberoSeleccionado : undefined;
+
     if (modoVista === "dia") {
-      getReservasPorFechaBarbero(filtroFecha);
+      getReservasPorFechaBarbero(filtroFecha, undefined, barberoParam);
     } else {
       const domingo = diasSemana[diasSemana.length - 1];
-      getReservasPorFechaBarbero(semanaInicio, domingo);
+      getReservasPorFechaBarbero(semanaInicio, domingo, barberoParam);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [modoVista, filtroFecha, semanaInicio]);
+  }, [modoVista, filtroFecha, semanaInicio, barberoSeleccionado]);
 
   const irSemanaAnterior = () => {
     const d = new Date(semanaInicio + "T00:00:00");
@@ -284,6 +316,36 @@ const GestionReservas = () => {
                     )}
                   </Col>
                 </Row>
+
+                {/* Selector de profesional — solo para admin (secretaria/
+                    dueño gestionando a todo el equipo) */}
+                {esAdmin && equipo.length > 0 && (
+                  <Row className="align-items-center mt-3">
+                    <Col md="4">
+                      <small
+                        className="text-muted d-block mb-1"
+                        style={{ fontWeight: 600 }}
+                      >
+                        Profesional
+                      </small>
+                      <Input
+                        type="select"
+                        bsSize="sm"
+                        value={barberoSeleccionado}
+                        onChange={(e) => setBarberoSeleccionado(e.target.value)}
+                      >
+                        <option value="yo">Yo</option>
+                        <option value="todos">Todo el equipo</option>
+                        {equipo.map((b) => (
+                          <option key={b._id} value={b._id}>
+                            {b.nombre} {b.apellido || ""}
+                            {b.estado === "inactivo" ? " (inactivo)" : ""}
+                          </option>
+                        ))}
+                      </Input>
+                    </Col>
+                  </Row>
+                )}
               </CardHeader>
 
               <CardBody>
@@ -294,6 +356,7 @@ const GestionReservas = () => {
                     loading={loading}
                     onVer={handleVerReserva}
                     isMobile={vistaMobile}
+                    mostrarProfesional={mostrarProfesional}
                   />
                 ) : vistaMobile ? (
                   <ReservaCardMobile
@@ -301,6 +364,7 @@ const GestionReservas = () => {
                     empresa={empresa}
                     onVer={handleVerReserva}
                     isLoading={loading}
+                    mostrarProfesional={mostrarProfesional}
                   />
                 ) : (
                   <ReservaTableDesktop
@@ -308,6 +372,7 @@ const GestionReservas = () => {
                     empresa={empresa}
                     onVer={handleVerReserva}
                     isLoading={loading}
+                    mostrarProfesional={mostrarProfesional}
                   />
                 )}
               </CardBody>

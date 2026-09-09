@@ -1,7 +1,13 @@
 import React from "react";
 import { Table, Button, Badge } from "reactstrap";
 
-const ReservaTableDesktop = ({ reservas, empresa, onVer, isLoading }) => {
+const ReservaTableDesktop = ({
+  reservas,
+  empresa,
+  onVer,
+  isLoading,
+  mostrarProfesional,
+}) => {
   const getEstado = (reserva) => {
     if (reserva.estado === "cancelada") return "Cancelada";
     if (reserva.estado === "no_asistio") return "No asistió";
@@ -110,6 +116,7 @@ const ReservaTableDesktop = ({ reservas, empresa, onVer, isLoading }) => {
         <thead className="thead-light">
           <tr>
             <th>Cliente</th>
+            {mostrarProfesional && <th>Profesional</th>}
             <th>Servicio</th>
             <th>Hora</th>
             <th>Estado</th>
@@ -127,6 +134,12 @@ const ReservaTableDesktop = ({ reservas, empresa, onVer, isLoading }) => {
                   <span className="mr-2">{iconoCliente(reserva)}</span>
                   {reserva.cliente?.nombre} {reserva.cliente?.apellido}
                 </td>
+
+                {mostrarProfesional && (
+                  <td className="text-nowrap">
+                    {reserva.barbero?.nombre} {reserva.barbero?.apellido || ""}
+                  </td>
+                )}
 
                 <td className="text-nowrap">{reserva.servicio?.nombre}</td>
 

@@ -77,3 +77,9 @@ export const putActualizarNota = (id, notasProfesional) => {
 export const updateUsuarioDesdeAdmin = (id, data) => {
   return axiosPrivate.put(`/usuarios/${id}/actualizarUsuario`, data);
 };
+
+// Panel "Equipo" — listado liviano de profesionales de la empresa
+// (solo trae rol=barbero, con esAdmin incluido para el selector/toggle).
+export const getBarberosDeEmpresa = () => {
+  return axiosPrivate.get(`/usuarios/equipo/lista`);
+};

@@ -82,3 +82,22 @@ export const getEstadisticasHistorialIngresos = (mes, anio) => {
     params: { mes, anio }
   });
 };
+
+// Panel "Equipo" (solo admin) — resumen comparativo por profesional.
+// desde/hasta en formato "YYYY-MM-DD"; servicioId opcional para filtrar
+// por un servicio puntual.
+export const getEstadisticasEquipo = (desde, hasta, servicioId) => {
+  return axiosPrivate.get("/estadisticas/equipo", {
+    params: { desde, hasta, servicioId },
+  });
+};
+
+// Página "Servicios" — rentabilidad por servicio (ingreso, volumen,
+// tendencia, evolución mensual y, si es admin, cruce por profesional).
+// desde/hasta en formato "YYYY-MM-DD"; servicioId y profesionalId
+// opcionales para acotar el filtro.
+export const getEstadisticasServicios = (desde, hasta, servicioId, profesionalId) => {
+  return axiosPrivate.get("/estadisticas/servicios", {
+    params: { desde, hasta, servicioId, profesionalId },
+  });
+};

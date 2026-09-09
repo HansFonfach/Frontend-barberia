@@ -160,7 +160,14 @@ const distribuirSolapes = (eventosDia) => {
   return resultado;
 };
 
-const ReservasSemana = ({ reservas, diasSemana, loading, onVer, isMobile }) => {
+const ReservasSemana = ({
+  reservas,
+  diasSemana,
+  loading,
+  onVer,
+  isMobile,
+  mostrarProfesional,
+}) => {
   const { user } = useAuth();
   const barberoId = user?.id || user?._id || "sinid";
   const storageKey = `af_colores_servicios_${barberoId}`;
@@ -426,6 +433,10 @@ const ReservasSemana = ({ reservas, diasSemana, loading, onVer, isMobile }) => {
                       }}
                     >
                       {r.servicio?.nombre}
+                      {/* 👇 NUEVO: solo aparece en la vista "Todo el equipo" (admin) */}
+                      {mostrarProfesional && r.barbero?.nombre && (
+                        <span> · {r.barbero.nombre}</span>
+                      )}
                     </div>
                   </div>
                   <span
@@ -574,7 +585,7 @@ const ReservasSemana = ({ reservas, diasSemana, loading, onVer, isMobile }) => {
                 <div
                   key={ev.key}
                   onClick={() => onVer(ev.reserva)}
-                  title={`${rangoHora(ev.reserva)} · ${ev.reserva.cliente?.nombre || ""} ${ev.reserva.cliente?.apellido || ""} · ${ev.reserva.servicio?.nombre || ""} · ${getEstadoReserva(ev.reserva)}`}
+                  title={`${rangoHora(ev.reserva)} · ${ev.reserva.cliente?.nombre || ""} ${ev.reserva.cliente?.apellido || ""} · ${ev.reserva.servicio?.nombre || ""} · ${getEstadoReserva(ev.reserva)}${mostrarProfesional && ev.reserva.barbero?.nombre ? ` · ${ev.reserva.barbero.nombre} ${ev.reserva.barbero?.apellido || ""}`.trimEnd() : ""}`}
                   style={{
                     position: "absolute",
                     top: ev.top,
@@ -648,6 +659,10 @@ const ReservasSemana = ({ reservas, diasSemana, loading, onVer, isMobile }) => {
                       </div>
                       <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {ev.reserva.cliente?.nombre} {ev.reserva.cliente?.apellido}
+                        {/* 👇 NUEVO: solo en la vista "Todo el equipo" (admin) */}
+                        {mostrarProfesional && ev.reserva.barbero?.nombre && (
+                          <span style={{ opacity: 0.85 }}> · {ev.reserva.barbero.nombre}</span>
+                        )}
                       </div>
                     </>
                   )}

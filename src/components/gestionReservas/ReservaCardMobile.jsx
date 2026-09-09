@@ -1,7 +1,13 @@
 import React from "react";
 import { Card, CardBody, Button, Badge } from "reactstrap";
 
-const ReservaCardMobile = ({ reservas, empresa, onVer, isLoading }) => {
+const ReservaCardMobile = ({
+  reservas,
+  empresa,
+  onVer,
+  isLoading,
+  mostrarProfesional,
+}) => {
   const getEstado = (reserva) => {
     if (reserva.estado === "cancelada") return "Cancelada";
 
@@ -147,6 +153,16 @@ const ReservaCardMobile = ({ reservas, empresa, onVer, isLoading }) => {
             {/* INFO */}
             {/* INFO */}
             <div className="pl-4 mb-3">
+              {/* 👇 NUEVO: solo aparece en la vista "Todo el equipo" (admin) */}
+              {mostrarProfesional && (
+                <div className="d-flex justify-content-between mb-1">
+                  <small className="text-muted">Profesional</small>
+                  <small className="font-weight-bold">
+                    {reserva.barbero?.nombre} {reserva.barbero?.apellido || ""}
+                  </small>
+                </div>
+              )}
+
               <div className="d-flex justify-content-between mb-1">
                 <small className="text-muted">Servicio</small>
                 <small className="font-weight-bold">

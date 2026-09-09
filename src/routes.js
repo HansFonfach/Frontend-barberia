@@ -10,6 +10,7 @@ import Login from "views/pages/Login";
 import Register from "views/pages/Register";
 import ReservarHoraBarbero from "views/admin/pages/ReservarHoraBarbero";
 import CrearBarberoCompleto from "views/admin/pages/GestionBarberos";
+import PanelEquipo from "views/admin/pages/PanelEquipo";
 import WizardBarberoSemana from "views/admin/pages/WizardBarberos";
 import GestionServicios from "views/admin/pages/GestionServicios";
 import GestionHorariosBarbero from "views/admin/pages/GestionHorarios";
@@ -17,6 +18,7 @@ import GestionClientes from "views/admin/pages/GestionClientes";
 import ReservasDiarias from "views/admin/pages/ReservasDiarias";
 import ForgotPassword from "views/publico/ForgotPassword";
 import Estadisticas from "views/admin/pages/Estadisticas";
+import EstadisticasServicios from "views/admin/pages/EstadisticasServicios";
 import EstadisticasGimnasio from "views/admin/pages/EstadisticasGimnasio";
 import BarberosPage from "views/pages/PresentarBarberos";
 import CentroAyuda from "views/pages/CentroAyuda";
@@ -406,6 +408,20 @@ export const barberoRoutes = [
     soloAdmin: true,
     excludeSlugs: ["team-hans"],
   },
+  {
+    // Panel comparativo para negocios con más de un profesional: cuánto
+    // genera cada uno, sus reservas, y un salto directo a la agenda de
+    // cualquiera. Solo lo ve un admin (dueño/secretaria).
+    path: "/equipo",
+    name: "Equipo",
+    icon: "fas fa-users-cog text-primary",
+    component: <PanelEquipo />,
+    layout: "/admin",
+    section: "gestion",
+    soloAdmin: true,
+    excludeSlugs: ["team-hans"],
+    excludeRubros: ["gimnasio"],
+  },
 
   {
     path: "/suscripciones",
@@ -629,6 +645,19 @@ export const barberoRoutes = [
         name: "Estadísticas",
         icon: "fas fa-chart-line text-info",
         component: <Estadisticas />,
+        layout: "/admin",
+        excludeSlugs: ["team-hans"],
+        excludeRubros: ["gimnasio"],
+      },
+      {
+        // Reportes de rentabilidad por servicio (ingreso/volumen líder y
+        // rezagado, tendencia, evolución mensual, y cruce por profesional
+        // para el admin) — página aparte del dashboard principal. La ve
+        // cualquier profesional (ve lo suyo) y el admin (ve todo).
+        path: "/estadisticas-servicios",
+        name: "Servicios",
+        icon: "fas fa-chart-pie text-info",
+        component: <EstadisticasServicios />,
         layout: "/admin",
         excludeSlugs: ["team-hans"],
         excludeRubros: ["gimnasio"],
