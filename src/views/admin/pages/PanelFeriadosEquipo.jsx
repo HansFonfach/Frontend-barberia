@@ -161,13 +161,28 @@ const PanelPersonalizacion = ({
   const [cargandoHoras, setCargandoHoras] = useState(false);
   const [errorHoras, setErrorHoras] = useState("");
   const [guardandoHora, setGuardandoHora] = useState(null);
+  // 🔧 El back puede devolver una grilla vacía por DOS motivos muy distintos:
+  // (a) el profesional de verdad no tiene horario ese día de la semana
+  // (sinHorario), o (b) sí tiene horario, pero ese día puntual está
+  // bloqueado o es un rango de vacaciones (bloqueado + motivo) — antes se
+  // mostraba el mismo mensaje genérico de "no tiene horario habitual" en
+  // ambos casos, lo cual es engañoso cuando el profesional SÍ trabaja ese
+  // día de la semana normalmente.
+  const [infoDiaVacio, setInfoDiaVacio] = useState(null);
 
   const cargarHorasDia = useCallback(() => {
     if (!prof || !feriado?.fecha) return;
     setCargandoHoras(true);
     setErrorHoras("");
     getHorasProfesionalDia(prof.barberoId, feriado.fecha)
-      .then((res) => setHorasDia(res?.horas || []))
+      .then((res) => {
+        setHorasDia(res?.horas || []);
+        setInfoDiaVacio({
+          bloqueado: !!res?.bloqueado,
+          motivo: res?.motivo || null,
+          sinHorario: !!res?.sinHorario,
+        });
+      })
       .catch(() => setErrorHoras("No se pudieron cargar las horas de este día"))
       .finally(() => setCargandoHoras(false));
   }, [prof, feriado]);
@@ -260,9 +275,21 @@ const PanelPersonalizacion = ({
           </div>
         ) : horasDia.filter((h) => h.estado !== "colacion").length === 0 ? (
           <p className="text-muted small mb-0">
-            Este profesional no tiene horario habitual ese día de la semana,
-            así que no hay horas para mostrar. Asígnale un horario en
-            Asignar Horarios primero.
+            {infoDiaVacio?.bloqueado ? (
+              <>
+                Este profesional tiene ese día bloqueado
+                {infoDiaVacio.motivo ? ` (${infoDiaVacio.motivo})` : ""}, por
+                eso no hay horas para mostrar aunque tenga horario habitual
+                ese día de la semana. Revisa sus vacaciones o bloqueos en
+                Administrar Horarios.
+              </>
+            ) : (
+              <>
+                Este profesional no tiene horario habitual ese día de la
+                semana, así que no hay horas para mostrar. Asígnale un
+                horario en Asignar Horarios primero.
+              </>
+            )}
           </p>
         ) : (
           <div className="d-flex flex-wrap" style={{ gap: 6 }}>
