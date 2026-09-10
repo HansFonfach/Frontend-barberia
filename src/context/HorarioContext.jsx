@@ -17,6 +17,13 @@ import { getHorasDisponibles } from "api/horarios.js";
 import { createContext, useContext } from "react";
 import { getFeriadosConEstado } from "api/horarios";
 import { postToggleTrabajoFeriado } from "api/horarios";
+import { postConfigurarTrabajoFeriado } from "api/horarios";
+import { postQuitarTrabajoFeriado } from "api/horarios";
+import {
+  getFeriadosEmpresa,
+  getDetalleFeriadoEmpresa,
+  patchToggleFeriadoEmpresa,
+} from "api/feriados";
 
 const HorarioContext = createContext();
 
@@ -135,6 +142,7 @@ export const HorarioProvider = ({ children }) => {
     hora,
     horaFin,
     serviciosPermitidos = [],
+    preciosEspeciales = [],
   ) => {
     try {
       const res = await postAgregarHoraExtraDiaria(
@@ -143,6 +151,7 @@ export const HorarioProvider = ({ children }) => {
         hora,
         horaFin,
         serviciosPermitidos, // ✅ nuevo parámetro
+        preciosEspeciales, // ✅ precio especial opcional por servicio
       );
       return res;
     } catch (error) {
@@ -164,6 +173,7 @@ export const HorarioProvider = ({ children }) => {
     horaInicio,
     horaFin,
     serviciosPermitidos,
+    preciosEspeciales,
   ) => {
     try {
       const res = await postActualizarHoraExtraDiaria(
@@ -172,6 +182,7 @@ export const HorarioProvider = ({ children }) => {
         horaInicio,
         horaFin,
         serviciosPermitidos,
+        preciosEspeciales,
       );
       return res;
     } catch (error) {
@@ -230,6 +241,32 @@ export const HorarioProvider = ({ children }) => {
     }
   };
 
+  // ── Panel "Feriados" del equipo (admin) ──
+  const obtenerFeriadosEmpresa = async () => {
+    const res = await getFeriadosEmpresa();
+    return res?.feriados || [];
+  };
+
+  const obtenerDetalleFeriadoEmpresa = async (feriadoId) => {
+    const res = await getDetalleFeriadoEmpresa(feriadoId);
+    return res;
+  };
+
+  const toggleFeriadoEmpresa = async (feriadoId, habilitado) => {
+    const res = await patchToggleFeriadoEmpresa(feriadoId, habilitado);
+    return res;
+  };
+
+  const configurarTrabajoFeriado = async (barberoId, fecha, config) => {
+    const res = await postConfigurarTrabajoFeriado(barberoId, fecha, config);
+    return res;
+  };
+
+  const quitarTrabajoFeriado = async (barberoId, fecha) => {
+    const res = await postQuitarTrabajoFeriado(barberoId, fecha);
+    return res;
+  };
+
   return (
     <HorarioContext.Provider
       value={{
@@ -250,6 +287,13 @@ export const HorarioProvider = ({ children }) => {
         obtenerVacacionesBarbero,
         obtenerFeriadosConEstado, // 👈
         toggleTrabajoFeriado, // 👈
+
+        // Panel "Feriados" del equipo (admin)
+        obtenerFeriadosEmpresa,
+        obtenerDetalleFeriadoEmpresa,
+        toggleFeriadoEmpresa,
+        configurarTrabajoFeriado,
+        quitarTrabajoFeriado,
       }}
     >
       {children}

@@ -61,8 +61,13 @@ const Sidebar = ({ routes, logo, usuario }) => {
     }
   };
 
+  // Antes era location.pathname.indexOf(route) > -1 ("contiene"), lo que
+  // marcaba como activas dos rutas cuando una era prefijo de la otra
+  // (ej: /gestion-feriados y /gestion-feriados-equipo). Cada link ya
+  // recibe su ruta final completa, así que comparar por igualdad exacta
+  // es correcto y evita ese falso positivo.
   const activeRoute = (route) =>
-    location.pathname.indexOf(route) > -1 ? "active" : "";
+    location.pathname === route ? "active" : "";
 
   /* =======================
      LINKS AGRUPADOS
@@ -77,8 +82,13 @@ const Sidebar = ({ routes, logo, usuario }) => {
       return acc;
     }, {});
 
-    return Object.keys(grouped).map((sectionKey) => (
-      <div key={sectionKey} className="sidebar-section">
+    const sectionKeys = Object.keys(grouped);
+
+    return sectionKeys.map((sectionKey, sectionIdx) => (
+      <div
+        key={sectionKey}
+        className={`sidebar-section${sectionIdx > 0 ? " sidebar-section-divider" : ""}`}
+      >
         <div className="sidebar-section-title">
           {sectionTitles[sectionKey] || sectionKey}
         </div>
@@ -93,11 +103,13 @@ const Sidebar = ({ routes, logo, usuario }) => {
                   style={{ cursor: "pointer" }}
                   onClick={() => toggleSubmenu(r.name)}
                 >
-                  {r.icon && typeof r.icon !== "string" ? (
-                    r.icon
-                  ) : (
-                    <i className={`${r.icon} sidebar-icon`} />
-                  )}
+                  <span className="sidebar-icon-wrap">
+                    {r.icon && typeof r.icon !== "string" ? (
+                      r.icon
+                    ) : (
+                      <i className={`${r.icon} sidebar-icon`} />
+                    )}
+                  </span>
                   <span style={{ flex: 1 }}>{r.name}</span>
                   <i
                     className={`fas fa-chevron-${submenuAbierto === r.name ? "up" : "down"}`}
@@ -135,11 +147,13 @@ const Sidebar = ({ routes, logo, usuario }) => {
                   onClick={closeCollapse}
                   className={`sidebar-link ${activeRoute(`/${slug}${r.layout}${r.path}`)}`}
                 >
-                  {r.icon && typeof r.icon !== "string" ? (
-                    r.icon
-                  ) : (
-                    <i className={`${r.icon} sidebar-icon`} />
-                  )}
+                  <span className="sidebar-icon-wrap">
+                    {r.icon && typeof r.icon !== "string" ? (
+                      r.icon
+                    ) : (
+                      <i className={`${r.icon} sidebar-icon`} />
+                    )}
+                  </span>
                   <span>{r.name}</span>
                 </NavLink>
               </NavItem>
@@ -189,12 +203,31 @@ const Sidebar = ({ routes, logo, usuario }) => {
           text-align: center;
         }
 
+        .sidebar-icon-wrap {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 18px;
+          flex-shrink: 0;
+        }
+
+        .sidebar-icon-wrap svg {
+          width: 16px;
+          height: 16px;
+        }
+
         .sidebar-section {
-          margin-bottom: 1rem;
+          margin-bottom: 0.5rem;
+        }
+
+        .sidebar-section-divider {
+          border-top: 1px solid #eef1f5;
+          margin-top: 0.5rem;
+          padding-top: 0.35rem;
         }
 
         .sidebar-section-title {
-          padding: 0.75rem 1.25rem 0.35rem;
+          padding: 0.6rem 1.25rem 0.4rem;
           font-size: 0.7rem;
           font-weight: 700;
           letter-spacing: 0.08em;
@@ -203,9 +236,37 @@ const Sidebar = ({ routes, logo, usuario }) => {
         }
 
         .logo-sidebar-custom {
-          max-width: 180px;
-          margin: 1rem auto;
+          max-width: 128px;
+          margin: 0.85rem auto 0.75rem;
           display: block;
+        }
+
+        .logo-row-link {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          padding: 0.9rem 1.25rem 0.6rem;
+          text-decoration: none !important;
+        }
+
+        .logo-mark {
+          width: 26px;
+          height: 26px;
+          border-radius: 7px;
+          flex-shrink: 0;
+          background: linear-gradient(135deg, #4361ee, #3a0ca3);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #fff;
+          font-size: 12px;
+          font-weight: 800;
+        }
+
+        .logo-word {
+          font-size: 13.5px;
+          font-weight: 800;
+          color: #1a1a2e;
         }
       `}</style>
 
@@ -228,12 +289,12 @@ const Sidebar = ({ routes, logo, usuario }) => {
           </button>
 
           {/* LOGO */}
-          <Link to={`/${slug}${logo?.innerLink || "/admin"}`}>
-            <img
-              src={logo.imgSrc}
-              alt={logo.imgAlt}
-              className="logo-sidebar-custom"
-            />
+          <Link
+            to={`/${slug}${logo?.innerLink || "/admin"}`}
+            className="logo-row-link"
+          >
+            <div className="logo-mark">A</div>
+            <div className="logo-word">AgendaFonfach</div>
           </Link>
 
           {/* USUARIO MOBILE */}

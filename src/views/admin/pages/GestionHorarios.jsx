@@ -25,6 +25,7 @@ import {
   Unlock,
   Star,
   CheckCircle,
+  Tag,
 } from "lucide-react";
 
 import UserHeader from "components/Headers/UserHeader";
@@ -32,6 +33,8 @@ import { useAuth } from "context/AuthContext";
 import { useHorario } from "context/HorarioContext";
 import { useGestionHorariosAdmin } from "hooks/useGestionHorariosAdmin";
 import { useServicios } from "context/ServiciosContext";
+
+const fmtCLP = (n) => `$${Math.round(n || 0).toLocaleString("es-CL")}`;
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 const sumarMinutos = (horaStr, minutos) => {
@@ -371,9 +374,11 @@ const GestionHorarios = () => {
   const [horaFinEditada, setHoraFinEditada] = useState("");
   const [mensaje, setMensaje] = useState("");
   const [mensajeError, setMensajeError] = useState("");
-  const { cargarServiciosBarbero } = useServicios();
+  const { cargarServiciosBarbero, servicios: catalogoCompleto } = useServicios();
   const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
   const [serviciosSeleccionados, setServiciosSeleccionados] = useState([]); // ids
+  const [usarPrecioEspecial, setUsarPrecioEspecial] = useState(false);
+  const [preciosPorServicio, setPreciosPorServicio] = useState({}); // { servicioId: "12000" }
 
   // Cargar servicios al montar
   useEffect(() => {
@@ -472,16 +477,29 @@ const GestionHorarios = () => {
     }
     try {
       setMensajeError("");
+
+      const preciosEspeciales = usarPrecioEspecial
+        ? serviciosParaPrecio
+            .filter((s) => preciosPorServicio[s.servicioId])
+            .map((s) => ({
+              servicio: s.servicioId,
+              precio: Number(preciosPorServicio[s.servicioId]),
+            }))
+        : [];
+
       await agregarHoraExtraDiaria(
         barbero,
         fechaSeleccionada,
         nuevaHora,
         nuevaHoraFin,
         serviciosSeleccionados, // ✅ nuevo parámetro
+        preciosEspeciales, // ✅ precio especial opcional por servicio
       );
       setNuevaHora("");
       setNuevaHoraFin("");
       setServiciosSeleccionados([]); // ✅ limpiar selección
+      setUsarPrecioEspecial(false);
+      setPreciosPorServicio({});
       setMensaje(
         `Hora extra ${nuevaHora} a ${nuevaHoraFin} agregada correctamente`,
       );
@@ -499,6 +517,22 @@ const GestionHorarios = () => {
     } catch (err) {
       setMensajeError(`Error al eliminar hora extra ${hora}`);
     }
+  };
+
+  const precioNormal = (servicioId) =>
+    catalogoCompleto.find((s) => s._id === servicioId)?.precio || 0;
+
+  const serviciosParaPrecio = useMemo(() => {
+    if (!usarPrecioEspecial) return [];
+    return serviciosSeleccionados.length
+      ? serviciosDisponibles.filter((s) =>
+          serviciosSeleccionados.includes(s.servicioId),
+        )
+      : serviciosDisponibles;
+  }, [usarPrecioEspecial, serviciosSeleccionados, serviciosDisponibles]);
+
+  const cambiarPrecioEspecial = (servicioId, valor) => {
+    setPreciosPorServicio((prev) => ({ ...prev, [servicioId]: valor }));
   };
 
   const onIniciarEdicionExtra = (hora, horaFinActual) => {
@@ -866,6 +900,72 @@ const GestionHorarios = () => {
                         );
                       })}
                     </div>
+                  </div>
+
+                  {/* Precio especial (opcional) */}
+                  <div
+                    style={{
+                      background: "#fff",
+                      border: "1px solid #dbeafe",
+                      borderRadius: "8px",
+                      padding: "10px 12px",
+                      marginBottom: "14px",
+                    }}
+                  >
+                    <div className="d-flex align-items-center justify-content-between">
+                      <Label
+                        className="mb-0 d-flex align-items-center"
+                        style={{
+                          fontWeight: 600,
+                          fontSize: "0.85rem",
+                          color: "#374151",
+                          gap: "6px",
+                        }}
+                      >
+                        <Tag size={13} />
+                        Usar precio especial en esta hora extra
+                      </Label>
+                      <Input
+                        type="checkbox"
+                        checked={usarPrecioEspecial}
+                        onChange={(e) => setUsarPrecioEspecial(e.target.checked)}
+                        style={{ width: "18px", height: "18px" }}
+                      />
+                    </div>
+
+                    {usarPrecioEspecial && (
+                      <div className="mt-2">
+                        {serviciosParaPrecio.length === 0 ? (
+                          <small className="text-muted">
+                            No hay servicios para asignarles un precio.
+                          </small>
+                        ) : (
+                          serviciosParaPrecio.map((s) => (
+                            <div
+                              key={s.servicioId}
+                              className="d-flex align-items-center justify-content-between mb-2"
+                            >
+                              <div style={{ fontSize: "0.82rem" }}>
+                                <span style={{ fontWeight: 600 }}>{s.nombre}</span>
+                                <span className="text-muted ms-2">
+                                  normal: {fmtCLP(precioNormal(s.servicioId))}
+                                </span>
+                              </div>
+                              <Input
+                                type="number"
+                                min="0"
+                                placeholder="Precio normal"
+                                value={preciosPorServicio[s.servicioId] || ""}
+                                onChange={(e) =>
+                                  cambiarPrecioEspecial(s.servicioId, e.target.value)
+                                }
+                                style={{ maxWidth: "140px", borderRadius: "8px" }}
+                              />
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <Button

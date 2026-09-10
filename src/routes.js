@@ -48,6 +48,7 @@ import GestionPlanesSuscripcion from "views/admin/pages/GestionPlanesSuscripcion
 import GestionCategorias from "views/admin/pages/GestionCategorias";
 import GestionServiciosPorHora from "views/admin/pages/GestionServiciosPorHora";
 import HabilitarFeriados from "views/admin/pages/HabilitarFeriados";
+import PanelFeriadosEquipo from "views/admin/pages/PanelFeriadosEquipo";
 import GestionClases from "views/admin/pages/GestionClases";
 import GestionPlanesMembresia from "views/admin/pages/GestionPlanesMembresia";
 import GestionMembresias from "views/admin/pages/GestionMembresias";
@@ -63,6 +64,41 @@ import HistorialEntrenamiento from "views/pages/HistorialEntrenamiento";
 import DiarioAlimenticio from "views/pages/DiarioAlimenticio";
 import MiembrosEntrenamiento from "views/admin/pages/MiembrosEntrenamiento";
 import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
+
+// Set de íconos del sidebar admin (mismo lenguaje visual en todos los
+// ítems — antes se mezclaban Nucleo Icons y Font Awesome con trazos
+// distintos). El color de cada uno se mantiene igual al que tenía antes
+// (mismos hex del tema Argon: primary/success/warning/danger/yellow/
+// purple), solo cambia el dibujo del ícono.
+import {
+  LayoutGrid,
+  CalendarPlus,
+  CalendarCheck,
+  Users,
+  User,
+  IdCard,
+  CreditCard,
+  Layers,
+  Gift,
+  Tag,
+  Scissors,
+  Clock,
+  Package,
+  Building2,
+} from "lucide-react";
+
+const ICONO_COLOR = {
+  primary: "#5e72e4",
+  success: "#2dce89",
+  warning: "#fb6340",
+  danger: "#f5365c",
+  yellow: "#ffd600",
+  purple: "#8965e0",
+};
+
+const iconoSidebar = (Icono, color) => (
+  <Icono size={16} color={ICONO_COLOR[color]} strokeWidth={2} />
+);
 
 /* =========================
    🔓 RUTAS PÚBLICAS
@@ -302,7 +338,7 @@ export const barberoRoutes = [
   {
     path: "/dashboard",
     name: "Dashboard",
-    icon: "ni ni-tv-2 text-primary",
+    icon: iconoSidebar(LayoutGrid, "primary"),
     component: <AdminDashboard />,
     layout: "/admin",
     section: "principal",
@@ -357,7 +393,7 @@ export const barberoRoutes = [
   {
     path: "/reservar-hora-cliente",
     name: "Agendar cliente",
-    icon: "ni ni-calendar-grid-58 text-success",
+    icon: iconoSidebar(CalendarPlus, "success"),
     component: <ReservarHoraBarbero />,
     layout: "/admin",
     section: "reservas",
@@ -367,7 +403,7 @@ export const barberoRoutes = [
   {
     path: "/reservas",
     name: "Reservas del día",
-    icon: "fas fa-calendar-day text-success",
+    icon: iconoSidebar(CalendarCheck, "success"),
     component: <ReservasDiarias />,
     layout: "/admin",
     section: "reservas",
@@ -379,7 +415,7 @@ export const barberoRoutes = [
   {
     path: "/gestion-clientes",
     name: "Clientes",
-    icon: "fas fa-users text-warning",
+    icon: iconoSidebar(Users, "warning"),
     component: <GestionClientes />,
     layout: "/admin",
     section: "gestion",
@@ -401,7 +437,7 @@ export const barberoRoutes = [
   {
     path: "/gestion-profesionales",
     name: "Profesionales",
-    icon: "fas fa-user-tie text-primary",
+    icon: iconoSidebar(User, "primary"),
     component: <CrearBarberoCompleto />,
     layout: "/admin",
     section: "gestion",
@@ -414,7 +450,7 @@ export const barberoRoutes = [
     // cualquiera. Solo lo ve un admin (dueño/secretaria).
     path: "/equipo",
     name: "Equipo",
-    icon: "fas fa-users-cog text-primary",
+    icon: iconoSidebar(IdCard, "primary"),
     component: <PanelEquipo />,
     layout: "/admin",
     section: "gestion",
@@ -426,7 +462,7 @@ export const barberoRoutes = [
   {
     path: "/suscripciones",
     name: "Suscripciones",
-    icon: "ni ni-credit-card text-warning",
+    icon: iconoSidebar(CreditCard, "warning"),
     component: <GestionSuscripciones />,
     layout: "/admin",
     excludeSlugs: ["lumicabeauty", "don-valentino", "danails-studio", "team-hans"],
@@ -436,7 +472,7 @@ export const barberoRoutes = [
   {
     path: "/planes-suscripcion",
     name: "Planes de suscripción",
-    icon: "ni ni-collection text-warning",
+    icon: iconoSidebar(Layers, "warning"),
     component: <GestionPlanesSuscripcion />,
     layout: "/admin",
     excludeSlugs: ["lumicabeauty", "don-valentino", "danails-studio", "team-hans"],
@@ -448,7 +484,7 @@ export const barberoRoutes = [
   {
     path: "/gestion-canjes",
     name: "Canjes",
-    icon: "ni ni-shop text-warning",
+    icon: iconoSidebar(Gift, "warning"),
     component: <GestionCanjes />,
     layout: "/admin",
     section: "gestion",
@@ -456,8 +492,8 @@ export const barberoRoutes = [
   },
   {
     path: "/gestion-categorias",
-    name: "Categorias",
-    icon: "ni ni-shop text-yellow",
+    name: "Categorías",
+    icon: iconoSidebar(Tag, "yellow"),
     component: <GestionCategorias />,
     layout: "/admin",
     section: "gestion",
@@ -468,7 +504,7 @@ export const barberoRoutes = [
     // submenu: Servicios
     path: "/servicios-menu",
     name: "Servicios",
-    icon: "fas fa-scissors text-danger",
+    icon: iconoSidebar(Scissors, "danger"),
     layout: "/admin",
     section: "gestion",
     excludeSlugs: ["team-hans"],
@@ -502,7 +538,7 @@ export const barberoRoutes = [
     // submenu: Horarios
     path: "/horarios-menu",
     name: "Horarios",
-    icon: "fas fa-clock text-danger",
+    icon: iconoSidebar(Clock, "danger"),
     layout: "/admin",
     section: "gestion",
     excludeSlugs: ["team-hans"],
@@ -523,11 +559,31 @@ export const barberoRoutes = [
         layout: "/admin",
       },
       {
+        // Auto-toggle individual, ahora oculto del menú: con el
+        // interruptor maestro por empresa en "Feriados del equipo", si un
+        // profesional se marca acá pero el admin no habilitó el feriado a
+        // nivel empresa, queda sin efecto y sin aviso — confuso. La ruta
+        // se deja registrada (invisible, no eliminada) por si alguien
+        // todavía la tiene como acceso directo guardado.
         path: "/gestion-feriados",
         name: "Administrar Feriados",
         icon: "fas fa-clock text-success",
         component: <HabilitarFeriados />,
         layout: "/admin",
+        invisible: true,
+      },
+      {
+        // Vista de equipo del feriado: quién trabaja, con qué horario,
+        // qué servicios y a qué precio. Solo admin — HabilitarFeriados de
+        // arriba sigue siendo el auto-toggle simple para cualquier
+        // profesional, sin tocar.
+        path: "/gestion-feriados-equipo",
+        name: "Feriados del equipo",
+        icon: "fas fa-calendar-check text-success",
+        component: <PanelFeriadosEquipo />,
+        layout: "/admin",
+        soloAdmin: true,
+        excludeRubros: ["gimnasio"],
       },
 
       {
@@ -544,7 +600,7 @@ export const barberoRoutes = [
     // submenu: Productos
     path: "/productos-menu",
     name: "Productos",
-    icon: "ni ni-box-2 text-primary",
+    icon: iconoSidebar(Package, "primary"),
     layout: "/admin",
     section: "gestion",
     excludeSlugs: ["team-hans"],
@@ -625,7 +681,7 @@ export const barberoRoutes = [
     // submenu: Empresa
     path: "/empresa-menu",
     name: "Empresa",
-    icon: "ni ni-building text-purple",
+    icon: iconoSidebar(Building2, "purple"),
     layout: "/admin",
     section: "otros",
     soloAdmin: true,

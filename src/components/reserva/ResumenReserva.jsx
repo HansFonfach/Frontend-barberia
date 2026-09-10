@@ -145,20 +145,30 @@ const ResumenReserva = ({
               <span>💸 Precio:</span>
               <strong>
                 {precioFinalCalculado != null &&
-                precioFinalCalculado < servicioSeleccionado?.precio ? (
-                  <>
-                    <span
-                      style={{
-                        textDecoration: "line-through",
-                        color: "#999",
-                        marginRight: "8px",
-                        fontWeight: 500,
-                      }}
-                    >
-                      ${servicioSeleccionado.precio.toLocaleString("es-CL")}
-                    </span>
-                    <span>${precioFinalCalculado.toLocaleString("es-CL")}</span>
-                  </>
+                precioFinalCalculado !== servicioSeleccionado?.precio ? (
+                  precioFinalCalculado < servicioSeleccionado.precio ? (
+                    <>
+                      <span
+                        style={{
+                          textDecoration: "line-through",
+                          color: "#999",
+                          marginRight: "8px",
+                          fontWeight: 500,
+                        }}
+                      >
+                        ${servicioSeleccionado.precio.toLocaleString("es-CL")}
+                      </span>
+                      <span>
+                        ${precioFinalCalculado.toLocaleString("es-CL")}
+                      </span>
+                    </>
+                  ) : (
+                    // Precio especial MAYOR al normal (ej. feriado/hora
+                    // extra) — no tiene sentido mostrarlo como "tachado +
+                    // rebaja", así que se muestra directo, sin implicar un
+                    // descuento que no existe.
+                    <>${precioFinalCalculado.toLocaleString("es-CL")}</>
+                  )
                 ) : (
                   <>
                     $

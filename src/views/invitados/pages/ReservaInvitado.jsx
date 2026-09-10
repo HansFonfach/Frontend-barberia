@@ -151,8 +151,29 @@ const ReservarHoraInvitado = () => {
 
   const precioFinalCalculado = useMemo(() => {
     if (!servicioSeleccionado) return null;
+
+    // El precio real (con feriado/hora extra especial si corresponde) ya
+    // viene calculado desde el backend para cada hora — es el mismo
+    // cálculo que se usa al confirmar la reserva. Se prioriza ese valor.
+    if (hora) {
+      const horaSeleccionada = horasDisponibles?.find((h) => h.hora === hora);
+      if (horaSeleccionada?.precio != null) return horaSeleccionada.precio;
+    } else if (horasDisponibles?.length) {
+      // Todavía no eligió hora: si TODAS las horas de ese día tienen el
+      // mismo precio (el caso típico — precio especial de feriado que
+      // rige el día completo), se puede mostrar de una vez. Si varían
+      // (ej. una sola hora extra con precio distinto al resto del día),
+      // se espera a que elija la hora exacta en vez de adivinar.
+      const precios = new Set(
+        horasDisponibles.filter((h) => h.precio != null).map((h) => h.precio),
+      );
+      if (precios.size === 1) return [...precios][0];
+    }
+
+    // Respaldo: cálculo local (solo descuentos por fecha del catálogo),
+    // para cuando todavía no hay horas cargadas para ese día.
     return calcularPrecioFinal(servicioSeleccionado, fecha);
-  }, [servicioSeleccionado, fecha]);
+  }, [servicioSeleccionado, fecha, hora, horasDisponibles]);
 
   const progresoPasos = useMemo(() => {
     let pasos = 0;

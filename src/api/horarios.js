@@ -98,6 +98,7 @@ export const postAgregarHoraExtraDiaria = async (
   horaInicio,
   horaFin,
   serviciosPermitidos = [], // ✅
+  preciosEspeciales = [], // ✅ opcional: [{ servicio, precio }]
 ) => {
   try {
     const res = await axiosPrivate.post(
@@ -108,6 +109,7 @@ export const postAgregarHoraExtraDiaria = async (
         horaInicio,
         horaFin,
         serviciosPermitidos, // ✅
+        preciosEspeciales, // ✅
       },
     );
     return res.data;
@@ -122,6 +124,7 @@ export const postActualizarHoraExtraDiaria = async (
   horaInicio,
   horaFin,
   serviciosPermitidos,
+  preciosEspeciales,
 ) => {
   try {
     const res = await axiosPrivate.post(
@@ -132,6 +135,7 @@ export const postActualizarHoraExtraDiaria = async (
         horaInicio,
         horaFin,
         serviciosPermitidos,
+        preciosEspeciales,
       },
     );
     return res.data;
@@ -244,4 +248,30 @@ export const postToggleTrabajoFeriado = async (barbero, fecha) => {
   } catch (error) {
     throw error;
   }
+};
+
+// ── Panel "Feriados" del equipo (admin): detalle por profesional ────────
+
+export const postConfigurarTrabajoFeriado = async (
+  barberoId,
+  fecha,
+  { horaInicio, horaFin, serviciosPermitidos, preciosEspeciales } = {},
+) => {
+  const res = await axiosPrivate.post(`/excepcionHorario/feriado/configurar`, {
+    barberoId,
+    fecha,
+    horaInicio,
+    horaFin,
+    serviciosPermitidos,
+    preciosEspeciales,
+  });
+  return res.data;
+};
+
+export const postQuitarTrabajoFeriado = async (barberoId, fecha) => {
+  const res = await axiosPrivate.post(`/excepcionHorario/feriado/quitar`, {
+    barberoId,
+    fecha,
+  });
+  return res.data;
 };
