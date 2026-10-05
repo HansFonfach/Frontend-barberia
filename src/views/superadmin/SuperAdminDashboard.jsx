@@ -489,7 +489,7 @@ const SuperAdminDashboard = () => {
                             color="success"
                             onClick={() => reactivarSuscripcion(e)}
                           >
-                            Reactivar
+                            Reactivar plan
                           </Button>
                         ) : (
                           <Button
@@ -507,7 +507,7 @@ const SuperAdminDashboard = () => {
                           color={e.estado === "activo" ? "secondary" : "success"}
                           onClick={() => toggleActivo(e)}
                         >
-                          {e.estado === "activo" ? "Desactivar" : "Reactivar"}
+                          {e.estado === "activo" ? "Desactivar" : "Activar negocio"}
                         </Button>
                       </div>
                     </td>
