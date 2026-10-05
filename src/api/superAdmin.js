@@ -19,7 +19,10 @@ export const patchSuscripcionEmpresaRequest = (id, estadoSuscripcion, motivoSusp
 export const patchCobroEmpresaRequest = (id, { cuotaMensual, fechaPago }) =>
   axiosSuperAdmin.patch(`/superadmin/empresas/${id}/cobro`, { cuotaMensual, fechaPago });
 
-export const postPagoEmpresaRequest = (id, { monto, notas }) =>
-  axiosSuperAdmin.post(`/superadmin/empresas/${id}/pago`, { monto, notas });
+export const postPagoEmpresaRequest = (id, { monto, notas, enviarCorreo }) =>
+  axiosSuperAdmin.post(`/superadmin/empresas/${id}/pago`, { monto, notas, enviarCorreo });
+
+export const postRecordatorioVencimientoRequest = (id) =>
+  axiosSuperAdmin.post(`/superadmin/empresas/${id}/recordatorio-vencimiento`);
 
 export const getGananciasRequest = () => axiosSuperAdmin.get("/superadmin/ganancias");

@@ -16,6 +16,7 @@ import {
   Form,
   FormGroup,
   Input,
+  Label,
 } from "reactstrap";
 import Swal from "sweetalert2";
 import {
@@ -25,6 +26,7 @@ import {
   patchSuscripcionEmpresaRequest,
   patchCobroEmpresaRequest,
   postPagoEmpresaRequest,
+  postRecordatorioVencimientoRequest,
   logoutSuperAdminRequest,
 } from "api/superAdmin";
 
@@ -122,17 +124,32 @@ const ModalCobro = ({ empresa, onClose, onGuardado }) => {
 const ModalPago = ({ empresa, onClose, onGuardado }) => {
   const [monto, setMonto] = useState(empresa?.cuotaMensual || "");
   const [notas, setNotas] = useState("");
+  const [enviarCorreo, setEnviarCorreo] = useState(true);
   const [guardando, setGuardando] = useState(false);
 
   const guardar = async () => {
     setGuardando(true);
     try {
-      await postPagoEmpresaRequest(empresa._id, {
+      const res = await postPagoEmpresaRequest(empresa._id, {
         monto: monto === "" ? undefined : Number(monto),
         notas,
+        enviarCorreo,
       });
       onGuardado();
       onClose();
+
+      const correo = res.data?.correo;
+      if (correo?.enviado) {
+        Swal.fire("Pago registrado", `Se envió el correo de confirmación a ${correo.destino}`, "success");
+      } else if (enviarCorreo) {
+        Swal.fire(
+          "Pago registrado",
+          `El pago quedó guardado, pero no se envió el correo: ${correo?.motivo || "motivo desconocido"}.`,
+          "warning",
+        );
+      } else {
+        Swal.fire("Pago registrado", "Sin correo de confirmación.", "success");
+      }
     } catch (error) {
       Swal.fire("Error", error.response?.data?.message || "No se pudo registrar el pago", "error");
     } finally {
@@ -157,6 +174,17 @@ const ModalPago = ({ empresa, onClose, onGuardado }) => {
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
             />
+          </FormGroup>
+          <FormGroup check className="mb-3">
+            <Label check className="small">
+              <Input
+                type="checkbox"
+                checked={enviarCorreo}
+                onChange={(e) => setEnviarCorreo(e.target.checked)}
+              />{" "}
+              Enviar correo de “pago acreditado”
+              {empresa.correo ? ` a ${empresa.correo}` : " (este negocio no tiene correo registrado)"}
+            </Label>
           </FormGroup>
           <small className="text-muted d-block mb-3">
             Si esta empresa estaba suspendida por no pago, al registrar el pago se reactiva sola.
@@ -289,6 +317,34 @@ const SuperAdminDashboard = () => {
     }
   };
 
+  const enviarAvisoVencimiento = async (empresa) => {
+    if (!empresa.correo) {
+      Swal.fire(
+        "Sin correo",
+        `${empresa.nombre} no tiene un correo registrado, no hay a dónde enviar el aviso.`,
+        "warning",
+      );
+      return;
+    }
+
+    const confirmar = await Swal.fire({
+      title: "¿Enviar aviso de vencimiento?",
+      html: `Se enviará el correo <b>“Tu plan vence hoy”</b> a<br/><b>${empresa.correo}</b>`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Enviar aviso",
+      cancelButtonText: "Cancelar",
+    });
+    if (!confirmar.isConfirmed) return;
+
+    try {
+      const res = await postRecordatorioVencimientoRequest(empresa._id);
+      Swal.fire("Aviso enviado", res.data?.message || "Correo enviado", "success");
+    } catch (error) {
+      Swal.fire("Error", error.response?.data?.message || "No se pudo enviar el aviso", "error");
+    }
+  };
+
   if (cargando) {
     return (
       <div className="text-center py-5 text-muted">Cargando panel...</div>
@@ -417,6 +473,14 @@ const SuperAdminDashboard = () => {
                         </Button>
                         <Button size="sm" outline color="success" onClick={() => setModalPago(e)}>
                           Marcar pago
+                        </Button>
+                        <Button
+                          size="sm"
+                          outline
+                          color="info"
+                          onClick={() => enviarAvisoVencimiento(e)}
+                        >
+                          Avisar vence hoy
                         </Button>
                         {["suspendido", "cancelado"].includes(e.estadoSuscripcion) ? (
                           <Button
