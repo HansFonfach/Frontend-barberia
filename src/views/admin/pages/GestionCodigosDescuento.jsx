@@ -256,14 +256,18 @@ const GestionCodigosDescuento = () => {
             <Card className="shadow">
               <CardHeader>
                 <Row className="align-items-center">
-                  <Col>
+                  <Col xs="12" md>
                     <h3 className="mb-0">Códigos de descuento</h3>
                     <small className="text-muted">
                       Crea códigos (ej. DIADELPROFE) para que tus clientes los ingresen al reservar.
                     </small>
                   </Col>
-                  <Col xs="auto">
-                    <Button color="primary" onClick={abrirNuevo}>
+                  <Col xs="12" md="auto" className="mt-3 mt-md-0">
+                    <Button
+                      color="primary"
+                      className="btn-block d-md-inline-block"
+                      onClick={abrirNuevo}
+                    >
                       + Nuevo código
                     </Button>
                   </Col>
@@ -280,7 +284,9 @@ const GestionCodigosDescuento = () => {
                     Todavía no tienes códigos. Crea el primero con “Nuevo código”.
                   </div>
                 ) : (
-                  <div className="table-responsive">
+                  <>
+                  {/* Escritorio: tabla */}
+                  <div className="table-responsive d-none d-md-block">
                     <Table className="align-items-center mb-0" hover>
                       <thead className="thead-light">
                         <tr>
@@ -373,6 +379,97 @@ const GestionCodigosDescuento = () => {
                       </tbody>
                     </Table>
                   </div>
+
+                  {/* Celular: una tarjeta por código */}
+                  <div className="d-md-none">
+                    {codigos.map((c) => {
+                      const estado = ESTADOS[c.estadoVigencia] || ESTADOS.vigente;
+                      const nombres = (c.servicios || []).map(
+                        (sv) => sv.nombre || nombresServicios.get(String(sv._id || sv)) || "—",
+                      );
+                      return (
+                        <div key={c._id} className="p-3 border-bottom">
+                          <div
+                            className="d-flex justify-content-between align-items-start"
+                            style={{ gap: 8 }}
+                          >
+                            <div style={{ minWidth: 0 }}>
+                              <strong style={{ fontSize: "1.05rem", wordBreak: "break-all" }}>
+                                {c.codigo}
+                              </strong>
+                              {c.descripcion && (
+                                <div className="small text-muted">{c.descripcion}</div>
+                              )}
+                            </div>
+                            <Badge color={estado.color} pill style={{ flexShrink: 0 }}>
+                              {estado.texto}
+                            </Badge>
+                          </div>
+
+                          <div className="mt-2" style={{ fontSize: "1.4rem", fontWeight: 700 }}>
+                            {c.tipo === "porcentaje" ? `${c.valor}%` : pesos(c.valor)}{" "}
+                            <span
+                              className="text-muted"
+                              style={{ fontSize: "0.8rem", fontWeight: 400 }}
+                            >
+                              de descuento
+                            </span>
+                          </div>
+
+                          <div className="small mt-2">
+                            <span className="text-muted">Servicios: </span>
+                            {nombres.join(", ")}
+                          </div>
+                          <div className="small mt-1">
+                            <span className="text-muted">Vigencia: </span>
+                            {vistaVigencia(c)}
+                          </div>
+                          <div className="small mt-1">
+                            <span className="text-muted">Usos: </span>
+                            <strong>
+                              {c.usos}
+                              {c.cupos != null ? ` / ${c.cupos}` : ""}
+                            </strong>
+                            {c.cupos != null ? " cupos" : ""}
+                            {c.usos > 0 && ` · ${pesos(c.ahorroTotal)} descontados`}
+                            {c.maxUsosPorCliente != null &&
+                              ` · máx. ${c.maxUsosPorCliente} por cliente`}
+                          </div>
+
+                          <div className="d-flex mt-3" style={{ gap: 8 }}>
+                            <Button
+                              size="sm"
+                              outline
+                              color={c.activo ? "warning" : "success"}
+                              className="flex-fill m-0"
+                              onClick={() => alternarActivo(c)}
+                            >
+                              {c.activo ? "Pausar" : "Activar"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              outline
+                              color="primary"
+                              className="flex-fill m-0"
+                              onClick={() => abrirEditar(c)}
+                            >
+                              Editar
+                            </Button>
+                            <Button
+                              size="sm"
+                              outline
+                              color="danger"
+                              className="flex-fill m-0"
+                              onClick={() => eliminar(c)}
+                            >
+                              Eliminar
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  </>
                 )}
               </CardBody>
             </Card>

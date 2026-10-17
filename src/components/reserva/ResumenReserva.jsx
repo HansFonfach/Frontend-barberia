@@ -229,13 +229,14 @@ const ResumenReserva = ({
 
       {codigoDescuento && (
         <div className="mb-2">
-          <div className="input-group">
+          <div className="d-flex align-items-stretch" style={{ gap: 8 }}>
             <input
               type="text"
               className={`form-control ${codigoDescuento.error ? "is-invalid" : ""}`}
               placeholder="Código promocional"
               value={codigoDescuento.codigo}
               maxLength={20}
+              style={{ flex: 1, minWidth: 0 }}
               disabled={!!codigoDescuento.aplicado || codigoDescuento.validando}
               onChange={(e) => codigoDescuento.setCodigo(e.target.value)}
               onKeyDown={(e) => {
@@ -245,13 +246,14 @@ const ResumenReserva = ({
                 }
               }}
             />
-            <div className="input-group-append">
+            <div className="d-flex" style={{ flexShrink: 0 }}>
               {codigoDescuento.aplicado ||
               (codigoDescuento.error && codigoDescuento.codigo) ? (
                 <Button
                   type="button"
                   outline
                   color="secondary"
+                  style={{ margin: 0, whiteSpace: "nowrap" }}
                   onClick={codigoDescuento.quitar}
                 >
                   Quitar
@@ -266,6 +268,7 @@ const ResumenReserva = ({
                     codigoDescuento.validando ||
                     !servicioSeleccionado
                   }
+                  style={{ margin: 0, whiteSpace: "nowrap" }}
                   onClick={codigoDescuento.aplicar}
                 >
                   {codigoDescuento.validando ? <Spinner size="sm" /> : "Aplicar"}

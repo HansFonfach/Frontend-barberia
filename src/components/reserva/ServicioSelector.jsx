@@ -182,13 +182,17 @@ const ServicioSelector = ({
 
       <Row className="g-2">
         {serviciosFiltrados.map((s) => (
-          <Col key={s._id} xs="6" sm="4" lg="4" className="mb-2">
+          <Col key={s._id} xs="6" sm="4" lg="4" className="mb-2 d-flex">
             <Button
               block
+              className="servicio-btn"
               onClick={() => onSeleccionarServicio(s._id)}
               style={{
                 ...estiloBotonTema(theme, servicio === s._id),
-                height: "60px",
+                minHeight: "60px",
+                flex: 1,
+                lineHeight: 1.25,
+                overflowWrap: "anywhere",
                 whiteSpace: "normal",
                 wordWrap: "break-word",
                 display: "flex",
@@ -216,10 +220,10 @@ const ServicioSelector = ({
       <style>
         {`
           @media (max-width: 576px) {
-            .btn {
-              height: 70px !important;
+            .servicio-btn {
+              min-height: 70px !important;
               font-size: 13px !important;
-              padding: 6px 2px !important;
+              padding: 6px 4px !important;
             }
           }
         `}
@@ -265,13 +269,16 @@ export const ServicioSelectorConDetalles = ({
 
       <Row className="g-2">
         {serviciosFiltrados.map((s) => (
-          <Col key={s._id} xs="6" sm="4" lg="4" className="mb-2">
+          <Col key={s._id} xs="6" sm="4" lg="4" className="mb-2 d-flex">
             <Button
               block
+              className="servicio-btn"
               onClick={() => onSeleccionarServicio(s._id)}
               style={{
                 ...estiloBotonTema(theme, servicio === s._id),
-                height: "80px",
+                minHeight: "80px",
+                flex: 1,
+                overflowWrap: "anywhere",
                 whiteSpace: "normal",
                 wordWrap: "break-word",
                 display: "flex",
@@ -311,8 +318,8 @@ export const ServicioSelectorConDetalles = ({
       <style>
         {`
           @media (max-width: 576px) {
-            .btn {
-              height: 90px !important;
+            .servicio-btn {
+              min-height: 90px !important;
               font-size: 12px !important;
             }
           }
