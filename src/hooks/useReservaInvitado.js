@@ -6,6 +6,7 @@ import { getBarberosPublico } from "api/usuarios";
 import { getHorasDisponibles } from "api/horarios";
 import { postReservarHoraInvitado } from "api/invitado";
 import { useHorasDisponibles } from "hooks/useHorasDisponibles";
+import { useCodigoDescuento } from "hooks/useCodigoDescuento";
 
 export const useReservaInvitado = (slug) => {
   // ────────────────────────────────
@@ -28,6 +29,15 @@ export const useReservaInvitado = (slug) => {
   const [fecha, setFecha] = useState("");
   const [hora, setHora] = useState("");
   const [diasPermitidos, setDiasPermitidos] = useState(15);
+
+  // Código promocional (opcional)
+  const codigoDescuento = useCodigoDescuento({
+    slug,
+    servicio,
+    barbero,
+    fecha,
+    hora,
+  });
 
   // 📅 ESTADOS PARA LA SEMANA
   const [weekStart, setWeekStart] = useState(new Date());
@@ -415,6 +425,9 @@ export const useReservaInvitado = (slug) => {
         rut: invitado.rut,
         email: invitado.email,
         telefono: invitado.telefono,
+        ...(codigoDescuento.codigoParaEnviar
+          ? { codigoDescuento: codigoDescuento.codigoParaEnviar }
+          : {}),
       });
 
       // ✅ Si requiere abono, mostrar datos de transferencia
@@ -549,5 +562,7 @@ export const useReservaInvitado = (slug) => {
     nextWeek,
     reservarComoInvitado,
     cargarServiciosBarbero,
+
+    codigoDescuento,
   };
 };

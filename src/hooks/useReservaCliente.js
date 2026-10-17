@@ -10,6 +10,7 @@ import { useUsuario } from "context/usuariosContext";
 import { useHorario } from "context/HorarioContext";
 import { useHorasDisponibles } from "hooks/useHorasDisponibles";
 import { useNavigate } from "react-router-dom";
+import { useCodigoDescuento } from "hooks/useCodigoDescuento";
 
 export const useReservaCliente = () => {
   // ────────────────────────────────
@@ -29,6 +30,16 @@ export const useReservaCliente = () => {
   const [diasPermitidos, setDiasPermitidos] = useState(15);
 
   const [suscripcion, setSuscripcion] = useState(null);
+
+  // Código promocional (opcional)
+  const codigoDescuento = useCodigoDescuento({
+    slug: user?.empresa?.slug,
+    servicio,
+    barbero,
+    fecha,
+    hora,
+    clienteId: user?.id,
+  });
 
   // ────────────────────────────────
   // SEMANA
@@ -323,6 +334,7 @@ export const useReservaCliente = () => {
         hora,
         servicio,
         user.id,
+        codigoDescuento.codigoParaEnviar,
       );
 
       // ✅ Si la reserva requiere abono, mostrar datos de pago
@@ -451,5 +463,7 @@ export const useReservaCliente = () => {
     serviciosRestantes,
     excedente,
     nuevosUsados,
+
+    codigoDescuento,
   };
 };

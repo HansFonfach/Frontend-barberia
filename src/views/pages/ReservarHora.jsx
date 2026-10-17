@@ -69,6 +69,7 @@ const ReservarHora = () => {
     serviciosRestantes,
     excedente,
     nuevosUsados,
+    codigoDescuento,
   } = useReservaCliente();
 
   // ────────────────────────────────
@@ -219,6 +220,7 @@ const ReservarHora = () => {
                   reservando={reservando}
                   cargandoHoras={cargandoHoras}
                   onReservar={handleReservar}
+                  codigoDescuento={codigoDescuento}
                   habilitado={
                     !!(
                       user?.rut &&

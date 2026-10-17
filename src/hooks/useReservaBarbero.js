@@ -9,6 +9,7 @@ import { useUsuario } from "context/usuariosContext";
 import { useHorario } from "context/HorarioContext";
 import { postReservarHoraInvitado } from "api/invitado";
 import { useAuth } from "context/AuthContext";
+import { useCodigoDescuento } from "hooks/useCodigoDescuento";
 import Swal from "sweetalert2";
 
 export const useReservaBarbero = () => {
@@ -53,6 +54,16 @@ export const useReservaBarbero = () => {
   const [buscandoUsuario, setBuscandoUsuario] = useState(false);
   const [usuarioEncontrado, setUsuarioEncontrado] = useState(null);
   const [errorBusqueda, setErrorBusqueda] = useState("");
+
+  // Código promocional (opcional)
+  const codigoDescuento = useCodigoDescuento({
+    slug,
+    servicio,
+    barbero,
+    fecha,
+    hora,
+    clienteId: usuarioEncontrado?._id || usuarioEncontrado?.id,
+  });
 
   const {
     rut,
@@ -429,6 +440,9 @@ export const useReservaBarbero = () => {
           apellido: invitado.apellido,
           telefono: invitado.telefono,
           email: invitado.email,
+          ...(codigoDescuento.codigoParaEnviar
+            ? { codigoDescuento: codigoDescuento.codigoParaEnviar }
+            : {}),
         });
 
         Swal.fire({
@@ -448,7 +462,14 @@ export const useReservaBarbero = () => {
         // ⚠️ BUG PENDIENTE: verificar que usuarioEncontrado._id sea el del cliente
         // y no del profesional logueado. Revisar getUserByRut y reservarHora en api/
         const usuarioId = usuarioEncontrado._id || usuarioEncontrado.id;
-        await postReservarHora(fecha, barbero, hora, servicio, usuarioId);
+        await postReservarHora(
+          fecha,
+          barbero,
+          hora,
+          servicio,
+          usuarioId,
+          codigoDescuento.codigoParaEnviar,
+        );
 
         Swal.fire({
           title: "¡Reserva exitosa!",
@@ -503,6 +524,7 @@ export const useReservaBarbero = () => {
 
   const handleLimpiarTodo = () => {
     handleLimpiarRut();
+    codigoDescuento.quitar();
     setWeekDays([]);
     setModalInvitado(false);
   };
@@ -571,5 +593,7 @@ export const useReservaBarbero = () => {
     calcularHoraFin,
     postReservarHora,
     navigate,
+
+    codigoDescuento,
   };
 };

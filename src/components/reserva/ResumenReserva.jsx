@@ -24,6 +24,9 @@ const ResumenReserva = ({
   serviciosReserva,
   serviciosRestantes,
   excedente,
+
+  // Código promocional (opcional): objeto de useCodigoDescuento
+  codigoDescuento,
 }) => {
   const nombreServicio = servicioSeleccionado?.nombre || "—";
   const duracionServicio = servicioSeleccionado?.duracion;
@@ -178,6 +181,23 @@ const ResumenReserva = ({
                 )}
               </strong>
             </div>
+
+            {codigoDescuento?.aplicado && (
+              <>
+                <div className="d-flex justify-content-between border-bottom py-1">
+                  <span>🏷️ Código {codigoDescuento.aplicado.codigo}:</span>
+                  <strong className="text-success">
+                    −${codigoDescuento.aplicado.descuento.toLocaleString("es-CL")}
+                  </strong>
+                </div>
+                <div className="d-flex justify-content-between py-1">
+                  <span>💰 Total a pagar:</span>
+                  <strong>
+                    ${codigoDescuento.aplicado.precioFinal.toLocaleString("es-CL")}
+                  </strong>
+                </div>
+              </>
+            )}
           </div>
 
           {/* 🔥 IMPACTO SUSCRIPCIÓN */}
@@ -207,7 +227,64 @@ const ResumenReserva = ({
         </CardBody>
       </Card>
 
-      <input type="text" className="form-control mb-2 " placeholder="Código promocional" />
+      {codigoDescuento && (
+        <div className="mb-2">
+          <div className="input-group">
+            <input
+              type="text"
+              className={`form-control ${codigoDescuento.error ? "is-invalid" : ""}`}
+              placeholder="Código promocional"
+              value={codigoDescuento.codigo}
+              maxLength={20}
+              disabled={!!codigoDescuento.aplicado || codigoDescuento.validando}
+              onChange={(e) => codigoDescuento.setCodigo(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  if (codigoDescuento.codigo.trim()) codigoDescuento.aplicar();
+                }
+              }}
+            />
+            <div className="input-group-append">
+              {codigoDescuento.aplicado ||
+              (codigoDescuento.error && codigoDescuento.codigo) ? (
+                <Button
+                  type="button"
+                  outline
+                  color="secondary"
+                  onClick={codigoDescuento.quitar}
+                >
+                  Quitar
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  outline
+                  color="primary"
+                  disabled={
+                    !codigoDescuento.codigo.trim() ||
+                    codigoDescuento.validando ||
+                    !servicioSeleccionado
+                  }
+                  onClick={codigoDescuento.aplicar}
+                >
+                  {codigoDescuento.validando ? <Spinner size="sm" /> : "Aplicar"}
+                </Button>
+              )}
+            </div>
+          </div>
+          {codigoDescuento.error && (
+            <small className="text-danger d-block mt-1">
+              {codigoDescuento.error}
+            </small>
+          )}
+          {codigoDescuento.aplicado && (
+            <small className="text-success d-block mt-1">
+              ✅ Código aplicado
+            </small>
+          )}
+        </div>
+      )}
 
       <div className="d-grid gap-2">
         <Button

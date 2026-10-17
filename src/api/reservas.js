@@ -5,13 +5,22 @@ export const getReservasByUserId = (id) => {
   return axiosPrivate.get(`/reservas/${id}`); // usar GET para obtener datos
 };
 
-export const reservarHora = async (fecha, barbero, hora, servicio, usuario) => {
+export const reservarHora = async (
+  fecha,
+  barbero,
+  hora,
+  servicio,
+  usuario,
+  codigoDescuento,
+) => {
   return axiosPrivate.post("/reservas", {
     fecha,
     barbero,
     hora,
     servicio,
     cliente: usuario,
+    // Solo viaja si el cliente escribió un código (el backend lo valida)
+    ...(codigoDescuento ? { codigoDescuento } : {}),
   });
 };
 

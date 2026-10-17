@@ -13,6 +13,7 @@ import CrearBarberoCompleto from "views/admin/pages/GestionBarberos";
 import PanelEquipo from "views/admin/pages/PanelEquipo";
 import WizardBarberoSemana from "views/admin/pages/WizardBarberos";
 import GestionServicios from "views/admin/pages/GestionServicios";
+import GestionCodigosDescuento from "views/admin/pages/GestionCodigosDescuento";
 import GestionHorariosBarbero from "views/admin/pages/GestionHorarios";
 import GestionClientes from "views/admin/pages/GestionClientes";
 import ReservasDiarias from "views/admin/pages/ReservasDiarias";
@@ -515,6 +516,14 @@ export const barberoRoutes = [
         name: "Catálogo",
         icon: "fas fa-list text-danger",
         component: <GestionServicios />,
+        layout: "/admin",
+        soloAdmin: true,
+      },
+      {
+        path: "/codigos-descuento",
+        name: "Códigos de descuento",
+        icon: "fas fa-tags text-success",
+        component: <GestionCodigosDescuento />,
         layout: "/admin",
         soloAdmin: true,
       },

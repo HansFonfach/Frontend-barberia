@@ -81,6 +81,7 @@ const ReservarHoraBarbero = () => {
     handleSeleccionarServicio,
     handleSeleccionarBarbero,
     setHora,
+    codigoDescuento,
   } = useReservaBarbero();
 
   const { user } = useAuth();
@@ -326,6 +327,7 @@ const ReservarHoraBarbero = () => {
                   reservando={reservando}
                   cargandoHoras={cargandoHoras}
                   onReservar={handleReservar}
+                  codigoDescuento={codigoDescuento}
                   habilitado={
                     !!(
                       clienteListo &&

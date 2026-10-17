@@ -86,6 +86,7 @@ const ReservarHoraInvitado = () => {
     nextWeek,
     setHora,
     reservarComoInvitado,
+    codigoDescuento,
   } = useReservaInvitado(slug);
 
   const {
@@ -368,6 +369,7 @@ const ReservarHoraInvitado = () => {
                   hora={hora}
                   reservando={reservando}
                   onReservar={toggleModalInvitado}
+                  codigoDescuento={codigoDescuento}
                   habilitado={servicio && barbero && fecha && hora}
                 />
               </Col>
