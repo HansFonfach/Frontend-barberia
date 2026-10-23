@@ -109,3 +109,10 @@ export const nuevaClave = () =>
     : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 export const telLink = (telefono) => `tel:${String(telefono || "").replace(/[^\d+]/g, "")}`;
+
+/** Link de WhatsApp con un mensaje listo. Celulares chilenos sin código: se agrega 56. */
+export const whatsappLink = (telefono, texto = "") => {
+  let n = String(telefono || "").replace(/\D/g, "");
+  if (n.length === 9 && n.startsWith("9")) n = `56${n}`;
+  return `https://wa.me/${n}${texto ? `?text=${encodeURIComponent(texto)}` : ""}`;
+};

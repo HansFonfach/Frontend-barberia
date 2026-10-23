@@ -11,6 +11,9 @@ export const getBloqueosReservasMesa = (desde) =>
   axiosPrivate.get(`${BASE}/bloqueos`, { params: desde ? { desde } : {} });
 export const postBloqueoReservasMesa = (data) => axiosPrivate.post(`${BASE}/bloqueos`, data);
 export const deleteBloqueoReservasMesa = (id) => axiosPrivate.delete(`${BASE}/bloqueos/${id}`);
+export const getAfectadasBloqueoMesa = (id) => axiosPrivate.get(`${BASE}/bloqueos/${id}/afectadas`);
+export const postCancelarAfectadasBloqueoMesa = (id, data) =>
+  axiosPrivate.post(`${BASE}/bloqueos/${id}/cancelar-afectadas`, data);
 
 export const getDisponibilidadMesa = ({ fecha, personas, excluir }) =>
   axiosPrivate.get(`${BASE}/disponibilidad`, {

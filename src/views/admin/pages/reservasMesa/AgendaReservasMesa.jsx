@@ -44,7 +44,15 @@ const AgendaReservasMesa = () => {
   }, [desde, hasta]);
 
   const porFecha = useMemo(() => new Map(datos.dias.map((d) => [d.fecha, d])), [datos]);
-  const bloqueadas = useMemo(() => new Set(datos.bloqueos.map((b) => b.fecha)), [datos]);
+  // fecha → "orden_llegada" si todo el local atiende por orden de llegada; si no, "bloqueo"
+  const bloqueadas = useMemo(() => {
+    const m = new Map();
+    for (const b of datos.bloqueos) {
+      if (b.tipo === "orden_llegada" && !b.sector) m.set(b.fecha, "orden_llegada");
+      else if (!m.has(b.fecha)) m.set(b.fecha, "bloqueo");
+    }
+    return m;
+  }, [datos]);
   const diasAbiertos = useMemo(
     () => new Set((configuracion?.horario || []).filter((h) => h.abierto).map((h) => h.dia)),
     [configuracion],
@@ -132,7 +140,7 @@ const AgendaReservasMesa = () => {
                       const fecha = `${mes}-${pad(d)}`;
                       const info = porFecha.get(fecha);
                       const cerrado = diasAbiertos.size > 0 && !diasAbiertos.has(diaSemana(y, m, d));
-                      const bloqueado = bloqueadas.has(fecha);
+                      const bloqueado = bloqueadas.get(fecha);
                       return (
                         <button
                           key={fecha}
@@ -161,7 +169,12 @@ const AgendaReservasMesa = () => {
                                 🎂 {info.cumpleanos}
                               </span>
                             )}
-                            {bloqueado && (
+                            {bloqueado === "orden_llegada" && (
+                              <span className="ag-chip" style={{ background: "#f6ecdd", color: "#7a521f" }} title="Solo por orden de llegada">
+                                🚶 <span className="texto">Orden de llegada</span>
+                              </span>
+                            )}
+                            {bloqueado === "bloqueo" && (
                               <span className="ag-chip" style={{ background: "#f1f3f5", color: "#495057" }}>
                                 ⛔ <span className="texto">Bloqueo</span>
                               </span>

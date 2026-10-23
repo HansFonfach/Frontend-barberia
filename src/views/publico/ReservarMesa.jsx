@@ -33,6 +33,18 @@ const diaDe = (fecha) => {
   return new Date(Date.UTC(y, m - 1, d, 12)).getUTCDay();
 };
 
+const DISP_VACIA = { horas: [], cargando: false, grupoGrande: false, cerrado: false, avisos: [], diaEspecial: null };
+
+/** Etiqueta corta de un día especial: "Solo por orden de llegada", "Sin reservas"... */
+const etiquetaEspecial = (d) =>
+  d.tipo === "orden_llegada"
+    ? d.diaCompleto
+      ? "Solo por orden de llegada"
+      : d.horaHasta === "23:59"
+        ? `Solo por orden de llegada desde las ${d.horaDesde}`
+        : `Solo por orden de llegada entre las ${d.horaDesde} y las ${d.horaHasta}`
+    : "Sin reservas";
+
 const Paso = ({ n, titulo, color, children }) => (
   <div className="mb-4">
     <div className="d-flex align-items-center mb-2" style={{ gap: 10 }}>
@@ -65,7 +77,7 @@ const ReservarMesa = () => {
 
   const [personas, setPersonas] = useState("");
   const [fecha, setFecha] = useState("");
-  const [disp, setDisp] = useState({ horas: [], cargando: false, grupoGrande: false, cerrado: false });
+  const [disp, setDisp] = useState(DISP_VACIA);
   const [eleccion, setEleccion] = useState({ hora: "", sectorId: "" });
   const [datos, setDatos] = useState({ nombre: "", telefono: "", email: "", comentarios: "", sitioWeb: "" });
   const [cumple, setCumple] = useState({ es: false, festejado: "", detalle: "" });
@@ -96,6 +108,11 @@ const ReservarMesa = () => {
     () => !!(fecha && info?.diasAbiertos && !info.diasAbiertos.includes(diaDe(fecha))),
     [fecha, info],
   );
+  // Día completo sin reservas o solo por orden de llegada (se sabe sin esperar la API)
+  const especial = useMemo(
+    () => (info?.diasEspeciales || []).find((d) => d.fecha === fecha && d.diaCompleto) || disp.diaEspecial || null,
+    [info, fecha, disp.diaEspecial],
+  );
 
   // Cambiar fecha o personas reinicia la elección
   useEffect(() => {
@@ -107,16 +124,25 @@ const ReservarMesa = () => {
   // Horas disponibles (también se recarga si alguien tomó el lugar recién)
   useEffect(() => {
     if (!fecha || !(n >= 1) || diaCerrado) {
-      setDisp({ horas: [], cargando: false, grupoGrande: false, cerrado: diaCerrado });
+      setDisp({ ...DISP_VACIA, cerrado: diaCerrado });
       return;
     }
     let vigente = true;
     setDisp((d) => ({ ...d, cargando: true }));
     getDisponibilidadMesaPublica(slug, { fecha, personas: n })
       .then(({ data }) => {
-        if (vigente) setDisp({ horas: data.horas || [], cargando: false, grupoGrande: !!data.grupoGrande, cerrado: !!data.cerrado });
+        if (vigente) {
+          setDisp({
+            horas: data.horas || [],
+            cargando: false,
+            grupoGrande: !!data.grupoGrande,
+            cerrado: !!data.cerrado,
+            avisos: data.avisos || [],
+            diaEspecial: data.diaEspecial || null,
+          });
+        }
       })
-      .catch(() => vigente && setDisp({ horas: [], cargando: false, grupoGrande: false, cerrado: false }));
+      .catch(() => vigente && setDisp(DISP_VACIA));
     return () => {
       vigente = false;
     };
@@ -293,11 +319,31 @@ const ReservarMesa = () => {
             Recibimos reservas los {info.diasAbiertos.map((d) => DIAS_SEMANA[d].toLowerCase()).join(", ")}.
           </small>
         )}
+        {info?.diasEspeciales?.length > 0 && (
+          <div className="mt-3 rounded px-3 py-2" style={{ background: theme.primaryLight, color: theme.textDark }}>
+            <div className="small font-weight-bold mb-1">Fechas especiales</div>
+            {info.diasEspeciales.slice(0, 6).map((d) => (
+              <div key={`${d.fecha}-${d.horaDesde || ""}`} className="small">
+                <strong>{capitalizar(fechaLarga(d.fecha))}</strong>
+                {d.motivo ? ` · ${d.motivo}` : ""} · {etiquetaEspecial(d)}
+              </div>
+            ))}
+          </div>
+        )}
       </Paso>
 
-      {fecha && n >= 1 && (
+      {fecha && (n >= 1 || especial) && (
         <Paso n={2} titulo="Elige hora y sector" color={theme.primary}>
-          {disp.cargando ? (
+          {especial ? (
+            <div className="rounded p-3 text-center" style={{ border: `1px solid ${theme.primary}55`, background: theme.primaryLight, color: theme.textDark }}>
+              <div className="font-weight-bold mb-1">{especial.motivo || capitalizar(fechaLarga(fecha))}</div>
+              <div className="small">
+                {especial.tipo === "orden_llegada"
+                  ? "Ese día atendemos solo por orden de llegada, sin reservas. No hace falta reservar: ¡te esperamos!"
+                  : "Ese día no recibimos reservas. Prueba otra fecha."}
+              </div>
+            </div>
+          ) : disp.cargando ? (
             <Spinner size="sm" style={{ color: theme.primary }} />
           ) : disp.grupoGrande || n > (info?.maxPersonas || Infinity) ? (
             <div className="alert alert-light border">
@@ -315,17 +361,24 @@ const ReservarMesa = () => {
           ) : disp.horas.length === 0 ? (
             <p className="text-muted mb-0">No quedan horas disponibles para ese día y ese grupo. Prueba otra fecha.</p>
           ) : (
-            <SelectorHoraSector
-              horas={disp.horas}
-              valor={eleccion}
-              onChange={setEleccion}
-              colorPrimario={theme.primary}
-            />
+            <>
+              {disp.avisos.map((a) => (
+                <div key={a} className="small rounded px-3 py-2 mb-2" style={{ background: theme.primaryLight, color: theme.textDark }}>
+                  {a}
+                </div>
+              ))}
+              <SelectorHoraSector
+                horas={disp.horas}
+                valor={eleccion}
+                onChange={setEleccion}
+                colorPrimario={theme.primary}
+              />
+            </>
           )}
         </Paso>
       )}
 
-      {eleccion.hora && (
+      {eleccion.hora && !especial && (
         <Paso n={3} titulo="Tus datos" color={theme.primary}>
           <Row>
             <Col md="6">
