@@ -1,56 +1,51 @@
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Badge, Card, CardBody } from "reactstrap";
-import { FiMapPin, FiClock, FiArrowRight, FiCalendar } from "react-icons/fi";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
+import { Container } from "reactstrap";
+import { FiMapPin, FiClock, FiArrowRight } from "react-icons/fi";
 import { axiosPublic } from "api/axiosPublic";
+import "./negociosConfianza.css";
 
 // Catálogo de rubros. Cubre tanto el campo "rubro" (vigente, obligatorio en
 // empresas nuevas) como el campo "tipo" (antiguo, solo lo tienen empresas
 // creadas antes de que existiera "rubro") — por eso una misma categoría
 // puede tener varias llaves ("salon_belleza" y "salon de belleza").
 const CATEGORIAS = {
-  barberia: { label: "Barbería", emoji: "💈", color: "#4361ee" },
-  peluqueria: { label: "Peluquería", emoji: "✂️", color: "#4361ee" },
-  salon_belleza: { label: "Salón de belleza", emoji: "💇‍♀️", color: "#f72585" },
-  "salon de belleza": {
-    label: "Salón de belleza",
-    emoji: "💇‍♀️",
-    color: "#f72585",
-  },
-  spa: { label: "Spa", emoji: "🧖‍♀️", color: "#f72585" },
-  centro_estetica: { label: "Centro de estética", emoji: "✨", color: "#c026d3" },
-  estetica: { label: "Centro de estética", emoji: "✨", color: "#c026d3" },
-  nutricion: { label: "Nutrición", emoji: "🥗", color: "#06d6a0" },
-  kinesiologia: { label: "Kinesiología", emoji: "🦵", color: "#06d6a0" },
-  psicologia: { label: "Psicología", emoji: "🧠", color: "#06d6a0" },
-  medicina_general: { label: "Medicina general", emoji: "🩺", color: "#06d6a0" },
-  gimnasio: { label: "Gimnasio", emoji: "🏋️‍♂️", color: "#ff9e00" },
-  masajes: { label: "Masajes", emoji: "💆‍♂️", color: "#7209b7" },
-  tatuajes: { label: "Tatuaje", emoji: "🖋️", color: "#1a1a2e" },
-  consultorio: { label: "Consultorio", emoji: "🏥", color: "#06d6a0" },
-  dental: { label: "Clínica dental", emoji: "🦷", color: "#06d6a0" },
-  otros: { label: "Negocio", emoji: "🏪", color: "#6c757d" },
+  barberia: { label: "Barbería", color: "#4361ee" },
+  peluqueria: { label: "Peluquería", color: "#4361ee" },
+  salon_belleza: { label: "Salón de belleza", color: "#d6246e" },
+  "salon de belleza": { label: "Salón de belleza", color: "#d6246e" },
+  spa: { label: "Spa", color: "#d6246e" },
+  centro_estetica: { label: "Centro de estética", color: "#a21caf" },
+  estetica: { label: "Centro de estética", color: "#a21caf" },
+  nutricion: { label: "Nutrición", color: "#059669" },
+  kinesiologia: { label: "Kinesiología", color: "#059669" },
+  psicologia: { label: "Psicología", color: "#059669" },
+  medicina_general: { label: "Medicina general", color: "#059669" },
+  consultorio: { label: "Consultorio", color: "#059669" },
+  dental: { label: "Clínica dental", color: "#059669" },
+  gimnasio: { label: "Gimnasio", color: "#d97706" },
+  masajes: { label: "Masajes", color: "#7209b7" },
+  tatuajes: { label: "Tatuajes", color: "#1a1a2e" },
+  restaurante: { label: "Bar · Restaurante", color: "#9a6a2c", accion: "Reservar mesa" },
+  otros: { label: "Negocio", color: "#6c757d" },
 };
 
-const CATEGORIA_DEFAULT = { label: "Negocio", emoji: "🏪", color: "#6c757d" };
+const CATEGORIA_DEFAULT = { label: "Negocio", color: "#6c757d" };
 
 // Una empresa puede tener el rubro guardado en "rubro" (vigente) o en
 // "tipo" (antiguo). Se prioriza "rubro" porque es el campo obligatorio hoy.
-const getCategoria = (empresa) => {
-  const clave = (empresa.rubro || empresa.tipo || "").toLowerCase().trim();
-  return CATEGORIAS[clave] || CATEGORIA_DEFAULT;
-};
+const claveCategoria = (empresa) => (empresa.rubro || empresa.tipo || "").toLowerCase().trim();
+const getCategoria = (empresa) => CATEGORIAS[claveCategoria(empresa)] || CATEGORIA_DEFAULT;
 
 const isOpen = (horarioStr) => {
   if (!horarioStr) return null;
   const now = new Date();
   const dayIndex = now.getDay();
-  const timeMatch = horarioStr.match(
-    /(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})/,
-  );
+  const timeMatch = horarioStr.match(/(\d{1,2}):(\d{2})\s*[-–]\s*(\d{1,2}):(\d{2})/);
   if (!timeMatch) return null;
 
-  const openMinutes = parseInt(timeMatch[1]) * 60 + parseInt(timeMatch[2]);
-  const closeMinutes = parseInt(timeMatch[3]) * 60 + parseInt(timeMatch[4]);
+  const openMinutes = parseInt(timeMatch[1], 10) * 60 + parseInt(timeMatch[2], 10);
+  const closeMinutes = parseInt(timeMatch[3], 10) * 60 + parseInt(timeMatch[4], 10);
   const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
   const includesSat = /sáb|sabado|sábado/i.test(horarioStr);
@@ -68,311 +63,179 @@ const getHorarioDisplay = (horarioStr) => {
   return m ? `${m[1]} – ${m[2]}` : horarioStr;
 };
 
+// Texto blanco u oscuro según qué tan claro sea el color de fondo (para que
+// el botón se lea bien aunque la marca use un amarillo o un pastel).
+const textoSobre = (color) => {
+  let hex = (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(color || "").trim()) || [])[1];
+  if (!hex) return "#fff";
+  if (hex.length === 3) hex = hex.replace(/./g, "$&$&");
+  const n = parseInt(hex, 16);
+  const [r, g, b] = [n >> 16, (n >> 8) & 255, n & 255].map((v) => {
+    const c = v / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.3 ? "#12131a" : "#fff";
+};
+
+// Color de la marca. El azul por defecto de la plantilla (#5e72e4) no cuenta
+// como color propio: en ese caso se usa el color del rubro.
+const COLOR_PLANTILLA = "#5e72e4";
+const colorDeMarca = (empresa) => {
+  const c = String(empresa.colores?.primario || "").trim();
+  return c && c.toLowerCase() !== COLOR_PLANTILLA ? c : null;
+};
+
+const iniciales = (nombre = "") =>
+  nombre
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((p) => p[0].toUpperCase())
+    .join("");
+
 const EmpresaCard = ({ empresa }) => {
-  const [hover, setHover] = useState(false);
-  const open = isOpen(empresa.horarios);
   const categoria = getCategoria(empresa);
+  const open = isOpen(empresa.horarios);
   const horario = getHorarioDisplay(empresa.horarios);
+  const color = colorDeMarca(empresa) || categoria.color;
 
   return (
-    <Col md={6} lg={4} className="mb-4">
-      <Card
-        className="border-0 h-100"
-        style={{
-          borderRadius: "22px",
-          boxShadow: hover
-            ? "0 22px 40px rgba(0,0,0,0.14)"
-            : "0 4px 20px rgba(0,0,0,0.07)",
-          transform: hover ? "translateY(-6px)" : "translateY(0)",
-          transition: "all 0.25s ease",
-          cursor: "pointer",
-          overflow: "hidden",
-          display: "flex",
-          flexDirection: "column",
-        }}
-        onMouseEnter={() => setHover(true)}
-        onMouseLeave={() => setHover(false)}
-        onClick={() => (window.location.href = `/${empresa.slug}`)}
-      >
-        {/* HEADER */}
-        <div
-          style={{
-            height: "120px",
-            background: empresa.colores?.primario
-              ? `linear-gradient(135deg, ${empresa.colores.primario}26, ${
-                  empresa.colores.secundario || empresa.colores.primario
-                }4d)`
-              : `linear-gradient(135deg, ${categoria.color}1f, ${categoria.color}40)`,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "relative",
-          }}
-        >
-          {empresa.logo ? (
-            <img
-              src={empresa.logo}
-              alt={empresa.nombre}
-              style={{
-                width: "76px",
-                height: "76px",
-                objectFit: "cover",
-                borderRadius: "50%",
-                border: "3px solid white",
-                boxShadow: "0 4px 14px rgba(0,0,0,0.12)",
-              }}
-            />
-          ) : (
-            <div
-              style={{
-                width: "76px",
-                height: "76px",
-                borderRadius: "50%",
-                background: "white",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontSize: "2.1rem",
-                boxShadow: "0 4px 14px rgba(0,0,0,0.1)",
-              }}
-            >
-              {categoria.emoji}
-            </div>
-          )}
-
+    <Link
+      to={`/${empresa.slug}`}
+      className="nc-card"
+      style={{ "--nc-color": color, "--nc-texto-boton": textoSobre(color), "--nc-categoria": categoria.color }}
+    >
+      <div className="nc-ficha">
+        {empresa.logo ? (
+          <img className="nc-logo" src={empresa.logo} alt={`Logo de ${empresa.nombre}`} loading="lazy" />
+        ) : (
+          <div className="nc-logo nc-logo-iniciales">{iniciales(empresa.nombre)}</div>
+        )}
+        <div style={{ minWidth: 0 }}>
+          <div className="nc-categoria">{categoria.label}</div>
+          <h3 className="nc-nombre">{empresa.nombre}</h3>
           {open !== null && (
-            <div
-              style={{
-                position: "absolute",
-                top: "12px",
-                right: "12px",
-                background: open ? "#06d6a0" : "#ff4d6d",
-                color: "white",
-                borderRadius: "50px",
-                padding: "4px 11px",
-                fontSize: "11px",
-                fontWeight: "600",
-                boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-              }}
-            >
-              {open ? "Abierto ahora" : "Cerrado"}
-            </div>
+            <span className={`nc-estado ${open ? "abierto" : "cerrado"}`}>
+              <i /> {open ? "Abierto ahora" : "Cerrado"}
+            </span>
           )}
         </div>
+      </div>
 
-        {/* BODY */}
-        <CardBody className="p-4 d-flex flex-column">
-          <Badge
-            className="align-self-start"
-            style={{
-              background: `${categoria.color}1a`,
-              color: categoria.color,
-              borderRadius: "50px",
-              fontSize: "11px",
-              fontWeight: "600",
-              padding: "5px 12px",
-              marginBottom: "10px",
-            }}
-          >
-            {categoria.emoji} {categoria.label}
-          </Badge>
+      <div className="nc-cuerpo">
+        {empresa.descripcion && <p className="nc-descripcion">{empresa.descripcion}</p>}
 
-          <h5 className="font-weight-bold mb-2" style={{ color: "#1a1a2e" }}>
-            {empresa.nombre}
-          </h5>
-
-          {/* DESCRIPCIÓN */}
-          {empresa.descripcion && (
-            <p
-              className="text-muted flex-grow-1 mb-3"
-              style={{
-                fontSize: "13px",
-                WebkitLineClamp: 2,
-                display: "-webkit-box",
-                WebkitBoxOrient: "vertical",
-                overflow: "hidden",
-              }}
-            >
-              {empresa.descripcion}
-            </p>
-          )}
-          {!empresa.descripcion && <div className="flex-grow-1" />}
-
-          {/* INFO */}
-          <div style={{ fontSize: "12px", color: "#6c757d" }}>
+        {(horario || empresa.direccion) && (
+          <ul className="nc-datos">
             {horario && (
-              <div className="d-flex align-items-center gap-2 mb-1">
-                <FiClock size={13} /> {horario}
-              </div>
+              <li>
+                <FiClock aria-hidden="true" /> <span>{horario}</span>
+              </li>
             )}
             {empresa.direccion && (
-              <div className="d-flex align-items-center gap-2">
-                <FiMapPin size={13} /> {empresa.direccion}
-              </div>
+              <li>
+                <FiMapPin aria-hidden="true" /> <span>{empresa.direccion}</span>
+              </li>
             )}
-          </div>
+          </ul>
+        )}
 
-          {/* FOOTER SIEMPRE ABAJO */}
-          <div className="mt-3 pt-3 border-top d-flex align-items-center justify-content-between">
-            <span
-              className="d-flex align-items-center gap-1"
-              style={{ fontSize: "11px", color: "#adb5bd" }}
-            >
-              <FiCalendar size={13} /> Reserva online
-            </span>
-            <span
-              style={{
-                fontWeight: 600,
-                fontSize: "13px",
-                color: categoria.color,
-                display: "flex",
-                alignItems: "center",
-                gap: "5px",
-              }}
-            >
-              Ver agenda
-              <FiArrowRight
-                size={14}
-                style={{
-                  transition: "transform 0.2s ease",
-                  transform: hover ? "translateX(3px)" : "translateX(0)",
-                }}
-              />
-            </span>
-          </div>
-        </CardBody>
-      </Card>
-    </Col>
+        <span className="nc-boton">
+          {categoria.accion || "Reservar hora"} <FiArrowRight aria-hidden="true" />
+        </span>
+      </div>
+    </Link>
   );
 };
 
-// Placeholder animado mientras cargan las empresas, para que la sección no
-// se sienta vacía/rota en el primer render.
+// Placeholder mientras cargan las empresas, para que la sección no se
+// sienta vacía en el primer render.
 const CardSkeleton = () => (
-  <Col md={6} lg={4} className="mb-4">
-    <div
-      style={{
-        borderRadius: "22px",
-        overflow: "hidden",
-        boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
-      }}
-    >
-      <div
-        className="negocio-skeleton-shimmer"
-        style={{ height: "120px", background: "#eef0f4" }}
-      />
-      <div style={{ background: "#fff", padding: "24px" }}>
-        <div
-          className="negocio-skeleton-shimmer"
-          style={{
-            height: "18px",
-            width: "60%",
-            borderRadius: "6px",
-            background: "#eef0f4",
-            marginBottom: "12px",
-          }}
-        />
-        <div
-          className="negocio-skeleton-shimmer"
-          style={{
-            height: "12px",
-            width: "90%",
-            borderRadius: "6px",
-            background: "#eef0f4",
-            marginBottom: "8px",
-          }}
-        />
-        <div
-          className="negocio-skeleton-shimmer"
-          style={{
-            height: "12px",
-            width: "70%",
-            borderRadius: "6px",
-            background: "#eef0f4",
-          }}
-        />
+  <div className="nc-card nc-skeleton" aria-hidden="true">
+    <div className="nc-ficha">
+      <div className="nc-logo nc-shimmer" />
+      <div style={{ flex: 1 }}>
+        <div className="nc-shimmer" style={{ height: 10, width: "45%", borderRadius: 6 }} />
+        <div className="nc-shimmer" style={{ height: 18, width: "80%", borderRadius: 6, marginTop: 10 }} />
       </div>
     </div>
-  </Col>
+    <div className="nc-cuerpo">
+      <div className="nc-shimmer" style={{ height: 12, width: "90%", borderRadius: 6 }} />
+      <div className="nc-shimmer" style={{ height: 46, width: "100%", borderRadius: 12, marginTop: 24 }} />
+    </div>
+  </div>
 );
 
 const NegociosConfianza = () => {
   const [empresas, setEmpresas] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [filtro, setFiltro] = useState("todos");
 
   useEffect(() => {
     axiosPublic
       .get("/empresa/publicas")
-      .then((res) => setEmpresas(res.data))
+      .then((res) => setEmpresas(Array.isArray(res.data) ? res.data : []))
       .catch(console.error)
       .finally(() => setCargando(false));
   }, []);
 
+  // Filtros solo con las categorías que de verdad hay (agrupadas por nombre)
+  const categorias = useMemo(() => {
+    const m = new Map();
+    for (const e of empresas) {
+      const c = getCategoria(e);
+      m.set(c.label, (m.get(c.label) || 0) + 1);
+    }
+    return [...m.entries()];
+  }, [empresas]);
+
+  const visibles = filtro === "todos" ? empresas : empresas.filter((e) => getCategoria(e).label === filtro);
+
   return (
-    <section className="py-7" style={{ background: "#f8f9fa" }}>
+    <section className="nc-seccion">
       <Container>
-        <div className="text-center mb-6">
-          <Badge
-            className="mb-3 px-3 py-2"
-            style={{
-              background: "linear-gradient(135deg,#4361ee,#f72585)",
-              color: "white",
-              borderRadius: "50px",
-            }}
-          >
-            ⭐ Negocios verificados
-          </Badge>
-
-          <h2 className="display-4 font-weight-bold">
-            Negocios que confían en nosotros
-          </h2>
-
-          <p className="text-muted">
-            Reserva fácil, rápido y sin complicaciones
-          </p>
+        <div className="nc-encabezado">
+          <span className="nc-eyebrow">Negocios en AgendaFonfach</span>
+          <h2 className="nc-titulo">Negocios que confían en nosotros</h2>
+          <p className="nc-subtitulo">Elige un negocio y reserva en línea en menos de un minuto.</p>
         </div>
 
-        <Row>
-          {cargando &&
-            [...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
+        {categorias.length > 1 && (
+          <div className="nc-filtros" role="tablist" aria-label="Filtrar por rubro">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={filtro === "todos"}
+              className={filtro === "todos" ? "activo" : ""}
+              onClick={() => setFiltro("todos")}
+            >
+              Todos <small>{empresas.length}</small>
+            </button>
+            {categorias.map(([label, n]) => (
+              <button
+                key={label}
+                type="button"
+                role="tab"
+                aria-selected={filtro === label}
+                className={filtro === label ? "activo" : ""}
+                onClick={() => setFiltro(label)}
+              >
+                {label} <small>{n}</small>
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="nc-grilla">
+          {cargando && [...Array(3)].map((_, i) => <CardSkeleton key={i} />)}
 
           {!cargando && empresas.length === 0 && (
-            <Col xs={12} className="text-center text-muted py-4">
-              Pronto vas a encontrar acá negocios increíbles.
-            </Col>
+            <p className="nc-vacio">Pronto vas a encontrar acá negocios increíbles.</p>
           )}
 
-          {!cargando &&
-            empresas.map((empresa) => (
-              <EmpresaCard key={empresa._id} empresa={empresa} />
-            ))}
-        </Row>
+          {!cargando && visibles.map((empresa) => <EmpresaCard key={empresa._id} empresa={empresa} />)}
+        </div>
       </Container>
-
-      <style jsx>{`
-        .negocio-skeleton-shimmer {
-          position: relative;
-          overflow: hidden;
-        }
-        .negocio-skeleton-shimmer::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          transform: translateX(-100%);
-          background: linear-gradient(
-            90deg,
-            transparent,
-            rgba(255, 255, 255, 0.6),
-            transparent
-          );
-          animation: negocio-shimmer 1.4s infinite;
-        }
-        @keyframes negocio-shimmer {
-          100% {
-            transform: translateX(100%);
-          }
-        }
-      `}</style>
     </section>
   );
 };
