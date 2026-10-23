@@ -9,6 +9,7 @@ import AuthFooter from "components/Footers/AuthFooter";
 import ServiciosSection from "components/landing/ServiciosSection";
 import ProfesionalesSection from "components/landing/ProfesionalesSection";
 import LandingGimnasio from "components/landing/LandingGimnasio";
+import LandingRestaurante from "components/landing/LandingRestaurante";
 
 import { MdLocationOn, MdAccessTime, MdEmail, MdPhone } from "react-icons/md";
 import { FaWhatsapp, FaCalendarCheck, FaFacebook } from "react-icons/fa";
@@ -85,6 +86,11 @@ const Landing = () => {
 
   // 🏋️ Los gimnasios tienen un landing propio (clases, planes, clase de
   // prueba gratis) en vez de reusar el de barbería/salón con parches.
+  // 🍽️ Bares y restaurantes: landing propio centrado en reservar mesa
+  if (empresa.rubro === "restaurante") {
+    return <LandingRestaurante empresa={empresa} slug={slug} />;
+  }
+
   if (empresa.rubro === "gimnasio") {
     return (
       <LandingGimnasio

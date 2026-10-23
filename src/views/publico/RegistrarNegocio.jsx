@@ -200,6 +200,7 @@ const RegistrarNegocio = () => {
                         <option value="peluqueria">Peluquería</option>
                         <option value="salon_belleza">Salón de belleza</option>
                         <option value="spa">Spa</option>
+                        <option value="restaurante">Bar / Restaurante</option>
                         <option value="centro_estetica">
                           Centro de estética
                         </option>

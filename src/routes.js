@@ -65,6 +65,12 @@ import HistorialEntrenamiento from "views/pages/HistorialEntrenamiento";
 import DiarioAlimenticio from "views/pages/DiarioAlimenticio";
 import MiembrosEntrenamiento from "views/admin/pages/MiembrosEntrenamiento";
 import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
+import ReservasMesaHoy from "views/admin/pages/reservasMesa/ReservasMesaHoy";
+import ListadoReservasMesa from "views/admin/pages/reservasMesa/ListadoReservasMesa";
+import ConfiguracionReservasMesa from "views/admin/pages/reservasMesa/ConfiguracionReservasMesa";
+import BloqueosReservasMesa from "views/admin/pages/reservasMesa/BloqueosReservasMesa";
+import NuevaReservaMesa from "views/admin/pages/reservasMesa/NuevaReservaMesa";
+import AgendaReservasMesa from "views/admin/pages/reservasMesa/AgendaReservasMesa";
 
 // Set de íconos del sidebar admin (mismo lenguaje visual en todos los
 // ítems — antes se mezclaban Nucleo Icons y Font Awesome con trazos
@@ -316,12 +322,13 @@ export const clienteRoutes = [
   },
 
   // ocultas
-  { path: "/perfil", component: <Perfil />, layout: "/admin", invisible: true },
+  { path: "/perfil", component: <Perfil />, layout: "/admin", invisible: true, todosLosRubros: true },
   {
     path: "/cambiar-contrasena",
     component: <CambiarContrasena />,
     layout: "/admin",
     invisible: true,
+    todosLosRubros: true,
   },
   {
     path: "/suscripcion/resultado",
@@ -343,6 +350,126 @@ export const barberoRoutes = [
     component: <AdminDashboard />,
     layout: "/admin",
     section: "principal",
+  },
+  {
+    // Bares/restaurantes: su inicio es la vista del día de reservas de mesa
+    // (el dashboard de arriba es de barbería). Ver RUBROS_MENU_PROPIO en
+    // utils/filtrarRutas.js.
+    path: "/dashboard",
+    component: <ReservasMesaHoy />,
+    layout: "/admin",
+    invisible: true,
+    soloRubros: ["restaurante"],
+  },
+
+  /* ── Reservas de mesa (módulo reservasMesas) ──
+     Operación diaria separada de los ajustes, cada cosa en su pantalla */
+  {
+    path: "/reservas-mesa-menu",
+    name: "Reservas de mesa",
+    icon: iconoSidebar(CalendarCheck, "success"),
+    layout: "/admin",
+    section: "reservas",
+    requiereModulo: "reservasMesas",
+    children: [
+      {
+        path: "/reservas-mesa-hoy",
+        name: "Hoy",
+        icon: "fas fa-concierge-bell text-success",
+        component: <ReservasMesaHoy />,
+        layout: "/admin",
+        requiereModulo: "reservasMesas",
+      },
+      {
+        path: "/reservas-mesa-nueva",
+        name: "Nueva reserva",
+        icon: "fas fa-plus-circle text-primary",
+        component: <NuevaReservaMesa />,
+        layout: "/admin",
+        requiereModulo: "reservasMesas",
+      },
+      {
+        path: "/reservas-mesa-agenda",
+        name: "Agenda",
+        icon: "fas fa-calendar-alt text-info",
+        component: <AgendaReservasMesa />,
+        layout: "/admin",
+        requiereModulo: "reservasMesas",
+      },
+      {
+        path: "/reservas-mesa",
+        name: "Historial y búsqueda",
+        icon: "fas fa-search text-warning",
+        component: <ListadoReservasMesa />,
+        layout: "/admin",
+        requiereModulo: "reservasMesas",
+      },
+    ],
+  },
+  {
+    path: "/reservas-mesa-ajustes-menu",
+    name: "Ajustes de reservas",
+    icon: iconoSidebar(Layers, "warning"),
+    layout: "/admin",
+    section: "gestion",
+    soloAdmin: true,
+    requiereModulo: "reservasMesas",
+    children: [
+      {
+        path: "/reservas-mesa-sectores",
+        name: "Sectores",
+        icon: "fas fa-chair text-success",
+        component: <ConfiguracionReservasMesa seccion="sectores" />,
+        layout: "/admin",
+        soloAdmin: true,
+        requiereModulo: "reservasMesas",
+      },
+      {
+        path: "/reservas-mesa-horarios",
+        name: "Horarios y reglas",
+        icon: "fas fa-clock text-info",
+        component: <ConfiguracionReservasMesa seccion="horarios" />,
+        layout: "/admin",
+        soloAdmin: true,
+        requiereModulo: "reservasMesas",
+      },
+      {
+        path: "/reservas-mesa-web",
+        name: "Reservas web y avisos",
+        icon: "fas fa-globe text-primary",
+        component: <ConfiguracionReservasMesa seccion="web" />,
+        layout: "/admin",
+        soloAdmin: true,
+        requiereModulo: "reservasMesas",
+      },
+      {
+        path: "/reservas-mesa-bloqueos",
+        name: "Bloqueos",
+        icon: "fas fa-ban text-danger",
+        component: <BloqueosReservasMesa />,
+        layout: "/admin",
+        soloAdmin: true,
+        requiereModulo: "reservasMesas",
+      },
+      {
+        path: "/reservas-mesa-permisos",
+        name: "Permisos del equipo",
+        icon: "fas fa-user-shield text-warning",
+        component: <ConfiguracionReservasMesa seccion="permisos" />,
+        layout: "/admin",
+        soloAdmin: true,
+        requiereModulo: "reservasMesas",
+      },
+    ],
+  },
+  {
+    // Todos los ajustes en una sola página (enlaces antiguos)
+    path: "/reservas-mesa-configuracion",
+    component: <ConfiguracionReservasMesa />,
+    layout: "/admin",
+    invisible: true,
+    soloAdmin: true,
+    requiereModulo: "reservasMesas",
   },
   {
     path: "/mi-entrenamiento",
@@ -443,6 +570,8 @@ export const barberoRoutes = [
     layout: "/admin",
     section: "gestion",
     soloAdmin: true,
+    todosLosRubros: true, // un restaurante también crea las cuentas de su equipo
+    nombrePorRubro: { restaurante: "Equipo" },
     excludeSlugs: ["team-hans"],
   },
   {
@@ -694,6 +823,7 @@ export const barberoRoutes = [
     layout: "/admin",
     section: "otros",
     soloAdmin: true,
+    todosLosRubros: true,
     children: [
       {
         path: "/configuracion-empresa",
@@ -701,6 +831,7 @@ export const barberoRoutes = [
         icon: "ni ni-settings text-purple",
         component: <ConfiguracionEmpresa />,
         layout: "/admin",
+        todosLosRubros: true,
       },
       {
         // Panel de estadísticas de barbería/salón (reservas + suscripciones):
@@ -751,11 +882,12 @@ export const barberoRoutes = [
 
   // ocultas (el link ya existe en AdminNavbar/Sidebar, pero faltaba la
   // ruta acá, por eso el admin caía siempre al dashboard)
-  { path: "/perfil", component: <Perfil />, layout: "/admin", invisible: true },
+  { path: "/perfil", component: <Perfil />, layout: "/admin", invisible: true, todosLosRubros: true },
   {
     path: "/cambiar-contrasena",
     component: <CambiarContrasena />,
     layout: "/admin",
     invisible: true,
+    todosLosRubros: true,
   },
 ];

@@ -45,6 +45,8 @@ import Landing from "views/pages/Landing";
 import ReservarHoraInvitado from "views/invitados/pages/ReservaInvitado";
 import CancelarInvitado from "views/invitados/pages/CancelarInvitado";
 import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
+import ReservarMesa from "views/publico/ReservarMesa";
+import CancelarReservaMesa from "views/publico/CancelarReservaMesa";
 import ContratarPlanInvitado from "views/invitados/pages/ContratarPlanInvitado";
 import VerificarCuenta from "views/publico/VerificarCuenta";
 import RegistrarNegocio from "views/publico/RegistrarNegocio";
@@ -194,6 +196,24 @@ root.render(
             element={
               <EmpresaWrapper>
                 <ClasePruebaInvitado />
+              </EmpresaWrapper>
+            }
+          />
+          {/* Reservas de mesa (bares/restaurantes): reservar sin cuenta y
+              cancelar con el link del correo */}
+          <Route
+            path="/:slug/reservar-mesa"
+            element={
+              <EmpresaWrapper>
+                <ReservarMesa />
+              </EmpresaWrapper>
+            }
+          />
+          <Route
+            path="/:slug/cancelar-reserva-mesa"
+            element={
+              <EmpresaWrapper>
+                <CancelarReservaMesa />
               </EmpresaWrapper>
             }
           />

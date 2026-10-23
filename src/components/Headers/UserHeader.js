@@ -1,10 +1,16 @@
 import { useEmpresa } from "context/EmpresaContext";
 import { Container, Row, Col } from "reactstrap";
+import EncabezadoReservasMesa from "components/reservasMesa/EncabezadoReservasMesa";
 
 const UserHeader = () => {
   const { empresa, loading } = useEmpresa();
 
   if (loading || !empresa) return null;
+
+  // Bares/restaurantes: encabezado propio (sin la foto ni el texto de barbería)
+  if (empresa.rubro === "restaurante") {
+    return <EncabezadoReservasMesa titulo={empresa.nombre} subtitulo="Panel de administración" />;
+  }
 
   // 🔥 Imagen dinámica según el rubro real de la empresa.
   // Ojo: algunas empresas (las creadas antes de que existiera `rubro`, como

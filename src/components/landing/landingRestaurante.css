@@ -1,0 +1,507 @@
+/* Landing de bares/restaurantes. Todo bajo .lr para no afectar el resto
+   del sitio. Los colores llegan como variables desde utils/marcasRestaurante.js */
+/* Las fuentes (Cormorant Garamond + Jost) las carga cargarFuentesRestaurante() */
+
+.lr {
+  background: var(--lr-fondo);
+  color: var(--lr-texto);
+  font-family: "Jost", "Open Sans", sans-serif;
+  font-weight: 300;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+.lr h1,
+.lr h2,
+.lr h3,
+.lr .lr-serif {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  color: var(--lr-texto);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+.lr a {
+  color: inherit;
+}
+
+/* ── Barra superior ── */
+.lr-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1030;
+  padding: 18px 0;
+  transition: background 0.3s ease, padding 0.3s ease, box-shadow 0.3s ease;
+}
+.lr-nav.solida {
+  background: rgba(17, 13, 10, 0.92);
+  backdrop-filter: blur(10px);
+  padding: 10px 0;
+  box-shadow: 0 1px 0 var(--lr-borde);
+}
+.lr-nav-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.lr-nav-marca {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none !important;
+}
+.lr-nav-marca img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--lr-borde);
+}
+.lr-nav-marca span {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.35rem;
+  color: var(--lr-texto);
+  font-weight: 600;
+}
+.lr-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.lr-nav-links a {
+  font-size: 0.82rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--lr-texto-suave);
+  text-decoration: none !important;
+  transition: color 0.2s;
+}
+.lr-nav-links a:hover {
+  color: var(--lr-acento-claro);
+}
+@media (max-width: 767px) {
+  .lr-nav-links .lr-solo-escritorio {
+    display: none;
+  }
+}
+
+/* ── Botones ── */
+.lr-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 30px;
+  border-radius: 999px;
+  font-family: "Jost", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-decoration: none !important;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid var(--lr-acento);
+}
+.lr-btn:hover {
+  transform: translateY(-2px);
+}
+.lr-btn-primario {
+  background: var(--lr-acento);
+  color: #1a120b !important;
+  box-shadow: 0 10px 30px -10px var(--lr-acento);
+}
+.lr-btn-primario:hover {
+  background: var(--lr-acento-claro);
+}
+.lr-btn-linea {
+  background: transparent;
+  color: var(--lr-acento-claro) !important;
+}
+.lr-btn-linea:hover {
+  background: rgba(201, 149, 76, 0.12);
+}
+.lr-btn-chico {
+  padding: 9px 20px;
+  font-size: 0.75rem;
+}
+
+/* ── Hero ── */
+.lr-hero {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 0 80px;
+  background-size: cover;
+  background-position: center;
+}
+.lr-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 35%, rgba(201, 149, 76, 0.22), transparent 60%),
+    linear-gradient(180deg, rgba(17, 13, 10, 0.55) 0%, rgba(17, 13, 10, 0.78) 60%, var(--lr-fondo) 100%);
+}
+.lr-hero > * {
+  position: relative;
+}
+.lr-hero-logo {
+  width: 168px;
+  height: 147px;
+  object-fit: cover;
+  border-radius: 22px;
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.9), 0 0 0 1px var(--lr-borde);
+  margin-bottom: 36px;
+}
+.lr-eyebrow {
+  display: inline-block;
+  font-size: 0.78rem;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--lr-acento-claro);
+  margin-bottom: 18px;
+}
+.lr-hero h1 {
+  font-size: clamp(2.6rem, 6.5vw, 4.8rem);
+  line-height: 1.04;
+  margin-bottom: 22px;
+}
+.lr-hero h1 em {
+  color: var(--lr-acento-claro);
+  font-style: italic;
+  font-weight: 500;
+}
+.lr-hero-sub {
+  font-size: 1.12rem;
+  color: var(--lr-texto-suave);
+  max-width: 560px;
+  margin: 0 auto 38px;
+}
+.lr-hero-acciones {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.lr-scroll {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1px;
+  height: 46px;
+  background: linear-gradient(var(--lr-acento), transparent);
+}
+
+/* ── Franja de datos ── */
+.lr-franja {
+  border-top: 1px solid var(--lr-borde);
+  border-bottom: 1px solid var(--lr-borde);
+  background: var(--lr-fondo-alterno);
+}
+.lr-franja-items {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px 48px;
+  padding: 22px 0;
+}
+.lr-franja-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  color: var(--lr-texto);
+}
+.lr-franja-item .lr-ico {
+  color: var(--lr-acento);
+  display: inline-flex;
+}
+
+/* ── Secciones ── */
+.lr-seccion {
+  padding: 110px 0;
+}
+.lr-seccion-alterna {
+  background: var(--lr-fondo-alterno);
+}
+.lr-titulo {
+  text-align: center;
+  margin-bottom: 64px;
+}
+.lr-titulo h2 {
+  font-size: clamp(2.1rem, 4.5vw, 3.2rem);
+  margin: 0;
+}
+.lr-adorno {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin-top: 18px;
+  color: var(--lr-acento);
+}
+.lr-adorno::before,
+.lr-adorno::after {
+  content: "";
+  width: 54px;
+  height: 1px;
+  background: var(--lr-acento);
+  opacity: 0.6;
+}
+
+/* Tarjetas de experiencia */
+.lr-tarjeta {
+  height: 100%;
+  text-align: center;
+  padding: 48px 32px;
+  border: 1px solid var(--lr-borde);
+  border-radius: 20px;
+  background: linear-gradient(180deg, var(--lr-tarjeta), rgba(0, 0, 0, 0));
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+.lr-tarjeta:hover {
+  transform: translateY(-6px);
+  border-color: var(--lr-acento);
+}
+.lr-tarjeta .lr-ico {
+  color: var(--lr-acento-claro);
+  display: inline-flex;
+  margin-bottom: 22px;
+}
+.lr-tarjeta h3 {
+  font-size: 1.7rem;
+  margin-bottom: 12px;
+}
+.lr-tarjeta p {
+  color: var(--lr-texto-suave);
+  margin: 0;
+}
+
+/* Carta */
+.lr-carta {
+  position: relative;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid var(--lr-borde);
+  padding: 72px 40px;
+  text-align: center;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(201, 149, 76, 0.18), transparent 45%),
+    radial-gradient(circle at 85% 80%, rgba(201, 149, 76, 0.12), transparent 45%),
+    var(--lr-tarjeta);
+}
+.lr-carta .lr-ico {
+  color: var(--lr-acento-claro);
+  display: inline-flex;
+  margin-bottom: 18px;
+}
+.lr-carta h2 {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+}
+.lr-carta p {
+  color: var(--lr-texto-suave);
+  max-width: 520px;
+  margin: 12px auto 32px;
+}
+
+/* Reservas: pasos */
+.lr-paso {
+  text-align: center;
+  padding: 0 12px;
+}
+.lr-paso-num {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 1px solid var(--lr-acento);
+  color: var(--lr-acento-claro);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.5rem;
+  margin-bottom: 18px;
+}
+.lr-paso h3 {
+  font-size: 1.45rem;
+  margin-bottom: 6px;
+}
+.lr-paso p {
+  color: var(--lr-texto-suave);
+  font-size: 0.95rem;
+}
+.lr-nota {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 28px;
+  padding: 14px 22px;
+  border-radius: 14px;
+  border: 1px dashed var(--lr-borde);
+  color: var(--lr-texto-suave);
+  font-size: 0.95rem;
+}
+.lr-nota .lr-ico {
+  color: var(--lr-acento-claro);
+  display: inline-flex;
+}
+
+/* Galería (solo si hay fotos) */
+.lr-galeria {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.lr-galeria img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 18px;
+  border: 1px solid var(--lr-borde);
+}
+
+/* Visítanos */
+.lr-dato {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  padding: 22px 0;
+  border-bottom: 1px solid var(--lr-borde);
+}
+.lr-dato:last-child {
+  border-bottom: none;
+}
+.lr-dato .lr-ico {
+  color: var(--lr-acento);
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.lr-dato-label {
+  font-size: 0.72rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--lr-texto-suave);
+  margin-bottom: 4px;
+}
+.lr-dato-valor {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.45rem;
+  color: var(--lr-texto);
+  line-height: 1.3;
+}
+.lr-visita-cta {
+  height: 100%;
+  border-radius: 24px;
+  padding: 48px 36px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-size: cover;
+  background-position: center;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--lr-borde);
+}
+.lr-visita-cta::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(17, 13, 10, 0.55), rgba(17, 13, 10, 0.88));
+}
+.lr-visita-cta > * {
+  position: relative;
+}
+.lr-visita-cta h3 {
+  font-size: 2.2rem;
+  margin-bottom: 10px;
+}
+.lr-visita-cta p {
+  color: var(--lr-texto-suave);
+  margin-bottom: 26px;
+}
+
+/* Pie */
+.lr-pie {
+  padding: 48px 0 36px;
+  text-align: center;
+  border-top: 1px solid var(--lr-borde);
+}
+.lr-pie img {
+  width: 64px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  opacity: 0.9;
+}
+.lr-pie small {
+  color: var(--lr-texto-suave);
+  display: block;
+  letter-spacing: 0.06em;
+}
+.lr-pie a {
+  color: var(--lr-texto-suave);
+  font-size: 0.8rem;
+}
+
+/* Botón flotante de reserva en celular */
+.lr-flotante {
+  position: fixed;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1030;
+  display: none;
+}
+@media (max-width: 767px) {
+  .lr-flotante {
+    display: block;
+    opacity: 0;
+    transform: translateY(16px);
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+  .lr-flotante.visible {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+  .lr-flotante .lr-btn {
+    width: 100%;
+  }
+  .lr-seccion {
+    padding: 80px 0;
+  }
+  .lr-carta {
+    padding: 56px 24px;
+  }
+  .lr-pie {
+    padding-bottom: 96px;
+  }
+}
+
+/* Aparición suave al hacer scroll */
+.lr-aparece {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.8s ease, transform 0.8s ease;
+}
+.lr-aparece.visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .lr-aparece {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
