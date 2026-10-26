@@ -338,15 +338,36 @@ const ConfiguracionReservasMesa = ({ seccion }) => {
                   <Interruptor id="web-auto" checked={form.confirmacionAutomaticaWeb} onChange={(v) => set("confirmacionAutomaticaWeb", v)}>
                     Confirmar automáticamente (si no, quedan pendientes hasta que las confirmes)
                   </Interruptor>
+                  <Interruptor id="web-cupos" checked={!!form.mostrarCuposWeb} onChange={(v) => set("mostrarCuposWeb", v)}>
+                    Mostrar a los clientes cuántos lugares quedan (ej: "Terraza · quedan 12")
+                  </Interruptor>
                 </Col>
               </Row>
               <FormGroup>
-                <Label>Mensaje en la página de reservas (opcional)</Label>
-                <Input type="textarea" rows="2" maxLength={600} value={form.mensajePublico} onChange={(e) => set("mensajePublico", e.target.value)} />
+                <Label for="cfg-msg-publico">Información para quien reserva (opcional)</Label>
+                <Input
+                  id="cfg-msg-publico"
+                  type="textarea"
+                  rows="3"
+                  maxLength={600}
+                  value={form.mensajePublico}
+                  placeholder="Ej: Todos deben presentar carnet."
+                  onChange={(e) => set("mensajePublico", e.target.value)}
+                />
+                <small className="text-muted">Aparece arriba del formulario, al confirmar la reserva y en los correos. Puedes usar varias líneas.</small>
               </FormGroup>
               <FormGroup>
-                <Label>Mensaje para cumpleaños (opcional)</Label>
-                <Input type="textarea" rows="2" maxLength={300} value={form.mensajeCumpleanos} placeholder="Ej: lo que ofrece el local o lo que pueden traer" onChange={(e) => set("mensajeCumpleanos", e.target.value)} />
+                <Label for="cfg-msg-cumple">Información para cumpleaños (opcional)</Label>
+                <Input
+                  id="cfg-msg-cumple"
+                  type="textarea"
+                  rows="3"
+                  maxLength={300}
+                  value={form.mensajeCumpleanos}
+                  placeholder="Ej: lo que ofrece el local o lo que pueden traer"
+                  onChange={(e) => set("mensajeCumpleanos", e.target.value)}
+                />
+                <small className="text-muted">Aparece cuando el cliente marca que celebra un cumpleaños, al confirmar y en sus correos.</small>
               </FormGroup>
 
               <hr className="my-3" />

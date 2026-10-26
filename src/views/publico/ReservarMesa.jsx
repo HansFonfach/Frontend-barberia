@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Button, Card, CardBody, Col, Container, FormGroup, Input, Label, Row, Spinner } from "reactstrap";
-import { CalendarCheck, Phone } from "lucide-react";
+import { CalendarCheck, Info, Phone } from "lucide-react";
 import { useEmpresa } from "context/EmpresaContext";
 import { construirTema } from "utils/temaEmpresa";
 import { cargarFuentesRestaurante, marcaDe } from "utils/marcasRestaurante";
@@ -281,6 +281,12 @@ const ReservarMesa = () => {
             <strong>Sector:</strong> {confirmada.sector}
           </div>
         </div>
+        {(info?.mensajePublico || (cumple.es && info?.mensajeCumpleanos)) && (
+          <div className="rounded p-3 mt-3 text-left mx-auto small" style={{ maxWidth: 380, background: theme.primaryLight, color: theme.textDark, whiteSpace: "pre-line" }}>
+            {info.mensajePublico && <div>{info.mensajePublico}</div>}
+            {cumple.es && info.mensajeCumpleanos && <div className={info.mensajePublico ? "mt-2" : ""}>🎂 {info.mensajeCumpleanos}</div>}
+          </div>
+        )}
         {info?.toleranciaMinutos > 0 && !pendiente && (
           <p className="small text-muted mt-3">
             Guardamos tu lugar hasta {info.toleranciaMinutos} minutos después de la hora.
@@ -293,7 +299,8 @@ const ReservarMesa = () => {
   return contenedor(
     <>
       {info?.mensajePublico && (
-        <div className="alert mb-4" style={{ background: theme.primaryLight, color: theme.textDark }}>
+        <div className="alert mb-4" style={{ background: theme.primaryLight, color: theme.textDark, whiteSpace: "pre-line" }}>
+          <Info size={16} style={{ verticalAlign: "-3px", marginRight: 6 }} />
           {info.mensajePublico}
         </div>
       )}
@@ -367,10 +374,14 @@ const ReservarMesa = () => {
                   {a}
                 </div>
               ))}
+              {info?.mostrarCupos && (
+                <div className="small text-muted mb-2">Cada sector muestra cuántos lugares quedan para esa hora.</div>
+              )}
               <SelectorHoraSector
                 horas={disp.horas}
                 valor={eleccion}
                 onChange={setEleccion}
+                mostrarLibres={!!info?.mostrarCupos}
                 colorPrimario={theme.primary}
               />
             </>
@@ -410,7 +421,11 @@ const ReservarMesa = () => {
           </div>
           {cumple.es && (
             <>
-              {info?.mensajeCumpleanos && <div className="small text-muted mb-2">{info.mensajeCumpleanos}</div>}
+              {info?.mensajeCumpleanos && (
+                <div className="rounded px-3 py-2 mb-3 small" style={{ background: theme.primaryLight, color: theme.textDark, whiteSpace: "pre-line" }}>
+                  🎂 {info.mensajeCumpleanos}
+                </div>
+              )}
               <Row>
                 <Col md="5">
                   <FormGroup>

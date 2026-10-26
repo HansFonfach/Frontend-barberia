@@ -11,6 +11,8 @@ const SelectorHoraSector = ({
   valor = {},
   onChange,
   mostrarCupos = false,
+  // Página pública: solo cuántos lugares quedan (sin la capacidad total)
+  mostrarLibres = false,
   colorPrimario = "#5e72e4",
 }) => {
   if (!horas.length) return null;
@@ -51,6 +53,11 @@ const SelectorHoraSector = ({
                   {mostrarCupos && !s.bloqueado && (
                     <span style={{ opacity: 0.8, marginLeft: 6, fontSize: 11 }}>
                       {s.libre}/{s.capacidad} libres
+                    </span>
+                  )}
+                  {mostrarLibres && typeof s.libre === "number" && (
+                    <span style={{ display: "block", opacity: 0.75, marginTop: 2, fontSize: 11 }}>
+                      {s.libre === 1 ? "queda 1 lugar" : `quedan ${s.libre} lugares`}
                     </span>
                   )}
                 </button>
