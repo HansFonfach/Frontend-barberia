@@ -47,6 +47,7 @@ import CancelarInvitado from "views/invitados/pages/CancelarInvitado";
 import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
 import ReservarMesa from "views/publico/ReservarMesa";
 import CancelarReservaMesa from "views/publico/CancelarReservaMesa";
+import BajaPromociones from "views/publico/BajaPromociones";
 import ContratarPlanInvitado from "views/invitados/pages/ContratarPlanInvitado";
 import VerificarCuenta from "views/publico/VerificarCuenta";
 import RegistrarNegocio from "views/publico/RegistrarNegocio";
@@ -209,6 +210,8 @@ root.render(
               </EmpresaWrapper>
             }
           />
+          {/* Link "dejar de recibir promociones" de los correos */}
+          <Route path="/baja-promociones" element={<BajaPromociones />} />
           <Route
             path="/:slug/cancelar-reserva-mesa"
             element={

@@ -31,6 +31,7 @@ const VACIO = {
   origen: "telefono",
   cumpleanos: { es: false, festejado: "", detalle: "" },
   comentarios: "",
+  aceptaPromociones: false,
 };
 
 const desdeReserva = (r) => ({
@@ -128,7 +129,7 @@ const FormReservaMesa = ({ isOpen, toggle, reserva = null, fechaInicial, onGuard
       origen: form.origen,
       cumpleanos: form.cumpleanos,
       comentarios: form.comentarios,
-      ...(editando ? {} : { claveIdempotencia: clave }),
+      ...(editando ? {} : { claveIdempotencia: clave, aceptaPromociones: form.aceptaPromociones }),
       ...extra,
     };
 
@@ -289,6 +290,22 @@ const FormReservaMesa = ({ isOpen, toggle, reserva = null, fechaInicial, onGuard
             </FormGroup>
           </Col>
         </Row>
+
+        {!editando && (
+          <div className="custom-control custom-checkbox mb-3">
+            <input
+              id="rm-promos"
+              type="checkbox"
+              className="custom-control-input"
+              checked={form.aceptaPromociones}
+              onChange={(e) => set("aceptaPromociones", e.target.checked)}
+            />
+            <label className="custom-control-label" htmlFor="rm-promos">
+              El cliente acepta recibir promociones por correo
+              <small className="d-block text-muted">Pregúntale antes de marcarlo. Necesita correo para recibirlas.</small>
+            </label>
+          </div>
+        )}
 
         <div className="custom-control custom-switch mb-2">
           <input

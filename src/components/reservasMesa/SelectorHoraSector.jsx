@@ -13,6 +13,8 @@ const SelectorHoraSector = ({
   mostrarCupos = false,
   // Página pública: solo cuántos lugares quedan (sin la capacidad total)
   mostrarLibres = false,
+  // Texto bajo un sector sin lugar suficiente (ej: "sin lugar para 20")
+  etiquetaSinLugar = "",
   colorPrimario = "#5e72e4",
 }) => {
   if (!horas.length) return null;
@@ -55,10 +57,16 @@ const SelectorHoraSector = ({
                       {s.libre}/{s.capacidad} libres
                     </span>
                   )}
-                  {mostrarLibres && typeof s.libre === "number" && (
+                  {mostrarLibres && typeof s.libre === "number" ? (
                     <span style={{ display: "block", opacity: 0.75, marginTop: 2, fontSize: 11 }}>
-                      {s.libre === 1 ? "queda 1 lugar" : `quedan ${s.libre} lugares`}
+                      {s.libre === 0 ? "completo" : s.libre === 1 ? "queda 1 lugar" : `quedan ${s.libre} lugares`}
                     </span>
+                  ) : (
+                    etiquetaSinLugar &&
+                    !s.disponible &&
+                    !s.bloqueado && (
+                      <span style={{ display: "block", opacity: 0.75, marginTop: 2, fontSize: 11 }}>{etiquetaSinLugar}</span>
+                    )
                   )}
                 </button>
               );

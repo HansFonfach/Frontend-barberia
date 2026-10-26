@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { Button, Card, CardBody, Col, Container, FormGroup, Input, Label, Row, Spinner } from "reactstrap";
-import { CalendarCheck, Info, Phone } from "lucide-react";
+import { CalendarCheck, Check, ChevronLeft, Info, MessageCircle, Phone } from "lucide-react";
 import { useEmpresa } from "context/EmpresaContext";
 import { construirTema } from "utils/temaEmpresa";
 import { cargarFuentesRestaurante, marcaDe } from "utils/marcasRestaurante";
@@ -11,7 +11,7 @@ import {
   getDisponibilidadMesaPublica,
   postReservaMesaPublica,
 } from "api/reservasMesa";
-import { DIAS_SEMANA, capitalizar, fechaLarga, nuevaClave, telLink } from "utils/reservasMesa";
+import { DIAS_SEMANA, capitalizar, fechaLarga, nuevaClave, sumarDias, telLink, whatsappLink } from "utils/reservasMesa";
 
 // Con identidad propia (utils/marcasRestaurante.js) la página toma sus colores:
 // fondo oscuro de la marca y botones en un tono cobre que se lee bien sobre blanco.
@@ -33,7 +33,7 @@ const diaDe = (fecha) => {
   return new Date(Date.UTC(y, m - 1, d, 12)).getUTCDay();
 };
 
-const DISP_VACIA = { horas: [], cargando: false, grupoGrande: false, cerrado: false, avisos: [], diaEspecial: null };
+const DISP_VACIA = { horas: [], cargando: false, grupoGrande: false, cerrado: false, avisos: [], diaEspecial: null, hayLugar: false };
 
 /** Etiqueta corta de un día especial: "Solo por orden de llegada", "Sin reservas"... */
 const etiquetaEspecial = (d) =>
@@ -45,19 +45,89 @@ const etiquetaEspecial = (d) =>
         : `Solo por orden de llegada entre las ${d.horaDesde} y las ${d.horaHasta}`
     : "Sin reservas";
 
-const Paso = ({ n, titulo, color, children }) => (
-  <div className="mb-4">
-    <div className="d-flex align-items-center mb-2" style={{ gap: 10 }}>
-      <span
-        className="d-inline-flex align-items-center justify-content-center rounded-circle text-white"
-        style={{ width: 26, height: 26, background: color, fontSize: 13, fontWeight: 700, flexShrink: 0 }}
-      >
-        {n}
-      </span>
-      <strong>{titulo}</strong>
-    </div>
+const PASOS = ["Personas y día", "Hora", "Tus datos", "Confirmar"];
+const MESES_CORTOS = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+// Celular chileno (+56 9 XXXX XXXX): se puede ofrecer WhatsApp; a un fijo no.
+const esCelularChile = (tel) => {
+  const d = String(tel || "").replace(/\D/g, "");
+  return /^(56)?9\d{8}$/.test(d);
+};
+const emailValido = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(String(e || "").trim());
+
+/** "2026-10-30" → { dia: "Vie", num: 30, mes: "oct" } */
+const partesFecha = (fecha) => {
+  const [, m, d] = fecha.split("-").map(Number);
+  return { dia: DIAS_SEMANA[diaDe(fecha)].slice(0, 3), num: d, mes: MESES_CORTOS[m - 1] };
+};
+
+/** Indicador de pasos: los ya hechos se pueden tocar para volver. */
+const Pasos = ({ paso, color, onIr }) => (
+  <ol className="d-flex list-unstyled mb-4 p-0" style={{ gap: 6 }} aria-label="Pasos de la reserva">
+    {PASOS.map((titulo, i) => {
+      const n = i + 1;
+      const hecho = n < paso;
+      const actual = n === paso;
+      return (
+        <li key={titulo} style={{ flex: 1, minWidth: 0 }} aria-current={actual ? "step" : undefined}>
+          <button
+            type="button"
+            disabled={!hecho}
+            onClick={() => onIr(n)}
+            className="w-100 border-0 bg-transparent p-0 text-center"
+            style={{ cursor: hecho ? "pointer" : "default" }}
+          >
+            <div style={{ height: 4, borderRadius: 4, background: hecho || actual ? color : "#e4e7ec", marginBottom: 8 }} />
+            <div className="d-flex align-items-center justify-content-center" style={{ gap: 6 }}>
+              <span
+                className="d-inline-flex align-items-center justify-content-center rounded-circle"
+                style={{
+                  width: 22,
+                  height: 22,
+                  flexShrink: 0,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  background: hecho || actual ? color : "#e4e7ec",
+                  color: hecho || actual ? "#fff" : "#8a94a6",
+                }}
+              >
+                {hecho ? <Check size={13} /> : n}
+              </span>
+              <span
+                className="d-none d-sm-inline text-truncate"
+                style={{ fontSize: 13, fontWeight: actual ? 700 : 500, color: actual ? "#2a1f16" : "#8a94a6" }}
+              >
+                {titulo}
+              </span>
+            </div>
+          </button>
+        </li>
+      );
+    })}
+  </ol>
+);
+
+/** Botón tipo "ficha" para elegir personas o día. */
+const Ficha = ({ activo, deshabilitado, color, onClick, children, titulo }) => (
+  <button
+    type="button"
+    title={titulo}
+    disabled={deshabilitado}
+    onClick={onClick}
+    aria-pressed={activo}
+    style={{
+      border: `1.5px solid ${activo ? color : "#dfe3ea"}`,
+      background: activo ? color : deshabilitado ? "#f6f7f9" : "#fff",
+      color: activo ? "#fff" : deshabilitado ? "#adb5bd" : "#2a1f16",
+      borderRadius: 12,
+      padding: "8px 4px",
+      lineHeight: 1.15,
+      cursor: deshabilitado ? "not-allowed" : "pointer",
+      width: "100%",
+      transition: "all .15s ease",
+    }}
+  >
     {children}
-  </div>
+  </button>
 );
 
 /** Página pública para reservar mesa, sin crear cuenta. */
@@ -81,12 +151,15 @@ const ReservarMesa = () => {
   const [eleccion, setEleccion] = useState({ hora: "", sectorId: "" });
   const [datos, setDatos] = useState({ nombre: "", telefono: "", email: "", comentarios: "", sitioWeb: "" });
   const [cumple, setCumple] = useState({ es: false, festejado: "", detalle: "" });
+  const [promos, setPromos] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [error, setError] = useState("");
   const [alternativas, setAlternativas] = useState([]);
   const [confirmada, setConfirmada] = useState(null);
   const [clave] = useState(nuevaClave);
   const [recarga, setRecarga] = useState(0);
+  const [paso, setPaso] = useState(1);
+  const [otraCantidad, setOtraCantidad] = useState(false);
 
   useEffect(() => {
     let vigente = true;
@@ -139,6 +212,8 @@ const ReservarMesa = () => {
             cerrado: !!data.cerrado,
             avisos: data.avisos || [],
             diaEspecial: data.diaEspecial || null,
+            hayLugar: data.hayLugar !== false && (data.horas || []).length > 0,
+            maxLibre: data.maxLibre,
           });
         }
       })
@@ -150,8 +225,38 @@ const ReservarMesa = () => {
 
   const setDato = (campo, valor) => setDatos((d) => ({ ...d, [campo]: valor }));
 
-  const listo =
-    eleccion.hora && eleccion.sectorId && datos.nombre.trim().length >= 2 && datos.telefono.trim() && datos.email.trim();
+  const ir = (n) => {
+    setPaso(n);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  // Próximos días en que se recibe reservas (fichas del paso 1)
+  const proximosDias = useMemo(() => {
+    if (!info?.hoy || !info?.diasAbiertos) return [];
+    const dias = [];
+    for (let i = 0, f = info.hoy; dias.length < 6 && i < 60 && f <= info.hasta; i += 1, f = sumarDias(info.hoy, i)) {
+      if (info.diasAbiertos.includes(diaDe(f))) dias.push(f);
+    }
+    return dias;
+  }, [info]);
+  const especialDe = (f) => (info?.diasEspeciales || []).find((d) => d.fecha === f && d.diaCompleto);
+
+  const maxPersonas = info?.maxPersonas || 0;
+  const grupoGrande = n > maxPersonas && maxPersonas > 0;
+  const sectorElegido = (info?.sectores || []).find((x) => String(x.id) === String(eleccion.sectorId));
+
+  // Sectores con lugar, pero no suficiente para el grupo (ej: quedan 15 y son 16):
+  // se muestran en gris y se invita a contactar al local.
+  const hayInsuficientes = disp.horas.some((h) => h.sectores.some((x) => !x.disponible));
+  const maxInsuficiente = info?.mostrarCupos
+    ? Math.max(0, ...disp.horas.flatMap((h) => h.sectores.filter((x) => !x.disponible).map((x) => x.libre || 0)))
+    : 0;
+
+  const paso1Listo = n >= 1 && !grupoGrande && fecha && !diaCerrado && !especial;
+  const paso2Listo = paso1Listo && eleccion.hora && eleccion.sectorId;
+  const paso3Listo =
+    datos.nombre.trim().length >= 2 && datos.telefono.replace(/\D/g, "").length >= 8 && emailValido(datos.email);
+  const listo = paso2Listo && paso3Listo;
 
   const reservar = async () => {
     setEnviando(true);
@@ -168,6 +273,7 @@ const ReservarMesa = () => {
         email: datos.email,
         comentarios: datos.comentarios,
         cumpleanos: cumple,
+        aceptaPromociones: promos,
         claveIdempotencia: clave,
         sitioWeb: datos.sitioWeb,
       });
@@ -178,6 +284,11 @@ const ReservarMesa = () => {
       setError(d.message || "No pudimos completar la reserva. Intenta de nuevo.");
       setAlternativas(d.alternativas || []);
       if (d.code === "SIN_CUPO") setRecarga((x) => x + 1);
+      // Si el problema es de fecha u hora, se vuelve al paso que corresponde
+      if (["DIA_CERRADO", "BLOQUEADO", "MUY_PRONTO", "MUY_LEJOS", "HORA_FUERA_DE_HORARIO"].includes(d.code)) {
+        setRecarga((x) => x + 1);
+        setPaso(2);
+      }
     } finally {
       setEnviando(false);
     }
@@ -296,65 +407,145 @@ const ReservarMesa = () => {
     );
   }
 
+  const resumenArriba = paso > 1 && (
+    <div
+      className="d-flex flex-wrap align-items-center justify-content-between rounded px-3 py-2 mb-3 small"
+      style={{ background: theme.primaryLight, color: theme.textDark, gap: 8 }}
+    >
+      <span>
+        <strong>
+          {n} persona{n === 1 ? "" : "s"}
+        </strong>{" "}
+        · {capitalizar(fechaLarga(fecha))}
+        {paso > 2 && eleccion.hora && (
+          <>
+            {" "}
+            · {eleccion.hora} · {sectorElegido?.nombre}
+          </>
+        )}
+      </span>
+      <button type="button" className="border-0 bg-transparent p-0" style={{ color: theme.primary, fontWeight: 600 }} onClick={() => ir(1)}>
+        Cambiar
+      </button>
+    </div>
+  );
+
+  const botones = ({ siguiente, habilitado, texto = "Continuar", onSiguiente }) => (
+    <div className="d-flex align-items-center mt-4" style={{ gap: 10 }}>
+      {paso > 1 && (
+        <Button outline className="m-0" style={{ borderColor: "#dfe3ea", color: theme.textDark }} onClick={() => ir(paso - 1)}>
+          <ChevronLeft size={16} style={{ verticalAlign: "-3px" }} /> Atrás
+        </Button>
+      )}
+      <Button
+        size="lg"
+        className="m-0 flex-grow-1"
+        disabled={!habilitado}
+        onClick={onSiguiente || (() => ir(siguiente))}
+        style={{ background: theme.primary, borderColor: theme.primary, color: "#fff" }}
+      >
+        {texto}
+      </Button>
+    </div>
+  );
+
+  const textoContacto = `Hola, quería reservar para ${n} persona${n === 1 ? "" : "s"} el ${fechaLarga(fecha)}${
+    eleccion.hora ? ` a las ${eleccion.hora}` : ""
+  }. ¿Tienen espacio?`;
+  const contactoLocal = (titulo, detalle) => (
+    <div className="rounded p-3 mt-3" style={{ border: "1px dashed #d8c3a5", background: "#fffaf3", color: theme.textDark }}>
+      <div className="font-weight-bold small mb-1">{titulo}</div>
+      <div className="small mb-2">{detalle}</div>
+      {telefono ? (
+        <div className="d-flex flex-wrap" style={{ gap: 8 }}>
+          {esCelularChile(telefono) && (
+            <a
+              className="btn btn-sm m-0"
+              style={{ background: "#25d366", color: "#fff" }}
+              href={whatsappLink(telefono, textoContacto)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <MessageCircle size={14} style={{ verticalAlign: "-2px" }} /> Escribir por WhatsApp
+            </a>
+          )}
+          <a className="btn btn-sm btn-outline-secondary m-0" href={telLink(telefono)}>
+            <Phone size={14} style={{ verticalAlign: "-2px" }} /> Llamar al {telefono}
+          </a>
+        </div>
+      ) : (
+        <div className="small text-muted">Contáctanos directamente en el local.</div>
+      )}
+    </div>
+  );
+
+  const avisoDiaEspecial = (d) => (
+    <div className="rounded p-3 text-center mt-3" style={{ border: `1px solid ${theme.primary}55`, background: theme.primaryLight, color: theme.textDark }}>
+      <div className="font-weight-bold mb-1">{d.motivo || capitalizar(fechaLarga(d.fecha))}</div>
+      <div className="small">
+        {d.tipo === "orden_llegada"
+          ? "Ese día atendemos solo por orden de llegada, sin reservas. No hace falta reservar: ¡te esperamos!"
+          : "Ese día no recibimos reservas. Prueba otra fecha."}
+      </div>
+    </div>
+  );
+
   return contenedor(
     <>
-      {info?.mensajePublico && (
-        <div className="alert mb-4" style={{ background: theme.primaryLight, color: theme.textDark, whiteSpace: "pre-line" }}>
-          <Info size={16} style={{ verticalAlign: "-3px", marginRight: 6 }} />
-          {info.mensajePublico}
-        </div>
-      )}
+      <Pasos paso={paso} color={theme.primary} onIr={ir} />
 
-      <Paso n={1} titulo="¿Cuántos son y qué día?" color={theme.primary}>
-        <Row>
-          <Col xs="5">
+      {/* ── Paso 1: personas y día ── */}
+      {paso === 1 && (
+        <>
+          {info?.mensajePublico && (
+            <div className="alert mb-4" style={{ background: theme.primaryLight, color: theme.textDark, whiteSpace: "pre-line" }}>
+              <Info size={16} style={{ verticalAlign: "-3px", marginRight: 6 }} />
+              {info.mensajePublico}
+            </div>
+          )}
+
+          <h2 className="h5 mb-3">¿Cuántos son?</h2>
+          <div className="d-grid mb-2" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(52px, 1fr))", gap: 8 }}>
+            {Array.from({ length: Math.min(8, maxPersonas || 8) }, (_, i) => i + 1).map((k) => (
+              <Ficha
+                key={k}
+                activo={!otraCantidad && n === k}
+                color={theme.primary}
+                onClick={() => {
+                  setOtraCantidad(false);
+                  setPersonas(String(k));
+                }}
+              >
+                <strong style={{ fontSize: 17 }}>{k}</strong>
+              </Ficha>
+            ))}
+            <Ficha
+              activo={otraCantidad}
+              color={theme.primary}
+              onClick={() => {
+                setOtraCantidad(true);
+                setPersonas("");
+              }}
+            >
+              <span style={{ fontSize: 13, fontWeight: 600 }}>Más</span>
+            </Ficha>
+          </div>
+          {otraCantidad && (
             <Input
               type="number"
               min="1"
+              autoFocus
               aria-label="Cantidad de personas"
-              placeholder="Personas"
+              placeholder="¿Cuántas personas?"
               value={personas}
               onChange={(e) => setPersonas(e.target.value)}
+              style={{ maxWidth: 220 }}
+              className="mb-2"
             />
-          </Col>
-          <Col xs="7">
-            <Input type="date" aria-label="Fecha" min={info?.hoy} max={info?.hasta} value={fecha} onChange={(e) => setFecha(e.target.value)} />
-          </Col>
-        </Row>
-        {info?.diasAbiertos && (
-          <small className="text-muted d-block mt-1">
-            Recibimos reservas los {info.diasAbiertos.map((d) => DIAS_SEMANA[d].toLowerCase()).join(", ")}.
-          </small>
-        )}
-        {info?.diasEspeciales?.length > 0 && (
-          <div className="mt-3 rounded px-3 py-2" style={{ background: theme.primaryLight, color: theme.textDark }}>
-            <div className="small font-weight-bold mb-1">Fechas especiales</div>
-            {info.diasEspeciales.slice(0, 6).map((d) => (
-              <div key={`${d.fecha}-${d.horaDesde || ""}`} className="small">
-                <strong>{capitalizar(fechaLarga(d.fecha))}</strong>
-                {d.motivo ? ` · ${d.motivo}` : ""} · {etiquetaEspecial(d)}
-              </div>
-            ))}
-          </div>
-        )}
-      </Paso>
-
-      {fecha && (n >= 1 || especial) && (
-        <Paso n={2} titulo="Elige hora y sector" color={theme.primary}>
-          {especial ? (
-            <div className="rounded p-3 text-center" style={{ border: `1px solid ${theme.primary}55`, background: theme.primaryLight, color: theme.textDark }}>
-              <div className="font-weight-bold mb-1">{especial.motivo || capitalizar(fechaLarga(fecha))}</div>
-              <div className="small">
-                {especial.tipo === "orden_llegada"
-                  ? "Ese día atendemos solo por orden de llegada, sin reservas. No hace falta reservar: ¡te esperamos!"
-                  : "Ese día no recibimos reservas. Prueba otra fecha."}
-              </div>
-            </div>
-          ) : disp.cargando ? (
-            <Spinner size="sm" style={{ color: theme.primary }} />
-          ) : disp.grupoGrande || n > (info?.maxPersonas || Infinity) ? (
-            <div className="alert alert-light border">
-              Para grupos de más de {info?.maxPersonas} personas, contáctanos directamente
+          )}
+          {grupoGrande && (
+            <div className="alert alert-light border small">
+              Para grupos de más de {maxPersonas} personas, contáctanos directamente
               {telefono ? (
                 <>
                   : <a href={telLink(telefono)}>{telefono}</a>
@@ -363,10 +554,109 @@ const ReservarMesa = () => {
                 "."
               )}
             </div>
-          ) : disp.cerrado || diaCerrado ? (
-            <p className="text-muted mb-0">Ese día no recibimos reservas. Prueba otra fecha.</p>
-          ) : disp.horas.length === 0 ? (
-            <p className="text-muted mb-0">No quedan horas disponibles para ese día y ese grupo. Prueba otra fecha.</p>
+          )}
+
+          <h2 className="h5 mt-4 mb-3">¿Qué día?</h2>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(76px, 1fr))", gap: 8 }}>
+            {proximosDias.map((f) => {
+              const p = partesFecha(f);
+              const esp = especialDe(f);
+              return (
+                <Ficha
+                  key={f}
+                  activo={fecha === f}
+                  color={theme.primary}
+                  titulo={esp ? esp.mensaje : undefined}
+                  onClick={() => setFecha(f)}
+                >
+                  <div style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: ".06em", opacity: 0.8 }}>
+                    {f === info.hoy ? "Hoy" : f === sumarDias(info.hoy, 1) ? "Mañana" : p.dia}
+                  </div>
+                  <div style={{ fontSize: 20, fontWeight: 700 }}>{p.num}</div>
+                  <div style={{ fontSize: 11, opacity: 0.8 }}>{esp ? "sin reservas" : p.mes}</div>
+                </Ficha>
+              );
+            })}
+          </div>
+          <div className="d-flex align-items-center mt-3" style={{ gap: 10 }}>
+            <span className="small text-muted">Otra fecha:</span>
+            <Input
+              type="date"
+              aria-label="Fecha"
+              min={info?.hoy}
+              max={info?.hasta}
+              value={fecha}
+              onChange={(e) => setFecha(e.target.value)}
+              style={{ maxWidth: 190 }}
+              bsSize="sm"
+            />
+          </div>
+          {info?.diasAbiertos && (
+            <small className="text-muted d-block mt-2">
+              Recibimos reservas los {info.diasAbiertos.map((d) => DIAS_SEMANA[d].toLowerCase()).join(", ")}.
+            </small>
+          )}
+          {fecha && diaCerrado && <div className="alert alert-light border small mt-3 mb-0">Ese día no recibimos reservas. Prueba otra fecha.</div>}
+          {fecha && especial && avisoDiaEspecial(especial)}
+          {info?.diasEspeciales?.length > 0 && !especial && (
+            <div className="mt-3 rounded px-3 py-2" style={{ background: theme.primaryLight, color: theme.textDark }}>
+              <div className="small font-weight-bold mb-1">Fechas especiales</div>
+              {info.diasEspeciales.slice(0, 6).map((d) => (
+                <div key={`${d.fecha}-${d.horaDesde || ""}`} className="small">
+                  <strong>{capitalizar(fechaLarga(d.fecha))}</strong>
+                  {d.motivo ? ` · ${d.motivo}` : ""} · {etiquetaEspecial(d)}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {botones({ siguiente: 2, habilitado: paso1Listo, texto: "Ver horas disponibles" })}
+        </>
+      )}
+
+      {/* ── Paso 2: hora y sector ── */}
+      {paso === 2 && (
+        <>
+          {resumenArriba}
+          <h2 className="h5 mb-3">Elige hora de llegada y sector</h2>
+          {disp.cargando ? (
+            <div className="text-center py-4">
+              <Spinner style={{ color: theme.primary }} />
+            </div>
+          ) : especial ? (
+            avisoDiaEspecial(especial)
+          ) : disp.grupoGrande ? (
+            <div className="alert alert-light border small">
+              Para grupos de más de {maxPersonas} personas, contáctanos directamente
+              {telefono ? (
+                <>
+                  : <a href={telLink(telefono)}>{telefono}</a>
+                </>
+              ) : (
+                "."
+              )}
+            </div>
+          ) : disp.cerrado ? (
+            <div className="alert alert-light border small mb-0">Ese día no recibimos reservas. Prueba otra fecha.</div>
+          ) : !disp.hayLugar ? (
+            <>
+              {disp.horas.length > 0 && (
+                <SelectorHoraSector
+                  horas={disp.horas}
+                  valor={eleccion}
+                  onChange={setEleccion}
+                  mostrarLibres={!!info?.mostrarCupos}
+                  etiquetaSinLugar={`sin lugar para ${n}`}
+                  colorPrimario={theme.primary}
+                />
+              )}
+              {contactoLocal(
+                `Ese día ya no queda lugar para ${n} persona${n === 1 ? "" : "s"} en línea`,
+                info?.mostrarCupos && disp.maxLibre > 0
+                  ? `Quedan lugares para ${disp.maxLibre} persona${disp.maxLibre === 1 ? "" : "s"}. Si les falta poco, escríbenos y vemos si podemos hacerles espacio, o prueba otra fecha.`
+                  : "Escríbenos y vemos si podemos hacerles espacio, o prueba otra fecha.",
+              )}
+            </>
           ) : (
             <>
               {disp.avisos.map((a) => (
@@ -374,23 +664,33 @@ const ReservarMesa = () => {
                   {a}
                 </div>
               ))}
-              {info?.mostrarCupos && (
-                <div className="small text-muted mb-2">Cada sector muestra cuántos lugares quedan para esa hora.</div>
-              )}
+              {info?.mostrarCupos && <div className="small text-muted mb-2">Cada sector muestra cuántos lugares quedan para esa hora.</div>}
               <SelectorHoraSector
                 horas={disp.horas}
                 valor={eleccion}
                 onChange={setEleccion}
                 mostrarLibres={!!info?.mostrarCupos}
+                etiquetaSinLugar={`sin lugar para ${n}`}
                 colorPrimario={theme.primary}
               />
+              {hayInsuficientes &&
+                contactoLocal(
+                  "¿Quieres un sector o una hora que aparece en gris?",
+                  maxInsuficiente > 0
+                    ? `Ahí no alcanza para ${n} en línea, pero si les falta poco (por ejemplo, quedan ${maxInsuficiente} y son ${n}), escríbenos y vemos si podemos hacerles espacio.`
+                    : `Ahí no alcanza para ${n} en línea. Escríbenos y vemos si podemos hacerles espacio.`,
+                )}
             </>
           )}
-        </Paso>
+          {botones({ siguiente: 3, habilitado: paso2Listo })}
+        </>
       )}
 
-      {eleccion.hora && !especial && (
-        <Paso n={3} titulo="Tus datos" color={theme.primary}>
+      {/* ── Paso 3: datos ── */}
+      {paso === 3 && (
+        <>
+          {resumenArriba}
+          <h2 className="h5 mb-3">Tus datos</h2>
           <Row>
             <Col md="6">
               <FormGroup>
@@ -407,7 +707,15 @@ const ReservarMesa = () => {
             <Col md="12">
               <FormGroup>
                 <Label for="rm-email">Correo</Label>
-                <Input id="rm-email" type="email" value={datos.email} maxLength={120} autoComplete="email" onChange={(e) => setDato("email", e.target.value)} />
+                <Input
+                  id="rm-email"
+                  type="email"
+                  value={datos.email}
+                  maxLength={120}
+                  autoComplete="email"
+                  invalid={!!datos.email && !emailValido(datos.email)}
+                  onChange={(e) => setDato("email", e.target.value)}
+                />
                 <small className="text-muted">Te enviaremos la confirmación aquí.</small>
               </FormGroup>
             </Col>
@@ -448,11 +756,69 @@ const ReservarMesa = () => {
             <Input id="rm-comentarios" type="textarea" rows="2" maxLength={500} value={datos.comentarios} placeholder="Silla de bebé, accesibilidad..." onChange={(e) => setDato("comentarios", e.target.value)} />
           </FormGroup>
 
+          <div className="custom-control custom-checkbox mb-3">
+            <input id="pub-promos" type="checkbox" className="custom-control-input" checked={promos} onChange={(e) => setPromos(e.target.checked)} />
+            <label className="custom-control-label" htmlFor="pub-promos">
+              Quiero recibir promociones y novedades de {nombreLocal || "este local"} por correo
+              <small className="d-block text-muted">Opcional. Puedes darte de baja cuando quieras desde el mismo correo.</small>
+            </label>
+          </div>
+
           {/* Campo trampa para bots: invisible para personas */}
           <div aria-hidden="true" style={{ position: "absolute", left: "-9999px", width: 1, height: 1, overflow: "hidden" }}>
             <label htmlFor="sitioWeb">No llenar</label>
             <input id="sitioWeb" tabIndex={-1} autoComplete="off" value={datos.sitioWeb} onChange={(e) => setDato("sitioWeb", e.target.value)} />
           </div>
+
+          {botones({ siguiente: 4, habilitado: paso3Listo, texto: "Revisar reserva" })}
+        </>
+      )}
+
+      {/* ── Paso 4: confirmar ── */}
+      {paso === 4 && (
+        <>
+          <h2 className="h5 mb-3">Revisa tu reserva</h2>
+          <div className="border rounded mb-3" style={{ overflow: "hidden" }}>
+            {[
+              ["Día", capitalizar(fechaLarga(fecha)), 1],
+              ["Personas", `${n} persona${n === 1 ? "" : "s"}`, 1],
+              ["Hora de llegada", eleccion.hora, 2],
+              ["Sector", sectorElegido?.nombre || "", 2],
+              ["A nombre de", datos.nombre, 3],
+              ["Contacto", `${datos.telefono} · ${datos.email}`, 3],
+              ...(cumple.es ? [["Cumpleaños", `🎂 ${cumple.festejado || "Sí"}${cumple.detalle ? ` · ${cumple.detalle}` : ""}`, 3]] : []),
+              ...(datos.comentarios ? [["Comentarios", datos.comentarios, 3]] : []),
+            ].map(([etiqueta, valor, volverA], i) => (
+              <div
+                key={etiqueta}
+                className="d-flex justify-content-between align-items-start px-3 py-2"
+                style={{ gap: 12, borderTop: i ? "1px solid #eef0f4" : "none" }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div className="small text-muted">{etiqueta}</div>
+                  <div style={{ fontWeight: 600, wordBreak: "break-word" }}>{valor}</div>
+                </div>
+                <button type="button" className="border-0 bg-transparent p-0 small" style={{ color: theme.primary, fontWeight: 600, flexShrink: 0 }} onClick={() => ir(volverA)}>
+                  Cambiar
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {(info?.mensajePublico || (cumple.es && info?.mensajeCumpleanos)) && (
+            <div className="rounded p-3 mb-3 small" style={{ background: theme.primaryLight, color: theme.textDark, whiteSpace: "pre-line" }}>
+              {info.mensajePublico && (
+                <div>
+                  <Info size={14} style={{ verticalAlign: "-2px", marginRight: 6 }} />
+                  {info.mensajePublico}
+                </div>
+              )}
+              {cumple.es && info.mensajeCumpleanos && <div className={info.mensajePublico ? "mt-2" : ""}>🎂 {info.mensajeCumpleanos}</div>}
+            </div>
+          )}
+          {info?.toleranciaMinutos > 0 && (
+            <p className="small text-muted mb-3">Guardamos tu lugar hasta {info.toleranciaMinutos} minutos después de la hora de llegada.</p>
+          )}
 
           {error && (
             <div className="alert alert-warning">
@@ -466,7 +832,11 @@ const ReservarMesa = () => {
                       size="sm"
                       color="light"
                       className="m-1"
-                      onClick={() => setEleccion({ hora: a.hora, sectorId: a.sectorId })}
+                      onClick={() => {
+                        setEleccion({ hora: a.hora, sectorId: a.sectorId });
+                        setError("");
+                        setAlternativas([]);
+                      }}
                     >
                       {a.hora} · {a.sector}
                     </Button>
@@ -476,21 +846,17 @@ const ReservarMesa = () => {
             </div>
           )}
 
-          <Button
-            block
-            size="lg"
-            disabled={!listo || enviando}
-            onClick={reservar}
-            style={{ background: theme.primary, borderColor: theme.primary, color: "#fff" }}
-          >
-            {enviando ? "Reservando..." : info?.confirmacionAutomatica ? "Confirmar reserva" : "Enviar solicitud"}
-          </Button>
+          {botones({
+            habilitado: listo && !enviando,
+            texto: enviando ? "Reservando..." : info?.confirmacionAutomatica ? "Confirmar reserva" : "Enviar solicitud",
+            onSiguiente: reservar,
+          })}
           {info?.cancelacion?.permitida && (
             <small className="text-muted d-block text-center mt-2">
               Podrás cancelar desde el link del correo hasta {info.cancelacion.horasLimite} hora(s) antes.
             </small>
           )}
-        </Paso>
+        </>
       )}
     </>,
   );

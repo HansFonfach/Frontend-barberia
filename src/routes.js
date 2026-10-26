@@ -71,6 +71,8 @@ import ConfiguracionReservasMesa from "views/admin/pages/reservasMesa/Configurac
 import BloqueosReservasMesa from "views/admin/pages/reservasMesa/BloqueosReservasMesa";
 import NuevaReservaMesa from "views/admin/pages/reservasMesa/NuevaReservaMesa";
 import AgendaReservasMesa from "views/admin/pages/reservasMesa/AgendaReservasMesa";
+import ClientesReservasMesa from "views/admin/pages/reservasMesa/ClientesReservasMesa";
+import PromocionesReservasMesa from "views/admin/pages/reservasMesa/PromocionesReservasMesa";
 
 // Set de íconos del sidebar admin (mismo lenguaje visual en todos los
 // ítems — antes se mezclaban Nucleo Icons y Font Awesome con trazos
@@ -402,6 +404,35 @@ export const barberoRoutes = [
         icon: "fas fa-search text-warning",
         component: <ListadoReservasMesa />,
         layout: "/admin",
+        requiereModulo: "reservasMesas",
+      },
+    ],
+  },
+  {
+    path: "/reservas-mesa-clientes-menu",
+    name: "Clientes y promociones",
+    icon: iconoSidebar(Users, "success"),
+    layout: "/admin",
+    section: "gestion",
+    soloAdmin: true,
+    requiereModulo: "reservasMesas",
+    children: [
+      {
+        path: "/reservas-mesa-clientes",
+        name: "Clientes",
+        icon: "fas fa-address-book text-success",
+        component: <ClientesReservasMesa />,
+        layout: "/admin",
+        soloAdmin: true,
+        requiereModulo: "reservasMesas",
+      },
+      {
+        path: "/reservas-mesa-promociones",
+        name: "Enviar promoción",
+        icon: "fas fa-paper-plane text-primary",
+        component: <PromocionesReservasMesa />,
+        layout: "/admin",
+        soloAdmin: true,
         requiereModulo: "reservasMesas",
       },
     ],

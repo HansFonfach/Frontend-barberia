@@ -37,3 +37,18 @@ export const postReservaMesaPublica = (slug, data) => axiosPublic.post(`${BASE}/
 export const getCancelacionReservaMesa = (token) =>
   axiosPublic.get(`${BASE}/publico/cancelacion/${encodeURIComponent(token)}`);
 export const postCancelarReservaMesa = (token) => axiosPublic.post(`${BASE}/publico/cancelar`, { token });
+
+/* ── Clientes y promociones (admin) ── */
+export const getClientesMesa = (params) => axiosPrivate.get(`${BASE}/clientes`, { params });
+export const exportarClientesMesa = (params) =>
+  axiosPrivate.get(`${BASE}/clientes/exportar`, { params, responseType: "blob" });
+export const patchPromocionesClienteMesa = (telefono, acepta) =>
+  axiosPrivate.patch(`${BASE}/clientes/${encodeURIComponent(telefono)}/promociones`, { acepta });
+export const getCampanasMesa = () => axiosPrivate.get(`${BASE}/campanas`);
+export const postCampanaMesa = (data) => axiosPrivate.post(`${BASE}/campanas`, data);
+export const postPruebaCampanaMesa = (data) => axiosPrivate.post(`${BASE}/campanas/prueba`, data);
+
+/* ── Baja de promociones (público) ── */
+export const getBajaPromociones = (token) =>
+  axiosPublic.get(`${BASE}/publico/baja/${encodeURIComponent(token)}`);
+export const postBajaPromociones = (token) => axiosPublic.post(`${BASE}/publico/baja`, { token });
