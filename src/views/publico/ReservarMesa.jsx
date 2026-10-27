@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Button, Card, CardBody, Col, Container, FormGroup, Input, Label, Row, Spinner } from "reactstrap";
 import { BellRing, CalendarCheck, Check, ChevronLeft, Info, MessageCircle, Phone } from "lucide-react";
+import { FaInstagram } from "react-icons/fa";
 import { useEmpresa } from "context/EmpresaContext";
 import { construirTema } from "utils/temaEmpresa";
 import { cargarFuentesRestaurante, marcaDe } from "utils/marcasRestaurante";
@@ -12,7 +13,17 @@ import {
   postReservaMesaPublica,
   postListaEsperaMesa,
 } from "api/reservasMesa";
-import { DIAS_SEMANA, capitalizar, fechaLarga, nuevaClave, sumarDias, telLink, whatsappLink } from "utils/reservasMesa";
+import {
+  DIAS_SEMANA,
+  capitalizar,
+  fechaLarga,
+  instagramLink,
+  nuevaClave,
+  sumarDias,
+  telLink,
+  usuarioInstagram,
+  whatsappLink,
+} from "utils/reservasMesa";
 
 // Con identidad propia (utils/marcasRestaurante.js) la página toma sus colores:
 // fondo oscuro de la marca y botones en un tono cobre que se lee bien sobre blanco.
@@ -303,6 +314,34 @@ const ReservarMesa = () => {
 
   const nombreLocal = info?.empresa?.nombre || empresa?.nombre || "";
   const telefono = info?.empresa?.telefono || empresa?.telefono || "";
+  // Si el local no tiene teléfono, el contacto es su Instagram
+  const instagram = usuarioInstagram(info?.empresa?.instagram || empresa?.redes?.instagram);
+  const botonInstagram = (chico = true) =>
+    instagram && (
+      <a
+        className={`btn ${chico ? "btn-sm" : ""} m-0`}
+        style={{ background: "linear-gradient(45deg,#f09433,#dc2743,#bc1888)", color: "#fff" }}
+        href={instagramLink(instagram)}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <FaInstagram style={{ verticalAlign: "-2px" }} /> Escribir por Instagram
+      </a>
+    );
+  const contactoEnLinea = telefono ? (
+    <>
+      : <a href={telLink(telefono)}>{telefono}</a>
+    </>
+  ) : instagram ? (
+    <>
+      {" "}por Instagram:{" "}
+      <a href={instagramLink(instagram)} target="_blank" rel="noopener noreferrer">
+        @{instagram}
+      </a>
+    </>
+  ) : (
+    "."
+  );
 
   const contenedor = (contenido) => (
     <div style={{ minHeight: "100vh", background: theme.softBg || "#f6f9fc" }}>
@@ -367,6 +406,7 @@ const ReservarMesa = () => {
             <Phone size={16} style={{ verticalAlign: "-3px" }} /> Llamar al {telefono}
           </a>
         )}
+        {!telefono && botonInstagram(false)}
       </div>,
     );
   }
@@ -473,7 +513,7 @@ const ReservarMesa = () => {
         </div>
       )}
       <div className="small mb-2">{detalle}</div>
-      {whatsappConsultas || telefono ? (
+      {whatsappConsultas || telefono || instagram ? (
         <div className="d-flex flex-wrap" style={{ gap: 8 }}>
           {whatsappConsultas && (
             <a
@@ -486,6 +526,7 @@ const ReservarMesa = () => {
               <MessageCircle size={14} style={{ verticalAlign: "-2px" }} /> Escribir por WhatsApp
             </a>
           )}
+          {botonInstagram()}
           {telefono && (
             <a className="btn btn-sm btn-outline-secondary m-0" href={telLink(telefono)}>
               <Phone size={14} style={{ verticalAlign: "-2px" }} /> Llamar al {telefono}
@@ -653,13 +694,7 @@ const ReservarMesa = () => {
           {grupoGrande && (
             <div className="alert alert-light border small">
               Para grupos de más de {maxPersonas} personas, contáctanos directamente
-              {telefono ? (
-                <>
-                  : <a href={telLink(telefono)}>{telefono}</a>
-                </>
-              ) : (
-                "."
-              )}
+              {contactoEnLinea}
             </div>
           )}
 
@@ -741,13 +776,7 @@ const ReservarMesa = () => {
           ) : disp.grupoGrande ? (
             <div className="alert alert-light border small">
               Para grupos de más de {maxPersonas} personas, contáctanos directamente
-              {telefono ? (
-                <>
-                  : <a href={telLink(telefono)}>{telefono}</a>
-                </>
-              ) : (
-                "."
-              )}
+              {contactoEnLinea}
             </div>
           ) : disp.cerrado ? (
             <div className="alert alert-light border small mb-0">Ese día no recibimos reservas. Prueba otra fecha.</div>

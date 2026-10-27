@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Button, Card, CardBody, Container, Spinner } from "reactstrap";
 import { getAsistenciaMesa, postAsistenciaMesa } from "api/reservasMesa";
-import { capitalizar, fechaLarga, telLink } from "utils/reservasMesa";
+import { capitalizar, fechaLarga, instagramLink, telLink, usuarioInstagram } from "utils/reservasMesa";
 
 const COLOR = "#9a6a2c";
 
@@ -106,10 +106,16 @@ const AsistenciaMesa = () => {
       <>
         <h2 className="h4">Esta reserva ya no se puede modificar</h2>
         {resumen}
-        {datos?.empresa?.telefono && (
+        {datos?.empresa?.telefono ? (
           <a href={telLink(datos.empresa.telefono)} className="small">
             Llamar a {local}
           </a>
+        ) : (
+          usuarioInstagram(datos?.empresa?.instagram) && (
+            <a href={instagramLink(usuarioInstagram(datos.empresa.instagram))} className="small" target="_blank" rel="noopener noreferrer">
+              Escribir a {local} por Instagram
+            </a>
+          )
         )}
       </>
     );

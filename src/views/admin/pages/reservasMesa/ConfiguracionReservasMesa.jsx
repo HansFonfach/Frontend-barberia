@@ -406,8 +406,8 @@ const ConfiguracionReservasMesa = ({ seccion }) => {
                 <Input
                   id="cfg-msg-cumple"
                   type="textarea"
-                  rows="3"
-                  maxLength={300}
+                  rows="4"
+                  maxLength={600}
                   value={form.mensajeCumpleanos}
                   placeholder="Ej: lo que ofrece el local o lo que pueden traer"
                   onChange={(e) => set("mensajeCumpleanos", e.target.value)}

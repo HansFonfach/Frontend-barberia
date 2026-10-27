@@ -116,3 +116,14 @@ export const whatsappLink = (telefono, texto = "") => {
   if (n.length === 9 && n.startsWith("9")) n = `56${n}`;
   return `https://wa.me/${n}${texto ? `?text=${encodeURIComponent(texto)}` : ""}`;
 };
+
+/** Usuario de Instagram desde un link ("https://www.instagram.com/santafeovalle/") o "@santafeovalle". */
+export const usuarioInstagram = (valor) => {
+  const v = String(valor || "").trim();
+  if (!v) return "";
+  const m = v.match(/instagram\.com\/([A-Za-z0-9._]+)/i) || v.match(/^@?([A-Za-z0-9._]+)$/);
+  return m ? m[1] : "";
+};
+
+/** Abre directo el chat (mensaje directo) de Instagram con ese usuario. */
+export const instagramLink = (usuario) => `https://ig.me/m/${usuario}`;
