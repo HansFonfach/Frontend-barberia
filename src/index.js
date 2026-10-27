@@ -48,6 +48,7 @@ import ClasePruebaInvitado from "views/invitados/pages/ClasePruebaInvitado";
 import ReservarMesa from "views/publico/ReservarMesa";
 import CancelarReservaMesa from "views/publico/CancelarReservaMesa";
 import BajaPromociones from "views/publico/BajaPromociones";
+import AsistenciaMesa from "views/publico/AsistenciaMesa";
 import ContratarPlanInvitado from "views/invitados/pages/ContratarPlanInvitado";
 import VerificarCuenta from "views/publico/VerificarCuenta";
 import RegistrarNegocio from "views/publico/RegistrarNegocio";
@@ -212,6 +213,8 @@ root.render(
           />
           {/* Link "dejar de recibir promociones" de los correos */}
           <Route path="/baja-promociones" element={<BajaPromociones />} />
+          {/* Botones "Confirmar asistencia" / "No podré ir" del WhatsApp de reservas de mesa */}
+          <Route path="/asistencia-mesa/:accion" element={<AsistenciaMesa />} />
           <Route
             path="/:slug/cancelar-reserva-mesa"
             element={

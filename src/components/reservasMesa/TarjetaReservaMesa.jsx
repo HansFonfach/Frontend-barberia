@@ -5,6 +5,16 @@ import BadgeEstadoReservaMesa from "./BadgeEstadoReservaMesa";
 import { ACCIONES_RAPIDAS, ETIQUETA_ORIGEN, telLink } from "utils/reservasMesa";
 
 /** Una reserva en la vista "Hoy": se lee de un vistazo y se marca con un toque. */
+/** Estado de la confirmación por WhatsApp, si se pidió. */
+const BadgeWhatsapp = ({ w, estado }) => {
+  if (!w?.recordatorioEnviadoEn) return null;
+  if (w.respuesta === "confirma") return <Badge pill style={{ background: "#e6f7ef", color: "#1a7f52" }}>✓ Confirmó por WhatsApp</Badge>;
+  if (w.respuesta === "cancela") return <Badge pill style={{ background: "#fde8ec", color: "#c2185b" }}>Avisó por WhatsApp que no viene</Badge>;
+  if (w.error) return <Badge pill style={{ background: "#fff3e0", color: "#c25e00" }} title={w.error}>WhatsApp no se pudo enviar</Badge>;
+  if (["pendiente", "confirmada"].includes(estado)) return <Badge pill style={{ background: "#eef0f4", color: "#525f7f" }}>WhatsApp enviado · sin respuesta</Badge>;
+  return null;
+};
+
 const TarjetaReservaMesa = ({ reserva, onAccion, onAbrir, ocupado = false }) => {
   const r = reserva;
   const acciones = ACCIONES_RAPIDAS[r.estado] || [];
@@ -29,6 +39,7 @@ const TarjetaReservaMesa = ({ reserva, onAccion, onAbrir, ocupado = false }) => 
             <span style={{ fontSize: "1.25rem", fontWeight: 700, color: "#32325d" }}>{r.hora}</span>
             <strong style={{ color: "#32325d", wordBreak: "break-word" }}>{r.cliente.nombre}</strong>
             <BadgeEstadoReservaMesa estado={r.estado} />
+            <BadgeWhatsapp w={r.whatsapp} estado={r.estado} />
             {r.atrasada && (
               <Badge color="warning" pill>
                 <AlertTriangle size={12} style={{ verticalAlign: "-2px" }} /> Atrasada

@@ -21,6 +21,7 @@ const ETIQUETA_ACCION = {
   editada: "Editada",
   estado: "Cambio de estado",
   sobrecupo: "Sobrecupo",
+  asistencia_confirmada: "Confirmó asistencia por WhatsApp",
 };
 
 const ETIQUETA_CAMPO = {

@@ -109,6 +109,12 @@ const ConfiguracionReservasMesa = ({ seccion }) => {
 
   const set = (campo, valor) => setForm((f) => ({ ...f, [campo]: valor }));
   const setAnidado = (grupo, campo, valor) => setForm((f) => ({ ...f, [grupo]: { ...f[grupo], [campo]: valor } }));
+  const setWhatsapp = (grupo, campo, valor) =>
+    setForm((f) => ({
+      ...f,
+      whatsapp: { ...f.whatsapp, [grupo]: { ...(f.whatsapp?.[grupo] || {}), [campo]: valor } },
+    }));
+  const telefonosWhatsapp = form.whatsapp?.avisoLocal?.telefonos;
 
   const setSector = (i, campo, valor) =>
     setForm((f) => ({ ...f, sectores: f.sectores.map((s, j) => (j === i ? { ...s, [campo]: valor } : s)) }));
@@ -388,6 +394,48 @@ const ConfiguracionReservasMesa = ({ seccion }) => {
                 <FormGroup style={{ maxWidth: 320 }}>
                   <Label>Cuántas horas antes</Label>
                   <Input type="number" min="1" max="72" value={numero(form.recordatorio.horasAntes)} onChange={(e) => setAnidado("recordatorio", "horasAntes", aNumero(e.target.value))} />
+                </FormGroup>
+              )}
+
+              <hr className="my-3" />
+              <h4 className="mb-1">WhatsApp</h4>
+              <p className="small text-muted">
+                Usa las plantillas <code>nueva_reserva_mesa</code> y <code>recordatorio_reserva_mesa</code> de tu cuenta de
+                WhatsApp Business. Si aún no están aprobadas por Meta, los mensajes no saldrán.
+              </p>
+              <Interruptor id="wa-aviso" checked={!!form.whatsapp?.avisoLocal?.activo} onChange={(v) => setWhatsapp("avisoLocal", "activo", v)}>
+                Avisarme por WhatsApp cada reserva nueva hecha en la web
+              </Interruptor>
+              {form.whatsapp?.avisoLocal?.activo && (
+                <FormGroup style={{ maxWidth: 420 }}>
+                  <Label for="wa-telefonos">Números que reciben el aviso</Label>
+                  <Input
+                    id="wa-telefonos"
+                    value={Array.isArray(telefonosWhatsapp) ? telefonosWhatsapp.join(", ") : telefonosWhatsapp || ""}
+                    placeholder="+56 9 1234 5678"
+                    onChange={(e) => setWhatsapp("avisoLocal", "telefonos", e.target.value)}
+                  />
+                  <small className="text-muted">Hasta 3, separados por coma.</small>
+                </FormGroup>
+              )}
+              <Interruptor id="wa-confirmacion" checked={!!form.whatsapp?.confirmacion?.activo} onChange={(v) => setWhatsapp("confirmacion", "activo", v)}>
+                Pedir al cliente por WhatsApp que confirme si viene
+              </Interruptor>
+              {form.whatsapp?.confirmacion?.activo && (
+                <FormGroup style={{ maxWidth: 320 }}>
+                  <Label for="wa-horas">Cuántas horas antes</Label>
+                  <Input
+                    id="wa-horas"
+                    type="number"
+                    min="1"
+                    max="24"
+                    value={numero(form.whatsapp.confirmacion.horasAntes)}
+                    onChange={(e) => setWhatsapp("confirmacion", "horasAntes", aNumero(e.target.value))}
+                  />
+                  <small className="text-muted">
+                    Solo a reservas confirmadas. Si el cliente responde "No podré ir", la reserva se cancela sola y la mesa
+                    queda libre.
+                  </small>
                 </FormGroup>
               )}
             </Seccion>

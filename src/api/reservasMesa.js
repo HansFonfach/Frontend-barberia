@@ -52,3 +52,7 @@ export const postPruebaCampanaMesa = (data) => axiosPrivate.post(`${BASE}/campan
 export const getBajaPromociones = (token) =>
   axiosPublic.get(`${BASE}/publico/baja/${encodeURIComponent(token)}`);
 export const postBajaPromociones = (token) => axiosPublic.post(`${BASE}/publico/baja`, { token });
+
+/* ── Confirmar asistencia desde WhatsApp (público) ── */
+export const getAsistenciaMesa = (token) => axiosPublic.get(`${BASE}/publico/asistencia/${encodeURIComponent(token)}`);
+export const postAsistenciaMesa = (token, accion) => axiosPublic.post(`${BASE}/publico/asistencia`, { token, accion });
