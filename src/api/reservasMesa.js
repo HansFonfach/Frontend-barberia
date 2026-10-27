@@ -56,3 +56,8 @@ export const postBajaPromociones = (token) => axiosPublic.post(`${BASE}/publico/
 /* ── Confirmar asistencia desde WhatsApp (público) ── */
 export const getAsistenciaMesa = (token) => axiosPublic.get(`${BASE}/publico/asistencia/${encodeURIComponent(token)}`);
 export const postAsistenciaMesa = (token, accion) => axiosPublic.post(`${BASE}/publico/asistencia`, { token, accion });
+
+/* ── Lista de espera ── */
+export const postListaEsperaMesa = (slug, data) => axiosPublic.post(`${BASE}/publico/${slug}/lista-espera`, data);
+export const getListaEsperaMesa = (fecha) => axiosPrivate.get(`${BASE}/lista-espera`, { params: { fecha } });
+export const deleteListaEsperaMesa = (id) => axiosPrivate.delete(`${BASE}/lista-espera/${id}`);

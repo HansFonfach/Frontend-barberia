@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Button, Card, CardBody, Col, Container, FormGroup, Input, Label, Row, Spinner } from "reactstrap";
-import { CalendarCheck, Check, ChevronLeft, Info, MessageCircle, Phone } from "lucide-react";
+import { BellRing, CalendarCheck, Check, ChevronLeft, Info, MessageCircle, Phone } from "lucide-react";
 import { useEmpresa } from "context/EmpresaContext";
 import { construirTema } from "utils/temaEmpresa";
 import { cargarFuentesRestaurante, marcaDe } from "utils/marcasRestaurante";
@@ -10,6 +10,7 @@ import {
   getInfoReservaMesaPublica,
   getDisponibilidadMesaPublica,
   postReservaMesaPublica,
+  postListaEsperaMesa,
 } from "api/reservasMesa";
 import { DIAS_SEMANA, capitalizar, fechaLarga, nuevaClave, sumarDias, telLink, whatsappLink } from "utils/reservasMesa";
 
@@ -145,8 +146,13 @@ const ReservarMesa = () => {
   const [cargandoInfo, setCargandoInfo] = useState(true);
   const [noDisponible, setNoDisponible] = useState(false);
 
-  const [personas, setPersonas] = useState("");
-  const [fecha, setFecha] = useState("");
+  // ?fecha=YYYY-MM-DD&personas=N (link del correo "se liberó un lugar")
+  const [params] = useSearchParams();
+  const personasLink = /^\d{1,3}$/.test(params.get("personas") || "") ? params.get("personas") : "";
+  const fechaLink = /^\d{4}-\d{2}-\d{2}$/.test(params.get("fecha") || "") ? params.get("fecha") : "";
+  const [personas, setPersonas] = useState(personasLink);
+  const [fecha, setFecha] = useState(fechaLink);
+  const [espera, setEspera] = useState({ abierta: false, nombre: "", email: "", enviando: false, lista: false, error: "" });
   const [disp, setDisp] = useState(DISP_VACIA);
   const [eleccion, setEleccion] = useState({ hora: "", sectorId: "" });
   const [datos, setDatos] = useState({ nombre: "", telefono: "", email: "", comentarios: "", sitioWeb: "" });
@@ -159,7 +165,7 @@ const ReservarMesa = () => {
   const [clave] = useState(nuevaClave);
   const [recarga, setRecarga] = useState(0);
   const [paso, setPaso] = useState(1);
-  const [otraCantidad, setOtraCantidad] = useState(false);
+  const [otraCantidad, setOtraCantidad] = useState(Number(personasLink) > 8);
 
   useEffect(() => {
     let vigente = true;
@@ -192,6 +198,7 @@ const ReservarMesa = () => {
     setEleccion({ hora: "", sectorId: "" });
     setAlternativas([]);
     setError("");
+    setEspera((e) => ({ ...e, abierta: false, lista: false, error: "" }));
   }, [fecha, n]);
 
   // Horas disponibles (también se recarga si alguien tomó el lugar recién)
@@ -452,32 +459,132 @@ const ReservarMesa = () => {
   const textoContacto = `Hola, quería reservar para ${n} persona${n === 1 ? "" : "s"} el ${fechaLarga(fecha)}${
     eleccion.hora ? ` a las ${eleccion.hora}` : ""
   }. ¿Tienen espacio?`;
+  // WhatsApp para consultas: el que configuró el local o, si el teléfono del
+  // local es celular, ese mismo.
+  const whatsappConsultas = info?.contacto?.whatsapp || (esCelularChile(telefono) ? telefono : "");
+  const mensajeSinLugar = info?.contacto?.mensajeSinLugar || "";
+
   const contactoLocal = (titulo, detalle) => (
     <div className="rounded p-3 mt-3" style={{ border: "1px dashed #d8c3a5", background: "#fffaf3", color: theme.textDark }}>
       <div className="font-weight-bold small mb-1">{titulo}</div>
+      {mensajeSinLugar && (
+        <div className="small mb-2" style={{ whiteSpace: "pre-line", fontWeight: 600 }}>
+          {mensajeSinLugar}
+        </div>
+      )}
       <div className="small mb-2">{detalle}</div>
-      {telefono ? (
+      {whatsappConsultas || telefono ? (
         <div className="d-flex flex-wrap" style={{ gap: 8 }}>
-          {esCelularChile(telefono) && (
+          {whatsappConsultas && (
             <a
               className="btn btn-sm m-0"
               style={{ background: "#25d366", color: "#fff" }}
-              href={whatsappLink(telefono, textoContacto)}
+              href={whatsappLink(whatsappConsultas, textoContacto)}
               target="_blank"
               rel="noopener noreferrer"
             >
               <MessageCircle size={14} style={{ verticalAlign: "-2px" }} /> Escribir por WhatsApp
             </a>
           )}
-          <a className="btn btn-sm btn-outline-secondary m-0" href={telLink(telefono)}>
-            <Phone size={14} style={{ verticalAlign: "-2px" }} /> Llamar al {telefono}
-          </a>
+          {telefono && (
+            <a className="btn btn-sm btn-outline-secondary m-0" href={telLink(telefono)}>
+              <Phone size={14} style={{ verticalAlign: "-2px" }} /> Llamar al {telefono}
+            </a>
+          )}
         </div>
       ) : (
         <div className="small text-muted">Contáctanos directamente en el local.</div>
       )}
     </div>
   );
+
+  const anotarseEnEspera = async () => {
+    setEspera((e) => ({ ...e, enviando: true, error: "" }));
+    try {
+      await postListaEsperaMesa(slug, {
+        fecha,
+        personas: n,
+        nombre: espera.nombre || datos.nombre,
+        email: espera.email || datos.email,
+        sitioWeb: datos.sitioWeb,
+      });
+      setEspera((e) => ({ ...e, enviando: false, lista: true }));
+    } catch (e) {
+      setEspera((x) => ({ ...x, enviando: false, error: e?.response?.data?.message || "No pudimos anotarte. Intenta de nuevo." }));
+    }
+  };
+
+  const listaEspera = (abiertaPorDefecto) => {
+    if (!info?.listaEspera) return null;
+    const abierta = abiertaPorDefecto || espera.abierta;
+    const nombreEspera = espera.nombre || datos.nombre;
+    const emailEspera = espera.email || datos.email;
+    return (
+      <div className="rounded p-3 mt-3" style={{ border: `1px solid ${theme.primary}40`, background: "#fff" }}>
+        {espera.lista ? (
+          <div className="small" style={{ color: theme.textDark }}>
+            <strong>✅ Listo, te anotamos en la lista de espera.</strong>
+            <div className="mt-1">
+              Si se libera un lugar para {n} persona{n === 1 ? "" : "s"} el {fechaLarga(fecha)}, te avisamos a{" "}
+              <strong>{emailEspera}</strong>. El lugar es para quien reserve primero.
+            </div>
+          </div>
+        ) : !abierta ? (
+          <button
+            type="button"
+            className="border-0 bg-transparent p-0 small"
+            style={{ color: theme.primary, fontWeight: 600 }}
+            onClick={() => setEspera((e) => ({ ...e, abierta: true }))}
+          >
+            <BellRing size={14} style={{ verticalAlign: "-2px" }} /> Avísenme si se libera un lugar ese día
+          </button>
+        ) : (
+          <>
+            <div className="font-weight-bold small mb-1" style={{ color: theme.textDark }}>
+              <BellRing size={14} style={{ verticalAlign: "-2px" }} /> Lista de espera
+            </div>
+            <div className="small text-muted mb-2">
+              Déjanos tu nombre y correo. Si alguien cancela y queda lugar para {n} persona{n === 1 ? "" : "s"} el{" "}
+              {fechaLarga(fecha)}, te avisamos al tiro.
+            </div>
+            <Row>
+              <Col sm="5" className="mb-2">
+                <Input
+                  bsSize="sm"
+                  aria-label="Tu nombre"
+                  placeholder="Tu nombre"
+                  maxLength={80}
+                  value={nombreEspera}
+                  onChange={(e) => setEspera((x) => ({ ...x, nombre: e.target.value }))}
+                />
+              </Col>
+              <Col sm="7" className="mb-2">
+                <Input
+                  bsSize="sm"
+                  type="email"
+                  aria-label="Tu correo"
+                  placeholder="Tu correo"
+                  maxLength={120}
+                  value={emailEspera}
+                  onChange={(e) => setEspera((x) => ({ ...x, email: e.target.value }))}
+                />
+              </Col>
+            </Row>
+            {espera.error && <div className="small text-danger mb-2">{espera.error}</div>}
+            <Button
+              size="sm"
+              className="m-0"
+              disabled={espera.enviando || nombreEspera.trim().length < 2 || !emailValido(emailEspera)}
+              onClick={anotarseEnEspera}
+              style={{ background: theme.primary, borderColor: theme.primary, color: "#fff" }}
+            >
+              {espera.enviando ? "Anotando..." : "Avísenme"}
+            </Button>
+          </>
+        )}
+      </div>
+    );
+  };
 
   const avisoDiaEspecial = (d) => (
     <div className="rounded p-3 text-center mt-3" style={{ border: `1px solid ${theme.primary}55`, background: theme.primaryLight, color: theme.textDark }}>
@@ -598,6 +705,8 @@ const ReservarMesa = () => {
           )}
           {fecha && diaCerrado && <div className="alert alert-light border small mt-3 mb-0">Ese día no recibimos reservas. Prueba otra fecha.</div>}
           {fecha && especial && avisoDiaEspecial(especial)}
+          {fecha && especial?.tipo === "sin_reservas" &&
+            contactoLocal("¿Quieres venir igual?", "Escríbenos o llámanos y te contamos si hay lugar en el local.")}
           {info?.diasEspeciales?.length > 0 && !especial && (
             <div className="mt-3 rounded px-3 py-2" style={{ background: theme.primaryLight, color: theme.textDark }}>
               <div className="small font-weight-bold mb-1">Fechas especiales</div>
@@ -624,7 +733,11 @@ const ReservarMesa = () => {
               <Spinner style={{ color: theme.primary }} />
             </div>
           ) : especial ? (
-            avisoDiaEspecial(especial)
+            <>
+              {avisoDiaEspecial(especial)}
+              {especial.tipo === "sin_reservas" &&
+                contactoLocal("¿Quieres venir igual?", "Escríbenos o llámanos y te contamos si hay lugar en el local.")}
+            </>
           ) : disp.grupoGrande ? (
             <div className="alert alert-light border small">
               Para grupos de más de {maxPersonas} personas, contáctanos directamente
@@ -656,6 +769,7 @@ const ReservarMesa = () => {
                   ? `Quedan lugares para ${disp.maxLibre} persona${disp.maxLibre === 1 ? "" : "s"}. Si les falta poco, escríbenos y vemos si podemos hacerles espacio, o prueba otra fecha.`
                   : "Escríbenos y vemos si podemos hacerles espacio, o prueba otra fecha.",
               )}
+              {listaEspera(true)}
             </>
           ) : (
             <>
@@ -680,6 +794,7 @@ const ReservarMesa = () => {
                     ? `Ahí no alcanza para ${n} en línea, pero si les falta poco (por ejemplo, quedan ${maxInsuficiente} y son ${n}), escríbenos y vemos si podemos hacerles espacio.`
                     : `Ahí no alcanza para ${n} en línea. Escríbenos y vemos si podemos hacerles espacio.`,
                 )}
+              {hayInsuficientes && listaEspera(false)}
             </>
           )}
           {botones({ siguiente: 3, habilitado: paso2Listo })}

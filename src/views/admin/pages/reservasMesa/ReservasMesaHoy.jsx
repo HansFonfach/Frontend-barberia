@@ -1,14 +1,21 @@
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { Button, Card, CardBody, Col, Container, Input, Row, Spinner } from "reactstrap";
 import Swal from "sweetalert2";
-import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
+import { BellRing, ChevronLeft, ChevronRight, PauseCircle, PlayCircle, Plus } from "lucide-react";
 import EncabezadoReservasMesa from "components/reservasMesa/EncabezadoReservasMesa";
 import TarjetaReservaMesa from "components/reservasMesa/TarjetaReservaMesa";
 import FormReservaMesa from "components/reservasMesa/FormReservaMesa";
 import DetalleReservaMesa from "components/reservasMesa/DetalleReservaMesa";
 import { useConfiguracionReservasMesa, useReservasMesaDia } from "hooks/useReservasMesa";
-import { capitalizar, fechaLarga, hoyChile, mensajeError, sumarDias } from "utils/reservasMesa";
+import {
+  deleteBloqueoReservasMesa,
+  deleteListaEsperaMesa,
+  getBloqueosReservasMesa,
+  getListaEsperaMesa,
+  postBloqueoReservasMesa,
+} from "api/reservasMesa";
+import { capitalizar, fechaHora, fechaLarga, hoyChile, mensajeError, sumarDias } from "utils/reservasMesa";
 
 const FILTROS = [
   { key: "todas", label: "Todas", estados: null },
@@ -46,6 +53,33 @@ const ReservasMesaHoy = () => {
 
   const config = useConfiguracionReservasMesa();
   const { reservas, resumen, cargando, error, recargar, cambiarEstado } = useReservasMesaDia(fecha);
+
+  // Lista de espera del día (gente que no encontró lugar y pidió aviso)
+  const [espera, setEspera] = useState([]);
+  const cargarEspera = useCallback(() => {
+    getListaEsperaMesa(fecha)
+      .then(({ data }) => setEspera(data))
+      .catch(() => setEspera([]));
+  }, [fecha]);
+  useEffect(() => {
+    cargarEspera();
+  }, [cargarEspera, reservas]);
+  const quitarEspera = async (item) => {
+    const r = await Swal.fire({
+      title: `¿Quitar a ${item.nombre} de la lista de espera?`,
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Quitar",
+      cancelButtonText: "Volver",
+    });
+    if (!r.isConfirmed) return;
+    try {
+      await deleteListaEsperaMesa(item._id);
+      cargarEspera();
+    } catch (e) {
+      Swal.fire("No se pudo", mensajeError(e), "error");
+    }
+  };
   const esHoy = fecha === hoyChile();
 
   const visibles = useMemo(() => {
@@ -94,6 +128,59 @@ const ReservasMesaHoy = () => {
 
   const faltaConfigurar = !config.cargando && config.faltantes?.length > 0;
 
+  // Pausar reservas del día (por ejemplo, el local se llenó con gente sin reserva).
+  // Por dentro es un bloqueo del día; "Reanudar" lo quita.
+  const [bloqueosDia, setBloqueosDia] = useState([]);
+  const sectores = config.configuracion?.sectores || [];
+  const nombreSector = (id) => sectores.find((s) => String(s._id) === String(id))?.nombre || "Sector";
+  const cargarBloqueos = useCallback(() => {
+    getBloqueosReservasMesa(fecha)
+      .then(({ data }) => setBloqueosDia(data.filter((b) => b.fecha === fecha)))
+      .catch(() => setBloqueosDia([]));
+  }, [fecha]);
+  useEffect(() => {
+    cargarBloqueos();
+  }, [cargarBloqueos]);
+  const pausadoTodo = bloqueosDia.some((b) => !b.sector && !b.horaDesde);
+
+  const pausar = async () => {
+    const opciones = { "": "Todo el local" };
+    sectores.filter((s) => s.activo).forEach((s) => (opciones[s._id] = `Solo ${s.nombre}`));
+    const r = await Swal.fire({
+      title: `¿Pausar las reservas ${esHoy ? "de hoy" : `del ${fechaLarga(fecha)}`}?`,
+      html:
+        "No se aceptan reservas nuevas (web ni panel) hasta que las reanudes. Las reservas ya tomadas se mantienen.",
+      input: "select",
+      inputOptions: opciones,
+      inputValue: "",
+      showCancelButton: true,
+      confirmButtonText: "Pausar reservas",
+      cancelButtonText: "Volver",
+    });
+    if (!r.isConfirmed) return;
+    try {
+      await postBloqueoReservasMesa({
+        fecha,
+        tipo: "sin_reservas",
+        sectorId: r.value || null,
+        motivo: esHoy ? "Por hoy no quedan mesas para reservar en línea" : "No quedan mesas para reservar en línea",
+      });
+      cargarBloqueos();
+      Swal.fire({ icon: "success", title: "Reservas pausadas", timer: 1500, showConfirmButton: false });
+    } catch (e) {
+      Swal.fire("No se pudo pausar", mensajeError(e), "error");
+    }
+  };
+
+  const reanudar = async (b) => {
+    try {
+      await deleteBloqueoReservasMesa(b._id);
+      cargarBloqueos();
+    } catch (e) {
+      Swal.fire("No se pudo reanudar", mensajeError(e), "error");
+    }
+  };
+
   return (
     <>
       <EncabezadoReservasMesa
@@ -110,9 +197,16 @@ const ReservasMesaHoy = () => {
                     <h3 className="mb-0">{esHoy ? "Hoy" : capitalizar(fechaLarga(fecha))}</h3>
                     <div className="text-muted small">Marca llegadas, confirma y registra reservas</div>
                   </div>
-                  <Button color="primary" className="m-0" onClick={abrirNueva} disabled={faltaConfigurar}>
-                    <Plus size={16} style={{ verticalAlign: "-3px" }} /> Nueva reserva
-                  </Button>
+                  <div className="d-flex flex-wrap" style={{ gap: 8 }}>
+                    {config.esAdmin && fecha >= hoyChile() && !pausadoTodo && !faltaConfigurar && (
+                      <Button outline color="warning" className="m-0" onClick={pausar}>
+                        <PauseCircle size={16} style={{ verticalAlign: "-3px" }} /> Pausar reservas
+                      </Button>
+                    )}
+                    <Button color="primary" className="m-0" onClick={abrirNueva} disabled={faltaConfigurar}>
+                      <Plus size={16} style={{ verticalAlign: "-3px" }} /> Nueva reserva
+                    </Button>
+                  </div>
                 </div>
 
                 <div className="d-flex align-items-center mt-3" style={{ gap: 8 }}>
@@ -137,6 +231,28 @@ const ReservasMesaHoy = () => {
                 </div>
               </CardBody>
             </Card>
+
+            {bloqueosDia.length > 0 && (
+              <div className="alert mb-4" style={{ background: "#fff3e0", color: "#8a4b00", border: "1px solid #ffd8a8" }}>
+                <div className="font-weight-bold mb-1">
+                  <PauseCircle size={16} style={{ verticalAlign: "-3px" }} /> Reservas pausadas {esHoy ? "hoy" : "este día"}
+                </div>
+                {bloqueosDia.map((b) => (
+                  <div key={b._id} className="d-flex flex-wrap align-items-center justify-content-between" style={{ gap: 8 }}>
+                    <span className="small">
+                      {b.sector ? nombreSector(b.sector) : "Todo el local"}
+                      {b.horaDesde ? ` · ${b.horaDesde} a ${b.horaHasta}` : ""}
+                      {b.motivo ? ` · ${b.motivo}` : ""}
+                    </span>
+                    {config.esAdmin && (
+                      <Button size="sm" color="success" className="m-0" onClick={() => reanudar(b)}>
+                        <PlayCircle size={14} style={{ verticalAlign: "-2px" }} /> Reanudar
+                      </Button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
 
             {faltaConfigurar && (
               <div className="alert alert-warning">
@@ -186,6 +302,49 @@ const ReservasMesaHoy = () => {
                       </div>
                     );
                   })}
+                </CardBody>
+              </Card>
+            )}
+
+            {espera.length > 0 && (
+              <Card className="shadow-sm border-0 mb-4">
+                <CardBody>
+                  <div className="d-flex align-items-center mb-2" style={{ gap: 8 }}>
+                    <BellRing size={16} />
+                    <strong>Lista de espera</strong>
+                    <span className="text-muted small">
+                      · {espera.filter((x) => x.estado === "esperando").length} esperando lugar
+                    </span>
+                  </div>
+                  {espera.map((x) => (
+                    <div key={x._id} className="d-flex flex-wrap justify-content-between align-items-center border-top py-2" style={{ gap: 8 }}>
+                      <div style={{ minWidth: 0 }}>
+                        <strong>{x.nombre}</strong> · {x.personas} pers.{" "}
+                        <a href={`mailto:${x.email}`} className="small" style={{ wordBreak: "break-all" }}>
+                          {x.email}
+                        </a>
+                      </div>
+                      <div className="d-flex align-items-center" style={{ gap: 8 }}>
+                        {x.estado === "avisado" ? (
+                          <span className="badge badge-pill" style={{ background: "#e6f7ef", color: "#1a7f52" }}>
+                            Avisado {fechaHora(x.avisadoEn)}
+                          </span>
+                        ) : (
+                          <span className="badge badge-pill" style={{ background: "#fff3e0", color: "#c25e00" }}>
+                            Esperando
+                          </span>
+                        )}
+                        {config.esAdmin && (
+                          <Button size="sm" color="link" className="p-0 m-0" onClick={() => quitarEspera(x)}>
+                            Quitar
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                  <div className="small text-muted mt-1">
+                    Cuando se libera lugar para su grupo, el sistema les avisa solo por correo.
+                  </div>
                 </CardBody>
               </Card>
             )}

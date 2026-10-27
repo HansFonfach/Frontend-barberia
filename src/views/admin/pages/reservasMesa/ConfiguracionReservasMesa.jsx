@@ -347,6 +347,45 @@ const ConfiguracionReservasMesa = ({ seccion }) => {
                   <Interruptor id="web-cupos" checked={!!form.mostrarCuposWeb} onChange={(v) => set("mostrarCuposWeb", v)}>
                     Mostrar a los clientes cuántos lugares quedan (ej: "Terraza · quedan 12")
                   </Interruptor>
+                  <Interruptor
+                    id="web-espera"
+                    checked={!!form.listaEspera?.activa}
+                    onChange={(v) => set("listaEspera", { ...(form.listaEspera || {}), activa: v })}
+                  >
+                    Lista de espera: si no queda lugar, el cliente deja su correo y se le avisa si se libera
+                  </Interruptor>
+                </Col>
+              </Row>
+              <Row>
+                <Col md="6">
+                  <FormGroup>
+                    <Label for="cfg-wa-consultas">WhatsApp para consultas (opcional)</Label>
+                    <Input
+                      id="cfg-wa-consultas"
+                      value={form.contactoWeb?.whatsapp || ""}
+                      maxLength={25}
+                      placeholder="+56 9 1234 5678"
+                      onChange={(e) => set("contactoWeb", { ...(form.contactoWeb || {}), whatsapp: e.target.value })}
+                    />
+                    <small className="text-muted">
+                      Para el botón "Escribir por WhatsApp" cuando no queda lugar. Si lo dejas vacío, se usa el teléfono de la
+                      empresa (si es celular).
+                    </small>
+                  </FormGroup>
+                </Col>
+                <Col md="6">
+                  <FormGroup>
+                    <Label for="cfg-msg-sinlugar">Mensaje cuando no queda lugar en línea (opcional)</Label>
+                    <Input
+                      id="cfg-msg-sinlugar"
+                      type="textarea"
+                      rows="3"
+                      maxLength={300}
+                      value={form.contactoWeb?.mensajeSinLugar || ""}
+                      placeholder="Ej: Solo una parte de nuestras mesas se reserva en línea; el resto es por orden de llegada. ¡Igual puede haber lugar en el local!"
+                      onChange={(e) => set("contactoWeb", { ...(form.contactoWeb || {}), mensajeSinLugar: e.target.value })}
+                    />
+                  </FormGroup>
                 </Col>
               </Row>
               <FormGroup>
