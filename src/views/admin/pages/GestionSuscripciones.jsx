@@ -4,6 +4,7 @@ import {
 } from "reactstrap";
 import UserHeader from "components/Headers/UserHeader";
 import { listarSuscripciones } from "api/suscripciones";
+import ModalUsoSuscripcion from "components/suscripciones/ModalUsoSuscripcion";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -25,6 +26,22 @@ const MESES = [
   "Enero","Febrero","Marzo","Abril","Mayo","Junio",
   "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre",
 ];
+
+const nombrePlan = (s) => s.planSnapshot?.nombre || NOMBRE_PLAN[s.tipoPlan] || s.tipoPlan;
+
+// Uso del plan (el back lo manda en s.uso; si no, los campos antiguos)
+const usoDe = (s) =>
+  s.uso || { usados: s.serviciosUsados || 0, total: s.serviciosTotales || 0, agendados: 0,
+             restantes: Math.max(0, (s.serviciosTotales || 0) - (s.serviciosUsados || 0)) };
+
+// "activa" | "usada" (usó todo antes del vencimiento) | "terminada" (se cerró antes) | "vencida"
+const estadoDe = (s) => {
+  const vigentePorFecha = diasRestantes(s.fechaFin) > 0;
+  if (s.activa && vigentePorFecha) return "activa";
+  if (!vigentePorFecha) return "vencida";
+  const uso = usoDe(s);
+  return uso.total > 0 && uso.usados >= uso.total ? "usada" : "terminada";
+};
 
 const iniciales = (u) =>
   u ? `${u.nombre?.[0] || ""}${u.apellido?.[0] || ""}`.toUpperCase() : "?";
@@ -108,33 +125,49 @@ const S = {
 
 // ─── Sub-componentes ──────────────────────────────────────────────────────────
 
-const BarraServicios = ({ usados, total }) => {
+const BarraServicios = ({ s }) => {
+  const { usados, total, restantes, agendados, periodo } = usoDe(s);
   const pct   = total > 0 ? Math.min((usados / total) * 100, 100) : 0;
   const color = pct >= 100 ? "#E24B4A" : pct >= 60 ? "#fb6340" : "#2dce89";
   return (
     <div>
-      <div style={{ fontSize: 11, color: "#8898aa", marginBottom: 3 }}>
-        {usados} / {total} servicios
+      <div style={{ fontSize: 12, color: "#1a1a2e", fontWeight: 600, marginBottom: 1 }}>
+        Usó {usados} de {total}
+        <span style={{ fontWeight: 400, color: restantes > 0 ? "#1A7A4A" : "#8898aa" }}>
+          {" · "}{restantes > 0 ? `quedan ${restantes}` : "sin cupos"}
+        </span>
       </div>
-      <div style={{ background: "#f0f0f0", borderRadius: 99, height: 6, width: 100 }}>
+      <div style={{ background: "#f0f0f0", borderRadius: 99, height: 6, width: 110 }}>
         <div style={{ width: `${pct}%`, background: color, borderRadius: 99, height: 6, transition: "width 0.3s" }} />
       </div>
+      {(agendados > 0 || periodo?.esCiclo) && (
+        <div style={{ fontSize: 10, color: "#8898aa", marginTop: 2 }}>
+          {periodo?.esCiclo && `Ciclo ${periodo.numeroCiclo}`}
+          {periodo?.esCiclo && agendados > 0 && " · "}
+          {agendados > 0 && `${agendados} agendado${agendados === 1 ? "" : "s"}`}
+        </div>
+      )}
     </div>
   );
 };
 
-const BadgeEstado = ({ fechaFin, activa }) => {
-  const base = { padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 500 };
-  if (!activa || diasRestantes(fechaFin) <= 0)
+const BadgeEstado = ({ s }) => {
+  const base = { padding: "3px 10px", borderRadius: 99, fontSize: 11, fontWeight: 500, whiteSpace: "nowrap" };
+  const estado = estadoDe(s);
+  if (estado === "vencida")
     return <span style={{ ...base, background: "#FCEBEB", color: "#A32D2D" }}>Vencida</span>;
-  const dias = diasRestantes(fechaFin);
+  if (estado === "usada")
+    return <span title="Usó todos los servicios antes del vencimiento" style={{ ...base, background: "#EEEDFE", color: "#534AB7" }}>Usó todo</span>;
+  if (estado === "terminada")
+    return <span title="Se cerró antes de la fecha de vencimiento (reemplazada o desactivada)" style={{ ...base, background: "#f0f0f0", color: "#525f7f" }}>Cerrada</span>;
+  const dias = diasRestantes(s.fechaFin);
   if (dias <= 7)
     return <span style={{ ...base, background: "#FFF3CD", color: "#856404" }}>Vence en {dias}d</span>;
   return <span style={{ ...base, background: "#E6F9F0", color: "#1A7A4A" }}>Activa · {dias}d</span>;
 };
 
 const BadgePlan = ({ s }) => {
-  const nombre = s.planSnapshot?.nombre || NOMBRE_PLAN[s.tipoPlan] || s.tipoPlan;
+  const nombre = nombrePlan(s);
   const esPersonalizado = s.tipoPlan === "plan_personalizado";
   const esNavaja = s.tipoPlan === "creditos";
   const colores = esPersonalizado
@@ -155,7 +188,7 @@ const BadgePlan = ({ s }) => {
 
 // ─── Vista desktop ────────────────────────────────────────────────────────────
 
-const TablaDesktop = ({ suscripciones }) => (
+const TablaDesktop = ({ suscripciones, onAbrir }) => (
   <div style={S.tableWrap}>
     <table style={S.table}>
       <thead>
@@ -166,11 +199,19 @@ const TablaDesktop = ({ suscripciones }) => (
           <th style={S.th}>Inicio</th>
           <th style={S.th}>Vencimiento</th>
           <th style={S.th}>Estado</th>
+          <th style={S.th} />
         </tr>
       </thead>
       <tbody>
         {suscripciones.map((s) => (
-          <tr key={s._id}>
+          <tr
+            key={s._id}
+            onClick={() => onAbrir(s)}
+            style={{ cursor: "pointer" }}
+            title="Ver visitas"
+            onMouseEnter={(e) => { e.currentTarget.style.background = "#fafaff"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = ""; }}
+          >
             <td style={S.td}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={S.avatar}>{iniciales(s.usuario)}</div>
@@ -185,10 +226,13 @@ const TablaDesktop = ({ suscripciones }) => (
               </div>
             </td>
             <td style={S.td}><BadgePlan s={s} /></td>
-            <td style={S.td}><BarraServicios usados={s.serviciosUsados} total={s.serviciosTotales} /></td>
+            <td style={S.td}><BarraServicios s={s} /></td>
             <td style={{ ...S.td, color: "#8898aa", fontSize: 12 }}>{formatFecha(s.fechaInicio)}</td>
             <td style={{ ...S.td, color: "#8898aa", fontSize: 12 }}>{formatFecha(s.fechaFin)}</td>
-            <td style={S.td}><BadgeEstado fechaFin={s.fechaFin} activa={s.activa} /></td>
+            <td style={S.td}><BadgeEstado s={s} /></td>
+            <td style={{ ...S.td, color: "#534AB7", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" }}>
+              Ver visitas ›
+            </td>
           </tr>
         ))}
       </tbody>
@@ -198,10 +242,10 @@ const TablaDesktop = ({ suscripciones }) => (
 
 // ─── Vista mobile ─────────────────────────────────────────────────────────────
 
-const CardsMobile = ({ suscripciones }) => (
+const CardsMobile = ({ suscripciones, onAbrir }) => (
   <div style={S.mobileList}>
     {suscripciones.map((s) => (
-      <div key={s._id} style={S.mobileCard}>
+      <div key={s._id} style={{ ...S.mobileCard, cursor: "pointer" }} onClick={() => onAbrir(s)}>
         {/* Header: avatar + nombre + badge estado */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -215,7 +259,7 @@ const CardsMobile = ({ suscripciones }) => (
               </div>
             </div>
           </div>
-          <BadgeEstado fechaFin={s.fechaFin} activa={s.activa} />
+          <BadgeEstado s={s} />
         </div>
 
         {/* Plan */}
@@ -225,7 +269,7 @@ const CardsMobile = ({ suscripciones }) => (
 
         {/* Servicios */}
         <div style={{ marginBottom: 10 }}>
-          <BarraServicios usados={s.serviciosUsados} total={s.serviciosTotales} />
+          <BarraServicios s={s} />
         </div>
 
         {/* Fechas */}
@@ -238,6 +282,10 @@ const CardsMobile = ({ suscripciones }) => (
             <div style={S.mobileLabel}>Vence</div>
             <div style={S.mobileValue}>{formatFecha(s.fechaFin)}</div>
           </div>
+        </div>
+
+        <div style={{ marginTop: 10, fontSize: 12, fontWeight: 600, color: "#534AB7", textAlign: "right" }}>
+          Ver visitas ›
         </div>
       </div>
     ))}
@@ -254,6 +302,7 @@ const GestionSuscripciones = () => {
   const [anio, setAnio] = useState(ahora.getFullYear());
   const [soloActivas, setSoloActivas] = useState(false);
   const [isMobile, setIsMobile]       = useState(window.innerWidth < 768);
+  const [seleccionada, setSeleccionada] = useState(null);
 
   const anios = Array.from({ length: 3 }, (_, i) => ahora.getFullYear() - i);
 
@@ -282,8 +331,9 @@ const GestionSuscripciones = () => {
   const handleBuscar = () =>
     cargar({ mes, anio, ...(soloActivas ? { activas: true } : {}) });
 
-  const activas   = suscripciones.filter((s) => s.activa && diasRestantes(s.fechaFin) > 0);
-  const vencidas  = suscripciones.filter((s) => !s.activa || diasRestantes(s.fechaFin) <= 0);
+  const activas   = suscripciones.filter((s) => estadoDe(s) === "activa");
+  const vencidas  = suscripciones.filter((s) => estadoDe(s) === "vencida");
+  const usadas    = suscripciones.filter((s) => ["usada", "terminada"].includes(estadoDe(s)));
   const porVencer = activas.filter((s) => diasRestantes(s.fechaFin) <= 7);
   const navaja    = suscripciones.filter((s) => s.tipoPlan === "creditos").length;
   const dupla     = suscripciones.filter((s) => s.tipoPlan === "combo_visita_corte_barba").length;
@@ -318,6 +368,7 @@ const GestionSuscripciones = () => {
                   { label: "Activas",      value: activas.length },
                   { label: "Por vencer",   value: porVencer.length },
                   { label: "Vencidas",     value: vencidas.length },
+                  { label: "Usó todo / cerradas", value: usadas.length },
                   { label: "Santa Navaja", value: navaja },
                   { label: "Santa Dupla",  value: dupla },
                   { label: "Planes propios", value: personalizados },
@@ -370,15 +421,22 @@ const GestionSuscripciones = () => {
                   </p>
                 </div>
               ) : isMobile ? (
-                <CardsMobile suscripciones={suscripciones} />
+                <CardsMobile suscripciones={suscripciones} onAbrir={setSeleccionada} />
               ) : (
-                <TablaDesktop suscripciones={suscripciones} />
+                <TablaDesktop suscripciones={suscripciones} onAbrir={setSeleccionada} />
               )}
 
             </div>
           </Col>
         </Row>
       </Container>
+
+      <ModalUsoSuscripcion
+        isOpen={!!seleccionada}
+        toggle={() => setSeleccionada(null)}
+        suscripcion={seleccionada}
+        nombrePlan={seleccionada ? nombrePlan(seleccionada) : ""}
+      />
     </>
   );
 };
