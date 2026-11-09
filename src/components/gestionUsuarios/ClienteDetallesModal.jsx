@@ -25,6 +25,8 @@ import {
   FiCheck,
   FiActivity,
   FiPlus,
+  FiSlash,
+  FiUnlock,
 } from "react-icons/fi";
 import Swal from "sweetalert2";
 import { useProgresoCliente } from "context/ProgresoClienteContext";
@@ -244,6 +246,7 @@ const ClienteDetallesModal = ({
   onSuscribir,
   onCancelarSuscripcion,
   onEliminar,
+  onBloquear,
   fullscreen = false,
   // ── Gimnasio: mensualidad de clases (MembresiaClase), en vez de la
   // Suscripción de créditos que usa la barbería. Se mantiene todo lo de
@@ -804,6 +807,66 @@ const ClienteDetallesModal = ({
             </Card>
           </Col>
         </Row>
+
+        {/* RESERVAS EN LÍNEA: inasistencias y bloqueo manual */}
+        {onBloquear && (
+          <Card
+            className="shadow-sm mb-3"
+            style={{ borderLeft: `3px solid ${usuario.bloqueo?.activo ? "#f5365c" : "#e9ecef"}` }}
+          >
+            <CardBody
+              className="d-flex align-items-center justify-content-between flex-wrap"
+              style={{ padding: vistaMobile ? "10px 12px" : "14px 16px", gap: 10 }}
+            >
+              <div>
+                <h6
+                  className="text-primary mb-1 d-flex align-items-center"
+                  style={{ fontSize: vistaMobile ? "12px" : "14px" }}
+                >
+                  <FiSlash className="mr-1" size={13} />
+                  Reservas en línea
+                </h6>
+                <div style={{ fontSize: vistaMobile ? "12px" : "13px" }}>
+                  {usuario.bloqueo?.activo ? (
+                    <>
+                      <Badge color="danger" pill className="mr-2">
+                        Bloqueado
+                      </Badge>
+                      <span className="text-muted">
+                        desde {formatFecha(usuario.bloqueo.fecha)}
+                        {usuario.bloqueo.motivo ? ` · ${usuario.bloqueo.motivo}` : ""}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-muted">Puede reservar por su cuenta</span>
+                  )}
+                </div>
+                <div className="text-muted" style={{ fontSize: "12px", marginTop: 2 }}>
+                  Inasistencias:{" "}
+                  <strong className={(usuario.inasistencias || 0) >= 2 ? "text-danger" : ""}>
+                    {usuario.inasistencias || 0}
+                  </strong>
+                </div>
+              </div>
+              <Button
+                size="sm"
+                color={usuario.bloqueo?.activo ? "success" : "danger"}
+                outline
+                onClick={onBloquear}
+              >
+                {usuario.bloqueo?.activo ? (
+                  <>
+                    <FiUnlock size={12} className="mr-1" /> Desbloquear
+                  </>
+                ) : (
+                  <>
+                    <FiSlash size={12} className="mr-1" /> Bloquear
+                  </>
+                )}
+              </Button>
+            </CardBody>
+          </Card>
+        )}
 
         {esGimnasio && (
           <ProgresoFisicoGimnasio clienteId={usuario._id} vistaMobile={vistaMobile} />

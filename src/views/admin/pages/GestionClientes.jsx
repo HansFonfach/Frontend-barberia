@@ -40,9 +40,31 @@ import {
   getEstadoMembresiaCliente,
   getListarMembresias,
 } from "api/membresiasClases";
+import { patchBloqueoCliente } from "api/usuarios";
 
 // Importar iconos actualizados
-import { FiEye, FiEdit, FiUser, FiUsers, FiPlus } from "react-icons/fi";
+import { FiEye, FiEdit, FiUser, FiUsers, FiPlus, FiSlash } from "react-icons/fi";
+
+// Inasistencias y bloqueo de un cliente (columna de la tabla)
+const EstadoReservaCliente = ({ usuario }) => {
+  const n = usuario.inasistencias || 0;
+  return (
+    <div className="d-flex align-items-center flex-wrap" style={{ gap: 6 }}>
+      <span
+        className={n >= 2 ? "text-danger font-weight-bold" : "text-muted"}
+        title="Veces que no asistió"
+      >
+        {n}
+      </span>
+      {usuario.bloqueo?.activo && (
+        <Badge color="danger" pill title={usuario.bloqueo.motivo || "Bloqueado para reservar"}>
+          <FiSlash size={10} className="mr-1" />
+          Bloqueado
+        </Badge>
+      )}
+    </div>
+  );
+};
 
 const GestionClientes = () => {
   const {
@@ -148,14 +170,24 @@ const GestionClientes = () => {
     setModalDetalles(!modalDetalles);
   };
 
+  // Filtro "Bloqueados"
+  const [soloBloqueados, setSoloBloqueados] = useState(false);
+  const bloqueados = usuarios.filter((u) => u.bloqueo?.activo);
+  const usuariosVista = soloBloqueados ? bloqueados : usuarios;
+
   const { paginaActual, totalPaginas, itemsPaginados, cambiarPagina } =
-    usePagination(usuarios, vistaMobile ? 3 : 5); // Menos items en móvil
+    usePagination(usuariosVista, vistaMobile ? 3 : 5); // Menos items en móvil
 
   // Columnas para desktop
   const columnasDesktop = [
     { key: "nombre", label: "Nombre" },
     { key: "apellido", label: "Apellido" },
     { key: "telefono", label: "Teléfono" },
+    {
+      key: "inasistencias",
+      label: "Inasistencias",
+      render: (_, usuario) => <EstadoReservaCliente usuario={usuario} />,
+    },
     esGimnasio
       ? {
           key: "membresia",
@@ -211,6 +243,14 @@ const GestionClientes = () => {
               {usuario.nombre} {usuario.apellido}
             </div>
             <small className="text-muted">{usuario.telefono}</small>
+            {usuario.bloqueo?.activo && (
+              <div>
+                <Badge color="danger" pill style={{ fontSize: "10px" }}>
+                  <FiSlash size={9} className="mr-1" />
+                  Bloqueado
+                </Badge>
+              </div>
+            )}
           </div>
           {esGimnasio && (
             <Badge
@@ -423,15 +463,92 @@ const GestionClientes = () => {
     getAllUsers();
   };
 
+  // Bloquear / desbloquear para reservar en línea (manual)
+  const handleBloquear = async (usuario) => {
+    if (!usuario) return;
+    const nombre = `${usuario.nombre || ""} ${usuario.apellido || ""}`.trim();
+    const desbloquear = !!usuario.bloqueo?.activo;
+    let motivo = "";
+
+    if (desbloquear) {
+      const r = await Swal.fire({
+        title: `¿Desbloquear a ${nombre}?`,
+        text: "Podrá volver a reservar por su cuenta.",
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "Sí, desbloquear",
+        cancelButtonText: "Cancelar",
+      });
+      if (!r.isConfirmed) return;
+    } else {
+      const r = await Swal.fire({
+        title: `¿Bloquear a ${nombre}?`,
+        html:
+          "No podrá reservar horas ni clases por su cuenta. Se revisan su RUT, correo y teléfono." +
+          "<br/><small>Tú igual puedes agendarlo desde el panel.</small>",
+        icon: "warning",
+        input: "text",
+        inputPlaceholder: "Motivo (opcional), ej: no vino 3 veces",
+        inputAttributes: { maxlength: 200 },
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        confirmButtonText: "Bloquear",
+        cancelButtonText: "Cancelar",
+      });
+      if (!r.isConfirmed) return;
+      motivo = r.value || "";
+    }
+
+    try {
+      const { data } = await patchBloqueoCliente(usuario._id, !desbloquear, motivo);
+      if (usuarioEdit?._id === usuario._id) {
+        setUsuarioEdit({ ...usuarioEdit, bloqueo: data.bloqueo });
+      }
+      getAllUsers();
+      const conAgendadas = !desbloquear && data.agendadas > 0;
+      Swal.fire({
+        icon: "success",
+        title: desbloquear ? "Cliente desbloqueado" : "Cliente bloqueado",
+        text: conAgendadas
+          ? `Tiene ${data.agendadas} ${data.agendadas === 1 ? "reserva agendada" : "reservas agendadas"}: se mantienen. Si quieres, cancélalas desde la agenda.`
+          : undefined,
+        showConfirmButton: conAgendadas,
+        timer: conAgendadas ? undefined : 1600,
+      });
+    } catch (error) {
+      Swal.fire(
+        "Error",
+        error?.response?.data?.message || "No se pudo actualizar el bloqueo",
+        "error",
+      );
+    }
+  };
+
   // Renderizado de contador de resultados
   const renderResultados = () => (
     <div className="d-flex justify-content-between align-items-center mt-3 mt-md-0">
-      <small className="text-muted">
-        <FiUsers size={14} className="mr-1" />
-        {usuarios.length} {usuarios.length === 1 ? "cliente" : "clientes"}{" "}
-        encontrados
-      </small>
-      {vistaMobile && usuarios.length > 0 && (
+      <div className="d-flex align-items-center flex-wrap" style={{ gap: 8 }}>
+        <small className="text-muted">
+          <FiUsers size={14} className="mr-1" />
+          {usuariosVista.length} {usuariosVista.length === 1 ? "cliente" : "clientes"}{" "}
+          {soloBloqueados ? "bloqueados" : "encontrados"}
+        </small>
+        {(bloqueados.length > 0 || soloBloqueados) && (
+          <Button
+            size="sm"
+            color="danger"
+            outline={!soloBloqueados}
+            onClick={() => {
+              setSoloBloqueados((v) => !v);
+              cambiarPagina(1);
+            }}
+          >
+            <FiSlash size={12} className="mr-1" />
+            {soloBloqueados ? "Ver todos" : `Bloqueados (${bloqueados.length})`}
+          </Button>
+        )}
+      </div>
+      {vistaMobile && usuariosVista.length > 0 && (
         <small className="text-muted">
           Pág. {paginaActual} de {totalPaginas}
         </small>
@@ -497,7 +614,7 @@ const GestionClientes = () => {
               </CardHeader>
 
               <CardBody className={vistaMobile ? "px-2 py-3" : ""}>
-                {usuarios.length === 0 ? (
+                {usuariosVista.length === 0 ? (
                   <div className="text-center py-5">
                     <div className="bg-light rounded-circle d-inline-flex p-3 mb-3">
                       <FiUsers size={32} className="text-muted" />
@@ -568,6 +685,7 @@ const GestionClientes = () => {
         onSuscribir={handleSuscribirModal}
         onCancelarSuscripcion={handleCancelarSuscripcionModal}
         onEliminar={handleEliminarModal}
+        onBloquear={() => handleBloquear(usuarioEdit)}
         fullscreen={vistaMobile}
         esGimnasio={esGimnasio}
         membresiaGimnasio={membresiaCliente}

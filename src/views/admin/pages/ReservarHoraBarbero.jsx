@@ -220,6 +220,28 @@ const ReservarHoraBarbero = () => {
                   errorBusqueda={errorBusqueda}
                 />
 
+                {/* Cliente bloqueado para reservar en línea: desde aquí igual se puede agendar */}
+                {usuarioEncontrado?.bloqueo?.activo && (
+                  <div
+                    className="p-3 mb-3 rounded"
+                    style={{
+                      backgroundColor: "#fdecee",
+                      border: "1px solid #f5c2c7",
+                      fontSize: "0.85rem",
+                    }}
+                  >
+                    <strong className="text-danger">
+                      Cliente bloqueado para reservar en línea
+                    </strong>
+                    {usuarioEncontrado.bloqueo.motivo && (
+                      <span className="text-muted"> · {usuarioEncontrado.bloqueo.motivo}</span>
+                    )}
+                    <div className="text-muted">
+                      Igual puedes agendarlo desde aquí si quieres darle otra oportunidad.
+                    </div>
+                  </div>
+                )}
+
                 {/* ✅ BANNER MODO INVITADO */}
                 {modoInvitado && !usuarioEncontrado && (
                   <div

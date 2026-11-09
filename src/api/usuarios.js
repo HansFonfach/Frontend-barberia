@@ -62,6 +62,10 @@ export const postCrearCliente = (data) => {
   return axiosPrivate.post(`/usuarios/cliente/crearCliente`, data);
 };
 
+// Bloquear / desbloquear a un cliente para reservar en línea (solo admin)
+export const patchBloqueoCliente = (id, bloquear, motivo = "") =>
+  axiosPrivate.patch(`/usuarios/${id}/bloqueo`, { bloquear, motivo });
+
 export const updateEstadoUsuario = (id, estado) => {
   return axiosPrivate.patch(`/usuarios/${id}/estado`, { estado });
 };
