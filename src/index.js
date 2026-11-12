@@ -50,6 +50,8 @@ import CancelarReservaMesa from "views/publico/CancelarReservaMesa";
 import BajaPromociones from "views/publico/BajaPromociones";
 import AsistenciaMesa from "views/publico/AsistenciaMesa";
 import ContratarPlanInvitado from "views/invitados/pages/ContratarPlanInvitado";
+import RegalarGiftcard from "views/publico/RegalarGiftcard";
+import VerGiftcard from "views/publico/VerGiftcard";
 import VerificarCuenta from "views/publico/VerificarCuenta";
 import RegistrarNegocio from "views/publico/RegistrarNegocio";
 import ConfirmacionResultado from "views/publico/ConfirmacionResultado";
@@ -208,6 +210,23 @@ root.render(
             element={
               <EmpresaWrapper>
                 <ReservarMesa />
+              </EmpresaWrapper>
+            }
+          />
+          {/* Giftcards: comprar una (transferencia + comprobante) y el link que recibe el regalado */}
+          <Route
+            path="/:slug/regalar"
+            element={
+              <EmpresaWrapper>
+                <RegalarGiftcard />
+              </EmpresaWrapper>
+            }
+          />
+          <Route
+            path="/:slug/giftcard/:codigo"
+            element={
+              <EmpresaWrapper>
+                <VerGiftcard />
               </EmpresaWrapper>
             }
           />

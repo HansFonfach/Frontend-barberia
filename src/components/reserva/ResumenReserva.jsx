@@ -185,7 +185,10 @@ const ResumenReserva = ({
             {codigoDescuento?.aplicado && (
               <>
                 <div className="d-flex justify-content-between border-bottom py-1">
-                  <span>🏷️ Código {codigoDescuento.aplicado.codigo}:</span>
+                  <span>
+                    {codigoDescuento.aplicado.esGiftcard ? "🎁 Giftcard" : "🏷️ Código"}{" "}
+                    {codigoDescuento.aplicado.codigo}:
+                  </span>
                   <strong className="text-success">
                     −${codigoDescuento.aplicado.descuento.toLocaleString("es-CL")}
                   </strong>
@@ -233,7 +236,7 @@ const ResumenReserva = ({
             <input
               type="text"
               className={`form-control ${codigoDescuento.error ? "is-invalid" : ""}`}
-              placeholder="Código promocional"
+              placeholder="Código promocional o giftcard"
               value={codigoDescuento.codigo}
               maxLength={20}
               style={{ flex: 1, minWidth: 0 }}
@@ -283,7 +286,14 @@ const ResumenReserva = ({
           )}
           {codigoDescuento.aplicado && (
             <small className="text-success d-block mt-1">
-              ✅ Código aplicado
+              ✅{" "}
+              {codigoDescuento.aplicado.esGiftcard
+                ? `Giftcard aplicada${
+                    codigoDescuento.aplicado.saldoRestante > 0
+                      ? ` · te quedarán $${codigoDescuento.aplicado.saldoRestante.toLocaleString("es-CL")}`
+                      : ""
+                  }`
+                : "Código aplicado"}
             </small>
           )}
         </div>

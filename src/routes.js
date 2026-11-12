@@ -14,6 +14,7 @@ import PanelEquipo from "views/admin/pages/PanelEquipo";
 import WizardBarberoSemana from "views/admin/pages/WizardBarberos";
 import GestionServicios from "views/admin/pages/GestionServicios";
 import GestionCodigosDescuento from "views/admin/pages/GestionCodigosDescuento";
+import GestionGiftcards from "views/admin/pages/GestionGiftcards";
 import GestionHorariosBarbero from "views/admin/pages/GestionHorarios";
 import GestionClientes from "views/admin/pages/GestionClientes";
 import ReservasDiarias from "views/admin/pages/ReservasDiarias";
@@ -684,6 +685,14 @@ export const barberoRoutes = [
         name: "Códigos de descuento",
         icon: "fas fa-tags text-success",
         component: <GestionCodigosDescuento />,
+        layout: "/admin",
+        soloAdmin: true,
+      },
+      {
+        path: "/giftcards",
+        name: "Giftcards",
+        icon: "fas fa-gift text-danger",
+        component: <GestionGiftcards />,
         layout: "/admin",
         soloAdmin: true,
       },

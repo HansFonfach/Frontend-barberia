@@ -10,6 +10,7 @@ import ServiciosSection from "components/landing/ServiciosSection";
 import ProfesionalesSection from "components/landing/ProfesionalesSection";
 import LandingGimnasio from "components/landing/LandingGimnasio";
 import LandingRestaurante from "components/landing/LandingRestaurante";
+import GiftcardBanner from "components/landing/GiftcardBanner";
 
 import { MdLocationOn, MdAccessTime, MdEmail, MdPhone } from "react-icons/md";
 import { FaWhatsapp, FaCalendarCheck, FaFacebook } from "react-icons/fa";
@@ -292,6 +293,15 @@ const Landing = () => {
           theme={theme}
         />
       </section>
+
+      {/* ================= GIFTCARDS ================= */}
+      {empresa?.giftcards?.activa && (
+        <GiftcardBanner
+          theme={theme}
+          nombreNegocio={empresa.nombre}
+          onRegalar={() => navigate(`/${slug}/regalar`)}
+        />
+      )}
 
       {/* ================= PROFESIONALES ================= */}
       <section

@@ -15,7 +15,15 @@ export const useCodigoDescuento = ({
   hora,
   clienteId,
 }) => {
-  const [codigo, setCodigoTexto] = useState("");
+  // El link de una giftcard (?giftcard=GC-...) llega con el código ya escrito
+  const [codigo, setCodigoTexto] = useState(() => {
+    try {
+      const desdeLink = new URLSearchParams(window.location.search).get("giftcard") || "";
+      return desdeLink.toUpperCase().replace(/\s+/g, "").slice(0, 20);
+    } catch {
+      return "";
+    }
+  });
   const [aplicado, setAplicado] = useState(null);
   const [validando, setValidando] = useState(false);
   const [error, setError] = useState("");

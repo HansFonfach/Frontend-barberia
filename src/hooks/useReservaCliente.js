@@ -81,6 +81,8 @@ export const useReservaCliente = () => {
   const SERVICIO_COMBO_ID = "69934ce087e49726a2cd3da1";
 
   const calcularServiciosReserva = (duracion) => {
+    // Planes creados en la app: 1 reserva = 1 servicio, dure lo que dure
+    if (suscripcion?.tipoPlan === "plan_personalizado") return 1;
     if (
       suscripcion?.tipoPlan === "combo_visita_corte_barba" &&
       String(servicio) === SERVICIO_COMBO_ID
@@ -90,10 +92,14 @@ export const useReservaCliente = () => {
     return duracion >= 120 ? 2 : 1;
   };
 
+  const serviciosDelPlan = (suscripcion?.serviciosPermitidos || []).map(String);
   const esCubiertoPorSuscripcion =
     suscripcion?.tipoPlan === "combo_visita_corte_barba"
       ? String(servicio) === SERVICIO_COMBO_ID
-      : !!suscripcion; // plan creditos cubre todo
+      : suscripcion?.tipoPlan === "plan_personalizado"
+        ? // sin servicios marcados en el plan = cubre cualquiera
+          !serviciosDelPlan.length || serviciosDelPlan.includes(String(servicio))
+        : !!suscripcion; // plan creditos cubre todo
 
   const serviciosReserva =
     servicio && esCubiertoPorSuscripcion
