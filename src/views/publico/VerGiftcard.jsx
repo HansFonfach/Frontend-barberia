@@ -5,6 +5,7 @@ import { useEmpresa } from "context/EmpresaContext";
 import { obtenerTemaEmpresa, estiloBotonTema } from "utils/temaEmpresa";
 import { getGiftcardPublica } from "api/giftcards";
 import TarjetaGiftcard, { clp, fechaGiftcard } from "components/giftcards/TarjetaGiftcard";
+import { useSeo } from "utils/seo";
 
 /**
  * Link que recibe el regalado: muestra la giftcard, el saldo y cómo usarla.
@@ -14,6 +15,8 @@ const VerGiftcard = () => {
   const { slug, codigo } = useParams();
   const { empresa } = useEmpresa();
   const theme = obtenerTemaEmpresa(empresa, slug);
+  // El link lleva el código: que Google no lo indexe nunca
+  useSeo({ titulo: `Giftcard${empresa?.nombre ? ` · ${empresa.nombre}` : ""}`, noIndexar: true });
   const [gc, setGc] = useState(null);
   const [estado, setEstado] = useState("cargando"); // cargando | listo | noExiste
   const [copiado, setCopiado] = useState(false);

@@ -52,6 +52,7 @@ import AsistenciaMesa from "views/publico/AsistenciaMesa";
 import ContratarPlanInvitado from "views/invitados/pages/ContratarPlanInvitado";
 import RegalarGiftcard from "views/publico/RegalarGiftcard";
 import VerGiftcard from "views/publico/VerGiftcard";
+import Directorio from "views/publico/Directorio";
 import VerificarCuenta from "views/publico/VerificarCuenta";
 import RegistrarNegocio from "views/publico/RegistrarNegocio";
 import ConfirmacionResultado from "views/publico/ConfirmacionResultado";
@@ -124,6 +125,10 @@ root.render(
         <Routes>
           <Route path="/" element={<Principal />} />
           <Route path="/registro-negocio" element={<RegistrarNegocio />} />
+          {/* Directorio de negocios por ciudad y rubro (para Google) */}
+          <Route path="/negocios" element={<Directorio />} />
+          <Route path="/negocios/:ciudad" element={<Directorio />} />
+          <Route path="/negocios/:ciudad/:rubro" element={<Directorio />} />
 
           <Route
             path="/confirmar-reserva"

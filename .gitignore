@@ -1,4 +1,6 @@
 /build
+# se genera en cada build (scripts/generar-sitemap.js)
+/public/sitemap.xml
 /node_modules
 package-lock.json
 /build

@@ -1038,6 +1038,8 @@ const ConfiguracionEmpresa = () => {
       nombre: empresa.nombre || "",
       descripcion: empresa.descripcion || "",
       direccion: empresa.direccion || "",
+      ciudad: empresa.ciudad || "",
+      directorioVisible: empresa.directorioVisible !== false,
       telefono: empresa.telefono || "",
       correo: empresa.correo || "",
       profesional: empresa.profesional || "",
@@ -1071,6 +1073,7 @@ const ConfiguracionEmpresa = () => {
         borderRadius: empresa.configuracion?.borderRadius || "24px",
         usaHorasAncla: empresa.configuracion?.usaHorasAncla ?? false,
         modoOscuro: empresa.configuracion?.modoOscuro ?? false,
+        estiloPagina: empresa.configuracion?.estiloPagina || "auto",
       },
       pagos: {
         requiereAbono: empresa.pagos?.requiereAbono ?? false,
@@ -1428,7 +1431,7 @@ const ConfiguracionEmpresa = () => {
                           </div>
                         </Field>
                       </Col>
-                      <Col md={12}>
+                      <Col md={8}>
                         <Field label="Dirección">
                           <div className="input-group">
                             <span
@@ -1447,6 +1450,32 @@ const ConfiguracionEmpresa = () => {
                             />
                           </div>
                         </Field>
+                      </Col>
+                      <Col md={4}>
+                        <Field
+                          label="Ciudad"
+                          hint="Para aparecer en agendafonfach.cl/negocios"
+                        >
+                          <Input
+                            value={form.ciudad}
+                            placeholder="Ej: Ovalle"
+                            maxLength={60}
+                            onChange={(e) => set("ciudad", e.target.value)}
+                            style={{ borderRadius: 8 }}
+                          />
+                        </Field>
+                        <div className="custom-control custom-checkbox mb-3" style={{ marginTop: -6 }}>
+                          <input
+                            type="checkbox"
+                            className="custom-control-input"
+                            id="cfg-directorio"
+                            checked={form.directorioVisible !== false}
+                            onChange={(e) => set("directorioVisible", e.target.checked)}
+                          />
+                          <label className="custom-control-label small" htmlFor="cfg-directorio">
+                            Mostrar mi negocio en el directorio
+                          </label>
+                        </div>
                       </Col>
                       <Col md={12}>
                         <Field
@@ -1745,6 +1774,22 @@ const ConfiguracionEmpresa = () => {
                       heroBg={form.colores.heroBg}
                       heroEsClaro={form.colores.heroEsClaro}
                     />
+
+                    <Field
+                      label="Estilo de tu página pública"
+                      hint="Oscuro: fondo negro y letras elegantes (ideal si tu marca es oscura). Claro: fondo claro y moderno. Automático: oscuro si tu color de fondo es oscuro."
+                    >
+                      <Input
+                        type="select"
+                        value={form.configuracion?.estiloPagina || "auto"}
+                        onChange={(e) => set("configuracion.estiloPagina", e.target.value)}
+                        style={{ borderRadius: 8, maxWidth: 320 }}
+                      >
+                        <option value="auto">Automático</option>
+                        <option value="oscuro">Oscuro</option>
+                        <option value="claro">Claro</option>
+                      </Input>
+                    </Field>
 
                     <hr className="my-4" />
                     <SectionTitle

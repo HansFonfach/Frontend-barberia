@@ -93,7 +93,8 @@ const iniciales = (nombre = "") =>
     .map((p) => p[0].toUpperCase())
     .join("");
 
-const EmpresaCard = ({ empresa }) => {
+// También la usa el directorio (views/publico/Directorio.jsx)
+export const EmpresaCard = ({ empresa }) => {
   const categoria = getCategoria(empresa);
   const open = isOpen(empresa.horarios);
   const horario = getHorarioDisplay(empresa.horarios);
@@ -235,6 +236,14 @@ const NegociosConfianza = () => {
 
           {!cargando && visibles.map((empresa) => <EmpresaCard key={empresa._id} empresa={empresa} />)}
         </div>
+
+        {!cargando && empresas.length > 0 && (
+          <div style={{ textAlign: "center", marginTop: 32 }}>
+            <Link to="/negocios" style={{ fontWeight: 600, color: "#4361ee" }}>
+              Ver negocios por ciudad →
+            </Link>
+          </div>
+        )}
       </Container>
     </section>
   );
