@@ -87,7 +87,7 @@ const AsistenciaMesa = () => {
     contenido = (
       <>
         <div style={{ fontSize: 44 }}>🙌</div>
-        <h2 className="h4">¡Gracias por confirmar!</h2>
+        <h2 className="h4">¡Gracias por preferirnos!</h2>
         <p className="text-muted mb-0">Te esperamos en {local}.</p>
         {resumen}
       </>
