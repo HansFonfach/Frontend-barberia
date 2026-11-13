@@ -142,8 +142,9 @@ const FuncionalidadesSection = () => {
             Tu agenda trabaja mientras tú atiendes
           </h2>
           <p className="text-muted" style={{ maxWidth: 520, margin: "0 auto" }}>
-            Todo lo que necesitas para gestionar tu negocio, sin WhatsApps, sin llamadas,
-            sin horas vacías.
+            Reservas online, recordatorios por WhatsApp, lista de espera, puntos y
+            suscripciones: todo lo que necesitas para gestionar tu negocio, sin
+            WhatsApps, sin llamadas, sin horas vacías.
           </p>
         </div>
 

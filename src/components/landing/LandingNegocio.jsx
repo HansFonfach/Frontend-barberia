@@ -230,7 +230,9 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
             {(rubro || ciudad) && <div className="ln-eyebrow">{[rubro, ciudad].filter(Boolean).join(" · ")}</div>}
             <h1 className="ln-h1">{empresa.nombre}</h1>
             <p className="ln-lead">
-              {empresa.mensajeBienvenida || empresa.descripcion || "Reserva tu hora online en menos de un minuto, sin llamadas ni esperas."}
+              {empresa.mensajeBienvenida ||
+                empresa.descripcion ||
+                `Reserva tu hora online en ${empresa.nombre}${ciudad ? `, ${ciudad}` : ""}: elige servicio, profesional y horario en menos de un minuto, sin llamadas ni esperas.`}
             </p>
             <div className="ln-cta">
               <button type="button" className="ln-btn ln-btn-lg" onClick={reservar}>Reservar mi hora</button>
@@ -279,8 +281,8 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
         <div className="ln-wrap">
           <div className="ln-tit">
             <div>
-              <div className="ln-eyebrow">Servicios</div>
-              <h2 className="ln-h2">Precios claros, sin sorpresas</h2>
+              <div className="ln-eyebrow">Precios claros, sin sorpresas</div>
+              <h2 className="ln-h2">Servicios y precios</h2>
             </div>
             <button type="button" className="ln-btn-sec" onClick={reservar}>Reservar</button>
           </div>
@@ -336,8 +338,8 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
           <div className="ln-wrap">
             <div className="ln-tit">
               <div>
-                <div className="ln-eyebrow">Equipo</div>
-                <h2 className="ln-h2">Quién te atiende</h2>
+                <div className="ln-eyebrow">Quién te atiende</div>
+                <h2 className="ln-h2">El equipo de {empresa.nombre}</h2>
               </div>
             </div>
             <div className={`ln-equipo ${profesionales.length === 1 ? "uno" : profesionales.length === 2 ? "dos" : ""}`}>
@@ -383,8 +385,8 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
         <div className="ln-wrap">
           <div className="ln-tit ln-tit-centro">
             <div>
-              <div className="ln-eyebrow">Cómo reservar</div>
-              <h2 className="ln-h2">Tu hora en 3 pasos</h2>
+              <div className="ln-eyebrow">Reserva online</div>
+              <h2 className="ln-h2">Agenda tu hora en 3 pasos</h2>
             </div>
           </div>
           <div className="ln-pasos">
@@ -424,7 +426,9 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
         <div className="ln-wrap ln-info">
           <div className="ln-caja">
             <div className="ln-eyebrow">Encuéntranos</div>
-            <h2 className="ln-h2" style={{ fontSize: 32 }}>Te esperamos</h2>
+            <h2 className="ln-h2" style={{ fontSize: 32 }}>
+              {ciudad ? `${empresa.nombre} en ${ciudad}` : "Te esperamos"}
+            </h2>
             <ul className="ln-lista">
               {empresa.direccion && (
                 <li>
@@ -479,7 +483,8 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
             <span>{empresa.nombre}</span>
           </div>
           <div className="ln-mut ln-small">
-            © {new Date().getFullYear()} {empresa.nombre} · Reservas con{" "}
+            © {new Date().getFullYear()} {empresa.nombre}
+            {rubro || ciudad ? ` · ${[rubro, ciudad].filter(Boolean).join(" en ")}` : ""} · Reserva online con{" "}
             <a href="/" className="ln-acc">AgendaFonfach</a>
           </div>
         </div>

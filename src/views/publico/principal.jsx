@@ -41,6 +41,7 @@ import {
 import { FaWhatsapp } from "react-icons/fa";
 import NegociosConfianza from "./NegociosConfianza";
 import FuncionalidadesSection from "components/Principal/FuncionalidadesSection";
+import { SITIO, useSeo } from "utils/seo";
 
 const LandingPage = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -225,6 +226,98 @@ const LandingPage = () => {
     },
   ];
 
+  // ───── SEO de la página principal ─────
+  const planesConPrecio = planes.filter((p) => p.precio);
+  const planesSinPrecio = planes.filter((p) => !p.precio);
+  const faqs = [
+    {
+      p: "¿Qué es AgendaFonfach?",
+      r: "Es una agenda online y sistema de reservas para negocios que trabajan con horas. Tu negocio tiene su propia página, donde tus clientes ven servicios, precios y horarios disponibles y reservan solos, las 24 horas, sin llamadas ni mensajes.",
+    },
+    {
+      p: "¿Para qué tipo de negocios sirve?",
+      r: "Para barberías, peluquerías, salones de belleza, centros de estética, spas, masajes, estudios de tatuajes, consultas, clínicas dentales, gimnasios y restaurantes: cualquier negocio que agende horas, clases o mesas.",
+    },
+    {
+      p: "¿Cuánto cuesta la agenda online?",
+      r: `${planesConPrecio.map((p) => `${p.nombre}: $${p.precio} al mes (${p.subtitulo.trim()})`).join(". ")}.${planesSinPrecio.length ? ` ${planesSinPrecio.map((p) => p.nombre).join(" y ")}: precio a convenir.` : ""} Todos sin comisiones por reserva.`,
+    },
+    {
+      p: "¿Cobran comisión por cada reserva?",
+      r: "No. Pagas un plan mensual fijo y todas las reservas son tuyas, sin comisiones.",
+    },
+    {
+      p: "¿Mis clientes reciben recordatorios de su hora?",
+      r: "Sí. Todos los planes incluyen notificaciones por email y, desde el Plan Equipo, avisos y recordatorios por WhatsApp para el cliente y el profesional.",
+    },
+    {
+      p: "¿Mis clientes tienen que descargar una aplicación?",
+      r: "No. Reservan desde el navegador del celular o del computador, como invitados o creando su cuenta.",
+    },
+    {
+      p: "¿Puedo probarlo gratis?",
+      r: "Sí, tienes 7 días gratis para probar la agenda con tu negocio. Si tienes dudas, escríbenos por WhatsApp.",
+    },
+    {
+      p: "¿En qué ciudades funciona?",
+      r: "En todo Chile. Puedes ver los negocios que ya reciben reservas online, ordenados por ciudad y rubro, en el directorio de",
+      link: { to: "/negocios", texto: "negocios por ciudad" },
+    },
+  ];
+
+  useSeo({
+    titulo: "AgendaFonfach | Agenda online y reservas para barberías y salones en Chile",
+    descripcion: "Sistema de reservas y agenda online para barberías, peluquerías, salones de belleza y gimnasios en Chile. Reservas 24/7 y recordatorios por WhatsApp.",
+    canonical: `${SITIO}/`,
+    imagen: `${SITIO}/agendafonfach-logo.png`,
+    jsonLd: {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "Organization",
+          "@id": `${SITIO}/#organizacion`,
+          name: "AgendaFonfach",
+          url: `${SITIO}/`,
+          logo: `${SITIO}/agendafonfach-logo.png`,
+          sameAs: ["https://www.instagram.com/hans.fonfach"],
+        },
+        {
+          "@type": "WebSite",
+          "@id": `${SITIO}/#sitio`,
+          name: "AgendaFonfach",
+          url: `${SITIO}/`,
+          inLanguage: "es-CL",
+          publisher: { "@id": `${SITIO}/#organizacion` },
+        },
+        {
+          "@type": "SoftwareApplication",
+          name: "AgendaFonfach",
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web",
+          url: `${SITIO}/`,
+          description: "Sistema de reservas y agenda online para barberías, peluquerías, salones de belleza y gimnasios en Chile. Reservas 24/7 y recordatorios por WhatsApp.",
+          offers: planesConPrecio.map((p) => ({
+            "@type": "Offer",
+            name: p.nombre,
+            price: p.precio.replace(/\./g, ""),
+            priceCurrency: "CLP",
+          })),
+        },
+        {
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({
+            "@type": "Question",
+            name: f.p,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: f.link ? `${f.r} ${f.link.texto}: ${SITIO}${f.link.to}` : f.r,
+            },
+          })),
+        },
+      ],
+    },
+  });
+
   return (
     <div style={{ backgroundColor: "#ffffff" }}>
       {/* Navbar */}
@@ -306,7 +399,7 @@ const LandingPage = () => {
               </Badge>
 
               <h1 className="display-3 font-weight-bold mb-4">
-                Automatiza tus reservas y{" "}
+                Agenda online que automatiza tus reservas y{" "}
                 <span style={{ color: "#f72585" }}>recupera tu tiempo</span>
               </h1>
 
@@ -315,37 +408,39 @@ const LandingPage = () => {
                 style={{ fontSize: "1.2rem" }}
               >
                 Dile adiós al WhatsApp, las llamadas y los "te confirmo
-                después". AgendaFonfach automatiza tus reservas, fideliza
-                clientes y llena tus horas muertas.
+                después". AgendaFonfach es el sistema de reservas online
+                para barberías, peluquerías, salones de belleza y gimnasios
+                en Chile: tus clientes agendan solos 24/7, los fidelizas y
+                llenas tus horas muertas.
               </p>
 
               {/* Stats rápidas */}
               <Row className="mb-5">
                 <Col xs={4} className="text-center">
-                  <h3
-                    className="font-weight-bold mb-0"
+                  <div
+                    className="h3 font-weight-bold mb-0"
                     style={{ color: "#4361ee" }}
                   >
                     15h
-                  </h3>
+                  </div>
                   <small className="text-muted">semanales recuperadas</small>
                 </Col>
                 <Col xs={4} className="text-center">
-                  <h3
-                    className="font-weight-bold mb-0"
+                  <div
+                    className="h3 font-weight-bold mb-0"
                     style={{ color: "#f72585" }}
                   >
                     +40%
-                  </h3>
+                  </div>
                   <small className="text-muted">más reservas</small>
                 </Col>
                 <Col xs={4} className="text-center">
-                  <h3
-                    className="font-weight-bold mb-0"
+                  <div
+                    className="h3 font-weight-bold mb-0"
                     style={{ color: "#06d6a0" }}
                   >
                     0%
-                  </h3>
+                  </div>
                   <small className="text-muted">comisión por reserva</small>
                 </Col>
               </Row>
@@ -484,9 +579,12 @@ const LandingPage = () => {
             >
               ⚡ Simple y rápido
             </Badge>
-            <h2 className="display-4 font-weight-bold">Así de simple</h2>
+            <h2 className="display-4 font-weight-bold">
+              Así funciona tu agenda online
+            </h2>
             <p className="text-muted">
-              En menos de 10 minutos tu negocio ya está recibiendo reservas solo
+              En menos de 10 minutos tu negocio ya está recibiendo reservas
+              online, solo
             </p>
           </div>
 
@@ -775,7 +873,7 @@ const LandingPage = () => {
             <Col lg="6" className="mb-4 mb-lg-0">
               <img
                 src="https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=800"
-                alt="Profesional trabajando con tablet"
+                alt="Profesional revisando la agenda de reservas de su negocio en una tablet"
                 className="img-fluid rounded-lg shadow"
                 style={{ borderRadius: "20px" }}
               />
@@ -791,7 +889,9 @@ const LandingPage = () => {
               >
                 ⚠️ El problema
               </Badge>
-              <h2 className="font-weight-bold mb-4">¿Suena familiar?</h2>
+              <h2 className="font-weight-bold mb-4">
+                ¿Todavía agendas horas por WhatsApp?
+              </h2>
               <ul className="list-unstyled">
                 <li className="mb-3 d-flex align-items-center">
                   <FiClock className="mr-3 text-danger" size={24} />
@@ -848,10 +948,11 @@ const LandingPage = () => {
               💎 Elige tu plan
             </Badge>
             <h2 className="display-4 font-weight-bold">
-              Un plan para cada tamaño de negocio
+              Planes y precios de la agenda online
             </h2>
             <p className="text-muted">
-              Empieza solo y sube de plan a medida que crece tu equipo
+              Un plan para cada tamaño de negocio: empieza solo y sube de
+              plan a medida que crece tu equipo
             </p>
           </div>
 
@@ -977,6 +1078,51 @@ const LandingPage = () => {
         </Container>
       </section>
 
+      {/* Preguntas frecuentes (texto para Google y para el cliente) */}
+      <section id="preguntas-frecuentes" className="py-7" style={{ background: "#f8faff" }}>
+        <Container>
+          <div className="text-center mb-5">
+            <Badge
+              className="mb-3 px-3 py-2"
+              style={{
+                background: "#e8edff",
+                color: "#4361ee",
+                borderRadius: "50px",
+              }}
+            >
+              ❓ Preguntas frecuentes
+            </Badge>
+            <h2 className="display-4 font-weight-bold">
+              Preguntas frecuentes sobre la agenda online
+            </h2>
+            <p className="text-muted">
+              Lo que necesitas saber antes de empezar a recibir reservas online
+            </p>
+          </div>
+          <Row className="justify-content-center">
+            <Col lg="8">
+              {faqs.map((f, i) => (
+                <details key={f.p} className="faq-item" open={i === 0}>
+                  <summary>{f.p}</summary>
+                  <p className="text-muted mb-0">
+                    {f.r}
+                    {f.link && (
+                      <>
+                        {" "}
+                        <Link to={f.link.to} style={{ color: "#4361ee", fontWeight: 600 }}>
+                          {f.link.texto}
+                        </Link>
+                        .
+                      </>
+                    )}
+                  </p>
+                </details>
+              ))}
+            </Col>
+          </Row>
+        </Container>
+      </section>
+
       {/* Footer */}
       <footer
         className="py-4"
@@ -1011,6 +1157,30 @@ const LandingPage = () => {
             </Col>
           </Row>
 
+          <Row className="mt-3">
+            <Col className="text-center text-md-left">
+              <p className="text-muted small mb-2">
+                AgendaFonfach es un software de agenda online y sistema de
+                reservas para barberías, peluquerías, salones de belleza,
+                centros de estética, spas, gimnasios y restaurantes en Chile.
+              </p>
+              <div className="small">
+                <Link to="/negocios" className="mr-3 d-inline-block" style={{ color: "#4361ee" }}>
+                  Negocios por ciudad
+                </Link>
+                <Link to="/registro-negocio" className="mr-3 d-inline-block" style={{ color: "#4361ee" }}>
+                  Registra tu negocio
+                </Link>
+                <a href="#plan-contacto" className="mr-3 d-inline-block" style={{ color: "#4361ee" }}>
+                  Planes y precios
+                </a>
+                <a href="#preguntas-frecuentes" className="d-inline-block" style={{ color: "#4361ee" }}>
+                  Preguntas frecuentes
+                </a>
+              </div>
+            </Col>
+          </Row>
+
           <hr className="my-3" />
 
           <Row>
@@ -1029,6 +1199,37 @@ const LandingPage = () => {
       </footer>
 
       <style jsx>{`
+        .faq-item {
+          background: #fff;
+          border: 1px solid #e4e8ff;
+          border-radius: 14px;
+          padding: 18px 22px;
+          margin-bottom: 12px;
+        }
+        .faq-item summary {
+          cursor: pointer;
+          font-weight: 700;
+          color: #1a1a1a;
+          list-style: none;
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+        }
+        .faq-item summary::-webkit-details-marker {
+          display: none;
+        }
+        .faq-item summary::after {
+          content: "+";
+          color: #4361ee;
+          font-size: 1.3rem;
+          line-height: 1;
+        }
+        .faq-item[open] summary::after {
+          content: "−";
+        }
+        .faq-item[open] summary {
+          margin-bottom: 10px;
+        }
         .hover-lift {
           transition: all 0.3s ease;
         }

@@ -198,7 +198,10 @@ const NegociosConfianza = () => {
         <div className="nc-encabezado">
           <span className="nc-eyebrow">Negocios en AgendaFonfach</span>
           <h2 className="nc-titulo">Negocios que confían en nosotros</h2>
-          <p className="nc-subtitulo">Elige un negocio y reserva en línea en menos de un minuto.</p>
+          <p className="nc-subtitulo">
+            Barberías, salones y más negocios de Chile que ya reciben reservas online. Elige uno y
+            reserva tu hora en menos de un minuto.
+          </p>
         </div>
 
         {categorias.length > 1 && (

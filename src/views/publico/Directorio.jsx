@@ -86,7 +86,7 @@ const Directorio = () => {
   useSeo(
     datos
       ? {
-          titulo: noExiste ? "No encontramos esa página | AgendaFonfach" : `${h1} · Reserva online | AgendaFonfach`,
+          titulo: noExiste ? "No encontramos esa página | AgendaFonfach" : `${h1} · Reserva tu hora online | AgendaFonfach`,
           descripcion: subtitulo,
           canonical: url,
           noIndexar: noExiste || negocios.length === 0,
