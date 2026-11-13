@@ -3,7 +3,8 @@
 // Corre solo antes de cada build ("prebuild" en package.json): baja el
 // sitemap del back (con todos los negocios) y lo deja en public/sitemap.xml,
 // para que quede en agendafonfach.cl/sitemap.xml.
-// Nunca hace fallar el build: si el back no responde, deja un sitemap básico.
+// Nunca hace fallar el build: si el back no responde, se queda con el
+// public/sitemap.xml que ya está en git (o uno básico si no hay ninguno).
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
@@ -37,11 +38,17 @@ const bajar = (url) =>
       res.on("end", () => resolve(cuerpo));
     });
     // Render gratis puede tardar en despertar
-    req.setTimeout(45000, () => req.destroy(new Error("tiempo de espera agotado")));
+    req.setTimeout(60000, () => req.destroy(new Error("tiempo de espera agotado")));
     req.on("error", reject);
   });
 
-bajar(`${API}/seo/sitemap.xml`)
+// Render gratis se duerme: si el primer intento falla, se espera y se reintenta
+const bajarConReintento = () =>
+  bajar(`${API}/seo/sitemap.xml`).catch(
+    () => new Promise((r) => setTimeout(r, 5000)).then(() => bajar(`${API}/seo/sitemap.xml`)),
+  );
+
+bajarConReintento()
   .then((xml) => {
     if (!xml.includes("<urlset")) throw new Error("respuesta sin <urlset>");
     fs.writeFileSync(DESTINO, xml);
