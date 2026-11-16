@@ -36,12 +36,15 @@ const SuperAdminLogin = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        background: "#172b4d",
+        background: "radial-gradient(ellipse at 50% 0%, #1e293b 0%, #0f172a 60%)",
       }}
     >
-      <Card style={{ width: 380, maxWidth: "90vw" }} className="shadow">
+      <Card style={{ width: 380, maxWidth: "90vw", borderRadius: 18, border: 0 }} className="shadow-lg">
         <CardBody className="p-4">
-          <h4 className="text-center mb-1">Panel de administración</h4>
+          <div className="text-center mb-2" style={{ fontSize: 22, fontWeight: 700, color: "#0f172a", letterSpacing: "-0.01em" }}>
+            Agenda<span style={{ color: "#4361ee" }}>Fonfach</span>
+          </div>
+          <h4 className="text-center mb-1" style={{ fontSize: 16, color: "#334155" }}>Panel superadmin</h4>
           <p className="text-center text-muted small mb-4">Solo para gestión interna</p>
 
           {error && <Alert color="danger">{error}</Alert>}

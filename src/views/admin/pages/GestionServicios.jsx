@@ -90,6 +90,7 @@ const GestionServicios = () => {
 
       // 👇 ESTE ES EL FIX CLAVE
       categoriaId: servicio.categoria || "",
+      destacado: servicio.destacado || "",
     });
 
     setModal(true);
@@ -116,6 +117,7 @@ const GestionServicios = () => {
           instrucciones: form.instrucciones?.trim() || "",
           cuidados: form.cuidados?.trim() || "",
           categoriaId: form.categoriaId,
+          destacado: form.destacado || "",
         });
       } else {
         await crearServicio(
@@ -423,6 +425,24 @@ const GestionServicios = () => {
                 ))}
               </Input>
             </FormGroup>
+            {editando && (
+              <FormGroup>
+                <label>Destacar en la página pública</label>
+                <Input
+                  type="select"
+                  name="destacado"
+                  value={form.destacado || ""}
+                  onChange={handleChange}
+                >
+                  <option value="">No destacar</option>
+                  <option value="destacado">Destacado</option>
+                  <option value="principal">Muy destacado (★ Recomendado)</option>
+                </Input>
+                <small className="text-muted">
+                  Aparece en el recuadro "Servicios destacados" al inicio de tu página.
+                </small>
+              </FormGroup>
+            )}
             <FormGroup>
               <label>Instrucciones para el cliente</label>
               <Input

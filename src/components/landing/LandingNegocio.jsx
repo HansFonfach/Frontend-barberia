@@ -189,7 +189,11 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
       : categoria === "otros"
         ? servicios.filter((s) => !idCategoria(s))
         : servicios.filter((s) => idCategoria(s) === categoria);
-  const destacados = servicios.slice(0, 4);
+  // Servicios destacados: los que el negocio marcó en Gestión de Servicios
+  // (primero los "muy destacados"); si no marcó ninguno, los 4 primeros.
+  const nivelDestacado = (s) => (s.destacado === "principal" ? 2 : s.destacado === "destacado" ? 1 : 0);
+  const marcados = servicios.filter((s) => nivelDestacado(s) > 0).sort((a, b) => nivelDestacado(b) - nivelDestacado(a));
+  const destacados = marcados.length ? marcados.slice(0, 6) : servicios.slice(0, 4);
   const desde = servicios.length ? Math.min(...servicios.map((s) => Number(s.precioFinal ?? s.precio) || 0).filter(Boolean)) : 0;
 
   const marca = mostrarLogo ? (
@@ -252,14 +256,15 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
                 </div>
               )}
               <div className="ln-destacados-tit">
-                <span className="ln-eyebrow">Servicios</span>
+                <span className="ln-eyebrow">Servicios destacados</span>
                 <span className="ln-mut ln-small">{servicios.length} en total</span>
               </div>
               {destacados.map((s) => {
                 const conPromo = Number(s.precioFinal) < Number(s.precio);
                 return (
-                  <button type="button" key={s._id} className="ln-dest" onClick={reservar}>
+                  <button type="button" key={s._id} className={`ln-dest ${s.destacado === "principal" ? "estrella" : ""}`} onClick={reservar}>
                     <span className="ln-dest-txt">
+                      {s.destacado === "principal" && <span className="ln-estrella">★ Recomendado</span>}
                       <b>{s.nombre}</b>
                       {duracionTexto(s) && <small>{duracionTexto(s)}</small>}
                     </span>
@@ -305,8 +310,9 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
                 const conPromo = Number(s.precioFinal) < Number(s.precio);
                 const larga = String(s.descripcion || "").length > 110;
                 return (
-                  <div key={s._id} className="ln-serv">
+                  <div key={s._id} className={`ln-serv ${s.destacado === "principal" ? "estrella" : ""}`}>
                     <div className="ln-serv-txt">
+                      {s.destacado === "principal" && <span className="ln-estrella">★ Recomendado</span>}
                       <h3>{s.nombre}</h3>
                       {s.descripcion && <p className={larga ? "ln-recortado" : ""}>{s.descripcion}</p>}
                       <div className="ln-serv-meta">
@@ -585,6 +591,9 @@ const CSS = `
 .ln-dest strong{font-family:var(--ln-serif);color:var(--ln-acc);font-size:19px;white-space:nowrap;font-weight:700}
 .ln-claro .ln-dest strong{font-weight:400}
 .ln-destacados-pie{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+.ln-estrella{display:inline-flex;align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ln-acc-txt);background:var(--ln-acc);border-radius:999px;padding:3px 9px;margin-bottom:6px}
+.ln-dest.estrella{background:var(--ln-acc-suave);border-radius:14px;padding:13px 12px;margin:6px 0;border-bottom-color:transparent}
+.ln-serv.estrella{border-color:var(--ln-acc)!important;box-shadow:0 0 0 1px var(--ln-acc)}
 .ln-recortado{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ln-serv-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
 .ln-serv-meta .ln-dur{margin-top:0}
@@ -624,9 +633,9 @@ button.ln-serv-ir{background:none;border:0;padding:0;cursor:pointer;font-family:
 
 .ln-equipo{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:22px}
 .ln-pro{background:var(--ln-card);border:1px solid var(--ln-borde);border-radius:22px;overflow:hidden;display:flex;flex-direction:column}
-.ln-pro-foto{aspect-ratio:4/4.2;background:var(--ln-acc-suave);display:grid;place-items:center;overflow:hidden}
-.ln-pro-foto img{width:100%;height:100%;object-fit:cover}
-.ln-pro-foto span{font-family:var(--ln-serif);font-size:64px;color:var(--ln-acc)}
+.ln-pro-foto{position:relative;aspect-ratio:4/4.6;background:var(--ln-acc-suave);overflow:hidden}
+.ln-pro-foto img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center 20%}
+.ln-pro-foto span{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--ln-serif);font-size:64px;color:var(--ln-acc)}
 .ln-pro-txt{padding:18px 20px 20px;display:flex;flex-direction:column;gap:6px;flex:1}
 .ln-pro-txt h3{font-size:18px;font-weight:700;margin:0;color:var(--ln-txt)}
 .ln-pro-txt p{color:var(--ln-mut);font-size:14px;line-height:1.5;margin:4px 0 6px}
@@ -680,17 +689,21 @@ button.ln-serv-ir{background:none;border:0;padding:0;cursor:pointer;font-family:
   .ln-emblema::after{inset:-18px}.ln-emblema::before{inset:-8px}
   .ln-emblema span{font-size:40px}
   .ln-servicios,.ln-info,.ln-pasos,.ln-equipo.dos{grid-template-columns:1fr}
-  .ln-destacados{display:none}
+  .ln-destacados.con-logo{margin-top:0;padding-top:22px}
+  .ln-dest-logo{display:none}
   .ln-equipo.uno .ln-pro,.ln-equipo.dos .ln-pro{flex-direction:column}
-  .ln-equipo.uno .ln-pro-foto,.ln-equipo.dos .ln-pro-foto{width:100%;min-height:0;aspect-ratio:4/3.6}
+  .ln-equipo.uno .ln-pro-foto,.ln-equipo.dos .ln-pro-foto{width:100%;min-height:0;aspect-ratio:auto}
+  .ln-equipo.uno .ln-pro-foto img,.ln-equipo.dos .ln-pro-foto img{position:static;height:auto;max-height:560px}
+  .ln-equipo.uno .ln-pro-foto span,.ln-equipo.dos .ln-pro-foto span{position:static;min-height:240px}
   .ln-equipo.uno .ln-pro-txt{padding:24px}
   .ln-equipo.uno .ln-pro-txt h3{font-size:28px}
   .ln-sec{padding:60px 0}
   .ln-gift{padding:28px}
 }
 @media (max-width:600px){
-  .ln-nav-acc .ln-link{display:none}
-  .ln-nav-acc .ln-btn{padding:9px 16px;font-size:14px}
+  .ln-nav-acc .ln-btn{display:none}
+  .ln-nav-acc .ln-link{border:1px solid var(--ln-borde);border-radius:999px;padding:8px 14px;font-size:13px;color:var(--ln-txt);white-space:nowrap}
+  .ln-marca span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .ln-datos{gap:20px}
   .ln-fija{display:flex;position:fixed;left:14px;right:14px;bottom:14px;z-index:30;padding:15px;font-size:16px;box-shadow:0 14px 34px -10px rgba(0,0,0,.55)}
   .ln-pie{padding-bottom:96px}

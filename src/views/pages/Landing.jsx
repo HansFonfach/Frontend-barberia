@@ -18,7 +18,7 @@ import {
 } from "utils/temaEmpresa";
 
 // Negocios que prefieren seguir con el diseño anterior de la página pública
-const NEGOCIOS_CON_DISENO_CLASICO = ["lumicabeauty"];
+const NEGOCIOS_CON_DISENO_CLASICO = [];
 
 const Landing = () => {
   const navigate = useNavigate();
