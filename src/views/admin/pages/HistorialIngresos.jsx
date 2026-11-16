@@ -9,9 +9,11 @@ import {
   ChevronRight,
   Calendar,
   Users,
+  Gift,
 } from "lucide-react";
 import UserHeader from "components/Headers/UserHeader";
 import { useEstadisticas } from "context/EstadisticasContext";
+import ModalDetalleExtras from "components/ingresos/ModalDetalleExtras";
 
 const MESES = [
   "Enero","Febrero","Marzo","Abril","Mayo","Junio",
@@ -40,6 +42,7 @@ const HistorialIngresos = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [buscado, setBuscado] = useState(false);
+  const [verDetalleExtras, setVerDetalleExtras] = useState(false);
 
   const formatMoney = (v) =>
     new Intl.NumberFormat("es-CL", {
@@ -113,7 +116,19 @@ const HistorialIngresos = () => {
       icon: <Sparkles size={18} />,
       color: "#d97706",
       bg: "#fffbeb",
+      onClick: () => setVerDetalleExtras(true),
     },
+    ...(data?.esAdmin
+      ? [
+          {
+            label: `Giftcards (${detalles.giftcardsVendidas || 0})`,
+            value: detalles.ingresoGiftcards || 0,
+            icon: <Gift size={18} />,
+            color: "#db2777",
+            bg: "#fdf2f8",
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -217,8 +232,13 @@ const HistorialIngresos = () => {
             {/* Desglose */}
             <Row className="mb-3">
               {items.map((item, i) => (
-                <Col key={i} xs="6" lg="3" className="mb-3">
-                  <Card className="border-0 shadow-sm h-100" style={{ borderRadius: 14 }}>
+                <Col key={i} xs="6" lg className="mb-3">
+                  <Card
+                    className="border-0 shadow-sm h-100"
+                    style={{ borderRadius: 14, cursor: item.onClick ? "pointer" : "default" }}
+                    onClick={item.onClick}
+                    role={item.onClick ? "button" : undefined}
+                  >
                     <CardBody className="p-3" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                       <div style={{
                         width: 36, height: 36, borderRadius: 10,
@@ -233,6 +253,11 @@ const HistorialIngresos = () => {
                       <p style={{ margin: 0, fontWeight: 700, fontSize: "1.1rem", color: "#1e293b" }}>
                         {formatMoney(item.value)}
                       </p>
+                      {item.onClick && (
+                        <span style={{ fontSize: "0.75rem", fontWeight: 600, color: "#4f46e5" }}>
+                          Ver detalle ›
+                        </span>
+                      )}
                     </CardBody>
                   </Card>
                 </Col>
@@ -282,8 +307,8 @@ const HistorialIngresos = () => {
                       </div>
 
                       <p className="text-muted mb-4" style={{ fontSize: "0.8rem" }}>
-                        No incluye suscripciones, porque son ingreso del negocio y no se
-                        atribuyen a una persona.
+                        No incluye suscripciones ni giftcards, porque son ingreso del
+                        negocio y no se atribuyen a una persona.
                       </p>
 
                       {ranking.map((p, i) => {
@@ -389,6 +414,13 @@ const HistorialIngresos = () => {
         )}
 
       </Container>
+
+      <ModalDetalleExtras
+        isOpen={verDetalleExtras}
+        toggle={() => setVerDetalleExtras(false)}
+        mes={data?.mes ?? mes}
+        anio={data?.anio ?? anio}
+      />
     </>
   );
 };

@@ -10,6 +10,12 @@ export const getTotalSuscripcionesActivas = () => {
 export const getTotalClientes = () => {
   return axiosPrivate.get("/estadisticas/totalClientes");
 };
+// Desglose de "Ingreso Extras" (mes 0-11; sin parámetros = mes actual)
+export const getDetalleExtras = (mes, anio) => {
+  return axiosPrivate.get("/estadisticas/ingresos/extras", {
+    params: mes !== undefined ? { mes, anio } : {},
+  });
+};
 export const getIngresoMensual = () => {
   return axiosPrivate.get("/estadisticas/ingresoMensual");
 };

@@ -99,8 +99,10 @@ const ReservaCardMobile = ({
   }
 
   const infoAbono = (reserva) => {
-    const totalServicio =
-      reserva.servicioSnapshot?.precio || reserva.servicio?.precio || 0;
+    // Con giftcard, el servicio vale lo que quedó por pagar (puede ser $0)
+    const totalServicio = reserva.giftcard?.giftcardId
+      ? Number(reserva.servicioSnapshot?.precio ?? 0)
+      : reserva.servicioSnapshot?.precio || reserva.servicio?.precio || 0;
     const totalExtras = reserva.totalExtras || 0;
     const totalProductos = reserva.totalProductos || 0;
     const totalGeneral = totalServicio + totalExtras + totalProductos;
@@ -110,6 +112,9 @@ const ReservaCardMobile = ({
 
     const pendiente = totalGeneral - abonado;
 
+    if (reserva.giftcard?.giftcardId && pendiente <= 0) {
+      return { texto: "Pagado con giftcard", color: "text-success", icono: "🎁" };
+    }
     if (abonado === 0) {
       return { texto: "Sin abono", color: "text-muted", icono: "⏳" };
     }
@@ -181,6 +186,16 @@ const ReservaCardMobile = ({
                   {horaFinReserva(reserva)}
                 </small>
               </div>
+
+              {reserva.giftcard?.giftcardId && (
+                <div className="d-flex justify-content-between mb-1">
+                  <small className="text-muted">Giftcard</small>
+                  <small className="font-weight-bold" style={{ color: "#db2777" }}>
+                    🎁 {reserva.giftcard.codigo} · cubre $
+                    {Number(reserva.giftcard.montoAplicado || 0).toLocaleString("es-CL")}
+                  </small>
+                </div>
+              )}
 
               {/* 👇 NUEVO: estado de abono */}
               <div className="d-flex justify-content-between mb-1">

@@ -36,6 +36,7 @@ import {
 import { useEmpresa } from "context/EmpresaContext";
 import { useAuth } from "context/AuthContext";
 import BannerSuspension from "components/pagos/ModalSuspension";
+import ModalDetalleExtras from "components/ingresos/ModalDetalleExtras";
 
 const formatPesos = (valor) => `$${(valor || 0).toLocaleString("es-CL")}`;
 
@@ -48,6 +49,7 @@ const AdminDashboard = () => {
   } = useEstadisticas();
 
   const [infoIngresos, setInfoIngresos] = useState(null);
+  const [verDetalleExtras, setVerDetalleExtras] = useState(false);
   const [modalPagoPendiente, setModalPagoPendiente] = useState(false);
   const [proxCliente, setProxCliente] = useState(null);
   const [suscripcionesActivas, setSuscripcionesActivas] = useState(null);
@@ -550,14 +552,35 @@ const AdminDashboard = () => {
                   {formatPesos(infoIngresos.detalle.ingresoProductos)}
                 </small>
               </div>
-                 <div className="d-flex justify-content-between align-items-center mb-1">
+              <button
+                type="button"
+                className="d-flex justify-content-between align-items-center mb-1 w-100 p-0 border-0 bg-transparent"
+                style={{ cursor: "pointer", textAlign: "left" }}
+                onClick={() => setVerDetalleExtras(true)}
+                title="Ver a qué corresponde cada extra"
+              >
                 <small className="text-muted d-flex align-items-center">
                   💰 Ingreso Extras
+                  <span className="ml-1" style={{ color: "#4361ee", fontSize: "0.7rem", fontWeight: 600 }}>
+                    ver detalle ›
+                  </span>
                 </small>
                 <small className="font-weight-bold text-yellow">
                   {formatPesos(infoIngresos.detalle.ingresoExtras)}
                 </small>
-              </div>
+              </button>
+
+              {/* Giftcards vendidas este mes (solo admin) */}
+              {infoIngresos.esAdmin && (
+                <div className="d-flex justify-content-between align-items-center mb-1">
+                  <small className="text-muted d-flex align-items-center">
+                    🎁 Giftcards ({infoIngresos.detalle.giftcardsVendidas || 0})
+                  </small>
+                  <small className="font-weight-bold" style={{ color: "#db2777" }}>
+                    {formatPesos(infoIngresos.detalle.ingresoGiftcards || 0)}
+                  </small>
+                </div>
+              )}
 
               {/* Suscripciones */}
               <div className="d-flex justify-content-between align-items-center mb-1">
@@ -1263,6 +1286,11 @@ const AdminDashboard = () => {
           </Col>
         </Row>
       </Container>
+
+      <ModalDetalleExtras
+        isOpen={verDetalleExtras}
+        toggle={() => setVerDetalleExtras(false)}
+      />
     </>
   );
 };

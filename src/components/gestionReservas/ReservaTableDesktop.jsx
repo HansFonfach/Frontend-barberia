@@ -75,8 +75,10 @@ const ReservaTableDesktop = ({
 
   // 👇 NUEVO: mismo cálculo que en la card mobile
   const infoAbono = (reserva) => {
-    const totalServicio =
-      reserva.servicioSnapshot?.precio || reserva.servicio?.precio || 0;
+    // Con giftcard, el servicio vale lo que quedó por pagar (puede ser $0)
+    const totalServicio = reserva.giftcard?.giftcardId
+      ? Number(reserva.servicioSnapshot?.precio ?? 0)
+      : reserva.servicioSnapshot?.precio || reserva.servicio?.precio || 0;
     const totalExtras = reserva.totalExtras || 0;
     const totalProductos = reserva.totalProductos || 0;
     const totalGeneral = totalServicio + totalExtras + totalProductos;
@@ -86,6 +88,9 @@ const ReservaTableDesktop = ({
 
     const pendiente = totalGeneral - abonado;
 
+    if (reserva.giftcard?.giftcardId && pendiente <= 0) {
+      return { texto: "🎁 Pagado con giftcard", color: "success" };
+    }
     if (abonado === 0) {
       return { texto: "Sin abono", color: "warning" };
     }
@@ -141,7 +146,20 @@ const ReservaTableDesktop = ({
                   </td>
                 )}
 
-                <td className="text-nowrap">{reserva.servicio?.nombre}</td>
+                <td className="text-nowrap">
+                  {reserva.servicio?.nombre}
+                  {reserva.giftcard?.giftcardId && (
+                    <div>
+                      <span
+                        className="badge badge-pill"
+                        style={{ background: "#fdf2f8", color: "#db2777", fontSize: "0.7rem" }}
+                        title={`Giftcard ${reserva.giftcard.codigo}`}
+                      >
+                        🎁 Con giftcard
+                      </span>
+                    </div>
+                  )}
+                </td>
 
                 <td className="text-nowrap">
                   {new Date(reserva.fecha).toLocaleTimeString([], {

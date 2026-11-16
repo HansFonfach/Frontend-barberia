@@ -137,10 +137,12 @@ const ReservaProductosSection = ({
     [extrasSeleccionados],
   );
 
-  const totalServicio =
-    reservaSeleccionada?.servicioSnapshot?.precio ||
-    reservaSeleccionada?.servicio?.precio ||
-    0;
+  // Con giftcard, el servicio vale lo que quedó por pagar (puede ser $0)
+  const totalServicio = reservaSeleccionada?.giftcard?.giftcardId
+    ? Number(reservaSeleccionada?.servicioSnapshot?.precio ?? 0)
+    : reservaSeleccionada?.servicioSnapshot?.precio ||
+      reservaSeleccionada?.servicio?.precio ||
+      0;
 
   const totalGeneral = totalServicio + totalProductos + totalExtras;
 

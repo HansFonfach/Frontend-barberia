@@ -59,6 +59,27 @@ const ReservaInfoCard = ({
 
         <hr className="my-3" />
 
+        {reservaSeleccionada.giftcard?.giftcardId && (
+          <div
+            className="mb-3"
+            style={{ background: "#fdf2f8", border: "1px solid #fbcfe8", borderRadius: 10, padding: "10px 12px" }}
+          >
+            <strong style={{ color: "#be185d" }}>🎁 Reserva con giftcard</strong>
+            <div className="small text-muted mt-1">
+              Código {reservaSeleccionada.giftcard.codigo} · cubre $
+              {Number(reservaSeleccionada.giftcard.montoAplicado || 0).toLocaleString("es-CL")}
+              {reservaSeleccionada.giftcard.precioOriginal
+                ? ` de $${Number(reservaSeleccionada.giftcard.precioOriginal).toLocaleString("es-CL")}`
+                : ""}
+            </div>
+            <div className="small text-muted">
+              {totalServicio > 0
+                ? `El cliente paga la diferencia: $${totalServicio.toLocaleString("es-CL")}`
+                : "El servicio ya está pagado: no hay que cobrarle."}
+            </div>
+          </div>
+        )}
+
         <p className="mb-1">
           <strong>Total:</strong> ${totalServicio.toLocaleString("es-CL")}
         </p>
