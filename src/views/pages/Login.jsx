@@ -17,6 +17,7 @@ import {
   Col,
 } from "reactstrap";
 import Swal from "sweetalert2";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import { useEmpresa } from "context/EmpresaContext";
 
 const themes = {
@@ -55,14 +56,27 @@ const themes = {
   },
 };
 
+// "Recordarme": se guarda solo el correo en este navegador (nunca la
+// contraseña; esa la ofrece guardar el propio navegador).
+const claveRecordar = (slug) => `cuentaRecordada:${slug}`;
+const leerRecordado = (slug) => {
+  try {
+    return localStorage.getItem(claveRecordar(slug)) || "";
+  } catch {
+    return "";
+  }
+};
+
 const Login = () => {
-  const [form, setForm] = useState({
-    email: "",
+  const { slug } = useParams();
+  const [form, setForm] = useState(() => ({
+    email: leerRecordado(slug),
     password: "",
-  });
+  }));
+  const [verPassword, setVerPassword] = useState(false);
+  const [recordarme, setRecordarme] = useState(() => !!leerRecordado(slug));
 
   const { signIn, isAuthenticated } = useAuth();
-  const { slug } = useParams();
   const { empresa } = useEmpresa();
   const [cargando, setCargando] = useState(false);
 
@@ -84,8 +98,16 @@ const Login = () => {
     try {
       await signIn({
         ...form,
+        email: form.email.trim().toLowerCase(),
         slug,
+        recordarme,
       });
+      try {
+        if (recordarme) localStorage.setItem(claveRecordar(slug), form.email.trim().toLowerCase());
+        else localStorage.removeItem(claveRecordar(slug));
+      } catch {
+        // sin acceso al almacenamiento del navegador: no pasa nada
+      }
     } catch (error) {
       Swal.fire({
         title: "Error de login",
@@ -175,7 +197,9 @@ const Login = () => {
                   placeholder="Email"
                   type="email"
                   name="email"
-                  autoComplete="new-email"
+                  autoComplete="username"
+                  inputMode="email"
+                  autoCapitalize="none"
                   value={form.email}
                   onChange={handleChange}
                 />
@@ -191,13 +215,31 @@ const Login = () => {
                 </InputGroupAddon>
 
                 <Input
-                  placeholder="Password"
-                  type="password"
+                  placeholder="Contraseña"
+                  type={verPassword ? "text" : "password"}
                   name="password"
-                  autoComplete="new-password"
+                  autoComplete="current-password"
                   value={form.password}
                   onChange={handleChange}
                 />
+                <InputGroupAddon addonType="append">
+                  <InputGroupText
+                    role="button"
+                    tabIndex={0}
+                    aria-label={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    title={verPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    onClick={() => setVerPassword((v) => !v)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setVerPassword((v) => !v);
+                      }
+                    }}
+                    style={{ cursor: "pointer" }}
+                  >
+                    {verPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+                  </InputGroupText>
+                </InputGroupAddon>
               </InputGroup>
             </FormGroup>
 
@@ -206,6 +248,8 @@ const Login = () => {
                 className="custom-control-input"
                 id="customCheckLogin"
                 type="checkbox"
+                checked={recordarme}
+                onChange={(e) => setRecordarme(e.target.checked)}
               />
 
               <label
