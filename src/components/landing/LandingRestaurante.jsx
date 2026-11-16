@@ -111,7 +111,11 @@ const LandingRestaurante = ({ empresa, slug }) => {
             <a href="#visitanos" className="lr-solo-escritorio">
               Visítanos
             </a>
-            <Link to={urlReserva} className="lr-btn lr-btn-primario lr-btn-chico">
+            <Link to={`/${slug}/login`} className="lr-nav-login">
+              <span className="lr-txt-pc">Iniciar sesión</span>
+              <span className="lr-txt-movil">Ingresar</span>
+            </Link>
+            <Link to={urlReserva} className="lr-btn lr-btn-primario lr-btn-chico lr-nav-reservar">
               Reservar
             </Link>
           </div>

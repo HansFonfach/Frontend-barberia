@@ -80,8 +80,46 @@
 .lr-nav-links a:hover {
   color: var(--lr-acento-claro);
 }
+.lr-nav-links .lr-nav-login {
+  border: 1px solid var(--lr-borde);
+  border-radius: 999px;
+  padding: 8px 16px;
+  white-space: nowrap;
+}
+.lr-txt-movil {
+  display: none;
+}
+@media (max-width: 991px) {
+  .lr-nav-links {
+    gap: 18px;
+  }
+  .lr-nav-links .lr-solo-escritorio {
+    display: none;
+  }
+  .lr-txt-pc {
+    display: none;
+  }
+  .lr-txt-movil {
+    display: inline;
+  }
+}
 @media (max-width: 767px) {
   .lr-nav-links .lr-solo-escritorio {
+    display: none;
+  }
+  .lr-nav-links {
+    gap: 10px;
+  }
+  .lr-nav-links .lr-nav-login {
+    padding: 8px 12px;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+  }
+}
+/* Celulares chicos: el "Reservar" de arriba se esconde (está el botón grande
+   de la portada y el botón fijo de abajo) para que quepa "Ingresar". */
+@media (max-width: 420px) {
+  .lr-nav-links .lr-nav-reservar {
     display: none;
   }
 }
