@@ -16,8 +16,16 @@ const useAparicion = () => {
   const raiz = useRef(null);
   useEffect(() => {
     const nodos = raiz.current?.querySelectorAll(".lr-aparece") || [];
-    if (!("IntersectionObserver" in window)) {
-      nodos.forEach((n) => n.classList.add("visible"));
+    // Google y otros buscadores sacan una "foto" de la página sin hacer
+    // scroll: para ellos todo se muestra de inmediato, sin animación.
+    const esBuscador = /bot|crawl|spider|slurp|google|bing|yandex|baidu|duckduck|lighthouse|headless/i.test(
+      navigator.userAgent || "",
+    );
+    if (esBuscador || !("IntersectionObserver" in window)) {
+      nodos.forEach((n) => {
+        n.style.transition = "none";
+        n.classList.add("visible");
+      });
       return undefined;
     }
     const obs = new IntersectionObserver(

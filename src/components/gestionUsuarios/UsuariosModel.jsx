@@ -39,6 +39,7 @@ const UsuarioModal = ({
   tipoUsuario = "usuario",
   camposAdicionales,
   fullscreen,
+  onGuardado,
 }) => {
   const esProfesional = tipoUsuario === "barbero";
 
@@ -118,6 +119,8 @@ const UsuarioModal = ({
           timer: 2500,
           showConfirmButton: false,
         });
+        // Recarga la lista para que se vea el cambio sin refrescar la página
+        onGuardado?.();
         // Ojo: acá NO se llama a onSave() — en este modo "cliente" apunta a
         // handleGuardarConAlerta del hook, que vuelve a guardar leyendo el
         // `usuarioEdit` del hook (nunca actualizado por este modal, que usa
@@ -128,6 +131,7 @@ const UsuarioModal = ({
     } catch (err) {
       setError(
         err?.response?.data?.message ||
+          err?.response?.data?.msg ||
           err?.message ||
           "Error al actualizar el usuario",
       );

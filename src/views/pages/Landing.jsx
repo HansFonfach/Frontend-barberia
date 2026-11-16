@@ -9,12 +9,16 @@ import { seoNegocio, useSeo } from "utils/seo";
 import LandingGimnasio from "components/landing/LandingGimnasio";
 import LandingRestaurante from "components/landing/LandingRestaurante";
 import LandingNegocio from "components/landing/LandingNegocio";
+import LandingClasica from "components/landing/LandingClasica";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 
 import {
   obtenerTemaEmpresa,
   TEMAS_LEGACY_POR_SLUG,
 } from "utils/temaEmpresa";
+
+// Negocios que prefieren seguir con el diseño anterior de la página pública
+const NEGOCIOS_CON_DISENO_CLASICO = ["lumicabeauty"];
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -102,6 +106,19 @@ const Landing = () => {
 
   // 💈 Barberías, salones y demás negocios de horas: página nueva con los
   // colores del negocio (estilo oscuro o claro, ver LandingNegocio.jsx)
+  if (NEGOCIOS_CON_DISENO_CLASICO.includes(slug)) {
+    return (
+      <LandingClasica
+        empresa={empresa}
+        slug={slug}
+        servicios={servicios}
+        profesionales={profesionales}
+        theme={theme}
+        navigate={navigate}
+      />
+    );
+  }
+
   return (
     <LandingNegocio
       empresa={empresa}

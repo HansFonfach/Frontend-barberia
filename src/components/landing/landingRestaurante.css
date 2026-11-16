@@ -130,7 +130,9 @@
 /* ── Hero ── */
 .lr-hero {
   position: relative;
-  min-height: 100vh;
+  /* Tope de alto: Google saca la foto con una pantalla gigante y con 100vh
+     el texto quedaba fuera de la captura (en pantallas normales no cambia). */
+  min-height: min(100vh, 1100px);
   display: flex;
   align-items: center;
   justify-content: center;

@@ -701,6 +701,7 @@ const GestionClientes = () => {
         toggle={toggleModal}
         usuario={usuarioEdit}
         onSave={handleGuardarConAlerta}
+        onGuardado={getAllUsers}
         tipoUsuario="cliente"
         fullscreen={vistaMobile}
       />
