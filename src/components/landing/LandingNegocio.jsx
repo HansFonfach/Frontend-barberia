@@ -558,7 +558,8 @@ const CSS = `
 .ln-hero-fondo{position:absolute;inset:0;pointer-events:none}
 .ln-oscuro .ln-hero-fondo{background:radial-gradient(900px 500px at 78% 30%,color-mix(in srgb,var(--ln-acc) 22%,transparent),transparent 70%),repeating-linear-gradient(135deg,rgba(255,255,255,.025) 0 2px,transparent 2px 14px)}
 .ln-claro .ln-hero-fondo{background:radial-gradient(800px 460px at 80% 20%,var(--ln-acc-suave),transparent 70%)}
-.ln-hero-in{position:relative;display:grid;grid-template-columns:1.25fr .75fr;gap:48px;align-items:center}
+.ln-hero-in{position:relative;display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,.75fr);gap:48px;align-items:center}
+.ln-hero-txt,.ln-destacados,.ln-caja,.ln-mapa{min-width:0}
 .ln-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
 .ln-datos{display:flex;gap:34px;flex-wrap:wrap;margin-top:42px}
 .ln-datos div{display:flex;flex-direction:column;max-width:240px}
@@ -663,12 +664,12 @@ button.ln-serv-ir{background:none;border:0;padding:0;cursor:pointer;font-family:
 .ln-gift{display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;border-radius:26px;padding:42px;border:1px solid color-mix(in srgb,var(--ln-acc) 35%,transparent);background:linear-gradient(120deg,var(--ln-acc-suave),var(--ln-card))}
 .ln-gift p{margin:8px 0 0;max-width:520px}
 
-.ln-info{display:grid;grid-template-columns:1fr 1.1fr;gap:28px;align-items:stretch}
+.ln-info{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:28px;align-items:stretch}
 .ln-caja{background:var(--ln-card);border:1px solid var(--ln-borde);border-radius:22px;padding:30px}
 .ln-lista{list-style:none;padding:0;margin:20px 0 0}
 .ln-lista li{display:flex;justify-content:space-between;gap:16px;padding:11px 0;border-bottom:1px solid var(--ln-borde);font-size:15px}
 .ln-lista span{color:var(--ln-mut)}
-.ln-lista b{font-weight:500;text-align:right;color:var(--ln-txt)}
+.ln-lista b{font-weight:500;text-align:right;color:var(--ln-txt);min-width:0;overflow-wrap:anywhere}
 .ln-contacto{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
 .ln-mapa{position:relative;border-radius:22px;overflow:hidden;min-height:340px;border:1px solid var(--ln-borde);background:var(--ln-card)}
 .ln-mapa iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
@@ -683,12 +684,16 @@ button.ln-serv-ir{background:none;border:0;padding:0;cursor:pointer;font-family:
 @media (max-width:900px){
   .ln-menu{display:none}
   .ln-hero{padding:48px 0 64px}
-  .ln-hero-in{grid-template-columns:1fr;gap:28px}
+  .ln-hero-in{grid-template-columns:minmax(0,1fr);gap:28px}
+  .ln-dest-txt b{white-space:normal}
+  .ln-lead{overflow-wrap:anywhere}
   .ln-hero-emblema{order:-1;justify-content:flex-start;padding:22px 0 0 22px}
   .ln-emblema{width:120px}
   .ln-emblema::after{inset:-18px}.ln-emblema::before{inset:-8px}
   .ln-emblema span{font-size:40px}
-  .ln-servicios,.ln-info,.ln-pasos,.ln-equipo.dos{grid-template-columns:1fr}
+  .ln-servicios,.ln-info,.ln-pasos,.ln-equipo.dos{grid-template-columns:minmax(0,1fr)}
+  .ln-claro .ln-servicios{grid-template-columns:minmax(0,1fr)}
+  .ln-mapa{min-height:300px}
   .ln-destacados.con-logo{margin-top:0;padding-top:22px}
   .ln-dest-logo{display:none}
   .ln-equipo.uno .ln-pro,.ln-equipo.dos .ln-pro{flex-direction:column}
