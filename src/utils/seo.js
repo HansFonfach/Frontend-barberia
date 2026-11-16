@@ -61,19 +61,61 @@ const urlInstagram = (valor) => {
   return usuario ? `https://www.instagram.com/${usuario}` : null;
 };
 
-/** Título, descripción y JSON-LD de la página pública de un negocio. */
-export const seoNegocio = (empresa, slug) => {
+/** Nombre sin emojis (para el título y la descripción que muestra Google). */
+const sinEmojis = (texto) =>
+  String(texto || "")
+    .replace(/[\p{Extended_Pictographic}‍️]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const unirConY = (lista) =>
+  lista.length <= 1 ? lista.join("") : `${lista.slice(0, -1).join(", ")} y ${lista[lista.length - 1]}`;
+
+const pesosCL = (n) => `$${Number(n).toLocaleString("es-CL")}`;
+
+const ACCION_POR_RUBRO = {
+  restaurante: { texto: "Reserva tu mesa", ruta: "reservar-mesa" },
+  gimnasio: { texto: "Agenda tu clase", ruta: "clase-de-prueba" },
+};
+
+/**
+ * Título, descripción y JSON-LD de la página pública de un negocio.
+ * Con `servicios` (los de la página) arma una descripción con sus servicios
+ * principales + la ciudad ("Lifting de pestañas, ... en Ovalle"), que es lo
+ * que la gente escribe en Google, y le pasa a Google la lista con precios.
+ */
+export const seoNegocio = (empresa, slug, servicios = []) => {
   if (!empresa?.nombre) return {};
   const clave = String(empresa.rubro || empresa.tipo || "").toLowerCase().trim();
-  const etiqueta = ETIQUETA_RUBRO[clave] || "Negocio";
+  const etiqueta = ETIQUETA_RUBRO[clave] || "";
   const ciudad = String(empresa.ciudad || "").trim();
-  const accion = clave === "restaurante" ? "Reserva tu mesa" : clave === "gimnasio" ? "Agenda tu clase" : "Reserva tu hora";
+  const accion = ACCION_POR_RUBRO[clave] || { texto: "Reserva tu hora", ruta: "reservar" };
   const url = `${SITIO}/${slug || empresa.slug}`;
+  const nombre = sinEmojis(empresa.nombre) || empresa.nombre;
 
-  const titulo = `${empresa.nombre}${ciudad ? ` en ${ciudad}` : ""} · ${accion} online | AgendaFonfach`;
+  const lista = (servicios || []).filter((s) => s?.nombre);
+  const nivel = (s) => (s.destacado === "principal" ? 2 : s.destacado === "destacado" ? 1 : 0);
+  const marcados = lista.filter((s) => nivel(s) > 0).sort((a, b) => nivel(b) - nivel(a));
+  const principales = (marcados.length ? marcados : lista).slice(0, 3).map((s) => sinEmojis(s.nombre));
+  const precios = lista
+    .map((s) => Number(s.precioFinal ?? s.precio))
+    .filter((p) => Number.isFinite(p) && p > 0);
+
+  // "Lumica Beauty · Salón de belleza en Ovalle | Reserva online"
+  const queEs = [etiqueta, ciudad && `en ${ciudad}`].filter(Boolean).join(" ");
+  const titulo = `${nombre}${queEs ? ` · ${queEs}` : ""} | ${accion.texto} online`;
+
+  // "Lifting de pestañas, Diseño de cejas y Laminado de cejas en Ovalle. <descripción>"
+  const entrada = principales.length
+    ? `${unirConY(principales)}${ciudad ? ` en ${ciudad}` : ""}.`
+    : queEs
+      ? `${etiqueta || nombre}${ciudad ? ` en ${ciudad}` : ""}.`
+      : "";
   const descripcion = recortar(
-    empresa.descripcion ||
-      `${etiqueta}${ciudad ? ` en ${ciudad}` : ""}. Revisa servicios, precios y horas disponibles y reserva online en ${empresa.nombre}.`,
+    `${entrada} ${
+      empresa.descripcion ||
+      `Revisa servicios, precios y horas disponibles y reserva online en ${nombre}.`
+    }`,
   );
 
   const sameAs = [
@@ -86,7 +128,7 @@ export const seoNegocio = (empresa, slug) => {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": TIPO_SCHEMA[clave] || "LocalBusiness",
-    name: empresa.nombre,
+    name: nombre,
     url,
     ...(empresa.logo ? { image: empresa.logo, logo: empresa.logo } : {}),
     ...(empresa.descripcion ? { description: recortar(empresa.descripcion, 300) } : {}),
@@ -101,6 +143,44 @@ export const seoNegocio = (empresa, slug) => {
           },
         }
       : {}),
+    ...(ciudad ? { areaServed: { "@type": "City", name: ciudad } } : {}),
+    ...(precios.length
+      ? {
+          priceRange:
+            Math.min(...precios) === Math.max(...precios)
+              ? pesosCL(precios[0])
+              : `${pesosCL(Math.min(...precios))} - ${pesosCL(Math.max(...precios))}`,
+        }
+      : {}),
+    ...(lista.length
+      ? {
+          hasOfferCatalog: {
+            "@type": "OfferCatalog",
+            name: `Servicios de ${nombre}`,
+            itemListElement: lista.slice(0, 40).map((s) => {
+              const precio = Number(s.precioFinal ?? s.precio);
+              return {
+                "@type": "Offer",
+                itemOffered: {
+                  "@type": "Service",
+                  name: sinEmojis(s.nombre),
+                  ...(s.descripcion ? { description: recortar(s.descripcion, 200) } : {}),
+                },
+                ...(Number.isFinite(precio) && precio > 0 ? { price: precio, priceCurrency: "CLP" } : {}),
+              };
+            }),
+          },
+        }
+      : {}),
+    potentialAction: {
+      "@type": "ReserveAction",
+      name: accion.texto,
+      target: {
+        "@type": "EntryPoint",
+        urlTemplate: `${url}/${accion.ruta}`,
+        actionPlatform: ["https://schema.org/DesktopWebPlatform", "https://schema.org/MobileWebPlatform"],
+      },
+    },
     ...(sameAs.length ? { sameAs } : {}),
   };
 

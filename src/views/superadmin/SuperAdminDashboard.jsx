@@ -724,6 +724,11 @@ const SuperAdminDashboard = () => {
                                 <small>
                                   /{e.slug}
                                   {(rubroDe(e) || e.ciudad) && ` · ${[rubroDe(e), e.ciudad].filter(Boolean).join(" · ")}`}
+                                  {!e.ciudad && (
+                                    <span className="sa-sin-ciudad" title="Sin ciudad no aparece en el directorio por ciudad ni en búsquedas tipo 'servicio + ciudad'">
+                                      sin ciudad
+                                    </span>
+                                  )}
                                 </small>
                               </div>
                             </div>
@@ -914,6 +919,7 @@ const CSS = `
 .sa-menu{border:1px solid var(--sa-borde);border-radius:12px;box-shadow:0 18px 40px -12px rgba(15,23,42,.25);padding:6px;min-width:220px}
 .sa-menu .dropdown-item{border-radius:8px;font-size:13px;padding:8px 12px;display:flex;align-items:center;gap:6px}
 .sa-lista-movil{display:none}
+.sa-sin-ciudad{margin-left:6px;font-size:10.5px;font-weight:700;color:#b45309;background:#fffbeb;border:1px solid #fde68a;border-radius:999px;padding:1px 7px;cursor:help}
 .sa-menu .sa-menu-ambar{color:#b45309}
 .sa-solo-pc{display:inline}
 

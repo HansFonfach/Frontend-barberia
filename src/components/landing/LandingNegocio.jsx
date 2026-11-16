@@ -288,6 +288,10 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
             <div>
               <div className="ln-eyebrow">Precios claros, sin sorpresas</div>
               <h2 className="ln-h2">Servicios y precios</h2>
+              <p className="ln-mut ln-serv-intro">
+                {rubro || "Servicios"}
+                {ciudad ? ` en ${ciudad}` : ""}: revisa el precio y la duración de cada servicio y reserva tu hora online.
+              </p>
             </div>
             <button type="button" className="ln-btn-sec" onClick={reservar}>Reservar</button>
           </div>
@@ -595,6 +599,7 @@ const CSS = `
 .ln-estrella{display:inline-flex;align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ln-acc-txt);background:var(--ln-acc);border-radius:999px;padding:3px 9px;margin-bottom:6px}
 .ln-dest.estrella{background:var(--ln-acc-suave);border-radius:14px;padding:13px 12px;margin:6px 0;border-bottom-color:transparent}
 .ln-serv.estrella{border-color:var(--ln-acc)!important;box-shadow:0 0 0 1px var(--ln-acc)}
+.ln-serv-intro{font-size:15px;line-height:1.6;max-width:560px;margin:10px 0 0}
 .ln-recortado{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ln-serv-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
 .ln-serv-meta .ln-dur{margin-top:0}

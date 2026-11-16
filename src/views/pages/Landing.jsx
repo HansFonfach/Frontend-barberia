@@ -34,7 +34,9 @@ const Landing = () => {
   } = useLandingData(slug);
 
   // Título, descripción y datos para Google de la página del negocio
-  useSeo(seoNegocio(empresa, slug));
+  // (con sus servicios — o sus clases si es gimnasio — para que Google
+  // asocie "lifting de pestañas", "corte de pelo", etc. con la ciudad)
+  useSeo(seoNegocio(empresa, slug, empresa?.rubro === "gimnasio" ? clases : servicios));
 
   // Usa los colores que el negocio haya configurado en
   // "Configuración → Colores" (empresa.colores). Si todavía no configuró
