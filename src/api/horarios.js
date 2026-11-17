@@ -1,8 +1,22 @@
 import { axiosPrivate } from "./axiosPrivate";
 import { axiosPublic } from "./axiosPublic";
 
+// Token de la sesión (si hay). Esta ruta es pública, pero si el cliente
+// inició sesión el back necesita saber quién es (ej. sus días extra de
+// calendario por suscripción). Antes dependía solo de la cookie, que en
+// iPhone (Safari) no viaja entre agendafonfach.cl y el servidor, y esos
+// clientes quedaban viendo solo los días normales.
+const tokenSesion = () => {
+  try {
+    return localStorage.getItem("token") || sessionStorage.getItem("token") || "";
+  } catch {
+    return "";
+  }
+};
+
 export const getHorasDisponibles = async (barberoId, fecha, servicioId) => {
   try {
+    const token = tokenSesion();
     const res = await axiosPublic.get(
       `/horarios/barbero/${barberoId}/horas-disponibles`,
       {
@@ -10,6 +24,7 @@ export const getHorasDisponibles = async (barberoId, fecha, servicioId) => {
           fecha,
           servicioId,
         },
+        ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
       },
     );
 
