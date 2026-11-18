@@ -13,7 +13,7 @@ import {
 } from "reactstrap";
 import { Info } from "lucide-react";
 import { FaPhone } from "react-icons/fa";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 
 import StepIndicator from "components/reserva/StepIndicator";
 import ServicioSelector from "components/reserva/ServicioSelector";
@@ -29,6 +29,8 @@ import { useRutValidator } from "hooks/useRutValidador";
 import { EmpresaContext, useEmpresa } from "context/EmpresaContext";
 import { esEstiloBarberia, PALETA_BARBERIA } from "components/landing/LandingNegocio";
 import { getUsuarioByRutPublico } from "api/usuarios";
+import { getPlanesPublicos } from "api/planesSuscripcion";
+import { mejorPlanParaServicio } from "utils/planesSuscripcion";
 
 import { calcularPrecioFinal } from "utils/preciosServicios.js";
 import {
@@ -201,6 +203,26 @@ const ReservarHoraInvitado = () => {
     if (!servicio) return null;
     return servicios.find((s) => String(s._id) === String(servicio)) || null;
   }, [servicio, servicios]);
+
+  // "Ahorra suscribiéndote": si algún plan del negocio incluye el servicio
+  // elegido y sale más barato por servicio, se muestra el aviso.
+  const [planes, setPlanes] = useState([]);
+  useEffect(() => {
+    let vigente = true;
+    getPlanesPublicos(slug)
+      .then((r) => vigente && setPlanes(Array.isArray(r?.data?.planes) ? r.data.planes : []))
+      .catch(() => vigente && setPlanes([]));
+    return () => {
+      vigente = false;
+    };
+  }, [slug]);
+  const sugerenciaPlan = useMemo(
+    () =>
+      servicioSeleccionado
+        ? mejorPlanParaServicio(planes, servicioSeleccionado._id, servicioSeleccionado.precio)
+        : null,
+    [planes, servicioSeleccionado],
+  );
 
   const barberoSeleccionado = useMemo(() => {
     // 👈 esto falta, agregalo
@@ -391,6 +413,31 @@ const ReservarHoraInvitado = () => {
                   onSeleccionarServicio={handleSeleccionarServicio}
                   slug={slug}
                 />
+                {sugerenciaPlan && (
+                  <div
+                    className="d-flex align-items-start mb-4"
+                    style={{
+                      gap: 12,
+                      padding: "12px 14px",
+                      borderRadius: 12,
+                      border: `1px solid ${theme.primary}55`,
+                      background: barberia ? "rgba(201,162,75,.08)" : `${theme.primary}10`,
+                    }}
+                  >
+                    <span style={{ fontSize: 20, lineHeight: 1 }}>💡</span>
+                    <div style={{ fontSize: "0.9rem", lineHeight: 1.5 }}>
+                      <strong style={{ color: theme.primary }}>Ahorra suscribiéndote</strong>
+                      <div>
+                        Con el plan «{sugerenciaPlan.plan.nombre}», este servicio te sale a{" "}
+                        <strong>${sugerenciaPlan.precioPorServicio.toLocaleString("es-CL")}</strong> en vez de $
+                        {Number(servicioSeleccionado?.precio || 0).toLocaleString("es-CL")}.{" "}
+                        <Link to={`/${slug}#planes`} style={{ color: theme.primary, fontWeight: 600 }}>
+                          Ver planes
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {servicio && (
                   <BarberoSelector
                     barberos={barberosFiltrados}

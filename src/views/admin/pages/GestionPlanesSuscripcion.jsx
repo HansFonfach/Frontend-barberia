@@ -31,6 +31,8 @@ const FORM_VACIO = {
   cantidadPorCiclo: "2",
   serviciosPermitidos: [],
   diasVisibilidadCalendario: "40",
+  sugerirAlReservar: true,
+  destacado: false,
 };
 
 const formatoPesos = (valor) => {
@@ -108,6 +110,8 @@ const GestionPlanesSuscripcion = () => {
       cantidadPorCiclo: plan.cantidadPorCiclo ?? "2",
       serviciosPermitidos: (plan.serviciosPermitidos || []).map((s) => s._id),
       diasVisibilidadCalendario: plan.diasVisibilidadCalendario ?? "40",
+      sugerirAlReservar: plan.sugerirAlReservar !== false,
+      destacado: plan.destacado === true,
     });
     setModal(true);
   };
@@ -155,6 +159,8 @@ const GestionPlanesSuscripcion = () => {
       cantidadPorCiclo: Number(form.cantidadPorCiclo),
       serviciosPermitidos: form.serviciosPermitidos,
       diasVisibilidadCalendario: Number(form.diasVisibilidadCalendario) || 30,
+      sugerirAlReservar: form.sugerirAlReservar !== false,
+      destacado: form.destacado === true,
     };
 
     try {
@@ -449,6 +455,39 @@ const GestionPlanesSuscripcion = () => {
                 </FormGroup>
               </Col>
             </Row>
+
+            <FormGroup check className="mb-3">
+              <label className="form-check-label" style={{ cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  checked={form.destacado === true}
+                  onChange={(e) => setForm((prev) => ({ ...prev, destacado: e.target.checked }))}
+                />{" "}
+                Destacar este plan en la página pública ("Recomendado")
+              </label>
+              <small className="text-muted d-block">
+                Solo puede haber uno destacado: al marcar este, se quita el destacado de los demás.
+              </small>
+            </FormGroup>
+
+            <FormGroup check className="mb-3">
+              <label className="form-check-label" style={{ cursor: "pointer" }}>
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  checked={form.sugerirAlReservar !== false}
+                  onChange={(e) =>
+                    setForm((prev) => ({ ...prev, sugerirAlReservar: e.target.checked }))
+                  }
+                />{" "}
+                Sugerir este plan al reservar ("Ahorra suscribiéndote")
+              </label>
+              <small className="text-muted d-block">
+                Desmárcalo en planes especiales (ej. Padre e hijo) que no corresponde
+                ofrecerle a cualquier cliente.
+              </small>
+            </FormGroup>
 
             <Row>
               <Col md="4">

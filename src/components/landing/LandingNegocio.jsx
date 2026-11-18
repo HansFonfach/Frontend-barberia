@@ -1,5 +1,7 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { listarCategoriasPublico } from "api/categoria";
+import { getPlanesPublicos } from "api/planesSuscripcion";
+import { ahorroPlan, totalServiciosPlan } from "utils/planesSuscripcion";
 
 /**
  * Página pública de barberías, salones y demás negocios de horas (los
@@ -120,6 +122,31 @@ const telefonoWhatsapp = (tel) => {
   return d;
 };
 
+/* ───────── planes de suscripción ───────── */
+const periodoPlan = (p) => {
+  const d = Number(p.duracionDias) || 0;
+  if (d === 30 || d === 31) return "al mes";
+  if (d === 365) return "al año";
+  if (d % 30 === 0 && d > 30) return `por ${d / 30} meses`;
+  return `por ${d} días`;
+};
+const cuotaPlan = (p) => {
+  const n = Number(p.cantidadPorCiclo) || 0;
+  const servicios = `${n} ${n === 1 ? "servicio" : "servicios"}`;
+  return Number(p.cicloDias) < Number(p.duracionDias)
+    ? `${servicios} cada ${p.cicloDias} días`
+    : `${servicios} incluidos`;
+};
+
+// Descripciones largas escritas de corrido: cada emoji que viene después de
+// un espacio empieza una línea nueva, así se lee como una lista.
+const parrafosPlan = (texto) =>
+  String(texto || "")
+    .replace(/\s+(?=\p{Extended_Pictographic})/gu, "\n")
+    .split(/\n+/)
+    .map((l) => l.trim())
+    .filter(Boolean);
+
 const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], theme, navigate }) => {
   const barberia = esEstiloBarberia(empresa, slug);
   const oscuro = barberia || esEstiloOscuro(empresa);
@@ -127,6 +154,52 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
   const [categoria, setCategoria] = useState("todas");
   const [categoriasApi, setCategoriasApi] = useState(null);
   const [detalle, setDetalle] = useState(null); // servicio con la descripción completa
+  const [planes, setPlanes] = useState([]);
+  const [planDetalle, setPlanDetalle] = useState(null); // plan con la descripción completa
+  // Con más de 4 planes, en computador se muestran en carrusel (4 a la vista)
+  const carruselRef = useRef(null);
+  const [carrusel, setCarrusel] = useState({ inicio: true, fin: false, pagina: 0, paginas: 1 });
+  const actualizarCarrusel = () => {
+    const el = carruselRef.current;
+    if (!el) return;
+    const tarjeta = el.querySelector(".ln-plan");
+    const paso = tarjeta ? tarjeta.offsetWidth + 20 : el.clientWidth || 1;
+    const aLaVista = Math.max(1, Math.round((el.clientWidth + 20) / paso));
+    const total = el.querySelectorAll(".ln-plan").length;
+    setCarrusel({
+      inicio: el.scrollLeft <= 4,
+      fin: el.scrollLeft + el.clientWidth >= el.scrollWidth - 4,
+      pagina: Math.round(el.scrollLeft / paso),
+      paginas: Math.max(1, total - aLaVista + 1),
+    });
+  };
+  const moverCarrusel = (dir) => {
+    const el = carruselRef.current;
+    const tarjeta = el?.querySelector(".ln-plan");
+    if (!el || !tarjeta) return;
+    el.scrollBy({ left: dir * (tarjeta.offsetWidth + 20), behavior: "smooth" });
+  };
+  useEffect(() => {
+    if (planes.length <= 4) return undefined;
+    const t = setTimeout(actualizarCarrusel, 60);
+    window.addEventListener("resize", actualizarCarrusel);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", actualizarCarrusel);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [planes.length]);
+
+  // Planes de suscripción activos (solo si el negocio los tiene habilitados)
+  useEffect(() => {
+    let vigente = true;
+    getPlanesPublicos(slug)
+      .then((r) => vigente && setPlanes(Array.isArray(r?.data?.planes) ? r.data.planes : []))
+      .catch(() => vigente && setPlanes([]));
+    return () => {
+      vigente = false;
+    };
+  }, [slug]);
 
   // Las mismas categorías (y en el mismo orden) que al reservar
   useEffect(() => {
@@ -140,11 +213,15 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
   }, [slug]);
 
   useEffect(() => {
-    if (!detalle) return undefined;
-    const cerrar = (e) => e.key === "Escape" && setDetalle(null);
+    if (!detalle && !planDetalle) return undefined;
+    const cerrar = (e) => {
+      if (e.key !== "Escape") return;
+      setDetalle(null);
+      setPlanDetalle(null);
+    };
     window.addEventListener("keydown", cerrar);
     return () => window.removeEventListener("keydown", cerrar);
-  }, [detalle]);
+  }, [detalle, planDetalle]);
 
   useEffect(() => {
     if (document.querySelector('link[data-ln-fuentes="1"]')) return;
@@ -195,6 +272,37 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
   const irA = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   const instagram = urlInstagram(empresa.redes?.instagram);
   const whatsapp = telefonoWhatsapp(empresa.telefono);
+  // El plan que sale más barato por servicio se destaca (si hay más de uno)
+  // Si el negocio eligió un plan destacado, ese manda; si no, el más barato por servicio
+  const planElegido = planes.find((p) => p.destacado) || null;
+  const planTop = planElegido ||
+    (planes.length > 1
+      ? [...planes].sort((a, b) => a.precio / (totalServiciosPlan(a) || 1) - b.precio / (totalServiciosPlan(b) || 1))[0]
+      : planes[0] || null);
+  // Qué datos tiene al menos un plan: para dejar el mismo espacio en todas las tarjetas
+  const alinearPlanes = {
+    eq: planes.some((p) => totalServiciosPlan(p) > 1),
+    ahorro: planes.some((p) => ahorroPlan(p, servicios).ahorro > 0),
+    desc: planes.some((p) => p.descripcion),
+    masLink: planes.some((p) => String(p.descripcion || "").length > 140),
+  };
+  const precioPlanMin = planes.length ? Math.min(...planes.map((p) => Number(p.precio) || 0)) : 0;
+  const ahorroMaximo = planes.length ? Math.max(...planes.map((p) => ahorroPlan(p, servicios).ahorro)) : 0;
+
+  // Si llegan desde "Ver planes" al reservar (link con #planes), bajar a la sección
+  useEffect(() => {
+    if (planes.length && typeof window !== "undefined" && window.location.hash === "#planes") {
+      setTimeout(() => document.getElementById("planes")?.scrollIntoView({ behavior: "smooth", block: "start" }), 150);
+    }
+  }, [planes.length]);
+  const quieroPlan = (p) => {
+    if (whatsapp) {
+      const texto = `Hola! Quiero suscribirme al plan "${p.nombre}" de ${empresa.nombre}`;
+      window.open(`https://wa.me/${whatsapp}?text=${encodeURIComponent(texto)}`, "_blank", "noopener");
+    } else {
+      irA("ubicacion");
+    }
+  };
   const mostrarLogo = empresa.logo && empresa.configuracion?.mostrarLogo !== false;
 
   // Filtro por categoría igual que al reservar: Todos · categorías · Otros
@@ -242,6 +350,7 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
           </button>
           <div className="ln-menu">
             <button type="button" onClick={() => irA("servicios")}>Servicios</button>
+            {planes.length > 0 && <button type="button" onClick={() => irA("planes")}>Planes</button>}
             {profesionales.length > 0 && <button type="button" onClick={() => irA("equipo")}>Equipo</button>}
             {empresa.giftcards?.activa && <button type="button" onClick={() => navigate(`/${slug}/regalar`)}>Giftcards</button>}
             <button type="button" onClick={() => irA("ubicacion")}>Ubicación</button>
@@ -269,6 +378,19 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
               <button type="button" className="ln-btn ln-btn-lg" onClick={reservar}>Reservar mi hora</button>
               <button type="button" className="ln-btn-sec ln-btn-lg" onClick={() => irA("servicios")}>Ver servicios</button>
             </div>
+            {planes.length > 0 && (
+              <button type="button" className="ln-plan-pill" onClick={() => irA("planes")}>
+                {ahorroMaximo > 0 ? (
+                  <>
+                    ⭐ Hazte socio y ahorra hasta <b>{clp(ahorroMaximo)}</b> · <u>Ver planes</u>
+                  </>
+                ) : (
+                  <>
+                    ⭐ Suscripciones desde <b>{clp(precioPlanMin)}</b> · <u>Ver planes</u>
+                  </>
+                )}
+              </button>
+            )}
             <div className="ln-datos">
               <div><b>24/7</b><span>reserva online</span></div>
               {desde > 0 && <div><b>Desde {clp(desde)}</b><span>{servicios.length} servicios</span></div>}
@@ -368,6 +490,123 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
           )}
         </div>
       </section>
+
+      {/* ───── PLANES DE SUSCRIPCIÓN ───── */}
+      {planes.length > 0 && (
+        <section id="planes" className="ln-sec ln-sec-planes">
+          <div className="ln-wrap">
+            <div className="ln-tit ln-tit-centro">
+              <div>
+                <div className="ln-eyebrow">Hazte socio</div>
+                <h2 className="ln-h2">Planes de suscripción</h2>
+                <p className="ln-mut ln-serv-intro" style={{ margin: "12px auto 0" }}>
+                  Tus servicios de siempre a precio de socio, y con más días para agendar tu hora.
+                </p>
+              </div>
+            </div>
+            <div className={planes.length > 4 ? "ln-carrusel" : undefined}>
+            {planes.length > 4 && (
+              <button type="button" className="ln-plan-flecha izq" onClick={() => moverCarrusel(-1)} disabled={carrusel.inicio} aria-label="Planes anteriores">‹</button>
+            )}
+            <div
+              ref={planes.length > 4 ? carruselRef : undefined}
+              onScroll={planes.length > 4 ? actualizarCarrusel : undefined}
+              className={`ln-planes${planes.length > 4 ? " ln-planes-carrusel" : ""}`}
+              style={planes.length > 4 ? undefined : { maxWidth: planes.length * 360 }}
+            >
+              {planes.map((p) => {
+                const total = totalServiciosPlan(p);
+                const incluidos = (p.serviciosPermitidos || []).map((s) => s?.nombre).filter(Boolean);
+                const esTop = planTop && planTop._id === p._id;
+                const { normal, ahorro, porcentaje } = ahorroPlan(p, servicios);
+                const descLarga = String(p.descripcion || "").length > 140;
+                return (
+                  <div key={p._id} className={`ln-plan ${esTop ? "top" : ""}`}>
+                    {esTop && <span className="ln-plan-badge">{planElegido ? "Recomendado" : "Más conveniente"}</span>}
+                    <h3>{p.nombre}</h3>
+                    <div className="ln-plan-precio">
+                      <strong>{clp(p.precio)}</strong>
+                      <span>{periodoPlan(p)}</span>
+                    </div>
+                    {/* Los espacios vacíos ("ln-slot-vacio") mantienen todas las
+                        tarjetas alineadas aunque a alguna le falte un dato */}
+                    {total > 1 ? (
+                      <div className="ln-plan-eq">Equivale a {clp(p.precio / total)} por servicio</div>
+                    ) : (
+                      alinearPlanes.eq && <div className="ln-plan-eq ln-slot-vacio">·</div>
+                    )}
+                    {ahorro > 0 ? (
+                      <div className="ln-plan-ahorro-bloque">
+                        <span className="ln-plan-ahorro">
+                          Ahorras {clp(ahorro)}
+                          {porcentaje >= 5 ? ` (${porcentaje}%)` : ""}
+                        </span>
+                        <div className="ln-plan-normal">
+                          Pagando cada servicio por separado: <s>{clp(normal)}</s>
+                        </div>
+                      </div>
+                    ) : (
+                      alinearPlanes.ahorro && (
+                        <div className="ln-plan-ahorro-bloque ln-slot-vacio" aria-hidden="true">
+                          <span className="ln-plan-ahorro">·</span>
+                          <div className="ln-plan-normal">Pagando cada servicio por separado: <s>$0</s></div>
+                        </div>
+                      )
+                    )}
+                    {(p.descripcion || alinearPlanes.desc) && (
+                      <>
+                        <p className={`ln-plan-desc ${descLarga ? "ln-recortado3" : ""} ${alinearPlanes.desc ? "ln-plan-desc-fija" : ""} ${p.descripcion ? "" : "ln-slot-vacio"}`}>
+                          {p.descripcion || "·"}
+                        </p>
+                        {descLarga ? (
+                          <button type="button" className="ln-link ln-plan-mas" onClick={() => setPlanDetalle(p)}>
+                            Ver detalle del plan →
+                          </button>
+                        ) : (
+                          alinearPlanes.masLink && (
+                            <span className="ln-link ln-plan-mas ln-slot-vacio" aria-hidden="true">·</span>
+                          )
+                        )}
+                      </>
+                    )}
+                    <ul>
+                      <li>{cuotaPlan(p)}</li>
+                      <li>
+                        {incluidos.length
+                          ? `Incluye: ${incluidos.slice(0, 3).join(", ")}${incluidos.length > 3 ? ` y ${incluidos.length - 3} más` : ""}`
+                          : "Sirve para cualquier servicio"}
+                      </li>
+                      {p.diasVisibilidadCalendario ? (
+                        <li>Agenda con hasta {p.diasVisibilidadCalendario} días de anticipación</li>
+                      ) : null}
+                      <li>Reservas online 24/7 con tu cuenta</li>
+                    </ul>
+                    <button type="button" className={esTop ? "ln-btn" : "ln-btn-sec"} onClick={() => quieroPlan(p)}>
+                      Quiero este plan
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+            {planes.length > 4 && (
+              <>
+                <button type="button" className="ln-plan-flecha der" onClick={() => moverCarrusel(1)} disabled={carrusel.fin} aria-label="Más planes">›</button>
+                {carrusel.paginas > 1 && (
+                  <div className="ln-carrusel-puntos" aria-hidden="true">
+                    {Array.from({ length: carrusel.paginas }, (_, i) => (
+                      <span key={i} className={i === Math.min(carrusel.pagina, carrusel.paginas - 1) ? "activo" : ""} />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+            </div>
+            <p className="ln-plan-nota">
+              Te suscribes directo con {empresa.nombre}{whatsapp ? " por WhatsApp" : ""}. Después reservas con tu cuenta y tus servicios del plan se descuentan solos.
+            </p>
+          </div>
+        </section>
+      )}
 
       {/* ───── EQUIPO ───── */}
       {profesionales.length > 0 && (
@@ -528,6 +767,34 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
       </footer>
 
       <button type="button" className="ln-btn ln-fija" onClick={reservar}>Reservar mi hora</button>
+
+      {/* ───── Detalle completo de un plan de suscripción ───── */}
+      {planDetalle && (
+        <div className="ln-modal-fondo" onClick={() => setPlanDetalle(null)} role="presentation">
+          <div className="ln-modal" role="dialog" aria-modal="true" aria-label={planDetalle.nombre} onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="ln-modal-x" onClick={() => setPlanDetalle(null)} aria-label="Cerrar">×</button>
+            <div className="ln-eyebrow">Plan de suscripción</div>
+            <h3 className="ln-h2" style={{ fontSize: 28, marginTop: 6 }}>{planDetalle.nombre}</h3>
+            <div className="ln-modal-meta">
+              <strong>{clp(planDetalle.precio)}</strong>
+              <span className="ln-mut ln-small">{periodoPlan(planDetalle)}</span>
+            </div>
+            <div className="ln-plan-texto">
+              {parrafosPlan(planDetalle.descripcion).map((linea, i) => (
+                <p key={i}>{linea}</p>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="ln-btn ln-btn-lg"
+              style={{ width: "100%" }}
+              onClick={() => quieroPlan(planDetalle)}
+            >
+              Quiero este plan
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ───── Descripción completa de un servicio ───── */}
       {detalle && (
@@ -734,6 +1001,70 @@ button.ln-serv-ir{background:none;border:0;padding:0;cursor:pointer;font-family:
 .ln-barberia .ln-pie::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--ln-linea)}
 .ln-barberia .ln-btn-sec{border-color:rgba(243,237,226,.3)}
 .ln-barberia .ln-btn-sec:hover{border-color:var(--ln-oro);color:var(--ln-oro)}
+.ln-plan-pill{display:inline-flex;align-items:center;gap:8px;margin-top:20px;background:var(--ln-acc-suave);border:1px solid color-mix(in srgb,var(--ln-acc) 35%,transparent);color:var(--ln-txt);border-radius:999px;padding:8px 16px;font-size:14px;cursor:pointer;transition:border-color .15s}
+.ln-plan-pill:hover{border-color:var(--ln-acc)}
+.ln-plan-pill b{color:var(--ln-acc);font-weight:700}
+.ln-plan-pill u{text-underline-offset:3px;color:var(--ln-mut)}
+.ln-sec-planes{background:radial-gradient(900px 420px at 50% 0%,color-mix(in srgb,var(--ln-acc) 9%,transparent),transparent 70%)}
+.ln-planes{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:20px;margin:38px auto 0}
+.ln-plan{position:relative;background:var(--ln-card);border:1px solid var(--ln-borde);border-radius:22px;padding:30px 28px;display:flex;flex-direction:column;min-width:0}
+.ln-plan.top{border-color:var(--ln-acc);box-shadow:0 26px 60px -36px var(--ln-acc)}
+.ln-plan-badge{position:absolute;top:-12px;left:28px;background:var(--ln-acc);color:var(--ln-acc-txt);font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:4px 11px}
+.ln-plan h3{font-family:var(--ln-serif);font-size:25px;font-weight:700;margin:0 0 12px;color:var(--ln-txt)}
+.ln-claro .ln-plan h3{font-weight:400}
+.ln-plan-precio{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.ln-plan-precio strong{font-family:var(--ln-serif);font-size:40px;line-height:1;color:var(--ln-acc);font-weight:700}
+.ln-plan-precio span{color:var(--ln-mut);font-size:14px}
+.ln-plan-eq{font-size:13px;color:var(--ln-mut);margin-top:8px}
+.ln-plan-desc{font-size:14px;color:var(--ln-mut);margin:12px 0 0;line-height:1.55}
+.ln-plan ul{list-style:none;padding:0;margin:20px 0 24px;display:flex;flex-direction:column;gap:10px;font-size:14.5px;color:var(--ln-txt)}
+.ln-plan li{display:flex;gap:10px;line-height:1.45}
+.ln-plan li::before{content:"✓";color:var(--ln-acc);font-weight:700}
+.ln-plan .ln-btn,.ln-plan .ln-btn-sec{margin-top:auto;width:100%;justify-content:center}
+.ln-recortado3{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.ln-plan-mas{align-self:flex-start;margin-top:8px;color:var(--ln-acc);font-size:13.5px}
+.ln-barberia .ln-plan-mas{color:var(--ln-oro)}
+.ln-plan-texto{margin:14px 0 22px}
+.ln-plan-texto p{color:var(--ln-mut);font-size:15px;line-height:1.65;margin:0 0 10px}
+.ln-plan-texto p:first-child{color:var(--ln-txt);font-weight:600}
+.ln-plan-ahorro{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;margin-top:12px;background:var(--ln-acc-suave);color:var(--ln-acc);border:1px solid color-mix(in srgb,var(--ln-acc) 30%,transparent);font-size:13px;font-weight:700;border-radius:999px;padding:5px 12px}
+.ln-plan-normal{font-size:12.5px;color:var(--ln-mut);margin-top:6px}
+.ln-plan-normal s{opacity:.85}
+.ln-barberia .ln-plan-ahorro{background:rgba(201,162,75,.12);color:var(--ln-oro);border-color:rgba(201,162,75,.32)}
+.ln-carrusel{position:relative;margin-top:24px}
+.ln-planes-carrusel{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:16px 2px 36px;margin-top:0;scrollbar-width:none}
+.ln-planes-carrusel::-webkit-scrollbar{display:none}
+.ln-planes-carrusel .ln-plan{flex:0 0 calc((100% - 60px) / 4);scroll-snap-align:start}
+.ln-plan-flecha{position:absolute;top:50%;transform:translateY(-50%);z-index:2;width:44px;height:44px;border-radius:50%;border:1px solid var(--ln-borde);background:var(--ln-card);color:var(--ln-txt);font-size:22px;line-height:1;display:grid;place-items:center;cursor:pointer;box-shadow:0 10px 26px -12px rgba(0,0,0,.6);transition:opacity .15s,border-color .15s}
+.ln-plan-flecha:hover{border-color:var(--ln-acc)}
+.ln-plan-flecha:disabled{opacity:0;pointer-events:none}
+.ln-plan-flecha.izq{left:-22px}
+.ln-plan-flecha.der{right:-22px}
+.ln-barberia .ln-plan-flecha:hover{border-color:var(--ln-oro);color:var(--ln-oro)}
+.ln-carrusel-puntos{display:flex;justify-content:center;gap:8px;margin-top:-12px}
+.ln-carrusel-puntos span{width:7px;height:7px;border-radius:50%;background:var(--ln-borde);transition:background .2s,width .2s}
+.ln-carrusel-puntos span.activo{width:20px;border-radius:99px;background:var(--ln-acc)}
+.ln-barberia .ln-carrusel-puntos span.activo{background:var(--ln-oro)}
+@media (max-width:1100px){.ln-planes-carrusel .ln-plan{flex-basis:calc((100% - 40px) / 3)}}
+@media (max-width:900px){
+  .ln-planes-carrusel{display:grid;grid-template-columns:minmax(0,1fr);overflow:visible;padding:16px 0 0}
+  .ln-plan-flecha,.ln-carrusel-puntos{display:none}
+}
+.ln-plan h3{min-height:2.4em;line-height:1.2}
+.ln-plan-precio{flex-direction:column;align-items:flex-start;gap:4px}
+.ln-plan-ahorro-bloque{display:flex;flex-direction:column}
+.ln-plan-desc-fija{min-height:4.65em}
+.ln-slot-vacio{visibility:hidden}
+@media (max-width:900px){
+  .ln-plan h3{min-height:0}
+  .ln-plan-desc-fija{min-height:0}
+  .ln-slot-vacio{display:none}
+}
+.ln-plan-nota{text-align:center;margin:26px auto 0;max-width:620px;font-size:13.5px;color:var(--ln-mut)}
+.ln-barberia .ln-plan-pill b,.ln-barberia .ln-plan-precio strong,.ln-barberia .ln-plan li::before{color:var(--ln-oro)}
+.ln-barberia .ln-plan.top{border-color:var(--ln-oro);box-shadow:0 26px 60px -36px rgba(201,162,75,.7)}
+.ln-barberia .ln-plan-badge{background:var(--ln-oro);color:#1a140a}
+.ln-barberia .ln-sec-planes{background:radial-gradient(900px 420px at 50% 0%,rgba(201,162,75,.10),transparent 70%)}
 .ln-pie-in{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .ln-fija{display:none}
 

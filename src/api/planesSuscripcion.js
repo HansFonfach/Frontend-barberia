@@ -1,4 +1,8 @@
 import { axiosPrivate } from "./axiosPrivate";
+import { axiosPublic } from "./axiosPublic";
+
+// Planes activos para la página pública del negocio (sin login)
+export const getPlanesPublicos = (slug) => axiosPublic.get(`/planesSuscripcion/publico/${slug}`);
 
 // CRUD de plantillas de plan de suscripción (Gestión de planes de
 // suscripción). Solo para negocios con permiteSuscripcion activo.
