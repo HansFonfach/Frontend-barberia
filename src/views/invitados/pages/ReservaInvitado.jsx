@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useContext } from "react";
 import {
   Container,
   Card,
@@ -26,11 +26,13 @@ import { useReservaInvitado } from "hooks/useReservaInvitado";
 import AuthFooter from "components/Footers/AuthFooter";
 import logo from "assets/img/logo4.png";
 import { useRutValidator } from "hooks/useRutValidador";
-import { useEmpresa } from "context/EmpresaContext";
+import { EmpresaContext, useEmpresa } from "context/EmpresaContext";
+import { esEstiloBarberia, PALETA_BARBERIA } from "components/landing/LandingNegocio";
 import { getUsuarioByRutPublico } from "api/usuarios";
 
 import { calcularPrecioFinal } from "utils/preciosServicios.js";
 import {
+  construirTema,
   obtenerTemaEmpresa,
   TEMAS_LEGACY_POR_SLUG,
   TEMA_DEFAULT,
@@ -45,6 +47,35 @@ const TEMA_DEFAULT_RESERVA = {
   textMuted: "rgba(255,255,255,0.9)",
 };
 
+const CSS_RESERVA_BARBERIA = `
+/* Reserva sin cuenta con estilo "barbería clásica": todo en negro, dorado y café */
+.ri-barberia{background:#0b0b0c;color:#f3ede2}
+.ri-barberia .text-muted,.ri-barberia small{color:#a9a196!important}
+.ri-barberia .card{background:#141416!important;border:1px solid rgba(201,162,75,.18)!important;color:#f3ede2}
+.ri-barberia .card-body,.ri-barberia h1,.ri-barberia h2,.ri-barberia h3,.ri-barberia h4,.ri-barberia h5,.ri-barberia h6,.ri-barberia label,.ri-barberia strong,.ri-barberia b,.ri-barberia .text-dark,.ri-barberia p{color:#f3ede2}
+.ri-barberia .bg-white,.ri-barberia .bg-light,.ri-barberia .bg-secondary,.ri-barberia .list-group-item{background:#1b1b1e!important;color:#f3ede2}
+.ri-barberia .progress{background:#232326}
+.ri-barberia [style*="background-color: rgb(255, 255, 255)"],.ri-barberia [style*="background: rgb(255, 255, 255)"],.ri-barberia [style*="background-color: white"],.ri-barberia [style*="background-color: rgb(247, 250, 252)"],.ri-barberia [style*="background-color: rgb(248, 249, 250)"]{background-color:#1b1b1e!important}
+.ri-barberia [style*="background-color: rgb(201, 162, 75)"]{color:#1a140a!important}
+.ri-barberia [style*="color: rgb(33, 37, 41)"],.ri-barberia [style*="color: rgb(51, 51, 51)"],.ri-barberia [style*="color: rgb(45, 55, 72)"]{color:#f3ede2!important}
+.ri-barberia .form-control,.ri-barberia input{background:#1b1b1e!important;color:#f3ede2!important;border-color:rgba(243,237,226,.16)!important}
+.ri-barberia .form-control::placeholder{color:#8d867b}
+.ri-barberia hr,.ri-barberia .border-top,.ri-barberia .border-bottom,.ri-barberia td,.ri-barberia th{border-color:rgba(243,237,226,.1)!important}
+.ri-barberia .btn-outline-primary{color:#c9a24b;border-color:rgba(201,162,75,.6);background:transparent}
+.ri-barberia .btn-outline-primary:hover{background:#c9a24b;color:#1a140a}
+.ri-barberia .badge-info{background:rgba(201,162,75,.18);color:#e2c27a}
+.ri-barberia .alert-success{background:rgba(201,162,75,.12);color:#e2c27a;border-color:rgba(201,162,75,.3)}
+.ri-barberia-modal .modal-content{background:#141416;color:#f3ede2;border:1px solid rgba(201,162,75,.25)}
+.ri-barberia-modal .modal-header{border-color:rgba(243,237,226,.1)}
+.ri-barberia-modal .modal-title,.ri-barberia-modal .close{color:#f3ede2}
+.ri-barberia-modal .form-control{background:#1b1b1e;color:#f3ede2;border-color:rgba(243,237,226,.16)}
+.ri-barberia-modal .form-control::placeholder{color:#8d867b}
+.ri-barberia-modal input,.ri-barberia-modal .input-group-text,.ri-barberia-modal [style*="background-color: rgb(255, 255, 255)"],.ri-barberia-modal [style*="background: rgb(255, 255, 255)"],.ri-barberia-modal [style*="background-color: white"],.ri-barberia-modal [style*="background-color: rgb(248, 249, 250)"],.ri-barberia-modal [style*="background-color: rgb(247, 250, 252)"]{background-color:#1b1b1e!important;color:#f3ede2!important;border-color:rgba(243,237,226,.16)!important}
+.ri-barberia-modal input::placeholder{color:#8d867b}
+.ri-barberia-modal .text-dark,.ri-barberia-modal [style*="color: rgb(33, 37, 41)"]{color:#f3ede2!important}
+.ri-barberia .text-primary,.ri-barberia-modal .text-primary{color:#c9a24b!important}
+`;
+
 const ReservarHoraInvitado = () => {
   const { slug } = useParams();
   const { empresa } = useEmpresa();
@@ -52,10 +83,37 @@ const ReservarHoraInvitado = () => {
   // Usa los colores que el negocio haya configurado en
   // "Configuración → Colores" (empresa.colores). Si todavía no configuró
   // nada, cae al tema hecho a mano que tenía antes (o al default general).
-  const theme = obtenerTemaEmpresa(empresa, slug, {
-    temasLegacyPorSlug: TEMAS_LEGACY_POR_SLUG,
-    temaDeFabrica: TEMA_DEFAULT_RESERVA,
-  });
+  // Estilo "barbería clásica" (ej. La Santa): los mismos colores de su
+  // página pública. Solo en esta reserva como invitado; con sesión iniciada
+  // todo sigue igual.
+  const barberia = esEstiloBarberia(empresa, slug);
+  const contextoEmpresa = useContext(EmpresaContext);
+  const coloresBarberia = useMemo(
+    () => ({
+      primario: PALETA_BARBERIA.oro,
+      primarioLight: "rgba(201,162,75,.14)",
+      primarioDark: PALETA_BARBERIA.oroOscuro,
+      heroBg: `radial-gradient(760px 380px at 85% 10%, rgba(201,162,75,.20), transparent 70%), radial-gradient(560px 340px at 6% 100%, rgba(122,80,42,.26), transparent 70%), repeating-linear-gradient(135deg, rgba(255,255,255,.022) 0 2px, transparent 2px 14px), ${PALETA_BARBERIA.negro}`,
+      heroEsClaro: false,
+    }),
+    [],
+  );
+  // Los selectores de servicio, día y hora toman los colores de la empresa
+  // del contexto: aquí se les pasan los de barbería sin tocar los datos.
+  const valorContexto = useMemo(
+    () =>
+      barberia && contextoEmpresa
+        ? { ...contextoEmpresa, empresa: { ...empresa, colores: { ...(empresa?.colores || {}), ...coloresBarberia } } }
+        : contextoEmpresa,
+    [barberia, contextoEmpresa, empresa, coloresBarberia],
+  );
+
+  const theme = barberia
+    ? construirTema(coloresBarberia, TEMA_DEFAULT_RESERVA)
+    : obtenerTemaEmpresa(empresa, slug, {
+        temasLegacyPorSlug: TEMAS_LEGACY_POR_SLUG,
+        temaDeFabrica: TEMA_DEFAULT_RESERVA,
+      });
   const isLightTheme = theme.variant === "light";
 
   const {
@@ -199,7 +257,12 @@ const ReservarHoraInvitado = () => {
   }
 
   return (
-    <div style={{ backgroundColor: "#FFFFFF", overflowX: "hidden" }}>
+    <EmpresaContext.Provider value={valorContexto}>
+    <div
+      className={barberia ? "ri-barberia" : undefined}
+      style={{ backgroundColor: barberia ? PALETA_BARBERIA.negro : "#FFFFFF", overflowX: "hidden" }}
+    >
+      {barberia && <style>{CSS_RESERVA_BARBERIA}</style>}
       <div
         className="position-relative py-7 py-lg-8"
         style={{
@@ -241,7 +304,7 @@ const ReservarHoraInvitado = () => {
                   backdropFilter: isLightTheme ? "none" : "blur(10px)",
                 }}
               >
-                ✨ {empresa?.nombre || "Bienvenido"}
+                {barberia ? "✂️" : "✨"} {empresa?.nombre || "Bienvenido"}
               </div>
               <h1
                 className="display-2 font-weight-bold mb-2"
@@ -275,6 +338,16 @@ const ReservarHoraInvitado = () => {
         </Container>
       </div>
 
+      {barberia && (
+        <div
+          aria-hidden="true"
+          style={{
+            height: 1,
+            background: "linear-gradient(90deg, transparent, rgba(201,162,75,.8), transparent)",
+          }}
+        />
+      )}
+
       <Container className="mt-5 mb-5" style={{ maxWidth: "1200px" }}>
         <div className="mb-4">
           <div className="d-flex justify-content-between">
@@ -300,7 +373,10 @@ const ReservarHoraInvitado = () => {
           <div
             className="p-4 text-white"
             style={{
-              background: `linear-gradient(135deg, ${theme.primary} 0%, ${theme.primaryDark} 100%)`,
+              background: barberia
+                ? `linear-gradient(135deg, ${PALETA_BARBERIA.negro} 0%, #1c1c1f 100%)`
+                : `linear-gradient(135deg, ${theme.primary} 0%, ${theme.primaryDark} 100%)`,
+              borderBottom: barberia ? `3px solid ${PALETA_BARBERIA.oro}` : undefined,
             }}
           >
             <h3 className="mb-1">Reserva tu hora</h3>
@@ -377,7 +453,12 @@ const ReservarHoraInvitado = () => {
           </CardBody>
         </Card>
 
-        <Modal isOpen={modalInvitado} toggle={toggleModalInvitado} centered>
+        <Modal
+          isOpen={modalInvitado}
+          toggle={toggleModalInvitado}
+          centered
+          modalClassName={barberia ? "ri-barberia-modal" : undefined}
+        >
           <ModalHeader toggle={toggleModalInvitado}>
             Datos del cliente
           </ModalHeader>
@@ -528,7 +609,7 @@ const ReservarHoraInvitado = () => {
                   border: "none",
                   fontWeight: 600,
                   borderRadius: "8px",
-                  color: "#FFFFFF",
+                  color: barberia ? "#1a140a" : "#FFFFFF",
                 }}
                 onClick={async () => {
                   await reservarComoInvitado();
@@ -544,6 +625,7 @@ const ReservarHoraInvitado = () => {
 
       <AuthFooter />
     </div>
+    </EmpresaContext.Provider>
   );
 };
 

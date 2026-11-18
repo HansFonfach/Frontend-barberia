@@ -1777,7 +1777,7 @@ const ConfiguracionEmpresa = () => {
 
                     <Field
                       label="Estilo de tu página pública"
-                      hint="Oscuro: fondo negro y letras elegantes (ideal si tu marca es oscura). Claro: fondo claro y moderno. Automático: oscuro si tu color de fondo es oscuro."
+                      hint="Oscuro: fondo negro y letras elegantes (ideal si tu marca es oscura). Claro: fondo claro y moderno. Barbería clásica: negro con rojo barbero, dorado y la franja del poste (también en la reserva sin cuenta). Automático: oscuro si tu color de fondo es oscuro."
                     >
                       <Input
                         type="select"
@@ -1788,6 +1788,7 @@ const ConfiguracionEmpresa = () => {
                         <option value="auto">Automático</option>
                         <option value="oscuro">Oscuro</option>
                         <option value="claro">Claro</option>
+                        <option value="barberia">Barbería clásica (negro, rojo y dorado)</option>
                       </Input>
                     </Field>
 

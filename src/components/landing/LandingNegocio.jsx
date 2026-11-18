@@ -66,9 +66,24 @@ const acentoPara = (primario, oscuro) => {
   return base;
 };
 
+/* ───────── estilo "barbería clásica" ─────────
+   Negro, dorado y café, elegante y con aire de barbería clásica.
+   Se activa con estiloPagina = "barberia" o para los slugs de la lista. */
+export const SLUGS_ESTILO_BARBERIA = ["lasantabarberia"];
+export const PALETA_BARBERIA = {
+  oro: "#c9a24b",
+  oroOscuro: "#9c7a2f",
+  cafe: "#7a502a",
+  negro: "#0b0b0c",
+  crema: "#f3ede2",
+};
+export const esEstiloBarberia = (empresa, slug) =>
+  empresa?.configuracion?.estiloPagina === "barberia" ||
+  SLUGS_ESTILO_BARBERIA.includes(slug || empresa?.slug);
+
 export const esEstiloOscuro = (empresa) => {
   const elegido = empresa?.configuracion?.estiloPagina;
-  if (elegido === "oscuro") return true;
+  if (elegido === "oscuro" || elegido === "barberia") return true;
   if (elegido === "claro") return false;
   const lFondo = luminancia(empresa?.colores?.fondo);
   return lFondo != null && lFondo < 0.2;
@@ -106,8 +121,9 @@ const telefonoWhatsapp = (tel) => {
 };
 
 const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], theme, navigate }) => {
-  const oscuro = esEstiloOscuro(empresa);
-  const acento = acentoPara(theme?.primary, oscuro);
+  const barberia = esEstiloBarberia(empresa, slug);
+  const oscuro = barberia || esEstiloOscuro(empresa);
+  const acento = barberia ? PALETA_BARBERIA.oro : acentoPara(theme?.primary, oscuro);
   const [categoria, setCategoria] = useState("todas");
   const [categoriasApi, setCategoriasApi] = useState(null);
   const [detalle, setDetalle] = useState(null); // servicio con la descripción completa
@@ -158,6 +174,17 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
         "--ln-borde": "#ece8e2",
         "--ln-serif": "'DM Serif Display', Georgia, serif",
       };
+  if (barberia) {
+    Object.assign(vars, {
+      "--ln-bg": PALETA_BARBERIA.negro,
+      "--ln-bg2": "#111113",
+      "--ln-card": "#161618",
+      "--ln-txt": PALETA_BARBERIA.crema,
+      "--ln-mut": "#a9a196",
+      "--ln-borde": "rgba(243,237,226,.09)",
+      "--ln-oro": PALETA_BARBERIA.oro,
+    });
+  }
   vars["--ln-acc"] = acento;
   vars["--ln-acc-txt"] = textoSobre(acento);
   vars["--ln-acc-suave"] = oscuro ? mezclar(acento, "#0e0e0f", 0.82) : mezclar(acento, "#ffffff", 0.88);
@@ -203,7 +230,7 @@ const LandingNegocio = ({ empresa, slug, servicios = [], profesionales = [], the
   );
 
   return (
-    <div className={`ln ${oscuro ? "ln-oscuro" : "ln-claro"}`} style={vars}>
+    <div className={`ln ${oscuro ? "ln-oscuro" : "ln-claro"}${barberia ? " ln-barberia" : ""}`} style={vars}>
       <style>{CSS}</style>
 
       {/* ───── NAV ───── */}
@@ -599,6 +626,7 @@ const CSS = `
 .ln-estrella{display:inline-flex;align-self:flex-start;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ln-acc-txt);background:var(--ln-acc);border-radius:999px;padding:3px 9px;margin-bottom:6px}
 .ln-dest.estrella{background:var(--ln-acc-suave);border-radius:14px;padding:13px 12px;margin:6px 0;border-bottom-color:transparent}
 .ln-serv.estrella{border-color:var(--ln-acc)!important;box-shadow:0 0 0 1px var(--ln-acc)}
+.ln-oscuro .ln-serv.estrella{padding-left:18px;padding-right:18px;border-radius:16px;border:1px solid var(--ln-acc)}
 .ln-serv-intro{font-size:15px;line-height:1.6;max-width:560px;margin:10px 0 0}
 .ln-recortado{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .ln-serv-meta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:8px}
@@ -683,6 +711,29 @@ button.ln-serv-ir{background:none;border:0;padding:0;cursor:pointer;font-family:
 .ln-mapa-vacio{display:grid;place-items:center}
 
 .ln-pie{padding:34px 0 40px;border-top:1px solid var(--ln-borde)}
+/* ───── Estilo "barbería clásica" (negro, dorado y café) ───── */
+.ln-barberia{--ln-linea:linear-gradient(90deg,transparent,rgba(201,162,75,.8),transparent)}
+.ln-barberia .ln-nav{border-bottom:0}
+.ln-barberia .ln-nav::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--ln-linea)}
+.ln-barberia .ln-eyebrow{color:var(--ln-oro)}
+.ln-barberia .ln-dest strong,.ln-barberia .ln-serv-precio strong,.ln-barberia .ln-modal-meta strong{color:var(--ln-oro)}
+.ln-barberia .ln-logo{box-shadow:0 0 0 1.5px var(--ln-oro)}
+.ln-barberia .ln-dest-logo{border-color:var(--ln-oro)}
+.ln-barberia .ln-hero-fondo{background:radial-gradient(860px 520px at 80% 20%,rgba(201,162,75,.17),transparent 70%),radial-gradient(720px 480px at 4% 96%,rgba(122,80,42,.24),transparent 70%),repeating-linear-gradient(135deg,rgba(255,255,255,.022) 0 2px,transparent 2px 14px)}
+.ln-barberia .ln-btn{background:linear-gradient(135deg,#dcb865 0%,#b8913f 100%);color:#1a140a!important}
+.ln-barberia .ln-btn:hover{box-shadow:0 10px 26px -12px rgba(201,162,75,.8)}
+.ln-barberia .ln-destacados{border-color:rgba(201,162,75,.24)}
+.ln-barberia .ln-destacados::before{content:"";position:absolute;left:24px;right:24px;top:-1px;height:1px;background:var(--ln-linea)}
+.ln-barberia .ln-dest.estrella{background:rgba(201,162,75,.10)}
+.ln-barberia .ln-estrella{background:var(--ln-oro);color:#1a140a}
+.ln-barberia .ln-tags span{background:rgba(201,162,75,.12);color:var(--ln-oro)}
+.ln-barberia .ln-paso b{background:transparent;border:1.5px solid var(--ln-oro);color:var(--ln-oro);font-family:var(--ln-serif);font-size:17px}
+.ln-barberia .ln-gift{border-color:rgba(201,162,75,.35)}
+.ln-barberia .ln-serv.estrella{border-color:var(--ln-oro)!important;box-shadow:0 0 0 1px var(--ln-oro);background:rgba(201,162,75,.06)}
+.ln-barberia .ln-pie{position:relative;border-top:0}
+.ln-barberia .ln-pie::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--ln-linea)}
+.ln-barberia .ln-btn-sec{border-color:rgba(243,237,226,.3)}
+.ln-barberia .ln-btn-sec:hover{border-color:var(--ln-oro);color:var(--ln-oro)}
 .ln-pie-in{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
 .ln-fija{display:none}
 
